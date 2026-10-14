@@ -1,8 +1,10 @@
+import os
 import re
 import sys, tempfile, json
 from playwright.sync_api import sync_playwright
-sp = sys.argv[1]
-NEW = f"file://{sp}/_seeded.html#servants"
+# tests/run.py serves the page over http (FGI_URL); run by hand, a suite opens the files directly
+sp = sys.argv[1]; URL = os.environ.get("FGI_URL") or "file://" + sp
+NEW = f"{URL}/_seeded.html#servants"
 errs = []
 prof = tempfile.mkdtemp()
 def page(ctx):
@@ -11,6 +13,10 @@ def page(ctx):
     return pg
 def check(label, ok): print(("PASS " if ok else "FAIL ") + label)
 LS = "JSON.parse(localStorage.getItem('spirit-origin-list:v1'))"
+def scroll(pg, sel):
+    # the servant page can redraw while Playwright scrolls to a part of it; scroll to the newest copy instead
+    pg.wait_for_selector(sel, state="attached")
+    pg.evaluate("(sel) => document.querySelector(sel).scrollIntoView({block: 'nearest'})", sel)
 with sync_playwright() as p:
     ctx = p.chromium.launch_persistent_context(prof, viewport={"width": 1360, "height": 1000}, accept_downloads=True)
     pg = page(ctx); pg.goto(NEW); pg.wait_for_timeout(900)
@@ -19,7 +25,7 @@ with sync_playwright() as p:
     # ---- skill ranks
     tiers = pg.evaluate("Array.from(document.querySelectorAll('article.skill')).map(a=>a.className)")
     check(f"Ereshkigal skill tiers {tiers}", tiers == ["skill tier-a", "skill tier-a", "skill tier-ex"])
-    pg.locator(".skills").scroll_into_view_if_needed(); pg.wait_for_timeout(1200)
+    scroll(pg, ".skills"); pg.wait_for_timeout(1200)
     pg.locator(".skills").screenshot(path=f"{sp}/v7-skills-ex.png")
     # rank box in the form
     pg.click('[data-action="edit"]'); pg.wait_for_timeout(400)
@@ -34,7 +40,7 @@ with sync_playwright() as p:
     pg.keyboard.type("Territory Creation"); pg.click('[data-ps="0:rank"]'); pg.keyboard.type("EX"); pg.click('[data-action="ps-edit"]'); pg.wait_for_timeout(400)
     check("passive EX styled", pg.locator(".ps-row.tier-ex .sk-rk").count() == 1)
     # ---- deck: official cards
-    pg.locator(".deck-sec").scroll_into_view_if_needed()
+    scroll(pg, ".deck-sec")
     for i, n in enumerate([1, 1, 2, 3, 3]):
         for _ in range(n): pg.click(f'[data-action="deck"][data-i="{i}"]'); pg.wait_for_timeout(120)
     check(f"deck shows official card art ({pg.locator('.deck .cmd-img').count()})", pg.locator(".deck .cmd-img").count() == 5)
@@ -90,7 +96,7 @@ with sync_playwright() as p:
     pg.click('[data-action="vs-swap"]'); pg.wait_for_timeout(300)
     check("swap A and B", pg.evaluate("document.querySelector('[data-vs-pick=\"0\"]').value") == "artoria")
     pg.screenshot(path=f"{sp}/v7-versus3.png", full_page=True)
-    pg.locator('.vs-match').scroll_into_view_if_needed(); pg.wait_for_timeout(300); pg.hover('.vs-match td.aff-c >> nth=0'); pg.wait_for_timeout(200)
+    scroll(pg, '.vs-match'); pg.wait_for_timeout(300); pg.hover('.vs-match td.aff-c >> nth=0'); pg.wait_for_timeout(200)
     check(f"tooltip: {pg.locator('#vs-tip').inner_text()!r}", pg.evaluate("!document.getElementById('vs-tip').hidden") and "attacking" in pg.locator("#vs-tip").inner_text())
     pg.click('[data-action="vs-del"]'); pg.wait_for_timeout(300)
     check("third removed", pg.locator(".vs-hero").count() == 2)
@@ -138,7 +144,7 @@ with sync_playwright() as p:
             im = Image.open(f).convert("RGB").resize((454, 300)); sheet.paste(im, ((i % cols) * 454, (i // cols) * 320)); dr.text(((i % cols) * 454 + 6, (i // cols) * 320 + 303), cl, fill="black")
         sheet.save(f"{sp}/v7-bg-{scheme}-sheet.png")
         if scheme == "dark":
-            pg.click('[data-id="ereshkigal"]'); pg.wait_for_timeout(600); pg.locator(".skills").scroll_into_view_if_needed(); pg.wait_for_timeout(1000)
+            pg.click('[data-id="ereshkigal"]'); pg.wait_for_timeout(600); scroll(pg, ".skills"); pg.wait_for_timeout(1000)
             pg.locator(".skills").screenshot(path=f"{sp}/v7-dark-skills.png")
             pg.click('[data-action="tab"][data-tab="versus"]'); pg.wait_for_timeout(700)
             pg.screenshot(path=f"{sp}/v7-dark-versus.png", full_page=True)
@@ -151,7 +157,7 @@ with sync_playwright() as p:
         sw = [pg.evaluate("document.documentElement.scrollWidth")]
         pg.click('[data-action="add-wish"]'); pg.wait_for_timeout(300); pg.fill("#sv-name", f"Phone Wish {wdt}"); pg.select_option("#sv-cls", "Archer"); pg.select_option("#sv-rarity", "4"); pg.click('#servant-form button[type="submit"]'); pg.wait_for_timeout(600)
         pg.click('[data-action="close"]'); pg.wait_for_timeout(300)
-        pg.locator(".wish").scroll_into_view_if_needed(); sw.append(pg.evaluate("document.documentElement.scrollWidth")); pg.screenshot(path=f"{sp}/v7-phone{wdt}-wish.png")
+        scroll(pg, ".wish"); sw.append(pg.evaluate("document.documentElement.scrollWidth")); pg.screenshot(path=f"{sp}/v7-phone{wdt}-wish.png")
         pg.click("#tab-summon"); pg.wait_for_timeout(700); sw.append(pg.evaluate("document.documentElement.scrollWidth")); pg.click(f'.smg [data-action="summon"]'); pg.wait_for_timeout(2700); pg.screenshot(path=f"{sp}/v7-phone{wdt}-summon1.png"); pg.wait_for_timeout(2300)
         pg.screenshot(path=f"{sp}/v7-phone{wdt}-summon2.png"); sw.append(pg.evaluate("document.documentElement.scrollWidth"))
         pg.click(".sm-done"); pg.wait_for_timeout(700)

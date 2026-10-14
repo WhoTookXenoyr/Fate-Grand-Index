@@ -1,7 +1,9 @@
+import os
 import sys, tempfile, json
 from playwright.sync_api import sync_playwright
-sp = sys.argv[1]
-NEW = f"file://{sp}/_seeded.html#servants"
+# tests/run.py serves the page over http (FGI_URL); run by hand, a suite opens the files directly
+sp = sys.argv[1]; URL = os.environ.get("FGI_URL") or "file://" + sp
+NEW = f"{URL}/_seeded.html#servants"
 errs = []
 fails = []
 def check(label, ok):
@@ -20,7 +22,7 @@ with sync_playwright() as p:
     h = open(f"{sp}/_seeded.html").read()
     assert h.count("\ninit();\n})();") == 1
     open(f"{sp}/_t81.html", "w").write(h.replace("\ninit();\n})();", "\nwindow.__t = {buffVocab, buffTagsInLine, offenseKit, pctRange, S: () => S};\ninit();\n})();"))
-    pg.goto(f"file://{sp}/_t81.html"); pg.wait_for_timeout(1000)
+    pg.goto(f"{URL}/_t81.html"); pg.wait_for_timeout(1000)
     u = pg.evaluate("""() => {
       const {buffVocab, buffTagsInLine, offenseKit, pctRange} = window.__t, S = window.__t.S();
       const v = buffVocab();

@@ -1,6 +1,8 @@
+import os
 import sys, tempfile, json
 from playwright.sync_api import sync_playwright
-sp = sys.argv[1]; BASE = f"file://{sp}/_seeded.html"
+# tests/run.py serves the page over http (FGI_URL); run by hand, a suite opens the files directly
+sp = sys.argv[1]; URL = os.environ.get("FGI_URL") or "file://" + sp; BASE = f"{URL}/_seeded.html"
 errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
@@ -11,6 +13,12 @@ def atlas(r):
     r.fulfill(path=f"{sp}/{f}", content_type="image/png")
 def docs(pg):
     v = json.loads(pg.evaluate("localStorage.getItem('spirit-origin-list:v1')"))["servants"]; return v if isinstance(v, list) else list(v.values())
+def put_roster(pg, change, back):
+    # leave the app first (for a picture on the same site), so nothing it still had to save can overwrite this
+    pg.goto(f"{URL}/ph_face.png")
+    d = json.loads(pg.evaluate("localStorage.getItem('spirit-origin-list:v1')")); sv = d["servants"]
+    change(sv if isinstance(sv, list) else list(sv.values()), sv)
+    pg.evaluate("v => localStorage.setItem('spirit-origin-list:v1', v)", json.dumps(d)); pg.goto(back)
 NEW = [("Ishtar Rider", "Rider", 182), ("Shuten-Douji Caster", "Caster", 225), ("Nitocris Caster", "Caster", 120), ("Elizabeth Halloween", "Caster", 61), ("Scathach Assassin", "Assassin", 133), ("Jeanne D'Arc (Beserker Alter)", "Berserker", 219), ("Atalanta Alter", "Berserker", 202), ("Lancelot Berserker", "Berserker", 48)]
 with sync_playwright() as p:
     ctx = p.chromium.launch_persistent_context(tempfile.mkdtemp(), viewport={"width": 1360, "height": 1000})
@@ -18,14 +26,14 @@ with sync_playwright() as p:
     pg.route("https://fonts.googleapis.com/**", lambda r: r.abort()); pg.route("https://fonts.gstatic.com/**", lambda r: r.abort())
     pg.route("https://static.atlasacademy.io/**", atlas)
     pg.goto(BASE + "#servants"); pg.wait_for_timeout(1500)
-    d = json.loads(pg.evaluate("localStorage.getItem('spirit-origin-list:v1')")); sv = d["servants"]
-    for i, (n, c, no) in enumerate(NEW):
-        doc = {"id": "t" + str(i), "order": 100 + i, "name": n, "cls": c, "rarity": 5 if i % 2 else 4, "level": 80, "npLevel": 2, "skills": [9, 8, 7], "hp": 11000, "atk": 9000, "notes": "mine " + str(i)}
-        if i == 0: doc.update({"level": 92, "hp": None, "atk": None})
-        if i == 1: doc.update({"deck": ["Buster", "", "", "", ""], "npCard": "Quick", "attr": "Sky"})
-        if isinstance(sv, list): sv.append(doc)
-        else: sv[doc["id"]] = doc
-    pg.evaluate("v => localStorage.setItem('spirit-origin-list:v1', v)", json.dumps(d)); pg.reload(); pg.wait_for_timeout(1600)
+    def add_new(lst, sv):
+        for i, (n, c, no) in enumerate(NEW):
+            doc = {"id": "t" + str(i), "order": 100 + i, "name": n, "cls": c, "rarity": 5 if i % 2 else 4, "level": 80, "npLevel": 2, "skills": [9, 8, 7], "hp": 11000, "atk": 9000, "notes": "mine " + str(i)}
+            if i == 0: doc.update({"level": 92, "hp": None, "atk": None})
+            if i == 1: doc.update({"deck": ["Buster", "", "", "", ""], "npCard": "Quick", "attr": "Sky"})
+            if isinstance(sv, list): sv.append(doc)
+            else: sv[doc["id"]] = doc
+    put_roster(pg, add_new, BASE + "#servants"); pg.wait_for_timeout(1600)
     before = {x["id"]: json.dumps(x, sort_keys=True) for x in docs(pg)}
     check("a note offers to fill in the empty parts", pg.locator("#fill-note").is_visible() and "empty parts" in pg.locator("#fill-note").inner_text())
     pg.click('[data-action="fill-open"]'); pg.wait_for_timeout(500)
@@ -65,10 +73,8 @@ with sync_playwright() as p:
     back = docs(pg)
     check("Undo puts all 8 back as they were", all(json.dumps(next(a for a in back if a["id"] == k), sort_keys=True) == v for k, v in before.items()))
     # one at a time, from the servant's page; your own skill text is never replaced
-    d = json.loads(pg.evaluate("localStorage.getItem('spirit-origin-list:v1')")); sv = d["servants"]
-    lst = sv if isinstance(sv, list) else list(sv.values())
-    t2 = next(a for a in lst if a["id"] == "t2"); t2["skillInfo"] = [{"name": "My own skill", "effect": "typed by me"}, {}, {}]
-    pg.evaluate("v => localStorage.setItem('spirit-origin-list:v1', v)", json.dumps(d)); pg.reload(); pg.wait_for_timeout(1500)
+    def own_skill(lst, sv): next(a for a in lst if a["id"] == "t2")["skillInfo"] = [{"name": "My own skill", "effect": "typed by me"}, {}, {}]
+    put_roster(pg, own_skill, pg.url); pg.wait_for_timeout(1500)
     pg.click('#list .row[data-id="t2"]'); pg.wait_for_timeout(900)
     check("a servant's own page offers to fill in what's missing", pg.locator("#dossier .fill-one").count() == 1 and "skill 2 & 3" in pg.locator("#dossier .fill-one").inner_text())
     pg.click('#dossier [data-action="fill-one"]'); pg.wait_for_timeout(1000)

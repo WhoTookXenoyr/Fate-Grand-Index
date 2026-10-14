@@ -40,12 +40,12 @@ python3 tools/build.py
 ## Tests
 
 ```sh
-pip install playwright && python3 -m playwright install chromium
-python3 tests/run.py             # builds, then runs every suite (2 at a time)
+pip install -r tests/requirements.txt && python3 -m playwright install chromium
+python3 tests/run.py             # builds, then runs every suite (-j 2 runs two at a time)
 python3 tests/run.py craft       # only suites whose name contains "craft"
 ```
 
-The tests never touch the internet: pictures that would come from Atlas Academy are replaced with placeholders, and the sample roster in `tests/fixtures/sample-roster.json` is built into `build/seeded.html`. Screenshots go to `build/test-work/`.
+The tests don't need the internet: most suites swap the pictures that would come from Atlas Academy for placeholders, and the sample roster in `tests/fixtures/sample-roster.json` is built into `build/seeded.html`. Screenshots go to `build/test-work/`.
 
 GitHub Actions runs the build check and every suite on each push to `main` and on every pull request (`.github/workflows/test.yml`).
 

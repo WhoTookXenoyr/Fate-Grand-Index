@@ -1,7 +1,9 @@
+import os
 import sys, tempfile, json
 from playwright.sync_api import sync_playwright
-sp = sys.argv[1]
-BASE = f"file://{sp}/_seeded.html"
+# tests/run.py serves the page over http (FGI_URL); run by hand, a suite opens the files directly
+sp = sys.argv[1]; URL = os.environ.get("FGI_URL") or "file://" + sp
+BASE = f"{URL}/_seeded.html"
 errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)

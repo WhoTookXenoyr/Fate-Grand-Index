@@ -31,11 +31,13 @@ jobs:
 
       - name: Install Playwright and Chromium
         run: |
-          pip install playwright==1.56.0
+          pip install -r tests/requirements.txt
           python -m playwright install --with-deps chromium
 
       - name: Browser tests
-        run: python tests/run.py -j 2
+        # one suite at a time: the hosted runner for private repositories has 2 cores, and the suites click through
+        # a software-rendered browser with fixed waits
+        run: python tests/run.py -j 1
 
       - name: Keep the screenshots when something fails
         if: failure()

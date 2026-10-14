@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.19.0";
+const APP_VER = "0.20.0";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -163,6 +163,9 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.20.0", d: "15 Oct 2026", t: "Rebuilt behind the scenes", i: [
+    "<b>Tidier inside</b>: Fate/Grand Index is now made from one clean set of source files instead of a pile of patches, and hundreds of automatic checks run on every change before a new version comes out. Your roster, settings and pictures stay exactly as they are.",
+    "Favourite Craft Essences and removed costumes are saved the moment you press, and Undo shows the old state straight away."]},
   {v: "0.19.0", d: "14 Oct 2026", t: "Craft Essences", i: [
     "<b>Favourite Craft Essences</b>: every servant has five slots for Craft Essences, with pictures, under their stats. Press one to equip it and its HP and ATK (at its max level) are added to the servant's stats.",
     "<b>Parties</b>: pick each Craft Essence from a searchable list with pictures, and the party cards show the Craft Essence's picture. Typing a name still works."]},

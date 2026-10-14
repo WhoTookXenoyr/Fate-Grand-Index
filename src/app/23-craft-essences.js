@@ -101,8 +101,14 @@ function applyFavStats(d, s) {
 }
 function setFav(s, fn, msg, undoable) {
   const before = {favCe: s.favCe === undefined ? undefined : (s.favCe || []).slice(), favCeOn: s.favCeOn === undefined ? undefined : s.favCeOn};
-  fn(); scheduleWrite("servants", s); renderDossier(true);
-  if (msg && undoable) toastAction(msg, "Undo", () => { ["favCe", "favCeOn"].forEach((k) => { if (before[k] === undefined) delete s[k]; else s[k] = before[k]; }); scheduleWrite("servants", s); renderDossier(true); });
+  fn(); saveNow("servants", s); renderDossier(true);
+  // Undo finds the servant again: after a save the roster holds a fresh copy, not the one changed above
+  const id = s.id;
+  if (msg && undoable) toastAction(msg, "Undo", () => {
+    const t = S.servants.find((x) => x.id === id); if (!t) return;
+    ["favCe", "favCeOn"].forEach((k) => { if (before[k] === undefined) delete t[k]; else t[k] = before[k]; });
+    saveNow("servants", t); renderDossier(true);
+  });
   else if (msg) toast(msg);
 }
 document.addEventListener("click", (e) => {

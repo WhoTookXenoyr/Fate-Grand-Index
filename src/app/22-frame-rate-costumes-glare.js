@@ -115,11 +115,12 @@ function cosSnap(s) {
   return {id: s.id, art: has("art") ? Object.assign({}, s.art) : undefined, artNames: has("artNames") ? Object.assign({}, s.artNames) : undefined,
     costumeSlots: has("costumeSlots") ? s.costumeSlots : undefined, artStage: has("artStage") ? s.artStage : undefined, view: S.viewStage[s.id]};
 }
-function cosRestore(o) {
+function cosRestore(o, one) {
   const s = S.servants.find((x) => x.id === o.id); if (!s) return;
   ["art", "artNames", "costumeSlots", "artStage"].forEach((k) => { if (o[k] === undefined) delete s[k]; else s[k] = o[k]; });
   if (o.view === undefined) delete S.viewStage[s.id]; else S.viewStage[s.id] = o.view;
-  scheduleWrite("servants", s);
+  // one at a time it's saved at once; many at once (Undo of "Every servant") keep the short wait so the page doesn't stall
+  if (one) saveNow("servants", s); else scheduleWrite("servants", s);
 }
 // a picture uploaded for a removed costume is deleted once Undo is no longer offered
 function dropLater(ids, undone) {
@@ -163,17 +164,18 @@ function removeCostume(id, k) {
   const snap = cosSnap(s), label = slotLabel(s, k) || "Costume";
   const res = cosRemoveFrom(s, k); if (!res) return;
   const gone = res.gone;
-  S.artConfirm = null; scheduleWrite("servants", s); cosRefresh();
+  S.artConfirm = null; saveNow("servants", s); cosRefresh();
   let undone = false;
   dropLater(isUpload(gone) ? [gone] : [], () => undone);
-  const undo = ["Undo", () => { undone = true; cosRestore(snap); cosRefresh(); toast(label + " is back."); }];
+  const undo = ["Undo", () => { undone = true; cosRestore(snap, true); cosRefresh(); toast(label + " is back."); }];
   // most servants have no costume: offer to clear every other empty costume slot in one go
-  const rest = S.servants.filter((x) => x !== s && emptyCostumes(x));
+  const rest = S.servants.filter((x) => x.id !== s.id && emptyCostumes(x)).map((x) => x.id);
   const all = ["Every servant (" + rest.length + ")", () => {
-    const snaps = rest.map(cosSnap);
-    rest.forEach((x) => { x.costumeSlots = 0; const v = S.viewStage[x.id]; if (v && /^c\d*$/.test(v)) delete S.viewStage[x.id]; scheduleWrite("servants", x); });
+    const now = rest.map((id) => S.servants.find((x) => x.id === id)).filter((x) => x && emptyCostumes(x));
+    const snaps = now.map(cosSnap);
+    now.forEach((x) => { x.costumeSlots = 0; const v = S.viewStage[x.id]; if (v && /^c\d*$/.test(v)) delete S.viewStage[x.id]; scheduleWrite("servants", x); });
     cosRefresh();
-    toastAction("Removed the empty costume slot from " + plural(rest.length, "more servant") + ".", "Undo", () => { snaps.forEach(cosRestore); cosRefresh(); toast("Their costume slots are back."); });
+    toastAction("Removed the empty costume slot from " + plural(now.length, "more servant") + ".", "Undo", () => { snaps.forEach((o) => cosRestore(o)); cosRefresh(); toast("Their costume slots are back."); });
   }];
   toastButtons((gone ? label + " and its picture removed" : label + " slot removed") + " from " + s.name + ".", rest.length >= 2 ? [undo, all] : [undo]);
 }

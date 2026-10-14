@@ -94,6 +94,12 @@ function scheduleWrite(col, obj) {
   clearTimeout(timers[key]);
   timers[key] = setTimeout(() => { timers[key] = null; writeDoc(col, dirty[key] || obj); }, 500);
 }
+// a press (not typing) is saved at once, so nothing is waiting to be saved if the page closes right after
+function saveNow(col, obj) {
+  const key = col + "/" + obj.id;
+  clearTimeout(timers[key]); timers[key] = null; dirty[key] = obj;
+  return writeDoc(col, obj);
+}
 async function removeDoc(col, id) {
   try { await S.db.collection(col).doc(id).delete(); return true; } catch (e) { writeFailed(e); return false; }
 }

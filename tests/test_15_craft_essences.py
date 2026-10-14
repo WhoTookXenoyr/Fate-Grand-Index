@@ -1,7 +1,9 @@
+import os
 import sys, tempfile, json, re
 from playwright.sync_api import sync_playwright
-sp = sys.argv[1]
-SEEDED = f"file://{sp}/_seeded.html"
+# tests/run.py serves the page over http (FGI_URL); run by hand, a suite opens the files directly
+sp = sys.argv[1]; URL = os.environ.get("FGI_URL") or "file://" + sp
+SEEDED = f"{URL}/_seeded.html"
 errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
@@ -73,12 +75,13 @@ with sync_playwright() as p:
     pg.locator('#dossier [data-action="fce-on"][data-i="1"]').click(); pg.wait_for_timeout(800)
     check("pressing the equipped one takes it off", stat(pg, 0) == hp0 and stat(pg, 1) == atk0 and doc(pg, "space-ereshkigal").get("favCeOn") is None)
     pg.locator('#dossier [data-action="fce-on"][data-i="0"]').click(); pg.wait_for_timeout(300)
+    pg.wait_for_timeout(600)  # past the old half-second save delay, so the roster holds a fresh copy of the servant
     pg.locator('#dossier .fce-cell').first.hover(); pg.locator('#dossier [data-action="fce-del"][data-i="0"]').click(); pg.wait_for_timeout(800)
     d = doc(pg, "space-ereshkigal")
     check("× removes a favourite (and takes it off)", d["favCe"][0] is None and d.get("favCeOn") is None and stat(pg, 1) == atk0)
-    pg.click("#toast .toast-btn"); pg.wait_for_timeout(800)
+    pg.click("#toast .toast-btn"); pg.wait_for_timeout(200)
     d = doc(pg, "space-ereshkigal")
-    check("Undo puts it back, equipped", d["favCe"][0] == 34 and d.get("favCeOn") == 0 and stat(pg, 1) == atk0 + 2000)
+    check("Undo puts it back, equipped, on screen and saved at once (0.20.0)", d["favCe"][0] == 34 and d.get("favCeOn") == 0 and stat(pg, 1) == atk0 + 2000 and pg.locator("#dossier .fce-card.on").count() == 1)
     pg.locator('#dossier [data-action="fce-add"]').first.click(); pg.wait_for_timeout(300)
     pg.keyboard.press("Escape"); pg.wait_for_timeout(300)
     check("Esc closes the picker and leaves the servant open", pg.locator(".cep").is_hidden() and pg.locator("#dossier h2").first.inner_text() == "Space Ereshkigal")

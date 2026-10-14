@@ -1,0 +1,55 @@
+{
+  "atk": 10857,
+  "cls": "Caster",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Koyanskaya of Light, Oberon, Merlin",
+  "hp": 13825,
+  "level": 90,
+  "mates": "Oberon, Francis Drake, Lady Avalon",
+  "name": "Illya",
+  "notes": "Wiki name: Illyasviel von Einzbern. Wiki: ATK 1,677/10,857, HP 2,027/13,825 (max, used); Lv100 11,885 / 15,146. NP 800% (NP1) ST, also own NP gain + star gen up; demerit own ATK/DEF -10%; OC Buster up.",
+  "npCard": "Buster",
+  "npLevel": 1,
+  "npName": "Quintett Feuer",
+  "npTarget": "Single Target",
+  "order": 12,
+  "party": "ST Buster boss team",
+  "rarity": 5,
+  "role": "Main DPS",
+  "skillInfo": [
+    {
+      "cd": 7,
+      "effect": "Own Buster up (1t)",
+      "label": "Buster up",
+      "name": "Cheerful-Type Mystic Code A",
+      "unit": "%",
+      "v1": 30,
+      "v10": 50
+    },
+    {
+      "cd": 8,
+      "effect": "Invincible (1t) + own NP gain up (3t)",
+      "label": "NP gain up",
+      "name": "Child of Nature B",
+      "unit": "%",
+      "v1": 18,
+      "v10": 28
+    },
+    {
+      "cd": 8,
+      "effect": "70%: one ally Guts + Debuff immune; heal them",
+      "label": "Heal",
+      "name": "Suspicious Medicine A",
+      "unit": "HP",
+      "v1": 1000,
+      "v10": 3000
+    }
+  ],
+  "skills": [
+    1,
+    1,
+    1
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Illyasviel_von_Einzbern"
+}

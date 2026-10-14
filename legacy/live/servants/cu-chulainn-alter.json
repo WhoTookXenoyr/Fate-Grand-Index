@@ -1,0 +1,55 @@
+{
+  "atk": 14017,
+  "cls": "Berserker",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Koyanskaya of Light, Oberon, Merlin",
+  "hp": 13377,
+  "level": 100,
+  "mates": "Queen Medb (male NP + ATK), Oberon, Francis Drake (party ATK + NP dmg)",
+  "name": "Cu Chulainn Alter",
+  "notes": "Wiki: ATK 1,979/12,805, HP 1,790/12,210; Lv100 grail 14,017 ATK / 13,377 HP (used). NP 600% at NP1, 12 hits; OC self ATK & DEF +30-70% (1t). Evade + Guts + DEF make him a great long-fight / solo unit.",
+  "npCard": "Buster",
+  "npLevel": 1,
+  "npName": "Curruid Coinchenn (Beast of Crunching Deathtusk)",
+  "npTarget": "Single Target",
+  "order": 1,
+  "party": "ST Buster boss team",
+  "rarity": 5,
+  "role": "Main DPS",
+  "skillInfo": [
+    {
+      "cd": 8,
+      "effect": "All enemies ATK down + crit chance down (3t)",
+      "label": "Enemy ATK down",
+      "name": "Madness of the Spirits A",
+      "unit": "%",
+      "v1": 10,
+      "v10": 20
+    },
+    {
+      "cd": 7,
+      "effect": "Self Evade (2 hits) + DEF up (3t)",
+      "label": "DEF up",
+      "name": "Protection from Arrows C",
+      "unit": "%",
+      "v1": 7,
+      "v10": 14
+    },
+    {
+      "cd": 9,
+      "effect": "Self Guts (1 time, 5t)",
+      "label": "Guts revive",
+      "name": "Battle Continuation A",
+      "unit": "HP",
+      "v1": 1000,
+      "v10": 2500
+    }
+  ],
+  "skills": [
+    6,
+    2,
+    2
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/C%C3%BA_Chulainn_(Alter)"
+}

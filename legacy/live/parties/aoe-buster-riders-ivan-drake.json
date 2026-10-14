@@ -1,0 +1,17 @@
+{
+  "back": [
+    "Queen Medb",
+    "Ereshkigal",
+    "Arjuna Alter"
+  ],
+  "bestFor": "Farming vs Casters",
+  "front": [
+    "Ivan the Terrible",
+    "Francis Drake",
+    ""
+  ],
+  "guest": "Oberon",
+  "name": "AoE Buster Riders - Ivan / Drake",
+  "order": 6,
+  "strategy": "Drake S1 boosts the whole party's NP turn; Ivan's NP drops enemy Buster res for the next wave. Medb buffs Ivan (male)."
+}

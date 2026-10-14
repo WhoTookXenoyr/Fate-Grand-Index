@@ -1,0 +1,55 @@
+{
+  "atk": null,
+  "cls": "Assassin",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": null,
+  "hp": null,
+  "level": 90,
+  "mates": null,
+  "name": "Kashin Koji",
+  "notes": "Wiki page returned an error (402) on every try, so nothing here is filled. Fill from the game, or ask me to retry the page later.",
+  "npCard": null,
+  "npLevel": 1,
+  "npName": null,
+  "npTarget": null,
+  "order": 14,
+  "party": null,
+  "rarity": 5,
+  "role": null,
+  "skillInfo": [
+    {
+      "cd": null,
+      "effect": null,
+      "label": null,
+      "name": "(wiki page blocked)",
+      "unit": null,
+      "v1": null,
+      "v10": null
+    },
+    {
+      "cd": null,
+      "effect": null,
+      "label": null,
+      "name": "(wiki page blocked)",
+      "unit": null,
+      "v1": null,
+      "v10": null
+    },
+    {
+      "cd": null,
+      "effect": null,
+      "label": null,
+      "name": "(wiki page blocked)",
+      "unit": null,
+      "v1": null,
+      "v10": null
+    }
+  ],
+  "skills": [
+    2,
+    4,
+    2
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Kashin_Koji"
+}

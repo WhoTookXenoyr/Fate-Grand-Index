@@ -1,0 +1,55 @@
+{
+  "atk": 10546,
+  "cls": "Caster",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Castoria (Altria Caster)",
+  "hp": 14259,
+  "level": 90,
+  "mates": "Space Ereshkigal, Nitocris Alter, Space Ishtar (Arts NP), Lady Avalon",
+  "name": "Tamamo no Mae",
+  "notes": "Wiki: ATK 1,629/10,546, HP 2,091/14,259 (max, used); Lv100 11,544 / 15,621. NP (x1.0 = Arts card) does no damage: party heal 2000 (NP1) to 3000 (NP5); OC party NP charge 25-50%.",
+  "npCard": "Arts",
+  "npLevel": 1,
+  "npName": "Eightfold Blessing of Amaterasu",
+  "npTarget": "Support",
+  "order": 13,
+  "party": "Arts support (any Arts DPS)",
+  "rarity": 5,
+  "role": "Buffer",
+  "skillInfo": [
+    {
+      "cd": 7,
+      "effect": "80% chance one enemy NP -1 + party NP damage up (3t)",
+      "label": "Party NP dmg up",
+      "name": "Witchcraft (upgraded)",
+      "unit": "%",
+      "v1": 20,
+      "v10": 30
+    },
+    {
+      "cd": 7,
+      "effect": "Own DEF +30% (1t) + own DEF up (3t)",
+      "label": "DEF up",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 10,
+      "v10": 30
+    },
+    {
+      "cd": 7,
+      "effect": "One ally Arts up (3t) + heal them",
+      "label": "Ally Arts up",
+      "name": "(upgraded after Interlude 2 - name not shown)",
+      "unit": "%",
+      "v1": 30,
+      "v10": 50
+    }
+  ],
+  "skills": [
+    1,
+    1,
+    1
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Tamamo_no_Mae"
+}

@@ -1,0 +1,55 @@
+{
+  "atk": 11326,
+  "cls": "Rider",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Koyanskaya of Light, Oberon",
+  "hp": 12830,
+  "level": 90,
+  "mates": "Ivan the Terrible, Ereshkigal, Arjuna Alter",
+  "name": "Francis Drake",
+  "notes": "Wiki: ATK 1,750/11,326, HP 1,881/12,830 (max, used); Lv100 12,398 / 14,056. NP 400% (NP1) AoE; OC stars 20-40. Skill names marked with a dagger aren't shown in the wiki text (from game knowledge).",
+  "npCard": "Buster",
+  "npLevel": 1,
+  "npName": "Golden Wild Hunt",
+  "npTarget": "AoE",
+  "order": 11,
+  "party": "AoE Buster + party buffs",
+  "rarity": 5,
+  "role": "Hybrid",
+  "skillInfo": [
+    {
+      "cd": 7,
+      "effect": "Party NP damage up + party ATK up (1t)",
+      "label": "Party ATK up",
+      "name": "Voyager of the Storm A+ †",
+      "unit": "%",
+      "v1": 8.5,
+      "v10": 17
+    },
+    {
+      "cd": 8,
+      "effect": "Own NP gain up, Buster up, Ignore DEF (3t)",
+      "label": "NP gain up",
+      "name": "Golden Rule (upgraded) †",
+      "unit": "%",
+      "v1": 18,
+      "v10": 45
+    },
+    {
+      "cd": 8,
+      "effect": "Own NP charge, Ignore Invincible (3t), +10 stars",
+      "label": "Own NP charge",
+      "name": "Pioneer of the Stars EX †",
+      "unit": "%",
+      "v1": 30,
+      "v10": 50
+    }
+  ],
+  "skills": [
+    1,
+    1,
+    1
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Francis_Drake"
+}

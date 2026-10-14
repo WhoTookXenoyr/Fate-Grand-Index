@@ -1,0 +1,55 @@
+{
+  "atk": 12650,
+  "cls": "Pretender",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Castoria (Altria Caster)",
+  "hp": 15143,
+  "level": 100,
+  "mates": "Space Ereshkigal, Nitocris Alter, Space Ishtar (Arts NP), Tamamo no Mae",
+  "name": "Lady Avalon",
+  "notes": "Wiki: ATK 1,786/11,556, HP 2,027/13,822; Lv100 12,650 / 15,143 (used). NP = no damage: party Max HP +3000 (NP1) to +5000 (NP5); OC stars per turn 5-25. (Previous version had an invented Skill 1 name - removed.)",
+  "npCard": "Arts",
+  "npLevel": 1,
+  "npName": "Winds of Avalon",
+  "npTarget": "Support",
+  "order": 4,
+  "party": "Arts support (any Arts DPS)",
+  "rarity": 5,
+  "role": "Buffer",
+  "skillInfo": [
+    {
+      "cd": 8,
+      "effect": "One ally: Arts up (3t), Max HP up (3t), crit damage up (1t)",
+      "label": "Ally Arts up",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 30,
+      "v10": 50
+    },
+    {
+      "cd": 8,
+      "effect": "Party ATK up (3t), party NP +20%, party NP overcharge +1 (3t)",
+      "label": "Party ATK up",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 10,
+      "v10": 20
+    },
+    {
+      "cd": 10,
+      "effect": "Party Invincible (1t); drains enemy NP; own NP charge per enemy",
+      "label": "Own NP per enemy",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 10,
+      "v10": 20
+    }
+  ],
+  "skills": [
+    2,
+    2,
+    2
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Lady_Avalon"
+}

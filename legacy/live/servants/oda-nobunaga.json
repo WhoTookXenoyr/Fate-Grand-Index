@@ -1,0 +1,55 @@
+{
+  "atk": null,
+  "cls": "Avenger",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Koyanskaya of Light, Oberon",
+  "hp": null,
+  "level": 90,
+  "mates": "Oberon, Francis Drake",
+  "name": "Oda Nobunaga",
+  "notes": "Wiki name: Demon King Nobunaga (5-star Avenger). Wiki: ATK 1,953/12,641, HP 1,724/11,761 (Lv1/Lv90), S curve. Lv60 values need the wiki's growth-curve table, which was blocked - copy them from your servant screen. NP 300% (NP1) AoE (= Buster values) + Burn; OC extra dmg vs Divine 150-200%.",
+  "npCard": "Buster",
+  "npLevel": 1,
+  "npName": "Hajunhenjou - Sanzen Daisen Ten Maou",
+  "npTarget": "AoE",
+  "order": 21,
+  "party": "AoE Buster (anti-Divine)",
+  "rarity": 5,
+  "role": "Main DPS",
+  "skillInfo": [
+    {
+      "cd": 7,
+      "effect": "Own ATK up every turn, ramping (3t); Burning Battlefield; Burn self 1000 (demerit)",
+      "label": "ATK gain per turn",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 10,
+      "v10": 20
+    },
+    {
+      "cd": 8,
+      "effect": "Invincible (1t), buff-removal res up (1t), dmg up vs Sky on Burning Battlefield (3t)",
+      "label": "Sky dmg up",
+      "name": "(upgraded - name not shown)",
+      "unit": "%",
+      "v1": 30,
+      "v10": 50
+    },
+    {
+      "cd": 7,
+      "effect": "Gain stars every turn (3t) + own NP charge",
+      "label": "Own NP charge",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 10,
+      "v10": 20
+    }
+  ],
+  "skills": [
+    2,
+    3,
+    "Locked"
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Demon_King_Nobunaga"
+}

@@ -1,0 +1,55 @@
+{
+  "atk": 11619,
+  "cls": "Rider",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Koyanskaya of Light, Oberon",
+  "hp": 13284,
+  "level": 90,
+  "mates": "Oberon, Francis Drake, Queen Medb (male buffs)",
+  "name": "Ivan the Terrible",
+  "notes": "Wiki: ATK 1,795/11,619, HP 1,948/13,284 (max, used); Lv100 12,719 / 14,553. NP 400% (NP1) AoE + enemies Buster res down 30% (3t); OC NP dmg 30-70%.",
+  "npCard": "Buster",
+  "npLevel": 1,
+  "npName": "Zveri Krestnyi Khod",
+  "npTarget": "AoE",
+  "order": 8,
+  "party": "AoE Buster farming",
+  "rarity": 5,
+  "role": "Main DPS",
+  "skillInfo": [
+    {
+      "cd": 7,
+      "effect": "Own NP gain up (3t), NP charge, dmg up vs Lawful & Chaotic (3t), remove own debuffs",
+      "label": "Own NP charge",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 20,
+      "v10": 30
+    },
+    {
+      "cd": 7,
+      "effect": "Gain stars every turn (3t) + own Buster up (3t)",
+      "label": "Buster up",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 20,
+      "v10": 40
+    },
+    {
+      "cd": 8,
+      "effect": "Invincible (1t), all enemies ATK down (3t), remove their buffs",
+      "label": "Enemy ATK down",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 10,
+      "v10": 20
+    }
+  ],
+  "skills": [
+    1,
+    1,
+    7
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Ivan_the_Terrible"
+}

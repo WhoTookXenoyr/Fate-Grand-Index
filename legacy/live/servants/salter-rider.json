@@ -1,0 +1,55 @@
+{
+  "atk": 10776,
+  "cls": "Rider",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Scathach-Skadi",
+  "hp": 14256,
+  "level": 90,
+  "mates": "Osakabehime (OC party Quick up), Mysterious Heroine X Alter, Miyamoto Musashi (Skill 2 cuts a cooldown)",
+  "name": "Salter Rider",
+  "notes": "Wiki name: Artoria Pendragon (Rider Alter), 5-star. Wiki: ATK 1,665/10,776, HP 2,090/14,256 (max, used); Lv100 11,796 / 15,618. NP 1200% (NP1) single target - those are Quick damage values (card icon didn't render); OC enemy crit chance down 30-70%.",
+  "npCard": "Quick",
+  "npLevel": 1,
+  "npName": "Secace Morgan",
+  "npTarget": "Single Target",
+  "order": 9,
+  "party": "ST Quick boss team",
+  "rarity": 5,
+  "role": "Main DPS",
+  "skillInfo": [
+    {
+      "cd": 8,
+      "effect": "Own ATK up + party Quick up (3t)",
+      "label": "Own ATK up",
+      "name": "Summer Sweeper! A",
+      "unit": "%",
+      "v1": 20,
+      "v10": 30
+    },
+    {
+      "cd": 8,
+      "effect": "One ally: skill cooldowns -1, star gen up (3t), 1000 dmg to them (demerit), then Max HP up (5t)",
+      "label": "Ally star gen up",
+      "name": "Coaching A+",
+      "unit": "%",
+      "v1": 30,
+      "v10": 50
+    },
+    {
+      "cd": 5,
+      "effect": "Own Quick up (1 attack, 3t)",
+      "label": "Quick up",
+      "name": "Reloaded C",
+      "unit": "%",
+      "v1": 20,
+      "v10": 30
+    }
+  ],
+  "skills": [
+    2,
+    1,
+    1
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Artoria_Pendragon_(Rider_Alter)"
+}

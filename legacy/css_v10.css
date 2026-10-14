@@ -1,0 +1,132 @@
+/* ================= v10 ================= */
+/* Quick banner: the speed lines move exactly one stripe per loop, so the loop never jumps */
+@keyframes npSpeed { from { transform: translate(0, 0); } to { transform: translate(-56.509px, -30.046px); } }
+
+/* ----- skill cards fill with their rank colour as the level rises ----- */
+:root { --wash-b: #d8b183; --wash-a1: #f0c64a; --wash-a2: #ffe7a0; --wash-r1: #ff8aa3; --wash-r2: #ffc56b; --wash-r3: #7fe0a6; --wash-r4: #8ab8ff; --wash-r5: #c9a2ff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --wash-b: #9a774c; --wash-a1: #b8891f; --wash-a2: #e0b545; --wash-r1: #b8304f; --wash-r2: #b8781c; --wash-r3: #23955a; --wash-r4: #3366c4; --wash-r5: #7d45c6; } }
+:root[data-theme="dark"] { --wash-b: #9a774c; --wash-a1: #b8891f; --wash-a2: #e0b545; --wash-r1: #b8304f; --wash-r2: #b8781c; --wash-r3: #23955a; --wash-r4: #3366c4; --wash-r5: #7d45c6; }
+.skill { --wl: calc(var(--sk-p, 1) * 30%); --wh: calc(var(--sk-p, 1) * 62%); }
+.skill.tier-b { background: linear-gradient(135deg, color-mix(in srgb, var(--wash-b) var(--wl), var(--panel)) 0%, color-mix(in srgb, var(--wash-b) var(--wh), var(--panel)) 100%);
+  border-color: color-mix(in srgb, var(--wash-b) calc(var(--sk-p, 1) * 85%), var(--line)); }
+.skill.tier-a { background: linear-gradient(135deg, color-mix(in srgb, var(--wash-a2) var(--wl), var(--panel)) 0%, color-mix(in srgb, var(--wash-a1) var(--wh), var(--panel)) 70%, color-mix(in srgb, var(--wash-a2) var(--wh), var(--panel)) 100%);
+  border-color: color-mix(in srgb, var(--wash-a1) calc(var(--sk-p, 1) * 90%), var(--line)); }
+.skill.tier-ex { background:
+    linear-gradient(120deg, color-mix(in srgb, var(--wash-r1) var(--wl), var(--panel)) 0%, color-mix(in srgb, var(--wash-r2) calc(var(--sk-p, 1) * 44%), var(--panel)) 28%, color-mix(in srgb, var(--wash-r3) calc(var(--sk-p, 1) * 50%), var(--panel)) 52%, color-mix(in srgb, var(--wash-r4) var(--wh), var(--panel)) 76%, color-mix(in srgb, var(--wash-r5) var(--wh), var(--panel)) 100%) padding-box,
+    conic-gradient(from var(--sk-ang), color-mix(in srgb, var(--rb1) var(--skw), var(--line)), color-mix(in srgb, var(--rb2) var(--skw), var(--line)), color-mix(in srgb, var(--rb3) var(--skw), var(--line)), color-mix(in srgb, var(--rb4) var(--skw), var(--line)), color-mix(in srgb, var(--rb5) var(--skw), var(--line)), color-mix(in srgb, var(--rb1) var(--skw), var(--line))) border-box; }
+.skill.tier-ex.sk-max { background-size: 220% 100%, 100% 100%; animation: skspin 6s linear infinite, exDrift 12s ease-in-out infinite alternate; }
+@keyframes exDrift { from { background-position: 0% 0, 0 0; } to { background-position: 100% 0, 0 0; } }
+.skill.tier-a.sk-max, .skill.tier-b.sk-max { background-size: 180% 180%; animation: wDrift 10s ease-in-out infinite alternate; }
+.skill.tier-a.sk-max { animation: auglow 3.6s ease-in-out infinite, wDrift 10s ease-in-out infinite alternate; }
+@keyframes wDrift { from { background-position: 0% 0%; } to { background-position: 100% 100%; } }
+.skill.tier-a .skill-nums dd, .skill.tier-b .skill-nums dd, .skill.tier-ex .skill-nums dd { color: var(--ink); }
+.skill.tier-a .muted, .skill.tier-b .muted, .skill.tier-ex .muted, .skill.tier-a .slot, .skill.tier-b .slot, .skill.tier-ex .slot { color: color-mix(in srgb, var(--ink) 72%, transparent); }
+@media (prefers-reduced-motion: reduce) { .skill.tier-ex.sk-max, .skill.tier-a.sk-max, .skill.tier-b.sk-max { animation: none !important; } }
+
+/* ----- the whole servant panel framed in gold (Lv 100) or gold and rainbow (Lv 102+) ----- */
+#dossier.gr100, #dossier.gr102 { border: 2px solid transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+#dossier.gr100 { background: linear-gradient(var(--panel), var(--panel)) padding-box,
+    linear-gradient(115deg, #7a5208, #e8b93e 22%, #fff3c4 30%, #c9922b 38%, #7a5208 55%, #e8b93e 75%, #fff3c4 82%, #a87418) 0 0 / 300% 100% border-box;
+  box-shadow: 0 0 0 1px rgba(201,146,43,.25), 0 0 44px -10px rgba(232,185,62,.6); animation: dsMetal 6s ease-in-out infinite; }
+@keyframes dsMetal { 0%, 100% { background-position: 0 0, 0 0; } 50% { background-position: 0 0, 100% 0; } }
+#dossier.gr102 { background: linear-gradient(var(--panel), var(--panel)) padding-box,
+    linear-gradient(110deg, transparent 42%, rgba(255,255,255,.95) 50%, transparent 58%) -150% 0 / 50% 100% no-repeat border-box,
+    conic-gradient(from var(--gr-ang), #e8b93e, #fff3c4, #ff6b8b, #ffd36b, #7dffa8, #6bd0ff, #c48bff, #fff3c4, #e8b93e) border-box;
+  box-shadow: 0 0 0 1px rgba(232,185,62,.35), 0 0 40px -8px rgba(232,185,62,.6), 0 0 70px -18px color-mix(in srgb, var(--rb4) 70%, transparent), 0 0 80px -22px color-mix(in srgb, var(--rb1) 60%, transparent);
+  animation: grSpin 8s linear infinite, dsShimmer 4.5s ease-in-out infinite; }
+@keyframes dsShimmer { 0% { background-position: 0 0, -150% 0, 0 0; } 40%, 100% { background-position: 0 0, 250% 0, 0 0; } }
+@media (prefers-reduced-motion: reduce) { #dossier.gr100, #dossier.gr102 { animation: none; } }
+
+/* ----- Home ----- */
+html[data-tab="home"] #summary { display: none; }
+#view-home { display: flex; flex-direction: column; gap: 20px; }
+#view-home[hidden] { display: none; }
+.hm-hero { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); align-items: center; gap: 24px; padding: 0 0 4px; }
+.hm-parties + .btn, .hm-guests + .btn { margin-top: 8px; }
+.hm-intro { display: flex; flex-direction: column; gap: 14px; max-width: 34rem; }
+.hm-hello { margin: 0; font-family: var(--f-display); font-variation-settings: "wdth" 78; font-weight: 750; font-size: clamp(2.3rem, 5.4vw, 4.4rem); line-height: .96; letter-spacing: -.02em; color: var(--ink); text-wrap: balance; }
+.hm-lead { margin: 0; font-size: 1.08rem; line-height: 1.55; color: color-mix(in srgb, var(--ink) 82%, transparent); max-width: 44ch; }
+.hm-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.hm-table { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.hm-table.empty { min-height: 240px; justify-content: center; }
+/* the hand of Saint Graph cards */
+.hm-fan { --cw: 150px; --sp: 66px; --tilt: 7deg; position: relative; width: 100%; height: calc(var(--cw) * 1.4 + 70px); }
+.hm-card { position: absolute; left: 50%; bottom: 18px; width: var(--cw); aspect-ratio: 5 / 7; margin-left: calc(var(--cw) / -2); padding: 4px; border: 0; border-radius: 13px; cursor: pointer;
+  background: linear-gradient(160deg, #fff1b8, #c99a3b 30%, #7a5a1c 55%, #e9c86a 80%, #fff1b8); box-shadow: 0 16px 30px -18px rgba(0,0,0,.65), 0 2px 6px -2px rgba(0,0,0,.4);
+  transform-origin: 50% 120%; z-index: calc(10 - var(--a));
+  --rest: translateX(calc(var(--o) * var(--sp))) translateY(calc(var(--a) * var(--a) * 5px)) rotate(calc(var(--o) * var(--tilt))) scale(calc(1.08 - var(--a) * .03));
+  transform: translateY(40px) scale(.9); opacity: 0; }
+.hm-card.silver { background: linear-gradient(160deg, #ffffff, #b9c2cc 30%, #6b7682 55%, #d9dee4 80%, #ffffff); }
+.hm-card.bronze { background: linear-gradient(160deg, #f6c9a0, #a4673a 30%, #5b3418 55%, #c98a5a 80%, #f6c9a0); }
+.hm-card.gr102 { background: conic-gradient(from var(--gr-ang), #e8b93e, #fff3c4, #ff6b8b, #ffd36b, #7dffa8, #6bd0ff, #c48bff, #fff3c4, #e8b93e); animation: grSpin 7s linear infinite; }
+.hm-fan.deal .hm-card { transform: var(--rest); opacity: 1; transition: transform .9s cubic-bezier(.2,.9,.25,1.05) calc(var(--d) * 70ms + 120ms), opacity .4s ease calc(var(--d) * 70ms + 120ms), box-shadow .3s ease; }
+.hm-fan.dealt .hm-card { transform: var(--rest); opacity: 1; transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .3s ease; }
+.hm-fan.deal .hm-card:hover, .hm-fan.dealt .hm-card:hover, .hm-fan .hm-card:focus-visible {
+  transform: translateX(calc(var(--o) * var(--sp))) translateY(-26px) rotate(calc(var(--o) * var(--tilt) * .35)) scale(1.12); z-index: 20; transition-delay: 0s;
+  box-shadow: 0 28px 44px -20px rgba(0,0,0,.7), 0 0 34px -6px rgba(255,214,120,.65); }
+.hm-card:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.hm-face { position: relative; display: block; width: 100%; height: 100%; overflow: hidden; border-radius: 9px; background: radial-gradient(circle at 50% 30%, #4a4058, #1a1620 75%); }
+.hm-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 14%; }
+.hm-art.mark { object-fit: contain; padding: 20%; opacity: .75; }
+.hm-plate { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 4px; padding: 22px 7px 6px; background: linear-gradient(180deg, transparent, rgba(5,8,20,.85)); }
+.hm-plate img { width: 26px; height: 26px; object-fit: contain; filter: drop-shadow(0 1px 2px #000); }
+.hm-stars { color: #f7c844; font-size: 12px; letter-spacing: .5px; text-shadow: 0 0 4px rgba(0,0,0,.8); }
+.hm-card.gr100 .hm-face::after, .hm-card.gr102 .hm-face::after { content: ""; position: absolute; inset: -20%; background: linear-gradient(110deg, transparent 42%, rgba(255,236,170,.35) 50%, transparent 58%); transform: translateX(-100%); animation: grSweep 6s ease-in-out 2s infinite; pointer-events: none; }
+.hm-cap { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 3.2em; text-align: center; }
+.hm-cap b { font-family: var(--f-display); font-size: 1.25rem; font-weight: 700; line-height: 1.15; }
+.hm-cap span { font-size: 13px; color: var(--muted); }
+/* the blocks under the hand */
+.hm-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.hm-block { margin: 0; }
+.hm-block h3 small { letter-spacing: 0; text-transform: none; font-family: var(--f-body); font-size: 12.5px; }
+.hm-next { margin: 0; padding: 0; list-style: none; counter-reset: hn; display: flex; flex-direction: column; gap: 4px; }
+.hm-next li { counter-increment: hn; display: grid; grid-template-columns: 1.6em minmax(0, 1fr); align-items: center; }
+.hm-next li::before { content: counter(hn); font-family: var(--f-data); font-size: 13px; color: var(--gold); font-weight: 600; }
+.hm-row { all: unset; box-sizing: border-box; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; width: 100%; padding: 7px 8px; border-radius: 10px; cursor: pointer; }
+.hm-row:hover { background: color-mix(in srgb, var(--gold) 10%, transparent); }
+.hm-row:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.hm-main { display: flex; flex-direction: column; min-width: 0; }
+.hm-main b { font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hm-main small { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hm-gain { font-family: var(--f-data); font-weight: 600; color: var(--gold); font-variant-numeric: tabular-nums; }
+.hm-clsgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 6px; }
+.hm-cls { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px 5px; border: 1px solid var(--line); border-radius: 10px; background: color-mix(in srgb, var(--panel) 70%, transparent); color: var(--ink); cursor: pointer; font: inherit; }
+.hm-cls img { width: 30px; height: 30px; object-fit: contain; }
+.hm-cls b { font-family: var(--f-data); font-size: 13px; font-weight: 600; }
+.hm-cls:hover:not(:disabled) { border-color: var(--gold); }
+.hm-cls:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.hm-cls.none { opacity: .38; cursor: default; }
+.hm-bars { display: flex; flex-direction: column; gap: 7px; margin-top: 14px; }
+.hm-bar { display: grid; grid-template-columns: 7.5em minmax(0, 1fr) 2.4em; align-items: center; gap: 10px; font-size: 13.5px; }
+.hm-bl { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.hm-bl img { width: 20px; height: 20px; object-fit: contain; }
+.hm-bar b { font-family: var(--f-data); text-align: right; }
+.hm-track { position: relative; height: 10px; border-radius: 0 5px 5px 0; background: var(--sunken); overflow: hidden; }
+.hm-track i { display: block; height: 100%; border-radius: 0 5px 5px 0; background: var(--muted); transition: width .6s ease; }
+.hm-bar.c-buster .hm-track i { background: var(--buster); } .hm-bar.c-arts .hm-track i { background: var(--arts); } .hm-bar.c-quick .hm-track i { background: var(--quick); }
+.hm-track.gold i { background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 70%, var(--panel)), var(--gold)); }
+.hm-meter { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; margin-top: 16px; font-size: 13.5px; }
+.hm-meter b { font-family: var(--f-data); }
+.hm-mr { color: var(--muted); font-size: 12.5px; }
+.hm-facts { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 12px 0 0; font-size: 13.5px; color: var(--muted); }
+.hm-facts b { color: var(--ink); font-family: var(--f-data); }
+.hm-guests { margin: 0 0 10px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.hm-guests li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 4px 10px; }
+.hm-guests small { color: var(--muted); font-size: 12.5px; }
+.hm-guests .tr-name { text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hm-parties { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.hm-avas { display: inline-flex; }
+.hm-avas .tr-ava { margin-right: -8px; box-shadow: 0 0 0 2px var(--panel); }
+.hm-avas .tr-ava:last-child { margin-right: 6px; }
+@media (max-width: 900px) {
+  .hm-hero { grid-template-columns: minmax(0, 1fr); min-height: 0; gap: 8px; }
+  .hm-fan { --cw: 116px; --sp: 50px; --tilt: 6deg; }
+  .hm-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 420px) {
+  .hm-fan { --cw: 96px; --sp: 40px; --tilt: 6deg; }
+  .hm-guests li { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .hm-guests small { display: none; }
+  .hm-bar { grid-template-columns: 6.6em minmax(0, 1fr) 2em; }
+}
+@media (prefers-reduced-motion: reduce) { .hm-card { transition: none !important; animation: none !important; } .hm-card .hm-face::after { display: none; } }

@@ -1,0 +1,55 @@
+{
+  "atk": 12265,
+  "cls": "Saber",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Koyanskaya of Light, Oberon, Merlin",
+  "hp": 13896,
+  "level": 92,
+  "mates": "Oberon, Francis Drake (party ATK + NP dmg), Salter Rider (Skill 2 cuts a cooldown)",
+  "name": "Miyamoto Musashi",
+  "notes": "Wiki: ATK 1,860/12,037, HP 1,999/13,635; Lv100 13,176 / 14,938. Lv92 values estimated on her Linear curve (could be off by 1-2) - check in game. NP 800% at NP1 (after Strengthen), removes buffs, +150% vs Alter Ego / Moon Cancer.",
+  "npCard": "Buster",
+  "npLevel": 1,
+  "npName": "Rikudou Gorin - Kurikara Tenshou",
+  "npTarget": "Single Target",
+  "order": 6,
+  "party": "ST Buster boss team",
+  "rarity": 5,
+  "role": "Main DPS",
+  "skillInfo": [
+    {
+      "cd": 8,
+      "effect": "Double own hit count (1t) + own normal-attack damage up (1t)",
+      "label": "Normal-attack dmg up",
+      "name": "Fifth Form (name from wiki icon)",
+      "unit": "%",
+      "v1": 0,
+      "v10": 30
+    },
+    {
+      "cd": 7,
+      "effect": "Ignore Invincible (1t) + own Buster up (1t)",
+      "label": "Buster up",
+      "name": "Heavenly Eye A",
+      "unit": "%",
+      "v1": 30,
+      "v10": 50
+    },
+    {
+      "cd": 8,
+      "effect": "Invincible (1t), star gen up (3t), remove own debuffs",
+      "label": "Star gen up",
+      "name": "Emptiness A",
+      "unit": "%",
+      "v1": 10,
+      "v10": 30
+    }
+  ],
+  "skills": [
+    3,
+    1,
+    1
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Miyamoto_Musashi"
+}

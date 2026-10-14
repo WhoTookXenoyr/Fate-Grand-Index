@@ -1,0 +1,55 @@
+{
+  "atk": 10343,
+  "cls": "Lancer",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Koyanskaya of Light, Oberon",
+  "hp": 16065,
+  "level": 90,
+  "mates": "Oberon, Francis Drake, Arjuna Alter",
+  "name": "Ereshkigal",
+  "notes": "Wiki: ATK 1,598/10,343, HP 2,356/16,065 (max, used); Lv100 11,322 / 17,600. NP 300% (NP1) AoE; allies with Blessing of Kur get ATK +20% (3t); OC own Buster up 10-50%.",
+  "npCard": "Buster",
+  "npLevel": 1,
+  "npName": "Kur Ki Gal Irkalla",
+  "npTarget": "AoE",
+  "order": 7,
+  "party": "AoE Buster farming + party support",
+  "rarity": 5,
+  "role": "Hybrid",
+  "skillInfo": [
+    {
+      "cd": 8,
+      "effect": "Invincible (1t) + chance of Debuff immune, Insta-kill immune, buff-removal res (1t)",
+      "label": "Activation chance",
+      "name": "The Secret Great Crown A",
+      "unit": "%",
+      "v1": 60,
+      "v10": 80
+    },
+    {
+      "cd": 8,
+      "effect": "Own Buster up (1t) + own NP charge",
+      "label": "Own NP charge",
+      "name": "Mana Burst (Cage) A+",
+      "unit": "%",
+      "v1": 30,
+      "v10": 50
+    },
+    {
+      "cd": 8,
+      "effect": "Party Blessing of Kur, DEF up, NP gain up, Max HP up (3t)",
+      "label": "Party NP gain up",
+      "name": "Blessing of Kur EX",
+      "unit": "%",
+      "v1": 20,
+      "v10": 30
+    }
+  ],
+  "skills": [
+    1,
+    1,
+    2
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Ereshkigal"
+}

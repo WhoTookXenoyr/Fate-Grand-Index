@@ -1,0 +1,17 @@
+{
+  "back": [
+    "Mysterious Heroine X Alter",
+    "Space Ishtar",
+    "Lady Avalon"
+  ],
+  "bestFor": "Bosses, best vs Casters",
+  "front": [
+    "Salter Rider",
+    "Osakabehime",
+    ""
+  ],
+  "guest": "Scathach-Skadi",
+  "name": "ST Quick - Salter Rider",
+  "order": 7,
+  "strategy": "Salter S1 = own ATK + party Quick up; Osakabehime's NP overcharge adds party Quick up; Skadi charges + buffs Quick."
+}

@@ -1,0 +1,55 @@
+{
+  "atk": 11669,
+  "cls": "Berserker",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Koyanskaya of Light, Oberon",
+  "hp": 13837,
+  "level": 90,
+  "mates": "Oberon, Queen Medb (male buffs), Francis Drake",
+  "name": "Arjuna Alter",
+  "notes": "Wiki: ATK 1,803/11,669, HP 2,029/13,837 (max, used); Lv100 12,773 / 15,159. NP 300% (NP1) AoE; OC enemies Buster res down 20-60%.",
+  "npCard": "Buster",
+  "npLevel": 1,
+  "npName": "Mahapralaya",
+  "npTarget": "AoE",
+  "order": 16,
+  "party": "AoE Buster farming",
+  "rarity": 5,
+  "role": "Main DPS",
+  "skillInfo": [
+    {
+      "cd": 7,
+      "effect": "Own ATK up + dmg up vs debuffed enemies (3t)",
+      "label": "ATK up",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 20,
+      "v10": 30
+    },
+    {
+      "cd": 7,
+      "effect": "Own Buster star absorption up (3t) + own NP charge",
+      "label": "Own NP charge",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 20,
+      "v10": 30
+    },
+    {
+      "cd": 9,
+      "effect": "Guts (1 time, 3t) + HP regen (3t)",
+      "label": "Guts revive",
+      "name": "(name not shown on wiki)",
+      "unit": "HP",
+      "v1": 1000,
+      "v10": 2000
+    }
+  ],
+  "skills": [
+    1,
+    1,
+    1
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Arjuna_(Alter)"
+}

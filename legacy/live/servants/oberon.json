@@ -1,0 +1,55 @@
+{
+  "atk": 11810,
+  "cls": "Pretender",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Koyanskaya of Light; or a support Oberon (double Oberon)",
+  "hp": 13266,
+  "level": 90,
+  "mates": "Cu Chulainn Alter, Larva Tiamat, Arjuna Alter, Ivan the Terrible",
+  "name": "Oberon",
+  "notes": "Wiki: ATK 1,825/11,810, HP 1,945/13,266 (max, used); Lv100 12,928 / 14,992. NP 300% (NP1) AoE (= Buster values), removes enemy buffs + Sleep. Skill 3 puts the target to sleep after 1 turn - use it on the turn your DPS fires the big NP.",
+  "npCard": "Buster",
+  "npLevel": 1,
+  "npName": "Lie Like Vortigern",
+  "npTarget": "AoE",
+  "order": 20,
+  "party": "Buster support",
+  "rarity": 5,
+  "role": "Buffer",
+  "skillInfo": [
+    {
+      "cd": 7,
+      "effect": "Party NP dmg up (3t) + party NP +20%",
+      "label": "Party NP dmg up",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 20,
+      "v10": 30
+    },
+    {
+      "cd": 8,
+      "effect": "One ally NP charge (they lose 20% NP after 1t) + gain stars",
+      "label": "Ally NP charge",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 30,
+      "v10": 50
+    },
+    {
+      "cd": 10,
+      "effect": "One ally Buster up + NP dmg up (1t); delayed Sleep etc. on them",
+      "label": "Ally NP dmg up",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 50,
+      "v10": 100
+    }
+  ],
+  "skills": [
+    1,
+    1,
+    1
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Oberon"
+}

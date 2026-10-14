@@ -1,0 +1,55 @@
+{
+  "atk": 12612,
+  "cls": "Avenger",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Castoria (Altria Caster)",
+  "hp": 12289,
+  "level": 90,
+  "mates": "Lady Avalon, Tamamo no Mae, Space Ereshkigal",
+  "name": "Nitocris Alter",
+  "notes": "Wiki: ATK 1,949/12,612, HP 1,802/12,289 (max, used); Lv100 13,806 / 13,463. NP 450% (NP1) AoE - those are Arts damage values (card icon didn't render); OC own NP dmg 10-30%.",
+  "npCard": "Arts",
+  "npLevel": 1,
+  "npName": "Neferu Suen Anubis",
+  "npTarget": "AoE",
+  "order": 18,
+  "party": "AoE Arts farming (loop)",
+  "rarity": 5,
+  "role": "Main DPS",
+  "skillInfo": [
+    {
+      "cd": 8,
+      "effect": "Own Arts & Buster up + HP regen (3t)",
+      "label": "Arts/Buster up",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 20,
+      "v10": 30
+    },
+    {
+      "cd": 9,
+      "effect": "Own NP charge; party Good alignment + buff chance up; enemies Evil + buff chance down",
+      "label": "Own NP charge",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 50,
+      "v10": 100
+    },
+    {
+      "cd": 7,
+      "effect": "Party Arts up; Good allies get Evade, Debuff + Insta-kill immune",
+      "label": "Party Arts up",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 10,
+      "v10": 20
+    }
+  ],
+  "skills": [
+    1,
+    3,
+    3
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Nitocris_(Alter)"
+}

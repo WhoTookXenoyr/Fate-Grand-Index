@@ -1,0 +1,55 @@
+{
+  "atk": 12527,
+  "cls": "Alter Ego",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Koyanskaya of Light, Oberon",
+  "hp": 15455,
+  "level": 100,
+  "mates": "Oberon, Francis Drake (party ATK + NP dmg)",
+  "name": "Larva Tiamat",
+  "notes": "Wiki: ATK 1,768/11,444, HP 2,069/14,107; Lv100 12,527 / 15,455 (used). Passive: +5% NP every turn. Alter Ego = strong vs Rider, Caster, Assassin. NP table didn't render on the wiki: Buster/AoE is from GamePress's review. Wiki shows Skill 3 cooldown as 4 - check in game.",
+  "npCard": "Buster",
+  "npLevel": 1,
+  "npName": "(NP name not shown on wiki)",
+  "npTarget": "AoE",
+  "order": 2,
+  "party": "AoE Buster farming (loop)",
+  "rarity": 5,
+  "role": "Main DPS",
+  "skillInfo": [
+    {
+      "cd": 8,
+      "effect": "Own NP charge; all enemies crit chance -100% (1t); HP Recovery Block on them (1t)",
+      "label": "Own NP charge",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 30,
+      "v10": 50
+    },
+    {
+      "cd": 8,
+      "effect": "Own ATK + Buster up (3t); 60% chance to Stun all enemies (1t); Curse them (3t)",
+      "label": "ATK up",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 20,
+      "v10": 30
+    },
+    {
+      "cd": 4,
+      "effect": "Party heal; party NP +10%; party NP damage up (1t)",
+      "label": "Party NP dmg up",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 10,
+      "v10": 20
+    }
+  ],
+  "skills": [
+    4,
+    4,
+    2
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Larva/Tiamat"
+}

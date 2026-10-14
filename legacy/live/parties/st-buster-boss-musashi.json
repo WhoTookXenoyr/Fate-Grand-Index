@@ -1,0 +1,17 @@
+{
+  "back": [
+    "Salter Rider",
+    "Francis Drake",
+    "Osakabehime"
+  ],
+  "bestFor": "Bosses, best vs Lancers",
+  "front": [
+    "Miyamoto Musashi",
+    "Oberon",
+    ""
+  ],
+  "guest": "Koyanskaya of Light",
+  "name": "ST Buster boss - Musashi",
+  "order": 5,
+  "strategy": "Musashi S1+S2 on the NP turn (both 1 turn), Oberon S3 for the burst. Salter Rider's Coaching cuts one of Musashi's cooldowns by 1."
+}

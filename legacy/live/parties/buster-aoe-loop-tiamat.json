@@ -1,0 +1,17 @@
+{
+  "back": [
+    "Francis Drake",
+    "Ivan the Terrible",
+    "Arjuna Alter"
+  ],
+  "bestFor": "Farming vs Rider/Caster/Assassin",
+  "front": [
+    "Larva Tiamat",
+    "Oberon",
+    ""
+  ],
+  "guest": "Koyanskaya of Light",
+  "name": "Buster AoE loop - Tiamat",
+  "order": 1,
+  "strategy": "Guest goes in front slot 3. Tiamat's passive +5%/turn + Skill 1, Oberon S1 party NP, Koyanskaya tops up. Back row covers other matchups."
+}

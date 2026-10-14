@@ -1,0 +1,55 @@
+{
+  "atk": 12612,
+  "cls": "Avenger",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Castoria (Arts) / Koyanskaya of Light (Buster) / Scathach-Skadi (Quick)",
+  "hp": 13041,
+  "level": 90,
+  "mates": "Lady Avalon / Tamamo no Mae (Arts), Oberon (Buster), Salter Rider (Quick)",
+  "name": "Space Ishtar",
+  "notes": "Wiki: ATK 1,949/12,612, HP 1,912/13,041 (max, used); Lv100 13,806 / 14,287. NP card is picked with Skill 2: Buster 300% / Arts 450% / Quick 600% at NP1 (AoE); OC own NP dmg 20-60%.",
+  "npCard": "Arts",
+  "npLevel": 1,
+  "npName": "Edin Shugra Quasar",
+  "npTarget": "AoE",
+  "order": 19,
+  "party": "AoE farming (any card type)",
+  "rarity": 5,
+  "role": "Main DPS",
+  "skillInfo": [
+    {
+      "cd": 7,
+      "effect": "Own ATK up, party (except self) ATK up, party Charm immune (3t)",
+      "label": "Own ATK up",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 10,
+      "v10": 20
+    },
+    {
+      "cd": 7,
+      "effect": "Own NP dmg up (1 time), Invincible (1 hit), choose NP card type (3t)",
+      "label": "NP dmg up",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 10,
+      "v10": 20
+    },
+    {
+      "cd": 8,
+      "effect": "Own NP charge + 80%: own Quick/Arts/Buster up 20% (3t)",
+      "label": "Own NP charge",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 30,
+      "v10": 50
+    }
+  ],
+  "skills": [
+    6,
+    7,
+    8
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Space_Ishtar"
+}

@@ -1,0 +1,55 @@
+{
+  "atk": 11113,
+  "cls": "Berserker",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Scathach-Skadi",
+  "hp": 14175,
+  "level": 90,
+  "mates": "Salter Rider (party Quick up), Osakabehime (OC Quick up), Space Ishtar (party ATK)",
+  "name": "Mysterious Heroine X Alter",
+  "notes": "Wiki: ATK 1,717/11,113, HP 2,079/14,175 (max, used); Lv100 12,165 / 15,529. NP 1200% (NP1) ST Quick; OC extra dmg vs Saber 150-200%. Your list didn't include her NP level.",
+  "npCard": "Quick",
+  "npLevel": null,
+  "npName": "Black Dragon Twinblade of Victory",
+  "npTarget": "Single Target",
+  "order": 17,
+  "party": "ST Quick (great vs Sabers)",
+  "rarity": 5,
+  "role": "Main DPS",
+  "skillInfo": [
+    {
+      "cd": 7,
+      "effect": "Healing received up, heal, HP regen 1000 (3t), card crit dmg up (1 hit, 3t)",
+      "label": "Heal",
+      "name": "∞ Chestnut Paste EX (upgraded Black Bean Paste)",
+      "unit": "HP",
+      "v1": 1000,
+      "v10": 2000
+    },
+    {
+      "cd": 7,
+      "effect": "Own Quick up (3t) + gain stars",
+      "label": "Quick up",
+      "name": "Instantaneous Shadowless Blade C+ (upgraded Instinct C)",
+      "unit": "%",
+      "v1": 20,
+      "v10": 30
+    },
+    {
+      "cd": 7,
+      "effect": "One ally star absorption -100% (1t), party ATK up (3t)",
+      "label": "Party ATK up",
+      "name": "Sovereign's Invisible Hand C",
+      "unit": "%",
+      "v1": 10,
+      "v10": 20
+    }
+  ],
+  "skills": [
+    1,
+    2,
+    1
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Mysterious_Heroine_X_(Alter)"
+}

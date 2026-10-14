@@ -1,0 +1,55 @@
+{
+  "atk": 10296,
+  "cls": "Rider",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Merlin, Oberon",
+  "hp": 13968,
+  "level": 90,
+  "mates": "Cu Chulainn Alter, Ivan the Terrible, Arjuna Alter, Oberon (all Male/Fae)",
+  "name": "Queen Medb",
+  "notes": "Wiki: ATK 1,591/10,296, HP 2,048/13,968 (max, used); Lv100 11,270 / 15,303. Her buffs hit Male (and Fae) allies hardest. NP 800% (NP1) ST; OC extra dmg vs Male 150-200%.",
+  "npCard": "Buster",
+  "npLevel": 1,
+  "npName": "Chariot of Bountiful Blessings",
+  "npTarget": "Single Target",
+  "order": 10,
+  "party": "Male-ally support",
+  "rarity": 5,
+  "role": "Buffer",
+  "skillInfo": [
+    {
+      "cd": 8,
+      "effect": "Debuff immune, HP regen, own NP +10%/turn (3t); charge Male/Fae allies' NP",
+      "label": "Male/Fae ally NP",
+      "name": "Queen's Substance A+",
+      "unit": "%",
+      "v1": 20,
+      "v10": 30
+    },
+    {
+      "cd": 7,
+      "effect": "Party ATK up + Male allies ATK up (3t), heal self",
+      "label": "Party ATK up",
+      "name": "Discipline of the Queen A",
+      "unit": "%",
+      "v1": 10,
+      "v10": 20
+    },
+    {
+      "cd": 9,
+      "effect": "Chance to Charm one Male enemy (1t) + its DEF down (1t)",
+      "label": "Enemy DEF down",
+      "name": "My Red Mead C",
+      "unit": "%",
+      "v1": 20,
+      "v10": 30
+    }
+  ],
+  "skills": [
+    1,
+    3,
+    1
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Queen_Medb"
+}

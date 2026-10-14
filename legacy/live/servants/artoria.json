@@ -1,0 +1,55 @@
+{
+  "atk": 9089,
+  "cls": "Saber",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Koyanskaya of Light, Oberon, Merlin",
+  "hp": 12245,
+  "level": 70,
+  "mates": "Oberon, Francis Drake",
+  "name": "Artoria",
+  "notes": "Wiki name: Artoria Pendragon. Wiki: ATK 1,734/11,221, HP 2,222/15,150 (Lv1/Lv90), Linear curve -> Lv70 values calculated. NP damage table didn't render on the wiki; Excalibur being AoE Buster is game knowledge.",
+  "npCard": "Buster",
+  "npLevel": 1,
+  "npName": "Excalibur",
+  "npTarget": "AoE",
+  "order": 22,
+  "party": "AoE Buster (level her up first)",
+  "rarity": 5,
+  "role": "Main DPS",
+  "skillInfo": [
+    {
+      "cd": 7,
+      "effect": "Party ATK up (3t)",
+      "label": "Party ATK up",
+      "name": "Charisma B",
+      "unit": "%",
+      "v1": 9,
+      "v10": 18
+    },
+    {
+      "cd": 7,
+      "effect": "Own Buster up (1t); upgrade adds NP dmg up + all cards Buster",
+      "label": "Buster up",
+      "name": "Mana Burst A (-> Dragon Reactor Core B after Rank Up)",
+      "unit": "%",
+      "v1": 30,
+      "v10": 50
+    },
+    {
+      "cd": 7,
+      "effect": "Gain stars; upgrade adds own NP charge 20-30%",
+      "label": "Stars",
+      "name": "Instinct A (-> Radiant Road EX after Rank Up)",
+      "unit": "stars",
+      "v1": 5,
+      "v10": 15
+    }
+  ],
+  "skills": [
+    1,
+    1,
+    "Locked"
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Artoria_Pendragon"
+}

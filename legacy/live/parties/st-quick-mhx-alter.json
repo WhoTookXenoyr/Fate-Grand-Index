@@ -1,0 +1,17 @@
+{
+  "back": [
+    "Osakabehime",
+    "Space Ishtar",
+    "Lady Avalon"
+  ],
+  "bestFor": "Saber bosses / Quick crits",
+  "front": [
+    "Mysterious Heroine X Alter",
+    "Salter Rider",
+    ""
+  ],
+  "guest": "Scathach-Skadi",
+  "name": "ST Quick - MHX Alter",
+  "order": 8,
+  "strategy": "Salter's party Quick up feeds MHXA; MHXA's NP does extra damage to Sabers."
+}

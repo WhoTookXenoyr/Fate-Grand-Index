@@ -1,0 +1,55 @@
+{
+  "atk": 12509,
+  "cls": "Beast",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Castoria (Altria Caster)",
+  "hp": 15918,
+  "level": 100,
+  "mates": "Lady Avalon, Tamamo no Mae, Nitocris Alter (party Arts up)",
+  "name": "Space Ereshkigal",
+  "notes": "Wiki: ATK 1,766/11,427, HP 2,131/14,530; Lv100 12,509 / 15,918 (used). Beast: x1.5 dmg vs Ruler, Moon Cancer, Alter Ego, Foreigner, Pretender; weak to Avenger. NP 450% (NP1) / 750% (NP5); OC fills her Master Affinity gauge.",
+  "npCard": "Arts",
+  "npLevel": 2,
+  "npName": "The Abyssal Lake Where the Azure Sky Descends",
+  "npTarget": "AoE",
+  "order": 5,
+  "party": "AoE Arts farming (loop)",
+  "rarity": 5,
+  "role": "Main DPS",
+  "skillInfo": [
+    {
+      "cd": 8,
+      "effect": "Party ATK + NP dmg up, NP charge, Death res up; party Poison (demerit)",
+      "label": "Party ATK up",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 10,
+      "v10": 20
+    },
+    {
+      "cd": 9,
+      "effect": "Gain stars, star absorption up, crit dmg up on attack, NP charge",
+      "label": "Crit dmg up",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 50,
+      "v10": 100
+    },
+    {
+      "cd": 9,
+      "effect": "Invincible (2 hits), Guts, heal, remove debuffs, own skill cooldowns -2",
+      "label": "Guts revive",
+      "name": "(name not shown on wiki)",
+      "unit": "HP",
+      "v1": 2000,
+      "v10": 3000
+    }
+  ],
+  "skills": [
+    9,
+    10,
+    9
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Space_Ereshkigal"
+}

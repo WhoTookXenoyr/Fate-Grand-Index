@@ -1,0 +1,17 @@
+{
+  "back": [
+    "Francis Drake",
+    "Lady Avalon",
+    "Osakabehime"
+  ],
+  "bestFor": "Bosses, best vs Assassins",
+  "front": [
+    "Illya",
+    "Oberon",
+    ""
+  ],
+  "guest": "Merlin",
+  "name": "ST Buster boss - Illya",
+  "order": 10,
+  "strategy": "Illya S1 + S2 on the NP turn; Suspicious Medicine (S3) gives a teammate Guts for safety."
+}

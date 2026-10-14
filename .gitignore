@@ -1,0 +1,9 @@
+# build output and intermediates of the legacy patch chain
+legacy/out/
+legacy/_seeded.html
+legacy/spirit-origin-list.html
+legacy/base_v*.html
+legacy/atlas/*.json
+__pycache__/
+*.pyc
+.DS_Store

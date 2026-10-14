@@ -1,0 +1,17 @@
+{
+  "back": [
+    "Oberon",
+    "Francis Drake",
+    "Lady Avalon"
+  ],
+  "bestFor": "Long boss fights / challenge quests",
+  "front": [
+    "Cu Chulainn Alter",
+    "Queen Medb",
+    ""
+  ],
+  "guest": "Merlin",
+  "name": "ST Buster boss - Cu Alter",
+  "order": 4,
+  "strategy": "Medb buffs Male/Fae allies (Cu, Oberon). Cu tanks with Evade + Guts; bring Oberon in for the burst turn. Swap Merlin for Koyanskaya of Light for shorter fights."
+}

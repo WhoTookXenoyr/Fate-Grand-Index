@@ -1,0 +1,17 @@
+{
+  "back": [
+    "Oberon",
+    "Arjuna Alter",
+    "Ivan the Terrible"
+  ],
+  "bestFor": "Farming vs Archers",
+  "front": [
+    "Ereshkigal",
+    "Francis Drake",
+    ""
+  ],
+  "guest": "Koyanskaya of Light",
+  "name": "AoE Buster - Ereshkigal",
+  "order": 11,
+  "strategy": "Eresh S3 gives the party Blessing of Kur so her NP adds +20% ATK to them; S2 is her own 30% charge."
+}

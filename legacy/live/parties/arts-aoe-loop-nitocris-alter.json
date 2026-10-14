@@ -1,0 +1,17 @@
+{
+  "back": [
+    "Tamamo no Mae",
+    "Space Ereshkigal",
+    "Space Ishtar"
+  ],
+  "bestFor": "General farming, best vs Rulers",
+  "front": [
+    "Nitocris Alter",
+    "Lady Avalon",
+    ""
+  ],
+  "guest": "Castoria (Altria Caster)",
+  "name": "Arts AoE loop - Nitocris Alter",
+  "order": 3,
+  "strategy": "Nitocris S2 is a big self-charge (50%+); Avalon + Castoria cover the rest. Tamamo S3 = +30-50% Arts on Nitocris."
+}

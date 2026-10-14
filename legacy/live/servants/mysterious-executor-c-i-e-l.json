@@ -1,0 +1,55 @@
+{
+  "atk": null,
+  "cls": "Moon Cancer",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Koyanskaya of Light, Oberon",
+  "hp": null,
+  "level": 100,
+  "mates": "Oberon",
+  "name": "Mysterious Executor C.I.E.L",
+  "notes": "Wiki page returned an error (402) on every try, so stats/skills are NOT filled. Card/target/team from GameWith's guide (her Skill 3 makes all 5 dealt cards hers -> Buster crit turns), not the wiki. The HP/ATK + Skill 1 I put here in the previous version were Archetype: Earth's - removed.",
+  "npCard": "Buster",
+  "npLevel": 1,
+  "npName": null,
+  "npTarget": "Single Target",
+  "order": 3,
+  "party": "ST Buster crits (card lock)",
+  "rarity": 5,
+  "role": "Main DPS",
+  "skillInfo": [
+    {
+      "cd": null,
+      "effect": null,
+      "label": null,
+      "name": "(wiki page blocked)",
+      "unit": null,
+      "v1": null,
+      "v10": null
+    },
+    {
+      "cd": null,
+      "effect": null,
+      "label": null,
+      "name": "(wiki page blocked)",
+      "unit": null,
+      "v1": null,
+      "v10": null
+    },
+    {
+      "cd": null,
+      "effect": null,
+      "label": null,
+      "name": "(wiki page blocked)",
+      "unit": null,
+      "v1": null,
+      "v10": null
+    }
+  ],
+  "skills": [
+    2,
+    1,
+    2
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Mysterious_Executor_C.I.E.L"
+}

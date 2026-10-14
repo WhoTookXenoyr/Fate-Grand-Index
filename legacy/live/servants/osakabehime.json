@@ -1,0 +1,55 @@
+{
+  "atk": 10824,
+  "cls": "Assassin",
+  "fouAtk": null,
+  "fouHp": null,
+  "guests": "Scathach-Skadi (Quick), Merlin (Buster)",
+  "hp": 13822,
+  "level": 90,
+  "mates": "Salter Rider (Quick), Mysterious Heroine X Alter (Quick), Miyamoto Musashi",
+  "name": "Osakabehime",
+  "notes": "Wiki lists her as 5-star. Wiki: ATK 1,672/10,824, HP 2,027/13,822 (max, used); Lv100 11,849 / 15,143. NP does no damage: party DEF +20% & Max HP +2000-4000 (3t); OC party Quick & Buster up 30-50% (3t).",
+  "npCard": "Arts",
+  "npLevel": 1,
+  "npName": "The Great Hachitendou of Hakuro Castle",
+  "npTarget": "Support",
+  "order": 15,
+  "party": "Defensive support (Quick/Buster teams)",
+  "rarity": 5,
+  "role": "Buffer",
+  "skillInfo": [
+    {
+      "cd": 7,
+      "effect": "Own DEF +30% (1t) & DEF up + debuff res up (3t); party crit dmg up (3t)",
+      "label": "Party crit dmg up",
+      "name": "(upgraded Shapeshift A+ - new name not shown)",
+      "unit": "%",
+      "v1": 30,
+      "v10": 50
+    },
+    {
+      "cd": 7,
+      "effect": "Charge one ally's NP + their star gen up (3t)",
+      "label": "Ally NP charge",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 10,
+      "v10": 20
+    },
+    {
+      "cd": 7,
+      "effect": "One enemy DEF down (1t) + remove their buffs",
+      "label": "Enemy DEF down",
+      "name": "(name not shown on wiki)",
+      "unit": "%",
+      "v1": 20,
+      "v10": 40
+    }
+  ],
+  "skills": [
+    1,
+    4,
+    1
+  ],
+  "url": "https://fategrandorder.fandom.com/wiki/Osakabehime"
+}

@@ -1,0 +1,17 @@
+{
+  "back": [
+    "Tamamo no Mae",
+    "Nitocris Alter",
+    "Space Ishtar"
+  ],
+  "bestFor": "Farming vs Ruler/Moon Cancer/Alter Ego/Foreigner/Pretender",
+  "front": [
+    "Space Ereshkigal",
+    "Lady Avalon",
+    ""
+  ],
+  "guest": "Castoria (Altria Caster)",
+  "name": "Arts AoE loop - Space Ereshkigal",
+  "order": 2,
+  "strategy": "Lady Avalon S2 + Castoria charges; Space Eresh loops on Arts refund. Avoid Avenger-heavy nodes. Tamamo can swap in for her party NP dmg + Arts buff."
+}

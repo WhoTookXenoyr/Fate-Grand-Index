@@ -1,0 +1,5 @@
+
+
+initFonts();
+init();
+})();

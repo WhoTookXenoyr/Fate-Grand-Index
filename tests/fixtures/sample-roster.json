@@ -1,0 +1,1492 @@
+{
+ "servants": [
+  {
+   "atk": 14017,
+   "cls": "Berserker",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Koyanskaya of Light, Oberon, Merlin",
+   "hp": 13377,
+   "level": 100,
+   "mates": "Queen Medb (male NP + ATK), Oberon, Francis Drake (party ATK + NP dmg)",
+   "name": "Cu Chulainn Alter",
+   "notes": "Wiki: ATK 1,979/12,805, HP 1,790/12,210; Lv100 grail 14,017 ATK / 13,377 HP (used). NP 600% at NP1, 12 hits; OC self ATK & DEF +30-70% (1t). Evade + Guts + DEF make him a great long-fight / solo unit.",
+   "npCard": "Buster",
+   "npLevel": 1,
+   "npName": "Curruid Coinchenn (Beast of Crunching Deathtusk)",
+   "npTarget": "Single Target",
+   "order": 1,
+   "party": "ST Buster boss team",
+   "rarity": 5,
+   "role": "Main DPS",
+   "skillInfo": [
+    {
+     "cd": 8,
+     "effect": "All enemies ATK down + crit chance down (3t)",
+     "label": "Enemy ATK down",
+     "name": "Madness of the Spirits A",
+     "unit": "%",
+     "v1": 10,
+     "v10": 20
+    },
+    {
+     "cd": 7,
+     "effect": "Self Evade (2 hits) + DEF up (3t)",
+     "label": "DEF up",
+     "name": "Protection from Arrows C",
+     "unit": "%",
+     "v1": 7,
+     "v10": 14
+    },
+    {
+     "cd": 9,
+     "effect": "Self Guts (1 time, 5t)",
+     "label": "Guts revive",
+     "name": "Battle Continuation A",
+     "unit": "HP",
+     "v1": 1000,
+     "v10": 2500
+    }
+   ],
+   "skills": [
+    6,
+    2,
+    2
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/C%C3%BA_Chulainn_(Alter)",
+   "id": "cu-chulainn-alter"
+  },
+  {
+   "atk": 12527,
+   "cls": "Alter Ego",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Koyanskaya of Light, Oberon",
+   "hp": 15455,
+   "level": 100,
+   "mates": "Oberon, Francis Drake (party ATK + NP dmg)",
+   "name": "Larva Tiamat",
+   "notes": "Wiki: ATK 1,768/11,444, HP 2,069/14,107; Lv100 12,527 / 15,455 (used). Passive: +5% NP every turn. Alter Ego = strong vs Rider, Caster, Assassin. NP table didn't render on the wiki: Buster/AoE is from GamePress's review. Wiki shows Skill 3 cooldown as 4 - check in game.",
+   "npCard": "Buster",
+   "npLevel": 1,
+   "npName": "(NP name not shown on wiki)",
+   "npTarget": "AoE",
+   "order": 2,
+   "party": "AoE Buster farming (loop)",
+   "rarity": 5,
+   "role": "Main DPS",
+   "skillInfo": [
+    {
+     "cd": 8,
+     "effect": "Own NP charge; all enemies crit chance -100% (1t); HP Recovery Block on them (1t)",
+     "label": "Own NP charge",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 30,
+     "v10": 50
+    },
+    {
+     "cd": 8,
+     "effect": "Own ATK + Buster up (3t); 60% chance to Stun all enemies (1t); Curse them (3t)",
+     "label": "ATK up",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 20,
+     "v10": 30
+    },
+    {
+     "cd": 4,
+     "effect": "Party heal; party NP +10%; party NP damage up (1t)",
+     "label": "Party NP dmg up",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 10,
+     "v10": 20
+    }
+   ],
+   "skills": [
+    4,
+    4,
+    2
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Larva/Tiamat",
+   "id": "larva-tiamat"
+  },
+  {
+   "atk": null,
+   "cls": "Moon Cancer",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Koyanskaya of Light, Oberon",
+   "hp": null,
+   "level": 100,
+   "mates": "Oberon",
+   "name": "Mysterious Executor C.I.E.L",
+   "notes": "Wiki page returned an error (402) on every try, so stats/skills are NOT filled. Card/target/team from GameWith's guide (her Skill 3 makes all 5 dealt cards hers -> Buster crit turns), not the wiki. The HP/ATK + Skill 1 I put here in the previous version were Archetype: Earth's - removed.",
+   "npCard": "Buster",
+   "npLevel": 1,
+   "npName": null,
+   "npTarget": "Single Target",
+   "order": 3,
+   "party": "ST Buster crits (card lock)",
+   "rarity": 5,
+   "role": "Main DPS",
+   "skillInfo": [
+    {
+     "cd": null,
+     "effect": null,
+     "label": null,
+     "name": "(wiki page blocked)",
+     "unit": null,
+     "v1": null,
+     "v10": null
+    },
+    {
+     "cd": null,
+     "effect": null,
+     "label": null,
+     "name": "(wiki page blocked)",
+     "unit": null,
+     "v1": null,
+     "v10": null
+    },
+    {
+     "cd": null,
+     "effect": null,
+     "label": null,
+     "name": "(wiki page blocked)",
+     "unit": null,
+     "v1": null,
+     "v10": null
+    }
+   ],
+   "skills": [
+    2,
+    1,
+    2
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Mysterious_Executor_C.I.E.L",
+   "id": "mysterious-executor-c-i-e-l"
+  },
+  {
+   "atk": 12650,
+   "cls": "Pretender",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Castoria (Altria Caster)",
+   "hp": 15143,
+   "level": 100,
+   "mates": "Space Ereshkigal, Nitocris Alter, Space Ishtar (Arts NP), Tamamo no Mae",
+   "name": "Lady Avalon",
+   "notes": "Wiki: ATK 1,786/11,556, HP 2,027/13,822; Lv100 12,650 / 15,143 (used). NP = no damage: party Max HP +3000 (NP1) to +5000 (NP5); OC stars per turn 5-25. (Previous version had an invented Skill 1 name - removed.)",
+   "npCard": "Arts",
+   "npLevel": 1,
+   "npName": "Winds of Avalon",
+   "npTarget": "Support",
+   "order": 4,
+   "party": "Arts support (any Arts DPS)",
+   "rarity": 5,
+   "role": "Buffer",
+   "skillInfo": [
+    {
+     "cd": 8,
+     "effect": "One ally: Arts up (3t), Max HP up (3t), crit damage up (1t)",
+     "label": "Ally Arts up",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 30,
+     "v10": 50
+    },
+    {
+     "cd": 8,
+     "effect": "Party ATK up (3t), party NP +20%, party NP overcharge +1 (3t)",
+     "label": "Party ATK up",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 10,
+     "v10": 20
+    },
+    {
+     "cd": 10,
+     "effect": "Party Invincible (1t); drains enemy NP; own NP charge per enemy",
+     "label": "Own NP per enemy",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 10,
+     "v10": 20
+    }
+   ],
+   "skills": [
+    2,
+    2,
+    2
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Lady_Avalon",
+   "id": "lady-avalon"
+  },
+  {
+   "atk": 12509,
+   "cls": "Beast",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Castoria (Altria Caster)",
+   "hp": 15918,
+   "level": 100,
+   "mates": "Lady Avalon, Tamamo no Mae, Nitocris Alter (party Arts up)",
+   "name": "Space Ereshkigal",
+   "notes": "Wiki: ATK 1,766/11,427, HP 2,131/14,530; Lv100 12,509 / 15,918 (used). Beast: x1.5 dmg vs Ruler, Moon Cancer, Alter Ego, Foreigner, Pretender; weak to Avenger. NP 450% (NP1) / 750% (NP5); OC fills her Master Affinity gauge.",
+   "npCard": "Arts",
+   "npLevel": 2,
+   "npName": "The Abyssal Lake Where the Azure Sky Descends",
+   "npTarget": "AoE",
+   "order": 5,
+   "party": "AoE Arts farming (loop)",
+   "rarity": 5,
+   "role": "Main DPS",
+   "skillInfo": [
+    {
+     "cd": 8,
+     "effect": "Party ATK + NP dmg up, NP charge, Death res up; party Poison (demerit)",
+     "label": "Party ATK up",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 10,
+     "v10": 20
+    },
+    {
+     "cd": 9,
+     "effect": "Gain stars, star absorption up, crit dmg up on attack, NP charge",
+     "label": "Crit dmg up",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 50,
+     "v10": 100
+    },
+    {
+     "cd": 9,
+     "effect": "Invincible (2 hits), Guts, heal, remove debuffs, own skill cooldowns -2",
+     "label": "Guts revive",
+     "name": "(name not shown on wiki)",
+     "unit": "HP",
+     "v1": 2000,
+     "v10": 3000
+    }
+   ],
+   "skills": [
+    9,
+    10,
+    9
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Space_Ereshkigal",
+   "id": "space-ereshkigal"
+  },
+  {
+   "atk": 12265,
+   "cls": "Saber",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Koyanskaya of Light, Oberon, Merlin",
+   "hp": 13896,
+   "level": 92,
+   "mates": "Oberon, Francis Drake (party ATK + NP dmg), Salter Rider (Skill 2 cuts a cooldown)",
+   "name": "Miyamoto Musashi",
+   "notes": "Wiki: ATK 1,860/12,037, HP 1,999/13,635; Lv100 13,176 / 14,938. Lv92 values estimated on her Linear curve (could be off by 1-2) - check in game. NP 800% at NP1 (after Strengthen), removes buffs, +150% vs Alter Ego / Moon Cancer.",
+   "npCard": "Buster",
+   "npLevel": 1,
+   "npName": "Rikudou Gorin - Kurikara Tenshou",
+   "npTarget": "Single Target",
+   "order": 6,
+   "party": "ST Buster boss team",
+   "rarity": 5,
+   "role": "Main DPS",
+   "skillInfo": [
+    {
+     "cd": 8,
+     "effect": "Double own hit count (1t) + own normal-attack damage up (1t)",
+     "label": "Normal-attack dmg up",
+     "name": "Fifth Form (name from wiki icon)",
+     "unit": "%",
+     "v1": 0,
+     "v10": 30
+    },
+    {
+     "cd": 7,
+     "effect": "Ignore Invincible (1t) + own Buster up (1t)",
+     "label": "Buster up",
+     "name": "Heavenly Eye A",
+     "unit": "%",
+     "v1": 30,
+     "v10": 50
+    },
+    {
+     "cd": 8,
+     "effect": "Invincible (1t), star gen up (3t), remove own debuffs",
+     "label": "Star gen up",
+     "name": "Emptiness A",
+     "unit": "%",
+     "v1": 10,
+     "v10": 30
+    }
+   ],
+   "skills": [
+    3,
+    1,
+    1
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Miyamoto_Musashi",
+   "id": "miyamoto-musashi"
+  },
+  {
+   "atk": 10343,
+   "cls": "Lancer",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Koyanskaya of Light, Oberon",
+   "hp": 16065,
+   "level": 90,
+   "mates": "Oberon, Francis Drake, Arjuna Alter",
+   "name": "Ereshkigal",
+   "notes": "Wiki: ATK 1,598/10,343, HP 2,356/16,065 (max, used); Lv100 11,322 / 17,600. NP 300% (NP1) AoE; allies with Blessing of Kur get ATK +20% (3t); OC own Buster up 10-50%.",
+   "npCard": "Buster",
+   "npLevel": 1,
+   "npName": "Kur Ki Gal Irkalla",
+   "npTarget": "AoE",
+   "order": 7,
+   "party": "AoE Buster farming + party support",
+   "rarity": 5,
+   "role": "Hybrid",
+   "skillInfo": [
+    {
+     "cd": 8,
+     "effect": "Invincible (1t) + chance of Debuff immune, Insta-kill immune, buff-removal res (1t)",
+     "label": "Activation chance",
+     "name": "The Secret Great Crown A",
+     "unit": "%",
+     "v1": 60,
+     "v10": 80
+    },
+    {
+     "cd": 8,
+     "effect": "Own Buster up (1t) + own NP charge",
+     "label": "Own NP charge",
+     "name": "Mana Burst (Cage) A+",
+     "unit": "%",
+     "v1": 30,
+     "v10": 50
+    },
+    {
+     "cd": 8,
+     "effect": "Party Blessing of Kur, DEF up, NP gain up, Max HP up (3t)",
+     "label": "Party NP gain up",
+     "name": "Blessing of Kur EX",
+     "unit": "%",
+     "v1": 20,
+     "v10": 30
+    }
+   ],
+   "skills": [
+    1,
+    1,
+    2
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Ereshkigal",
+   "id": "ereshkigal"
+  },
+  {
+   "atk": 11619,
+   "cls": "Rider",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Koyanskaya of Light, Oberon",
+   "hp": 13284,
+   "level": 90,
+   "mates": "Oberon, Francis Drake, Queen Medb (male buffs)",
+   "name": "Ivan the Terrible",
+   "notes": "Wiki: ATK 1,795/11,619, HP 1,948/13,284 (max, used); Lv100 12,719 / 14,553. NP 400% (NP1) AoE + enemies Buster res down 30% (3t); OC NP dmg 30-70%.",
+   "npCard": "Buster",
+   "npLevel": 1,
+   "npName": "Zveri Krestnyi Khod",
+   "npTarget": "AoE",
+   "order": 8,
+   "party": "AoE Buster farming",
+   "rarity": 5,
+   "role": "Main DPS",
+   "skillInfo": [
+    {
+     "cd": 7,
+     "effect": "Own NP gain up (3t), NP charge, dmg up vs Lawful & Chaotic (3t), remove own debuffs",
+     "label": "Own NP charge",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 20,
+     "v10": 30
+    },
+    {
+     "cd": 7,
+     "effect": "Gain stars every turn (3t) + own Buster up (3t)",
+     "label": "Buster up",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 20,
+     "v10": 40
+    },
+    {
+     "cd": 8,
+     "effect": "Invincible (1t), all enemies ATK down (3t), remove their buffs",
+     "label": "Enemy ATK down",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 10,
+     "v10": 20
+    }
+   ],
+   "skills": [
+    1,
+    1,
+    7
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Ivan_the_Terrible",
+   "id": "ivan-the-terrible"
+  },
+  {
+   "atk": 10776,
+   "cls": "Rider",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Scathach-Skadi",
+   "hp": 14256,
+   "level": 90,
+   "mates": "Osakabehime (OC party Quick up), Mysterious Heroine X Alter, Miyamoto Musashi (Skill 2 cuts a cooldown)",
+   "name": "Salter Rider",
+   "notes": "Wiki name: Artoria Pendragon (Rider Alter), 5-star. Wiki: ATK 1,665/10,776, HP 2,090/14,256 (max, used); Lv100 11,796 / 15,618. NP 1200% (NP1) single target - those are Quick damage values (card icon didn't render); OC enemy crit chance down 30-70%.",
+   "npCard": "Quick",
+   "npLevel": 1,
+   "npName": "Secace Morgan",
+   "npTarget": "Single Target",
+   "order": 9,
+   "party": "ST Quick boss team",
+   "rarity": 5,
+   "role": "Main DPS",
+   "skillInfo": [
+    {
+     "cd": 8,
+     "effect": "Own ATK up + party Quick up (3t)",
+     "label": "Own ATK up",
+     "name": "Summer Sweeper! A",
+     "unit": "%",
+     "v1": 20,
+     "v10": 30
+    },
+    {
+     "cd": 8,
+     "effect": "One ally: skill cooldowns -1, star gen up (3t), 1000 dmg to them (demerit), then Max HP up (5t)",
+     "label": "Ally star gen up",
+     "name": "Coaching A+",
+     "unit": "%",
+     "v1": 30,
+     "v10": 50
+    },
+    {
+     "cd": 5,
+     "effect": "Own Quick up (1 attack, 3t)",
+     "label": "Quick up",
+     "name": "Reloaded C",
+     "unit": "%",
+     "v1": 20,
+     "v10": 30
+    }
+   ],
+   "skills": [
+    2,
+    1,
+    1
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Artoria_Pendragon_(Rider_Alter)",
+   "id": "salter-rider"
+  },
+  {
+   "atk": 10296,
+   "cls": "Rider",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Merlin, Oberon",
+   "hp": 13968,
+   "level": 90,
+   "mates": "Cu Chulainn Alter, Ivan the Terrible, Arjuna Alter, Oberon (all Male/Fae)",
+   "name": "Queen Medb",
+   "notes": "Wiki: ATK 1,591/10,296, HP 2,048/13,968 (max, used); Lv100 11,270 / 15,303. Her buffs hit Male (and Fae) allies hardest. NP 800% (NP1) ST; OC extra dmg vs Male 150-200%.",
+   "npCard": "Buster",
+   "npLevel": 1,
+   "npName": "Chariot of Bountiful Blessings",
+   "npTarget": "Single Target",
+   "order": 10,
+   "party": "Male-ally support",
+   "rarity": 5,
+   "role": "Buffer",
+   "skillInfo": [
+    {
+     "cd": 8,
+     "effect": "Debuff immune, HP regen, own NP +10%/turn (3t); charge Male/Fae allies' NP",
+     "label": "Male/Fae ally NP",
+     "name": "Queen's Substance A+",
+     "unit": "%",
+     "v1": 20,
+     "v10": 30
+    },
+    {
+     "cd": 7,
+     "effect": "Party ATK up + Male allies ATK up (3t), heal self",
+     "label": "Party ATK up",
+     "name": "Discipline of the Queen A",
+     "unit": "%",
+     "v1": 10,
+     "v10": 20
+    },
+    {
+     "cd": 9,
+     "effect": "Chance to Charm one Male enemy (1t) + its DEF down (1t)",
+     "label": "Enemy DEF down",
+     "name": "My Red Mead C",
+     "unit": "%",
+     "v1": 20,
+     "v10": 30
+    }
+   ],
+   "skills": [
+    1,
+    3,
+    1
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Queen_Medb",
+   "id": "queen-medb"
+  },
+  {
+   "atk": 11326,
+   "cls": "Rider",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Koyanskaya of Light, Oberon",
+   "hp": 12830,
+   "level": 90,
+   "mates": "Ivan the Terrible, Ereshkigal, Arjuna Alter",
+   "name": "Francis Drake",
+   "notes": "Wiki: ATK 1,750/11,326, HP 1,881/12,830 (max, used); Lv100 12,398 / 14,056. NP 400% (NP1) AoE; OC stars 20-40. Skill names marked with a dagger aren't shown in the wiki text (from game knowledge).",
+   "npCard": "Buster",
+   "npLevel": 1,
+   "npName": "Golden Wild Hunt",
+   "npTarget": "AoE",
+   "order": 11,
+   "party": "AoE Buster + party buffs",
+   "rarity": 5,
+   "role": "Hybrid",
+   "skillInfo": [
+    {
+     "cd": 7,
+     "effect": "Party NP damage up + party ATK up (1t)",
+     "label": "Party ATK up",
+     "name": "Voyager of the Storm A+ †",
+     "unit": "%",
+     "v1": 8.5,
+     "v10": 17
+    },
+    {
+     "cd": 8,
+     "effect": "Own NP gain up, Buster up, Ignore DEF (3t)",
+     "label": "NP gain up",
+     "name": "Golden Rule (upgraded) †",
+     "unit": "%",
+     "v1": 18,
+     "v10": 45
+    },
+    {
+     "cd": 8,
+     "effect": "Own NP charge, Ignore Invincible (3t), +10 stars",
+     "label": "Own NP charge",
+     "name": "Pioneer of the Stars EX †",
+     "unit": "%",
+     "v1": 30,
+     "v10": 50
+    }
+   ],
+   "skills": [
+    1,
+    1,
+    1
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Francis_Drake",
+   "id": "francis-drake"
+  },
+  {
+   "atk": 10857,
+   "cls": "Caster",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Koyanskaya of Light, Oberon, Merlin",
+   "hp": 13825,
+   "level": 90,
+   "mates": "Oberon, Francis Drake, Lady Avalon",
+   "name": "Illya",
+   "notes": "Wiki name: Illyasviel von Einzbern. Wiki: ATK 1,677/10,857, HP 2,027/13,825 (max, used); Lv100 11,885 / 15,146. NP 800% (NP1) ST, also own NP gain + star gen up; demerit own ATK/DEF -10%; OC Buster up.",
+   "npCard": "Buster",
+   "npLevel": 1,
+   "npName": "Quintett Feuer",
+   "npTarget": "Single Target",
+   "order": 12,
+   "party": "ST Buster boss team",
+   "rarity": 5,
+   "role": "Main DPS",
+   "skillInfo": [
+    {
+     "cd": 7,
+     "effect": "Own Buster up (1t)",
+     "label": "Buster up",
+     "name": "Cheerful-Type Mystic Code A",
+     "unit": "%",
+     "v1": 30,
+     "v10": 50
+    },
+    {
+     "cd": 8,
+     "effect": "Invincible (1t) + own NP gain up (3t)",
+     "label": "NP gain up",
+     "name": "Child of Nature B",
+     "unit": "%",
+     "v1": 18,
+     "v10": 28
+    },
+    {
+     "cd": 8,
+     "effect": "70%: one ally Guts + Debuff immune; heal them",
+     "label": "Heal",
+     "name": "Suspicious Medicine A",
+     "unit": "HP",
+     "v1": 1000,
+     "v10": 3000
+    }
+   ],
+   "skills": [
+    1,
+    1,
+    1
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Illyasviel_von_Einzbern",
+   "id": "illya"
+  },
+  {
+   "atk": 10546,
+   "cls": "Caster",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Castoria (Altria Caster)",
+   "hp": 14259,
+   "level": 90,
+   "mates": "Space Ereshkigal, Nitocris Alter, Space Ishtar (Arts NP), Lady Avalon",
+   "name": "Tamamo no Mae",
+   "notes": "Wiki: ATK 1,629/10,546, HP 2,091/14,259 (max, used); Lv100 11,544 / 15,621. NP (x1.0 = Arts card) does no damage: party heal 2000 (NP1) to 3000 (NP5); OC party NP charge 25-50%.",
+   "npCard": "Arts",
+   "npLevel": 1,
+   "npName": "Eightfold Blessing of Amaterasu",
+   "npTarget": "Support",
+   "order": 13,
+   "party": "Arts support (any Arts DPS)",
+   "rarity": 5,
+   "role": "Buffer",
+   "skillInfo": [
+    {
+     "cd": 7,
+     "effect": "80% chance one enemy NP -1 + party NP damage up (3t)",
+     "label": "Party NP dmg up",
+     "name": "Witchcraft (upgraded)",
+     "unit": "%",
+     "v1": 20,
+     "v10": 30
+    },
+    {
+     "cd": 7,
+     "effect": "Own DEF +30% (1t) + own DEF up (3t)",
+     "label": "DEF up",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 10,
+     "v10": 30
+    },
+    {
+     "cd": 7,
+     "effect": "One ally Arts up (3t) + heal them",
+     "label": "Ally Arts up",
+     "name": "(upgraded after Interlude 2 - name not shown)",
+     "unit": "%",
+     "v1": 30,
+     "v10": 50
+    }
+   ],
+   "skills": [
+    1,
+    1,
+    1
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Tamamo_no_Mae",
+   "id": "tamamo-no-mae"
+  },
+  {
+   "atk": null,
+   "cls": "Assassin",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": null,
+   "hp": null,
+   "level": 90,
+   "mates": null,
+   "name": "Kashin Koji",
+   "notes": "Wiki page returned an error (402) on every try, so nothing here is filled. Fill from the game, or ask me to retry the page later.",
+   "npCard": null,
+   "npLevel": 1,
+   "npName": null,
+   "npTarget": null,
+   "order": 14,
+   "party": null,
+   "rarity": 5,
+   "role": null,
+   "skillInfo": [
+    {
+     "cd": null,
+     "effect": null,
+     "label": null,
+     "name": "(wiki page blocked)",
+     "unit": null,
+     "v1": null,
+     "v10": null
+    },
+    {
+     "cd": null,
+     "effect": null,
+     "label": null,
+     "name": "(wiki page blocked)",
+     "unit": null,
+     "v1": null,
+     "v10": null
+    },
+    {
+     "cd": null,
+     "effect": null,
+     "label": null,
+     "name": "(wiki page blocked)",
+     "unit": null,
+     "v1": null,
+     "v10": null
+    }
+   ],
+   "skills": [
+    2,
+    4,
+    2
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Kashin_Koji",
+   "id": "kashin-koji"
+  },
+  {
+   "atk": 10824,
+   "cls": "Assassin",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Scathach-Skadi (Quick), Merlin (Buster)",
+   "hp": 13822,
+   "level": 90,
+   "mates": "Salter Rider (Quick), Mysterious Heroine X Alter (Quick), Miyamoto Musashi",
+   "name": "Osakabehime",
+   "notes": "Wiki lists her as 5-star. Wiki: ATK 1,672/10,824, HP 2,027/13,822 (max, used); Lv100 11,849 / 15,143. NP does no damage: party DEF +20% & Max HP +2000-4000 (3t); OC party Quick & Buster up 30-50% (3t).",
+   "npCard": "Arts",
+   "npLevel": 1,
+   "npName": "The Great Hachitendou of Hakuro Castle",
+   "npTarget": "Support",
+   "order": 15,
+   "party": "Defensive support (Quick/Buster teams)",
+   "rarity": 5,
+   "role": "Buffer",
+   "skillInfo": [
+    {
+     "cd": 7,
+     "effect": "Own DEF +30% (1t) & DEF up + debuff res up (3t); party crit dmg up (3t)",
+     "label": "Party crit dmg up",
+     "name": "(upgraded Shapeshift A+ - new name not shown)",
+     "unit": "%",
+     "v1": 30,
+     "v10": 50
+    },
+    {
+     "cd": 7,
+     "effect": "Charge one ally's NP + their star gen up (3t)",
+     "label": "Ally NP charge",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 10,
+     "v10": 20
+    },
+    {
+     "cd": 7,
+     "effect": "One enemy DEF down (1t) + remove their buffs",
+     "label": "Enemy DEF down",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 20,
+     "v10": 40
+    }
+   ],
+   "skills": [
+    1,
+    4,
+    1
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Osakabehime",
+   "id": "osakabehime"
+  },
+  {
+   "atk": 11669,
+   "cls": "Berserker",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Koyanskaya of Light, Oberon",
+   "hp": 13837,
+   "level": 90,
+   "mates": "Oberon, Queen Medb (male buffs), Francis Drake",
+   "name": "Arjuna Alter",
+   "notes": "Wiki: ATK 1,803/11,669, HP 2,029/13,837 (max, used); Lv100 12,773 / 15,159. NP 300% (NP1) AoE; OC enemies Buster res down 20-60%.",
+   "npCard": "Buster",
+   "npLevel": 1,
+   "npName": "Mahapralaya",
+   "npTarget": "AoE",
+   "order": 16,
+   "party": "AoE Buster farming",
+   "rarity": 5,
+   "role": "Main DPS",
+   "skillInfo": [
+    {
+     "cd": 7,
+     "effect": "Own ATK up + dmg up vs debuffed enemies (3t)",
+     "label": "ATK up",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 20,
+     "v10": 30
+    },
+    {
+     "cd": 7,
+     "effect": "Own Buster star absorption up (3t) + own NP charge",
+     "label": "Own NP charge",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 20,
+     "v10": 30
+    },
+    {
+     "cd": 9,
+     "effect": "Guts (1 time, 3t) + HP regen (3t)",
+     "label": "Guts revive",
+     "name": "(name not shown on wiki)",
+     "unit": "HP",
+     "v1": 1000,
+     "v10": 2000
+    }
+   ],
+   "skills": [
+    1,
+    1,
+    1
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Arjuna_(Alter)",
+   "id": "arjuna-alter"
+  },
+  {
+   "atk": 11113,
+   "cls": "Berserker",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Scathach-Skadi",
+   "hp": 14175,
+   "level": 90,
+   "mates": "Salter Rider (party Quick up), Osakabehime (OC Quick up), Space Ishtar (party ATK)",
+   "name": "Mysterious Heroine X Alter",
+   "notes": "Wiki: ATK 1,717/11,113, HP 2,079/14,175 (max, used); Lv100 12,165 / 15,529. NP 1200% (NP1) ST Quick; OC extra dmg vs Saber 150-200%. Your list didn't include her NP level.",
+   "npCard": "Quick",
+   "npLevel": null,
+   "npName": "Black Dragon Twinblade of Victory",
+   "npTarget": "Single Target",
+   "order": 17,
+   "party": "ST Quick (great vs Sabers)",
+   "rarity": 5,
+   "role": "Main DPS",
+   "skillInfo": [
+    {
+     "cd": 7,
+     "effect": "Healing received up, heal, HP regen 1000 (3t), card crit dmg up (1 hit, 3t)",
+     "label": "Heal",
+     "name": "∞ Chestnut Paste EX (upgraded Black Bean Paste)",
+     "unit": "HP",
+     "v1": 1000,
+     "v10": 2000
+    },
+    {
+     "cd": 7,
+     "effect": "Own Quick up (3t) + gain stars",
+     "label": "Quick up",
+     "name": "Instantaneous Shadowless Blade C+ (upgraded Instinct C)",
+     "unit": "%",
+     "v1": 20,
+     "v10": 30
+    },
+    {
+     "cd": 7,
+     "effect": "One ally star absorption -100% (1t), party ATK up (3t)",
+     "label": "Party ATK up",
+     "name": "Sovereign's Invisible Hand C",
+     "unit": "%",
+     "v1": 10,
+     "v10": 20
+    }
+   ],
+   "skills": [
+    1,
+    2,
+    1
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Mysterious_Heroine_X_(Alter)",
+   "id": "mysterious-heroine-x-alter"
+  },
+  {
+   "atk": 12612,
+   "cls": "Avenger",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Castoria (Altria Caster)",
+   "hp": 12289,
+   "level": 90,
+   "mates": "Lady Avalon, Tamamo no Mae, Space Ereshkigal",
+   "name": "Nitocris Alter",
+   "notes": "Wiki: ATK 1,949/12,612, HP 1,802/12,289 (max, used); Lv100 13,806 / 13,463. NP 450% (NP1) AoE - those are Arts damage values (card icon didn't render); OC own NP dmg 10-30%.",
+   "npCard": "Arts",
+   "npLevel": 1,
+   "npName": "Neferu Suen Anubis",
+   "npTarget": "AoE",
+   "order": 18,
+   "party": "AoE Arts farming (loop)",
+   "rarity": 5,
+   "role": "Main DPS",
+   "skillInfo": [
+    {
+     "cd": 8,
+     "effect": "Own Arts & Buster up + HP regen (3t)",
+     "label": "Arts/Buster up",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 20,
+     "v10": 30
+    },
+    {
+     "cd": 9,
+     "effect": "Own NP charge; party Good alignment + buff chance up; enemies Evil + buff chance down",
+     "label": "Own NP charge",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 50,
+     "v10": 100
+    },
+    {
+     "cd": 7,
+     "effect": "Party Arts up; Good allies get Evade, Debuff + Insta-kill immune",
+     "label": "Party Arts up",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 10,
+     "v10": 20
+    }
+   ],
+   "skills": [
+    1,
+    3,
+    3
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Nitocris_(Alter)",
+   "id": "nitocris-alter"
+  },
+  {
+   "atk": 12612,
+   "cls": "Avenger",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Castoria (Arts) / Koyanskaya of Light (Buster) / Scathach-Skadi (Quick)",
+   "hp": 13041,
+   "level": 90,
+   "mates": "Lady Avalon / Tamamo no Mae (Arts), Oberon (Buster), Salter Rider (Quick)",
+   "name": "Space Ishtar",
+   "notes": "Wiki: ATK 1,949/12,612, HP 1,912/13,041 (max, used); Lv100 13,806 / 14,287. NP card is picked with Skill 2: Buster 300% / Arts 450% / Quick 600% at NP1 (AoE); OC own NP dmg 20-60%.",
+   "npCard": "Arts",
+   "npLevel": 1,
+   "npName": "Edin Shugra Quasar",
+   "npTarget": "AoE",
+   "order": 19,
+   "party": "AoE farming (any card type)",
+   "rarity": 5,
+   "role": "Main DPS",
+   "skillInfo": [
+    {
+     "cd": 7,
+     "effect": "Own ATK up, party (except self) ATK up, party Charm immune (3t)",
+     "label": "Own ATK up",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 10,
+     "v10": 20
+    },
+    {
+     "cd": 7,
+     "effect": "Own NP dmg up (1 time), Invincible (1 hit), choose NP card type (3t)",
+     "label": "NP dmg up",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 10,
+     "v10": 20
+    },
+    {
+     "cd": 8,
+     "effect": "Own NP charge + 80%: own Quick/Arts/Buster up 20% (3t)",
+     "label": "Own NP charge",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 30,
+     "v10": 50
+    }
+   ],
+   "skills": [
+    6,
+    7,
+    8
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Space_Ishtar",
+   "id": "space-ishtar"
+  },
+  {
+   "atk": 11810,
+   "cls": "Pretender",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Koyanskaya of Light; or a support Oberon (double Oberon)",
+   "hp": 13266,
+   "level": 90,
+   "mates": "Cu Chulainn Alter, Larva Tiamat, Arjuna Alter, Ivan the Terrible",
+   "name": "Oberon",
+   "notes": "Wiki: ATK 1,825/11,810, HP 1,945/13,266 (max, used); Lv100 12,928 / 14,992. NP 300% (NP1) AoE (= Buster values), removes enemy buffs + Sleep. Skill 3 puts the target to sleep after 1 turn - use it on the turn your DPS fires the big NP.",
+   "npCard": "Buster",
+   "npLevel": 1,
+   "npName": "Lie Like Vortigern",
+   "npTarget": "AoE",
+   "order": 20,
+   "party": "Buster support",
+   "rarity": 5,
+   "role": "Buffer",
+   "skillInfo": [
+    {
+     "cd": 7,
+     "effect": "Party NP dmg up (3t) + party NP +20%",
+     "label": "Party NP dmg up",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 20,
+     "v10": 30
+    },
+    {
+     "cd": 8,
+     "effect": "One ally NP charge (they lose 20% NP after 1t) + gain stars",
+     "label": "Ally NP charge",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 30,
+     "v10": 50
+    },
+    {
+     "cd": 10,
+     "effect": "One ally Buster up + NP dmg up (1t); delayed Sleep etc. on them",
+     "label": "Ally NP dmg up",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 50,
+     "v10": 100
+    }
+   ],
+   "skills": [
+    1,
+    1,
+    1
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Oberon",
+   "id": "oberon"
+  },
+  {
+   "atk": 12641,
+   "cls": "Avenger",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Koyanskaya of Light, Oberon",
+   "hp": 11761,
+   "level": 90,
+   "mates": "Oberon, Francis Drake",
+   "name": "Oda Nobunaga",
+   "notes": "Wiki name: Demon King Nobunaga (5-star Avenger). Wiki: ATK 1,953/12,641, HP 1,724/11,761 (Lv1/Lv90); Lv90 max values used. NP 300% (NP1) AoE (= Buster values) + Burn; OC extra dmg vs Divine 150-200%.",
+   "npCard": "Buster",
+   "npLevel": 1,
+   "npName": "Hajunhenjou - Sanzen Daisen Ten Maou",
+   "npTarget": "AoE",
+   "order": 21,
+   "party": "AoE Buster (anti-Divine)",
+   "rarity": 5,
+   "role": "Main DPS",
+   "skillInfo": [
+    {
+     "cd": 7,
+     "effect": "Own ATK up every turn, ramping (3t); Burning Battlefield; Burn self 1000 (demerit)",
+     "label": "ATK gain per turn",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 10,
+     "v10": 20
+    },
+    {
+     "cd": 8,
+     "effect": "Invincible (1t), buff-removal res up (1t), dmg up vs Sky on Burning Battlefield (3t)",
+     "label": "Sky dmg up",
+     "name": "(upgraded - name not shown)",
+     "unit": "%",
+     "v1": 30,
+     "v10": 50
+    },
+    {
+     "cd": 7,
+     "effect": "Gain stars every turn (3t) + own NP charge",
+     "label": "Own NP charge",
+     "name": "(name not shown on wiki)",
+     "unit": "%",
+     "v1": 10,
+     "v10": 20
+    }
+   ],
+   "skills": [
+    2,
+    3,
+    "Locked"
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Demon_King_Nobunaga",
+   "id": "oda-nobunaga"
+  },
+  {
+   "atk": 9089,
+   "cls": "Saber",
+   "fouAtk": null,
+   "fouHp": null,
+   "guests": "Koyanskaya of Light, Oberon, Merlin",
+   "hp": 12245,
+   "level": 70,
+   "mates": "Oberon, Francis Drake",
+   "name": "Artoria",
+   "notes": "Wiki name: Artoria Pendragon. Wiki: ATK 1,734/11,221, HP 2,222/15,150 (Lv1/Lv90), Linear curve -> Lv70 values calculated. NP damage table didn't render on the wiki; Excalibur being AoE Buster is game knowledge.",
+   "npCard": "Buster",
+   "npLevel": 1,
+   "npName": "Excalibur",
+   "npTarget": "AoE",
+   "order": 22,
+   "party": "AoE Buster (level her up first)",
+   "rarity": 5,
+   "role": "Main DPS",
+   "skillInfo": [
+    {
+     "cd": 7,
+     "effect": "Party ATK up (3t)",
+     "label": "Party ATK up",
+     "name": "Charisma B",
+     "unit": "%",
+     "v1": 9,
+     "v10": 18
+    },
+    {
+     "cd": 7,
+     "effect": "Own Buster up (1t); upgrade adds NP dmg up + all cards Buster",
+     "label": "Buster up",
+     "name": "Mana Burst A (-> Dragon Reactor Core B after Rank Up)",
+     "unit": "%",
+     "v1": 30,
+     "v10": 50
+    },
+    {
+     "cd": 7,
+     "effect": "Gain stars; upgrade adds own NP charge 20-30%",
+     "label": "Stars",
+     "name": "Instinct A (-> Radiant Road EX after Rank Up)",
+     "unit": "stars",
+     "v1": 5,
+     "v10": 15
+    }
+   ],
+   "skills": [
+    1,
+    1,
+    "Locked"
+   ],
+   "url": "https://fategrandorder.fandom.com/wiki/Artoria_Pendragon",
+   "id": "artoria"
+  }
+ ],
+ "parties": [
+  {
+   "back": [
+    "Francis Drake",
+    "Ivan the Terrible",
+    "Arjuna Alter"
+   ],
+   "bestFor": "Farming vs Rider/Caster/Assassin",
+   "front": [
+    "Larva Tiamat",
+    "Oberon",
+    ""
+   ],
+   "guest": "Koyanskaya of Light",
+   "name": "Buster AoE loop - Tiamat",
+   "order": 1,
+   "strategy": "Guest goes in front slot 3. Tiamat's passive +5%/turn + Skill 1, Oberon S1 party NP, Koyanskaya tops up. Back row covers other matchups.",
+   "id": "buster-aoe-loop-tiamat"
+  },
+  {
+   "back": [
+    "Tamamo no Mae",
+    "Nitocris Alter",
+    "Space Ishtar"
+   ],
+   "bestFor": "Farming vs Ruler/Moon Cancer/Alter Ego/Foreigner/Pretender",
+   "front": [
+    "Space Ereshkigal",
+    "Lady Avalon",
+    ""
+   ],
+   "guest": "Castoria (Altria Caster)",
+   "name": "Arts AoE loop - Space Ereshkigal",
+   "order": 2,
+   "strategy": "Lady Avalon S2 + Castoria charges; Space Eresh loops on Arts refund. Avoid Avenger-heavy nodes. Tamamo can swap in for her party NP dmg + Arts buff.",
+   "id": "arts-aoe-loop-space-ereshkigal"
+  },
+  {
+   "back": [
+    "Tamamo no Mae",
+    "Space Ereshkigal",
+    "Space Ishtar"
+   ],
+   "bestFor": "General farming, best vs Rulers",
+   "front": [
+    "Nitocris Alter",
+    "Lady Avalon",
+    ""
+   ],
+   "guest": "Castoria (Altria Caster)",
+   "name": "Arts AoE loop - Nitocris Alter",
+   "order": 3,
+   "strategy": "Nitocris S2 is a big self-charge (50%+); Avalon + Castoria cover the rest. Tamamo S3 = +30-50% Arts on Nitocris.",
+   "id": "arts-aoe-loop-nitocris-alter"
+  },
+  {
+   "back": [
+    "Oberon",
+    "Francis Drake",
+    "Lady Avalon"
+   ],
+   "bestFor": "Long boss fights / challenge quests",
+   "front": [
+    "Cu Chulainn Alter",
+    "Queen Medb",
+    ""
+   ],
+   "guest": "Merlin",
+   "name": "ST Buster boss - Cu Alter",
+   "order": 4,
+   "strategy": "Medb buffs Male/Fae allies (Cu, Oberon). Cu tanks with Evade + Guts; bring Oberon in for the burst turn. Swap Merlin for Koyanskaya of Light for shorter fights.",
+   "id": "st-buster-boss-cu-alter"
+  },
+  {
+   "back": [
+    "Salter Rider",
+    "Francis Drake",
+    "Osakabehime"
+   ],
+   "bestFor": "Bosses, best vs Lancers",
+   "front": [
+    "Miyamoto Musashi",
+    "Oberon",
+    ""
+   ],
+   "guest": "Koyanskaya of Light",
+   "name": "ST Buster boss - Musashi",
+   "order": 5,
+   "strategy": "Musashi S1+S2 on the NP turn (both 1 turn), Oberon S3 for the burst. Salter Rider's Coaching cuts one of Musashi's cooldowns by 1.",
+   "id": "st-buster-boss-musashi"
+  },
+  {
+   "back": [
+    "Queen Medb",
+    "Ereshkigal",
+    "Arjuna Alter"
+   ],
+   "bestFor": "Farming vs Casters",
+   "front": [
+    "Ivan the Terrible",
+    "Francis Drake",
+    ""
+   ],
+   "guest": "Oberon",
+   "name": "AoE Buster Riders - Ivan / Drake",
+   "order": 6,
+   "strategy": "Drake S1 boosts the whole party's NP turn; Ivan's NP drops enemy Buster res for the next wave. Medb buffs Ivan (male).",
+   "id": "aoe-buster-riders-ivan-drake"
+  },
+  {
+   "back": [
+    "Mysterious Heroine X Alter",
+    "Space Ishtar",
+    "Lady Avalon"
+   ],
+   "bestFor": "Bosses, best vs Casters",
+   "front": [
+    "Salter Rider",
+    "Osakabehime",
+    ""
+   ],
+   "guest": "Scathach-Skadi",
+   "name": "ST Quick - Salter Rider",
+   "order": 7,
+   "strategy": "Salter S1 = own ATK + party Quick up; Osakabehime's NP overcharge adds party Quick up; Skadi charges + buffs Quick.",
+   "id": "st-quick-salter-rider"
+  },
+  {
+   "back": [
+    "Osakabehime",
+    "Space Ishtar",
+    "Lady Avalon"
+   ],
+   "bestFor": "Saber bosses / Quick crits",
+   "front": [
+    "Mysterious Heroine X Alter",
+    "Salter Rider",
+    ""
+   ],
+   "guest": "Scathach-Skadi",
+   "name": "ST Quick - MHX Alter",
+   "order": 8,
+   "strategy": "Salter's party Quick up feeds MHXA; MHXA's NP does extra damage to Sabers.",
+   "id": "st-quick-mhx-alter"
+  },
+  {
+   "back": [
+    "Francis Drake",
+    "Arjuna Alter",
+    "Ivan the Terrible"
+   ],
+   "bestFor": "Divine-heavy nodes (level her up first)",
+   "front": [
+    "Oda Nobunaga",
+    "Oberon",
+    ""
+   ],
+   "guest": "Koyanskaya of Light",
+   "name": "Anti-Divine AoE - Nobunaga",
+   "order": 9,
+   "strategy": "Her NP strips Divine enemies' defensive buffs + extra damage vs Divine on overcharge. Unlock her Skill 3 (3rd ascension) for her NP charge.",
+   "id": "anti-divine-aoe-nobunaga"
+  },
+  {
+   "back": [
+    "Francis Drake",
+    "Lady Avalon",
+    "Osakabehime"
+   ],
+   "bestFor": "Bosses, best vs Assassins",
+   "front": [
+    "Illya",
+    "Oberon",
+    ""
+   ],
+   "guest": "Merlin",
+   "name": "ST Buster boss - Illya",
+   "order": 10,
+   "strategy": "Illya S1 + S2 on the NP turn; Suspicious Medicine (S3) gives a teammate Guts for safety.",
+   "id": "st-buster-boss-illya"
+  },
+  {
+   "back": [
+    "Oberon",
+    "Arjuna Alter",
+    "Ivan the Terrible"
+   ],
+   "bestFor": "Farming vs Archers",
+   "front": [
+    "Ereshkigal",
+    "Francis Drake",
+    ""
+   ],
+   "guest": "Koyanskaya of Light",
+   "name": "AoE Buster - Ereshkigal",
+   "order": 11,
+   "strategy": "Eresh S3 gives the party Blessing of Kur so her NP adds +20% ATK to them; S2 is her own 30% charge.",
+   "id": "aoe-buster-ereshkigal"
+  }
+ ],
+ "guests": [
+  {
+   "alsoGood": "Nitocris Alter, Space Ishtar, Lady Avalon, Tamamo no Mae",
+   "cls": "Caster",
+   "name": "Castoria (Altria Caster)",
+   "order": 1,
+   "pairedWith": "Space Ereshkigal",
+   "why": "The standard Arts looping support: party NP charge + Arts up + Invincible. Pairs with your Lady Avalon.",
+   "id": "castoria-altria-caster"
+  },
+  {
+   "alsoGood": "Cu Chulainn Alter, Ivan the Terrible, Arjuna Alter, Miyamoto Musashi",
+   "cls": "Caster",
+   "name": "Koyanskaya of Light",
+   "order": 2,
+   "pairedWith": "Larva Tiamat",
+   "why": "The standard Buster support: big NP charge + Buster/crit buffs. With your Oberon = classic Buster loop.",
+   "id": "koyanskaya-of-light"
+  },
+  {
+   "alsoGood": "Any Buster DPS",
+   "cls": "Pretender",
+   "name": "Oberon",
+   "order": 3,
+   "pairedWith": "Larva Tiamat",
+   "why": "Borrow a second Oberon next to yours (double Oberon) for huge NP damage on one big turn.",
+   "id": "oberon"
+  },
+  {
+   "alsoGood": "Miyamoto Musashi, Illya, Queen Medb team",
+   "cls": "Caster",
+   "name": "Merlin",
+   "order": 4,
+   "pairedWith": "Cu Chulainn Alter",
+   "why": "Long-fight Buster support: party Invincible, heal, Buster/crit buffs, NP charge over time.",
+   "id": "merlin"
+  },
+  {
+   "alsoGood": "Salter Rider, Space Ishtar (Quick mode), Osakabehime team",
+   "cls": "Caster",
+   "name": "Scathach-Skadi",
+   "order": 5,
+   "pairedWith": "Mysterious Heroine X Alter",
+   "why": "Quick support: NP charge + Quick up + crit; makes Quick NP spam work.",
+   "id": "scathach-skadi"
+  },
+  {
+   "alsoGood": "Works with any card type",
+   "cls": "Caster",
+   "name": "Zhuge Liang (Lord El-Melloi II)",
+   "order": 6,
+   "pairedWith": "Space Ereshkigal",
+   "why": "General support: NP charge, ATK/crit up, enemy DEF down.",
+   "id": "zhuge-liang-lord-el-melloi-ii"
+  }
+ ]
+}

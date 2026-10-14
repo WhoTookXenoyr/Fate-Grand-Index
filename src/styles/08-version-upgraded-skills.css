@@ -1,0 +1,22 @@
+
+/* ===== 0.15.0: the version chip and the upgraded-skill switch (moves only on a press: a 150 ms slide) ===== */
+.ver-chip { all: unset; display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; font-size: 10.5px; letter-spacing: .06em;
+  text-transform: none; cursor: pointer; line-height: 1.5; vertical-align: 1px; }
+.ver-chip:hover { background: color-mix(in srgb, currentColor 12%, transparent); }
+.ver-chip:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.upsw { display: inline-flex; align-items: center; gap: 6px; margin-left: 8px; padding: 2px 9px 2px 2px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel);
+  color: var(--muted); font: 650 11px/1.2 var(--f-body); letter-spacing: .01em; text-transform: none; cursor: pointer; vertical-align: middle; white-space: nowrap;
+  -webkit-text-fill-color: currentColor; }
+.upsw-s { display: block; flex: none; overflow: visible; }
+.upsw-t { fill: var(--sunken); stroke: var(--line); stroke-width: 1; transition: fill .15s; }
+.upsw.on .upsw-t { fill: var(--gold); stroke: var(--gold); }
+.upsw-d { fill: var(--muted); opacity: .55; }
+.upsw-k { transform: translateX(calc(var(--p, 0) * 20px)); transition: transform .15s ease-out; }
+.upsw-k circle { fill: var(--panel); stroke: color-mix(in srgb, var(--ink) 28%, transparent); stroke-width: 1; }
+.upsw-a { fill: none; stroke: var(--gold); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
+.upsw.on .upsw-a { opacity: 1; }
+.upsw.on { color: var(--ink); border-color: color-mix(in srgb, var(--gold) 60%, var(--line)); }
+.upsw:hover { border-color: var(--muted); }
+.upsw:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .upsw-k, .upsw-t { transition: none; } }
+@media (max-width: 520px) { .upsw { margin: 4px 0 0; } .skill header h4 .upsw { display: flex; width: max-content; } }

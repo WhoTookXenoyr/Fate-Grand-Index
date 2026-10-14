@@ -7,3 +7,7 @@ legacy/atlas/*.json
 __pycache__/
 *.pyc
 .DS_Store
+
+# build output of tools/build.py other than dist/ (the seeded test page, the tests' work folder)
+build/
+data/atlas/*.json

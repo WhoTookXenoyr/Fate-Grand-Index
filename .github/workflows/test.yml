@@ -1,0 +1,48 @@
+name: Build and test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# a newer push to the same branch or pull request stops the older run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: The committed page is what src/ builds
+        run: python tools/build.py --check
+
+      - name: Install Playwright and Chromium
+        run: |
+          pip install -r tests/requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Browser tests
+        # one suite at a time: the hosted runner for private repositories has 2 cores, and the suites click through
+        # a software-rendered browser with fixed waits
+        run: python tests/run.py -j 1
+
+      - name: Keep the screenshots when something fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-screenshots
+          path: build/test-work/*.png
+          retention-days: 7

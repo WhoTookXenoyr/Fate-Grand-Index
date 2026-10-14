@@ -2741,6 +2741,12 @@ function scheduleWrite(col, obj) {
   clearTimeout(timers[key]);
   timers[key] = setTimeout(() => { timers[key] = null; writeDoc(col, dirty[key] || obj); }, 500);
 }
+// a press (not typing) is saved at once, so nothing is waiting to be saved if the page closes right after
+function saveNow(col, obj) {
+  const key = col + "/" + obj.id;
+  clearTimeout(timers[key]); timers[key] = null; dirty[key] = obj;
+  return writeDoc(col, obj);
+}
 async function removeDoc(col, id) {
   try { await S.db.collection(col).doc(id).delete(); return true; } catch (e) { writeFailed(e); return false; }
 }
@@ -8724,7 +8730,7 @@ renderAll = function () { renderAll13(); renderFillNote(); };
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.19.0";
+const APP_VER = "0.20.0";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -8886,6 +8892,9 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.20.0", d: "15 Oct 2026", t: "Rebuilt behind the scenes", i: [
+    "<b>Tidier inside</b>: Fate/Grand Index is now made from one clean set of source files instead of a pile of patches, and hundreds of automatic checks run on every change before a new version comes out. Your roster, settings and pictures stay exactly as they are.",
+    "Favourite Craft Essences and removed costumes are saved the moment you press, and Undo shows the old state straight away."]},
   {v: "0.19.0", d: "14 Oct 2026", t: "Craft Essences", i: [
     "<b>Favourite Craft Essences</b>: every servant has five slots for Craft Essences, with pictures, under their stats. Press one to equip it and its HP and ATK (at its max level) are added to the servant's stats.",
     "<b>Parties</b>: pick each Craft Essence from a searchable list with pictures, and the party cards show the Craft Essence's picture. Typing a name still works."]},
@@ -9823,11 +9832,12 @@ function cosSnap(s) {
   return {id: s.id, art: has("art") ? Object.assign({}, s.art) : undefined, artNames: has("artNames") ? Object.assign({}, s.artNames) : undefined,
     costumeSlots: has("costumeSlots") ? s.costumeSlots : undefined, artStage: has("artStage") ? s.artStage : undefined, view: S.viewStage[s.id]};
 }
-function cosRestore(o) {
+function cosRestore(o, one) {
   const s = S.servants.find((x) => x.id === o.id); if (!s) return;
   ["art", "artNames", "costumeSlots", "artStage"].forEach((k) => { if (o[k] === undefined) delete s[k]; else s[k] = o[k]; });
   if (o.view === undefined) delete S.viewStage[s.id]; else S.viewStage[s.id] = o.view;
-  scheduleWrite("servants", s);
+  // one at a time it's saved at once; many at once (Undo of "Every servant") keep the short wait so the page doesn't stall
+  if (one) saveNow("servants", s); else scheduleWrite("servants", s);
 }
 // a picture uploaded for a removed costume is deleted once Undo is no longer offered
 function dropLater(ids, undone) {
@@ -9871,17 +9881,18 @@ function removeCostume(id, k) {
   const snap = cosSnap(s), label = slotLabel(s, k) || "Costume";
   const res = cosRemoveFrom(s, k); if (!res) return;
   const gone = res.gone;
-  S.artConfirm = null; scheduleWrite("servants", s); cosRefresh();
+  S.artConfirm = null; saveNow("servants", s); cosRefresh();
   let undone = false;
   dropLater(isUpload(gone) ? [gone] : [], () => undone);
-  const undo = ["Undo", () => { undone = true; cosRestore(snap); cosRefresh(); toast(label + " is back."); }];
+  const undo = ["Undo", () => { undone = true; cosRestore(snap, true); cosRefresh(); toast(label + " is back."); }];
   // most servants have no costume: offer to clear every other empty costume slot in one go
-  const rest = S.servants.filter((x) => x !== s && emptyCostumes(x));
+  const rest = S.servants.filter((x) => x.id !== s.id && emptyCostumes(x)).map((x) => x.id);
   const all = ["Every servant (" + rest.length + ")", () => {
-    const snaps = rest.map(cosSnap);
-    rest.forEach((x) => { x.costumeSlots = 0; const v = S.viewStage[x.id]; if (v && /^c\d*$/.test(v)) delete S.viewStage[x.id]; scheduleWrite("servants", x); });
+    const now = rest.map((id) => S.servants.find((x) => x.id === id)).filter((x) => x && emptyCostumes(x));
+    const snaps = now.map(cosSnap);
+    now.forEach((x) => { x.costumeSlots = 0; const v = S.viewStage[x.id]; if (v && /^c\d*$/.test(v)) delete S.viewStage[x.id]; scheduleWrite("servants", x); });
     cosRefresh();
-    toastAction("Removed the empty costume slot from " + plural(rest.length, "more servant") + ".", "Undo", () => { snaps.forEach(cosRestore); cosRefresh(); toast("Their costume slots are back."); });
+    toastAction("Removed the empty costume slot from " + plural(now.length, "more servant") + ".", "Undo", () => { snaps.forEach((o) => cosRestore(o)); cosRefresh(); toast("Their costume slots are back."); });
   }];
   toastButtons((gone ? label + " and its picture removed" : label + " slot removed") + " from " + s.name + ".", rest.length >= 2 ? [undo, all] : [undo]);
 }
@@ -10038,8 +10049,14 @@ function applyFavStats(d, s) {
 }
 function setFav(s, fn, msg, undoable) {
   const before = {favCe: s.favCe === undefined ? undefined : (s.favCe || []).slice(), favCeOn: s.favCeOn === undefined ? undefined : s.favCeOn};
-  fn(); scheduleWrite("servants", s); renderDossier(true);
-  if (msg && undoable) toastAction(msg, "Undo", () => { ["favCe", "favCeOn"].forEach((k) => { if (before[k] === undefined) delete s[k]; else s[k] = before[k]; }); scheduleWrite("servants", s); renderDossier(true); });
+  fn(); saveNow("servants", s); renderDossier(true);
+  // Undo finds the servant again: after a save the roster holds a fresh copy, not the one changed above
+  const id = s.id;
+  if (msg && undoable) toastAction(msg, "Undo", () => {
+    const t = S.servants.find((x) => x.id === id); if (!t) return;
+    ["favCe", "favCeOn"].forEach((k) => { if (before[k] === undefined) delete t[k]; else t[k] = before[k]; });
+    saveNow("servants", t); renderDossier(true);
+  });
   else if (msg) toast(msg);
 }
 document.addEventListener("click", (e) => {

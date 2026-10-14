@@ -1,0 +1,78 @@
+/* ================= v11 ================= */
+/* ---------- lighter on the GPU, same look ----------
+   Soft blobs are drawn as gradients instead of blurred discs, nothing blurs what's behind the servant panel,
+   and every looping shine, ring and glow moves a ready-made picture (transform/opacity) instead of repainting. */
+.aura i { filter: none; }
+.aura .a1 { background: radial-gradient(closest-side, var(--g3) 0%, var(--g3) 28%, color-mix(in srgb, var(--g3) 55%, transparent) 62%, transparent 100%); }
+.aura .a2 { background: radial-gradient(closest-side, var(--g1) 0%, var(--g1) 28%, color-mix(in srgb, var(--g1) 55%, transparent) 62%, transparent 100%); }
+.aura .a3 { background: radial-gradient(closest-side, var(--g1) 0%, var(--g1) 28%, color-mix(in srgb, var(--g1) 55%, transparent) 62%, transparent 100%); }
+.aura.extra .a3 { background: radial-gradient(closest-side, var(--acc) 0%, var(--acc) 28%, color-mix(in srgb, var(--acc) 55%, transparent) 62%, transparent 100%); }
+.aura::after { filter: none; -webkit-mask: radial-gradient(closest-side, transparent 0%, #000 30%, #000 62%, transparent 100%); mask: radial-gradient(closest-side, transparent 0%, #000 30%, #000 62%, transparent 100%); }
+.dossier { background: color-mix(in srgb, var(--panel) 95%, transparent); -webkit-backdrop-filter: none; backdrop-filter: none; }
+/* the emblem's glint slides across instead of repainting the whole emblem */
+.emb-fill { background: var(--emb-col); overflow: hidden; }
+.page-emblem.on .emb-fill { animation: embfloat 26s ease-in-out infinite alternate; }
+.page-emblem.beast.on .emb-fill { animation: embfloat 26s ease-in-out infinite alternate, hue 14s linear infinite; }
+.emb-glint { position: absolute; top: 0; bottom: 0; left: 0; width: 300%; background: linear-gradient(115deg, transparent 0 42%, color-mix(in srgb, var(--emb-hi) 45%, transparent) 50%, transparent 58% 100%); transform: translateX(-66.667%); }
+.page-emblem.on .emb-glint { animation: embGlintT 9s ease-in-out infinite; }
+@keyframes embGlintT { 0%, 60% { transform: translateX(-66.667%); } 90%, 100% { transform: translateX(0); } }
+/* grail rings: a still ring shape, with the colour underneath turning or sliding */
+.gr-ring, .ds-frame .gr-ring, .hm-rb, .sk-ring { overflow: hidden; container-type: size; }
+.gr-ring { background: none !important; animation: none !important; }
+.gr-ring::after { background: none !important; animation: none !important; }
+.gr-ring > b, .hm-rb > b, .sk-ring > b { position: absolute; left: 50%; top: 50%; width: calc(100cqw + 100cqh); aspect-ratio: 1; transform: translate(-50%, -50%); will-change: transform; }
+.scene.gr100 .gr-ring > b, .row.gr100 .gr-ring > b, .ds-frame.gr100 .gr-ring > b { left: 0; top: 0; width: 300%; height: 100%; aspect-ratio: auto; transform: translateX(0);
+  background: linear-gradient(115deg, #7a5208, #e8b93e 22%, #fff3c4 30%, #c9922b 38%, #7a5208 55%, #e8b93e 75%, #fff3c4 82%, #a87418); animation: grSlide 3s ease-in-out infinite alternate; }
+@keyframes grSlide { from { transform: translateX(0); } to { transform: translateX(-66.667%); } }
+.scene.gr102 .gr-ring > b, .row.gr102 .gr-ring > b, .ds-frame.gr102 .gr-ring > b, .hm-rb > b {
+  background: conic-gradient(#e8b93e, #fff3c4, #ff6b8b, #ffd36b, #7dffa8, #6bd0ff, #c48bff, #fff3c4, #e8b93e); animation: grRot 7s linear infinite; }
+@keyframes grRot { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+.scene.gr102 .gr-ring::before, .row.gr102 .gr-ring::before, .ds-frame.gr102 .gr-ring::before { content: ""; position: absolute; z-index: 1; top: 0; bottom: 0; left: 0; width: 60%;
+  background: linear-gradient(110deg, transparent 30%, #fff 50%, transparent 70%); transform: translateX(-120%); animation: grShimmerT 4s ease-in-out infinite; }
+@keyframes grShimmerT { 0% { transform: translateX(-120%); } 35%, 100% { transform: translateX(200%); } }
+.scene.gr102 .gr-sweep { background: radial-gradient(70% 55% at 50% 0%, rgba(255,222,140,.3), transparent 70%) !important; animation: none !important; container-type: size; }
+.scene.gr102 .gr-sweep > b { position: absolute; left: 50%; top: 0; width: calc((50cqw + 100cqh) * 2); aspect-ratio: 1; transform: translate(-50%, -50%);
+  background: conic-gradient(rgba(255,107,139,.08), rgba(125,255,168,.08), rgba(107,208,255,.08), rgba(196,139,255,.08), rgba(255,107,139,.08)); animation: grRot 14s linear infinite; will-change: transform; }
+/* the whole servant panel: a still border, framed by a ring drawn on top of it */
+#dossier.gr100, #dossier.gr102 { background: var(--panel); animation: none; }
+.ds-frame { position: fixed; z-index: 3; pointer-events: none; }
+.ds-frame[hidden] { display: none; }
+.ds-frame .gr-ring { z-index: auto; padding: 2px; }
+/* the hand of cards on Home */
+.hm-card.gr102 { background: linear-gradient(160deg, #fff1b8, #c99a3b 30%, #7a5a1c 55%, #e9c86a 80%, #fff1b8); animation: none; }
+.hm-rb { position: absolute; inset: 0; border-radius: inherit; padding: 4px; pointer-events: none; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude; }
+/* EX skills: the rainbow border turns as a picture; Lv 10 washes, sweeps and motes sit in one clipped layer behind the text */
+.skill.tier-ex { border: 0; padding: 15px 17px; animation: none; }
+.sk-ring { position: absolute; inset: 0; border-radius: inherit; padding: 2px; pointer-events: none; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude; }
+.sk-ring > b { background: conic-gradient(color-mix(in srgb, var(--rb1) var(--skw), var(--line)), color-mix(in srgb, var(--rb2) var(--skw), var(--line)), color-mix(in srgb, var(--rb3) var(--skw), var(--line)), color-mix(in srgb, var(--rb4) var(--skw), var(--line)), color-mix(in srgb, var(--rb5) var(--skw), var(--line)), color-mix(in srgb, var(--rb1) var(--skw), var(--line))); animation: grRot 6s linear infinite; }
+.skill.tier-b { --wash: linear-gradient(135deg, color-mix(in srgb, var(--wash-b) var(--wl), var(--panel)) 0%, color-mix(in srgb, var(--wash-b) var(--wh), var(--panel)) 100%); background: var(--wash); }
+.skill.tier-a { --wash: linear-gradient(135deg, color-mix(in srgb, var(--wash-a2) var(--wl), var(--panel)) 0%, color-mix(in srgb, var(--wash-a1) var(--wh), var(--panel)) 70%, color-mix(in srgb, var(--wash-a2) var(--wh), var(--panel)) 100%); background: var(--wash); animation: none; }
+.skill.tier-ex { --wash: linear-gradient(120deg, color-mix(in srgb, var(--wash-r1) var(--wl), var(--panel)) 0%, color-mix(in srgb, var(--wash-r2) calc(var(--sk-p, 1) * 44%), var(--panel)) 28%, color-mix(in srgb, var(--wash-r3) calc(var(--sk-p, 1) * 50%), var(--panel)) 52%, color-mix(in srgb, var(--wash-r4) var(--wh), var(--panel)) 76%, color-mix(in srgb, var(--wash-r5) var(--wh), var(--panel)) 100%); background: var(--wash); }
+.skill.tier-a::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; opacity: 0;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--au2) 50%, transparent), 0 0 22px -6px color-mix(in srgb, var(--au2) 80%, transparent); animation: auglowO 3.6s ease-in-out infinite; }
+@keyframes auglowO { 50% { opacity: var(--sk-p, 1); } }
+.skill.sk-max { overflow: visible; isolation: isolate; }
+.skill.sk-max.tier-a, .skill.sk-max.tier-b, .skill.sk-max.tier-ex { background: var(--panel); animation: none; }
+.skill.sk-max::after { content: none; animation: none; }
+.sk-fx { position: absolute; inset: 0; z-index: -1; overflow: hidden; border-radius: inherit; pointer-events: none; }
+.sk-fx .sk-motes { z-index: 1; }
+.sk-wash { position: absolute; left: 0; top: 0; width: 180%; height: 180%; background: var(--wash, none); animation: wSlideT 10s ease-in-out infinite alternate; will-change: transform; }
+.skill.tier-ex .sk-wash { height: 100%; animation-duration: 12s; animation-name: exSlideT; }
+@keyframes wSlideT { from { transform: translate(0, 0); } to { transform: translate(-44.44%, -44.44%); } }
+@keyframes exSlideT { from { transform: translateX(0); } to { transform: translateX(-44.44%); } }
+.sk-sweep { position: absolute; top: 0; bottom: 0; left: 0; width: 40%; background: linear-gradient(105deg, transparent 20%, color-mix(in srgb, #fff 55%, transparent) 50%, transparent 80%); mix-blend-mode: soft-light; transform: translateX(-120%); animation: skSweepT 5.5s ease-in-out 1s infinite; }
+@keyframes skSweepT { 0% { transform: translateX(-120%); } 40%, 100% { transform: translateX(380%); } }
+@media (prefers-reduced-motion: reduce) { .gr-ring > b, .gr-ring::before, .hm-rb > b, .sk-ring > b, .sk-wash, .sk-sweep, .emb-glint, .skill.tier-a::before, .scene.gr102 .gr-sweep > b { animation: none !important; } }
+
+/* ---------- frame-rate switch ---------- */
+.fps-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: color-mix(in srgb, var(--panel) 80%, transparent); color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.fps-btn b { font-family: var(--f-data); font-weight: 600; }
+.fps-btn i { display: inline-flex; gap: 2px; align-items: flex-end; height: 12px; }
+.fps-btn i s { display: block; width: 3px; border-radius: 1px; background: currentColor; opacity: .3; text-decoration: none; }
+.fps-btn i s:nth-child(1) { height: 5px; } .fps-btn i s:nth-child(2) { height: 8px; } .fps-btn i s:nth-child(3) { height: 12px; }
+.fps-btn[data-fps="15"] i s:nth-child(1), .fps-btn[data-fps="30"] i s:nth-child(-n+2), .fps-btn[data-fps="60"] i s { opacity: 1; }
+.fps-btn:hover { border-color: var(--muted); }
+.fps-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+[data-wc]::before, [data-wc]::after { will-change: transform, opacity, translate; }
+div.ib-ring > svg, .ib-words-cv { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }

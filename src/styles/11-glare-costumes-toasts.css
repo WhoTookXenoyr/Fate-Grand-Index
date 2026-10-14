@@ -1,0 +1,40 @@
+
+/* ===== 0.18.0 ===== */
+/* ---------- the picture's glare: one smooth light, and on grailed servants a holo sheen and glints that grow with grails ---------- */
+.art-frame, .pcd-frame { --sh-spot: .62; --sh-holo: .1; --sh-glint: 0; --sh-boost: 0; --sh-glow: 0; }
+.art-frame[data-shine="1"] { --sh-spot: .7; --sh-holo: .22; --sh-glint: 0; --sh-boost: .07; --sh-glow: .35; }
+.art-frame[data-shine="2"] { --sh-spot: .78; --sh-holo: .34; --sh-glint: .5; --sh-boost: .12; --sh-glow: .55; }
+.art-frame[data-shine="3"] { --sh-spot: .86; --sh-holo: .46; --sh-glint: .75; --sh-boost: .18; --sh-glow: .75; }
+.art-frame[data-shine="4"] { --sh-spot: .95; --sh-holo: .6; --sh-glint: 1; --sh-boost: .26; --sh-glow: 1; }
+/* the light itself lifts the picture's own colours (soft light) */
+.art-glare { mix-blend-mode: soft-light; background: radial-gradient(115% 85% at var(--mx, 50%) var(--my, 30%), rgba(255,255,255,calc(var(--sh-spot) * 1)) 0%, rgba(255,255,255,calc(var(--sh-spot) * 0.961)) 6%, rgba(255,255,255,calc(var(--sh-spot) * 0.852)) 12%, rgba(255,255,255,calc(var(--sh-spot) * 0.698)) 18%, rgba(255,255,255,calc(var(--sh-spot) * 0.527)) 24%, rgba(255,255,255,calc(var(--sh-spot) * 0.368)) 30%, rgba(255,255,255,calc(var(--sh-spot) * 0.237)) 36%, rgba(255,255,255,calc(var(--sh-spot) * 0.141)) 42%, rgba(255,255,255,calc(var(--sh-spot) * 0.077)) 48%, rgba(255,255,255,calc(var(--sh-spot) * 0.039)) 54%, rgba(255,255,255,calc(var(--sh-spot) * 0.018)) 60%, rgba(255,255,255,calc(var(--sh-spot) * 0.008)) 66%, rgba(255,255,255,calc(var(--sh-spot) * 0.003)) 72%, rgba(255,255,255,0) 78%); }
+/* the sheen adds light on top (screen), so it shows on dark and bright pictures alike */
+.art-sheen { position: absolute; inset: 0; z-index: 2; pointer-events: none; border-radius: inherit; opacity: 0; transition: opacity .35s ease; mix-blend-mode: screen;
+  background: radial-gradient(100% 75% at var(--mx, 50%) var(--my, 30%), rgba(255,248,232,calc(var(--sh-boost) * 1)) 0%, rgba(255,248,232,calc(var(--sh-boost) * 0.948)) 6%, rgba(255,248,232,calc(var(--sh-boost) * 0.808)) 12%, rgba(255,248,232,calc(var(--sh-boost) * 0.619)) 18%, rgba(255,248,232,calc(var(--sh-boost) * 0.427)) 24%, rgba(255,248,232,calc(var(--sh-boost) * 0.264)) 30%, rgba(255,248,232,calc(var(--sh-boost) * 0.147)) 36%, rgba(255,248,232,calc(var(--sh-boost) * 0.074)) 42%, rgba(255,248,232,calc(var(--sh-boost) * 0.033)) 48%, rgba(255,248,232,calc(var(--sh-boost) * 0.013)) 54%, rgba(255,248,232,calc(var(--sh-boost) * 0.005)) 60%, rgba(255,248,232,calc(var(--sh-boost) * 0.002)) 66%, rgba(255,248,232,0) 72%); }
+.glare-on > .art-sheen { opacity: 1; }
+.art-sheen::before, .art-sheen::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
+.art-sheen::before { opacity: var(--sh-holo); background: linear-gradient(118deg, rgba(255,255,255,0) 0%, rgba(250,66,154,0.037) 22%, rgba(250,66,109,0.057) 24%, rgba(250,68,66,0.084) 26%, rgba(250,113,66,0.121) 28%, rgba(250,159,66,0.168) 30%, rgba(250,204,66,0.226) 32%, rgba(250,249,66,0.294) 34%, rgba(205,250,66,0.372) 36%, rgba(159,250,66,0.456) 38%, rgba(114,250,66,0.541) 40%, rgba(68,250,66,0.623) 42%, rgba(66,250,108,0.695) 44%, rgba(66,250,153,0.752) 46%, rgba(66,250,199,0.788) 48%, rgba(66,250,244,0.8) 50%, rgba(66,210,250,0.788) 52%, rgba(66,164,250,0.752) 54%, rgba(66,119,250,0.695) 56%, rgba(66,74,250,0.623) 58%, rgba(103,66,250,0.541) 60%, rgba(148,66,250,0.456) 62%, rgba(194,66,250,0.372) 64%, rgba(239,66,250,0.294) 66%, rgba(250,66,215,0.226) 68%, rgba(250,66,170,0.168) 70%, rgba(250,66,124,0.121) 72%, rgba(250,66,79,0.084) 74%, rgba(250,98,66,0.057) 76%, rgba(250,143,66,0.037) 78%, rgba(255,255,255,0) 100%);
+  background-size: 300% 300%; background-position: calc(100% - var(--mx, 50%)) calc(100% - var(--my, 50%)); }
+/* glints catch the light only around the pointer, and drift a little against it */
+.art-sheen::after { opacity: var(--sh-glint); background: url("@@asset:sparkle.png@@") calc(var(--mx, 50%) * -.35) calc(var(--my, 50%) * -.35) / 176px 176px repeat;
+  -webkit-mask-image: radial-gradient(60% 45% at var(--mx, 50%) var(--my, 30%), rgba(0,0,0,1) 0%, rgba(0,0,0,0.964) 8%, rgba(0,0,0,0.865) 16%, rgba(0,0,0,0.721) 24%, rgba(0,0,0,0.56) 32%, rgba(0,0,0,0.404) 40%, rgba(0,0,0,0.271) 48%, rgba(0,0,0,0.169) 56%, rgba(0,0,0,0.098) 64%, rgba(0,0,0,0.053) 72%, rgba(0,0,0,0.027) 80%, rgba(0,0,0,0.012) 88%, transparent 96%); mask-image: radial-gradient(60% 45% at var(--mx, 50%) var(--my, 30%), rgba(0,0,0,1) 0%, rgba(0,0,0,0.964) 8%, rgba(0,0,0,0.865) 16%, rgba(0,0,0,0.721) 24%, rgba(0,0,0,0.56) 32%, rgba(0,0,0,0.404) 40%, rgba(0,0,0,0.271) 48%, rgba(0,0,0,0.169) 56%, rgba(0,0,0,0.098) 64%, rgba(0,0,0,0.053) 72%, rgba(0,0,0,0.027) 80%, rgba(0,0,0,0.012) 88%, transparent 96%); }
+@media (prefers-reduced-motion: reduce) { .art-sheen { display: none; } }
+.art-frame.glare-on, .pcd-frame.glare-on { box-shadow: 0 0 0 1px color-mix(in srgb, var(--p2, #fff) 60%, transparent), 0 10px 34px -8px color-mix(in srgb, var(--p2, #888) 80%, transparent),
+  0 0 calc(30px * var(--sh-glow)) calc(2px * var(--sh-glow)) color-mix(in srgb, var(--gold, #d4a640) calc(70% * var(--sh-glow)), transparent); }
+.art-frame[data-shine="4"].glare-on { box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold, #d4a640) 80%, #fff), 0 10px 34px -8px color-mix(in srgb, var(--p2, #888) 80%, transparent),
+  0 0 34px 3px color-mix(in srgb, var(--gold, #d4a640) 75%, transparent), 0 0 70px 8px color-mix(in srgb, var(--p2, #d4a640) 30%, transparent); }
+
+/* ---------- costume slots can be removed ---------- */
+.cos-cell { position: relative; display: grid; min-width: 0; }
+.cos-cell > .stage-btn { min-width: 0; }
+.cos-x { position: absolute; top: -7px; right: -7px; z-index: 2; width: 24px; height: 24px; padding: 0; display: grid; place-items: center; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink); font-size: 15px; line-height: 1; cursor: pointer; opacity: .82;
+  box-shadow: 0 3px 8px -3px rgba(0,0,0,.4); transition: opacity .15s ease, transform .15s ease; }
+.cos-cell:hover .cos-x, .cos-x:focus-visible { opacity: 1; }
+.cos-x:hover { transform: scale(1.08); border-color: var(--muted); }
+.cos-x:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+@media (hover: none) { .cos-x { opacity: 1; width: 28px; height: 28px; top: -9px; right: -9px; } }
+/* a toast may use the whole width of a phone; with buttons, they wrap under the message */
+#toast { width: max-content; }
+#toast.has-btn { flex-wrap: wrap; justify-content: center; column-gap: 14px; row-gap: 0; }
+@media (max-width: 600px) { #toast { border-radius: 18px; text-align: center; } }

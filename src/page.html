@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fate/Grand Index</title>
+<link rel="icon" type="image/x-icon" sizes="16x16 32x32 48x48" href="@@asset:favicon.ico@@">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<script>try{var t=localStorage.getItem("spirit-origin-list:v1:theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<style>@@styles@@</style>
+</head>
+<body>
+<div class="page-bg" aria-hidden="true"></div>
+<div class="aura" aria-hidden="true"><i class="a1"></i><i class="a2"></i><i class="a3"></i></div>
+<div id="page-emblem" class="page-emblem" aria-hidden="true"><i class="emb-fill"><b class="emb-glint"></b></i><img class="emb-line" alt=""></div>
+<div id="page-class" class="page-class" aria-hidden="true"></div>
+<canvas id="page-fx" class="page-fx" aria-hidden="true"></canvas>
+<div class="shell">
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">Fate/Grand Order · Index &amp; Spirit Origin List <button type="button" class="ver-chip" data-action="news" title="What's new in this version"><span id="app-ver">v0.19.0 · alpha</span></button></p>
+      <h1 class="brand"><a class="home-link" href="#home" data-action="go-home" title="Go to Home"><img class="brand-logo" src="@@asset:logo.webp@@" alt="Fate/Grand Index" width="220" height="88"></a></h1>
+    </div>
+    <div class="mast-actions">
+      <button class="btn ghost" data-action="tour" title="A short guide to the page">Guide</button>
+      <button class="btn ghost news-btn" data-action="news" title="Every update, newest first">What's new<i class="news-dot" aria-hidden="true" hidden></i></button>
+      <button class="btn ghost" data-action="fonts">Fonts</button>
+      <div class="menu-wrap" id="export-wrap" hidden><button id="btn-export" class="btn ghost" data-action="export-menu" aria-expanded="false" aria-controls="export-menu">Export ▾</button>
+        <div id="export-menu" class="pop-menu" role="menu" hidden>
+          <button type="button" role="menuitem" data-action="export">Full backup (.json)<small>Everything on this page, images included</small></button>
+          <button type="button" role="menuitem" data-action="export-csv">Spreadsheet (.csv)<small>Opens in Excel or Google Sheets</small></button>
+          <button type="button" role="menuitem" data-action="export-planner">Planner list (.json)<small>A plain servant list other tools can read</small></button>
+          <button type="button" role="menuitem" class="mi-danger" data-action="sf-open">Start fresh…<small>Empty this browser's list and begin your own</small></button>
+        </div></div>
+      <label id="lbl-import" class="btn ghost" hidden title="A backup from this page, a spreadsheet (.csv) or a planner's .json export">Import<input id="f-import" type="file" accept=".json,.csv,application/json,text/csv" hidden></label>
+      <button id="fps-btn" class="fps-btn" type="button" data-action="fps" data-fps="60" aria-label="Animations at 60 frames a second. Press to change"><i aria-hidden="true"><s></s><s></s><s></s></i><b>60 fps</b></button>
+      <button id="layout-tgl" class="lay-tgl" type="button" data-action="layout" aria-pressed="false" title="Servant page layout: Modern. Press for Compact"><svg viewBox="0 0 40 20" width="34" height="17" aria-hidden="true" focusable="false"><g class="lt-m"><rect x="1" y="1" width="16" height="18" rx="3"/><rect x="21" y="1" width="18" height="5" rx="2"/><rect x="21" y="8" width="18" height="5" rx="2"/><rect x="21" y="15" width="18" height="4" rx="2"/></g></svg><b>Modern</b></button>
+      <button id="theme-tgl" class="theme-tgl" type="button" data-action="theme" aria-pressed="false" aria-label="Switch to dark mode" title="Switch to dark mode"><span class="tt-track" aria-hidden="true"><i class="tt-star s1"></i><i class="tt-star s2"></i><i class="tt-star s3"></i><i class="tt-cloud"></i></span><span class="tt-knob" aria-hidden="true"><i class="tt-crater c1"></i><i class="tt-crater c2"></i></span></button>
+    </div>
+  </header>
+
+  <p id="save-note" class="save-note"></p>
+  <p id="summary" class="summary" hidden></p>
+  <div id="notice" class="notice" hidden></div>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" id="tab-home" data-action="tab" data-tab="home" aria-selected="true">Home</button>
+    <button class="tab" role="tab" id="tab-servants" data-action="tab" data-tab="servants" aria-selected="false">Servants</button>
+    <button class="tab" role="tab" id="tab-summon" data-action="tab" data-tab="summon" aria-selected="false">Summoning</button>
+    <button class="tab" role="tab" id="tab-parties" data-action="tab" data-tab="parties" aria-selected="false">Parties</button>
+    <button class="tab" role="tab" id="tab-ranking" data-action="tab" data-tab="ranking" aria-selected="false">Ranking</button>
+    <button class="tab" role="tab" id="tab-versus" data-action="tab" data-tab="versus" aria-selected="false">Versus</button>
+    <button class="tab" role="tab" id="tab-past" data-action="tab" data-tab="past" aria-selected="false">Past Chaldea</button>
+  </nav>
+
+  <section id="view-home" aria-labelledby="tab-home"><div id="home" class="home"></div></section>
+
+  <section id="view-servants" class="d-sec" aria-labelledby="tab-servants" hidden>
+    <div class="toolbar">
+      <input id="q" class="grow" type="search" placeholder="Search names, NPs, roles, notes" aria-label="Search servants">
+      <select id="f-class" aria-label="Filter by class"><option value="">All classes</option></select>
+      <select id="f-trait" aria-label="Filter by trait, attribute or alignment"><option value="">All traits</option></select>
+      <div class="seg" id="f-card" role="group" aria-label="Filter by NP card">
+        <button data-action="card" data-card="" aria-pressed="true">All</button>
+        <button data-action="card" data-card="Buster" aria-pressed="false"><img class="seg-card" data-card-img="Buster" alt="">Buster</button>
+        <button data-action="card" data-card="Arts" aria-pressed="false"><img class="seg-card" data-card-img="Arts" alt="">Arts</button>
+        <button data-action="card" data-card="Quick" aria-pressed="false"><img class="seg-card" data-card-img="Quick" alt="">Quick</button>
+      </div>
+      <select id="f-sort" aria-label="Sort servants">
+        <option value="order">Roster order</option>
+        <option value="name">Name</option>
+        <option value="level">Level</option>
+        <option value="atk">Total ATK</option>
+        <option value="hp">Total HP</option>
+        <option value="skills">Skill levels</option>
+      </select>
+      <button class="btn primary edit-only" data-action="add-servant">Add servant</button>
+    </div>
+    <div class="workspace">
+      <div id="list" class="list" aria-label="Roster"></div>
+      <aside id="dossier" class="dossier" aria-label="Servant details"></aside>
+    </div>
+  </section>
+
+  <section id="view-summon" aria-labelledby="tab-summon" hidden><div id="summoning" class="smp"></div></section>
+
+  <section id="view-parties" class="d-sec" aria-labelledby="tab-parties" hidden>
+    <div class="toolbar">
+      <p class="muted grow" style="margin:0">Click a card to open that servant. The guest support takes the empty starting slot. Totals use your own servants (Fou included).</p>
+      <button class="btn primary edit-only" data-action="add-party">Add party</button>
+    </div>
+    <div id="dna"></div>
+    <div id="parties" class="party-grid"></div>
+  </section>
+
+  <section id="view-ranking" class="d-sec" aria-labelledby="tab-ranking" hidden>
+    <div class="toolbar">
+      <p class="rank-note grow">Score out of 100: stats with Fou and class ATK bonus (35) + skills (30) + NP level (15) + level (10) + rarity (10). Skills count like the game: reaching Lv 6 and Lv 10 is worth more because those steps also shorten the cooldown, and Lv 10 gives the full value. Reaching max level and Lv 100 add a bump. Arrows show moves since you last pressed Mark as seen.</p>
+      <div class="rank-tools"><div class="seg" role="group" aria-label="Ranking view"><button data-action="rank-view" data-v="list" aria-pressed="true">List</button><button data-action="rank-view" data-v="tiers" aria-pressed="false">Tier board</button></div><button class="btn sm" data-action="rank-seen">Mark as seen</button></div>
+    </div>
+    <div id="roi-top" class="roi-top" aria-label="Best upgrades right now"></div>
+    <ol id="ranking" class="rank-list" aria-label="Servant ranking"></ol>
+    <div id="tierboard" class="tierboard" aria-label="Tier board" hidden></div>
+  </section>
+
+  <section id="view-guests" class="d-sec" aria-labelledby="tab-guests" hidden>
+    <div class="toolbar">
+      <p class="muted grow" style="margin:0">Support servants worth borrowing, and who they work best with.</p>
+      <button class="btn primary edit-only" data-action="add-guest">Add guest</button>
+    </div>
+    <div id="guests" class="guest-list"></div>
+  </section>
+
+  <section id="view-versus" class="d-sec" aria-labelledby="tab-versus" hidden>
+    <div id="versus" class="vs"></div>
+  </section>
+
+  <section id="view-past" aria-labelledby="tab-past" hidden><div id="past" class="pc"></div></section>
+</div>
+<dialog id="font-dlg" class="dlg" aria-labelledby="font-title">
+  <div class="dlg-in">
+    <header class="dlg-head"><h2 id="font-title">Fonts</h2><button class="btn ghost sm" data-action="font-close">Close</button></header>
+    <p class="muted">Pick a Google Font for each part of the page. Your choice is saved in this browser.</p>
+    <div id="font-roles" class="font-roles"></div>
+    <div class="font-add">
+      <label for="font-new">Add a Google Font</label>
+      <div class="font-add-row"><input id="font-new" type="text" autocomplete="off" spellcheck="false" placeholder="Font name, e.g. Cinzel, or a fonts.google.com link"><button class="btn primary sm" data-action="font-add">Add</button></div>
+      <p id="font-msg" class="font-msg" role="status"></p>
+      <a class="wiki" href="https://fonts.google.com/" target="_blank" rel="noopener">Browse Google Fonts ↗</a>
+    </div>
+    <div id="font-mine" class="font-chips"></div>
+    <footer><button class="btn ghost sm" data-action="font-reset">Back to the original fonts</button><span class="muted" style="font-size:12.5px">Fonts load from Google, so they need an internet connection.</span></footer>
+  </div>
+</dialog>
+<div id="summon" class="summon" role="dialog" aria-modal="true" aria-label="Summoning" hidden></div>
+<div id="vs-tip" class="vs-tip" role="tooltip" hidden></div>
+<div id="tier-menu" class="tier-menu" role="menu" aria-label="Move to tier" hidden></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>@@app@@</script>
+</body>
+</html>

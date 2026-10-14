@@ -1,0 +1,82 @@
+
+/* ===== v15: everything here is still: no blur, no backdrop filter, no looping animation ===== */
+/* the title goes Home */
+.home-link { color: inherit; text-decoration: none; border-radius: 6px; }
+.home-link:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); }
+.home-link:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+/* What's new + Guide in the masthead */
+.news-btn { position: relative; }
+.news-dot { position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--buster, #c8354b); box-shadow: 0 0 0 2px var(--panel); }
+.news-dot[hidden] { display: none; }
+.pop-menu .mi-danger { color: var(--buster); border-top: 1px solid var(--line); border-radius: 0 0 10px 10px; margin-top: 4px; }
+/* grails on the roster row */
+.row-lv.has-gr { display: inline-flex; flex-direction: column; align-items: flex-end; line-height: 1.2; }
+.row-lv.has-gr em { margin-left: 0; font-size: 11.5px; }
+.row-lv em small { font-size: inherit; font-weight: 600; }
+/* quick set */
+.ql { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.ql-k { font-size: 12px; font-weight: 650; color: var(--muted); margin-right: 4px; letter-spacing: .02em; }
+.ql-b { display: inline-flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 0; min-height: 40px; padding: 4px 12px; border: 1px solid var(--line); border-radius: 12px;
+  background: var(--panel); color: var(--ink); font: inherit; line-height: 1.2; cursor: pointer; text-align: left; }
+.ql-b b { font-size: 13px; font-weight: 700; }
+.ql-b small { font-size: 11px; color: var(--muted); font-weight: 500; }
+.ql-b:hover:not(:disabled) { border-color: var(--muted); background: var(--sunken); }
+.ql-b:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.ql-b:disabled { opacity: .5; cursor: default; }
+/* trait check */
+.tr-diff { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 3px; font-size: 12.5px; }
+.tr-diff i, .tr-one .tr-l i { font-style: normal; font-weight: 650; color: var(--gold); margin-right: 2px; }
+.tr-one { margin: 10px 0 2px; }
+.tr-one .tr-l { display: inline-block; margin-right: 10px; }
+.tr-sec .tr-one p { line-height: 1.5; }
+/* Past Chaldea: attribute, alignment and trait filters; tags that filter */
+.pc-tools2 { margin-top: -4px; }
+.pc-tools2 select { max-width: 100%; }
+.pcd-tags button.chip { font: inherit; font-size: 12.5px; font-weight: 600; color: var(--ink); cursor: pointer; }
+.pcd-tags button.chip.t { font-weight: 500; color: var(--muted); }
+.pcd-tags button.chip:hover { border-color: var(--muted); color: var(--ink); }
+.pcd-tags button.chip:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* the dialogs: guide, What's new, start fresh, trait check */
+.v15-panel { width: min(640px, 100%); gap: 14px; }
+.v15-panel .pcd-name { font-size: clamp(1.45rem, 2.6vw, 1.9rem); }
+.v15-panel > p { margin: 0; font-size: 14.5px; line-height: 1.55; }
+.pcd:has(.v15-panel) { animation: v15in .16s ease-out both; }
+@keyframes v15in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .pcd:has(.v15-panel) { animation: none; } }
+.tour-panel { width: min(540px, 100%); }
+.tour-art { display: flex; gap: 10px; align-items: center; height: 56px; }
+.tour-art img { width: 48px; height: 48px; object-fit: contain; opacity: .92; }
+.tour-art img:nth-child(2) { width: 56px; height: 56px; }
+.tour-body p { margin: 0 0 10px; font-size: 15px; line-height: 1.6; }
+.tour-body p:last-child { margin-bottom: 0; }
+.tour-aside { padding: 10px 12px; border-radius: 12px; background: var(--sunken); font-size: 14px !important; }
+.tour-dots { display: flex; gap: 6px; }
+.tour-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.tour-dots i.on { background: var(--ink); width: 20px; border-radius: 4px; }
+.news-panel { width: min(720px, 100%); }
+.cl-v { border-top: 1px solid var(--line); padding-top: 12px; }
+.cl-v h3 { margin: 0 0 6px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font-size: 16px; }
+.cl-v h3 small { font-size: 12px; font-weight: 500; color: var(--muted); }
+.cl-n { font-family: var(--f-data); font-size: 12px; font-weight: 700; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.cl-v.is-new .cl-n { color: var(--ink); border-color: var(--gold); }
+.cl-new { font-style: normal; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--on-accent, #fff); background: var(--gold); padding: 1px 7px; border-radius: 999px; }
+.cl-v ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; line-height: 1.5; }
+.sf-panel { width: min(560px, 100%); }
+.sf-safe { padding: 10px 12px; border-radius: 12px; background: var(--sunken); color: var(--ink); font-size: 13.5px !important; }
+.sf-steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
+.sf-steps li > span { margin-right: 6px; }
+.sf-chk { display: inline-flex; gap: 8px; align-items: flex-start; cursor: pointer; }
+.sf-chk input { width: 17px; height: 17px; margin-top: 2px; accent-color: var(--focus); flex: none; }
+.sf-word { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.sf-word input { flex: 1 1 180px; min-height: 38px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--ink); font: inherit; font-family: var(--f-data); letter-spacing: .06em; text-transform: uppercase; }
+.sf-word input:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+/* Home: what's new */
+.hn-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 13.5px; line-height: 1.5; }
+.hn-act { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+@media (max-width: 520px) {
+  .ql-k { flex-basis: 100%; }
+  .ql-b { flex: 1 1 calc(50% - 6px); }
+  .pc-tools2 select { flex: 1 1 calc(50% - 8px); min-width: 0; }
+  .v15-panel { padding: 18px 16px; }
+}

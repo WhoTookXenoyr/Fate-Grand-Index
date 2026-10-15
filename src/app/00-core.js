@@ -497,7 +497,7 @@ function setClassWord(s, x) {
     const spans = letters.map((ch, i) => {
       if (ch === " ") return `<span class="sp" style="--i:${i}"> </span>`;
       const j = (i * (n % 7 ? 7 : 3) + 3) % n, dx = ((i * 37) % 11 - 5) * 0.12, dy = ((i * 53) % 9 - 4) * 0.15, rz = ((i * 29) % 13 - 6) * 6;
-      return `<span style="--i:${i};--j:${j};--dx:${dx.toFixed(2)}em;--dy:${dy.toFixed(2)}em;--rz:${rz}deg">${esc(ch)}</span>`;
+      return `<span data-c="${esc(ch)}" style="--i:${i};--j:${j};--dx:${dx.toFixed(2)}em;--dy:${dy.toFixed(2)}em;--rz:${rz}deg">${esc(ch)}</span>`;
     }).join("");
     box.innerHTML = `<div class="pc-word${x ? " x" : ""}" data-k="${kind}" style="--n:${n};--hi-rgb:${hi.map((v) => v | 0).join(",")}" lang="en">${spans}</div>`;
     requestAnimationFrame(() => requestAnimationFrame(() => { const w = box.firstElementChild; if (w) w.classList.add("on"); }));
@@ -767,7 +767,7 @@ function fxFrame(F, now) {
     g = c.createRadialGradient(mx + R * 0.45, my - R * 0.2, 0, mx + R * 0.45, my - R * 0.2, R * 1.05); g.addColorStop(0, rgba(A, 0.55)); g.addColorStop(1, rgba(A, 0)); c.fillStyle = g; c.beginPath(); c.arc(mx, my, R, 0, 6.283); c.fill();
     c.save(); c.translate(mx, my); c.rotate(t * 0.5); c.setLineDash([6, 10]); c.strokeStyle = rgba(A, 0.6 * ov); c.lineWidth = 1.6; c.beginPath(); c.arc(0, 0, R * 1.35, 0, 6.283); c.stroke(); c.setLineDash([]); c.restore();
     c.lineWidth = 1.6;
-    for (let j = 0; j < 5; j++) { c.strokeStyle = rgba(j % 2 ? A : HI, (0.42 - j * 0.05) * (LT ? 0.9 : 1)); c.beginPath(); for (let x = 0; x <= w; x += 8) c.lineTo(x, h * (0.76 + j * 0.05) + Math.sin(x / (34 + j * 6) + t * (1.4 + j * 0.35) * sp) * (5 + j)); c.stroke(); }
+    for (let j = 0; j < 5; j++) { c.strokeStyle = rgba(j % 2 ? A : HI, (0.42 - j * 0.05) * (LT ? 0.9 : 1)); c.beginPath(); for (let x = 0; ; x = Math.min(x + 8, w)) { c.lineTo(x, h * (0.76 + j * 0.05) + Math.sin(x / (34 + j * 6) + t * (1.4 + j * 0.35) * sp) * (5 + j)); if (x >= w) break; } c.stroke(); }
     for (const q of F.parts) if (q.t === "pix") { q.y += q.v * d; if (q.y > 1.02) { q.y = -0.02; q.x = Math.random(); } c.fillStyle = rgba((q.ph > 3 ? A : [120, 230, 255]), (0.35 + 0.3 * Math.sin(t * 3 + q.ph)) * (LT ? 0.85 : 1)); c.fillRect(q.x * w, q.y * h, q.s, q.s); }
   } else if (k === "glitch") {
     // Alter Ego: data tearing apart, split into its colour channels
@@ -796,7 +796,8 @@ function fxFrame(F, now) {
       if (boost > 0.55) { c.fillStyle = rgba(A, 0.12 * boost * ov); c.fill(); }
     }
   } else if (k === "rainbow") {
-    for (let j = 0; j < 5; j++) { c.beginPath(); c.moveTo(0, h); for (let x = 0; x <= w; x += 10) c.lineTo(x, h * (0.2 + j * 0.15) + Math.sin(x / (70 + j * 20) + t * (0.8 + j * 0.25) * sp) * h * 0.09); c.lineTo(w, h); c.closePath(); c.fillStyle = "hsla(" + ((hue + j * 72) % 360) + ",92%,62%,0.18)"; c.fill(); }
+    // waves step 10 px at a time; the last step always lands on the right edge (0.20.1: they used to stop short and cut down at a slant)
+    for (let j = 0; j < 5; j++) { c.beginPath(); c.moveTo(0, h); for (let x = 0; ; x = Math.min(x + 10, w)) { c.lineTo(x, h * (0.2 + j * 0.15) + Math.sin(x / (70 + j * 20) + t * (0.8 + j * 0.25) * sp) * h * 0.09); if (x >= w) break; } c.lineTo(w, h); c.closePath(); c.fillStyle = "hsla(" + ((hue + j * 72) % 360) + ",92%,62%,0.18)"; c.fill(); }
   } else if (k === "abyss") {
     // Foreigner: an aurora over the void, stars turning around a sealed gate, tendrils reaching up from below
     const ts = t * (p.extra ? 1.35 : 1);

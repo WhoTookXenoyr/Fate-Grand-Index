@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.20.0";
+const APP_VER = "0.20.1";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -163,6 +163,10 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.20.1", d: "15 Oct 2026", t: "Smoother class names, edges fixed", i: [
+    "The big class name behind a servant's page no longer drops frames when it pulses or glows. The letters only move and fade now, and the glow is drawn once instead of on every frame. Berserker, Caster and Avenger were the worst; every class got the same fix, and the letters no longer blur on the way in.",
+    "Beast waves (Space Ereshkigal) reach the right edge of the picture and the page instead of stopping short at a slant. Moon Cancer's tide lines got the same fix.",
+    "Compact: the gold grail outline no longer runs over the × that closes the servant window."]},
   {v: "0.20.0", d: "15 Oct 2026", t: "Rebuilt behind the scenes", i: [
     "<b>Tidier inside</b>: Fate/Grand Index is now made from one clean set of source files instead of a pile of patches, and hundreds of automatic checks run on every change before a new version comes out. Your roster, settings and pictures stay exactly as they are.",
     "Favourite Craft Essences and removed costumes are saved the moment you press, and Undo shows the old state straight away."]},

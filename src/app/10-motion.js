@@ -93,11 +93,13 @@ fxLoop = function (now) {
   if (live) fxRaf = requestAnimationFrame(fxLoop);
 };
 
-/* ---------- the grail frame around the servant panel is drawn on its own layer, on top ---------- */
+/* ---------- the grail frame around the servant panel is drawn on its own layer, right on top of the panel ---------- */
+// It sits next to the panel (0.20.1; it used to be a layer over the whole page, so it covered the Compact × too) and takes
+// the panel's own z-index when the panel has one, so it is above the panel and below anything meant to be above the panel.
 const dsFrame = document.createElement("div");
 dsFrame.className = "ds-frame"; dsFrame.hidden = true; dsFrame.setAttribute("aria-hidden", "true");
 dsFrame.innerHTML = `<i class="gr-ring"><b></b></i>`;
-document.body.appendChild(dsFrame);
+(() => { const d = document.getElementById("dossier"); if (d && d.parentNode) d.parentNode.insertBefore(dsFrame, d.nextSibling); else document.body.appendChild(dsFrame); })();
 let dsRaf = 0;
 function placeDsFrame() {
   dsRaf = 0;
@@ -107,7 +109,8 @@ function placeDsFrame() {
   if (!g || !r || r.width < 20 || r.height < 20 || getComputedStyle(d).display === "none") { dsFrame.hidden = true; return; }
   dsFrame.hidden = false;
   if (!dsFrame.classList.contains(g)) dsFrame.className = "ds-frame " + g;
-  const st = dsFrame.style;
+  const st = dsFrame.style, zi = getComputedStyle(d).zIndex;
+  st.zIndex = zi === "auto" ? "" : zi;
   st.left = r.left + "px"; st.top = r.top + "px"; st.width = r.width + "px"; st.height = r.height + "px"; st.borderRadius = getComputedStyle(d).borderTopLeftRadius;
 }
 const queueDsFrame = () => { if (!dsRaf) dsRaf = requestAnimationFrame(placeDsFrame); };

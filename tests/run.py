@@ -50,20 +50,24 @@ def serve():
 ERRORS = re.compile(r"^(?:page )?errors:? \[(.+)\]$|^\[.+\]$")
 
 
-LIMIT = 15 * 60  # seconds one suite may take before it counts as stuck
+LIMIT = 8 * 60  # seconds one suite may take before it counts as stuck (the slowest takes about 4 minutes on a busy machine)
 
 
 def run_once(path):
     t = time.time()
     # each suite's browser profiles go in its own folder under build/, removed with the next run
     tmp = os.path.join(WORK, "profiles", os.path.basename(path)[:-3]); os.makedirs(tmp, exist_ok=True)
-    env = dict(os.environ, TMPDIR=tmp, PYTHONDONTWRITEBYTECODE="1", FGI_URL=URL)
+    env = dict(os.environ, TMPDIR=tmp, PYTHONDONTWRITEBYTECODE="1", PYTHONUNBUFFERED="1", FGI_URL=URL)
     pr = subprocess.Popen([sys.executable, path, WORK], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
                           cwd=WORK, env=env, start_new_session=True)
     try: out, code = pr.communicate(timeout=LIMIT)[0], pr.returncode
     except subprocess.TimeoutExpired:
-        os.killpg(pr.pid, signal.SIGKILL)  # the suite, its Playwright driver and its browsers
-        out, code = pr.communicate()[0] + "\nstopped: took longer than %d minutes" % (LIMIT // 60), -1
+        try: os.killpg(pr.pid, signal.SIGKILL)  # the suite, its Playwright driver and its browsers
+        except ProcessLookupError: pass
+        out = pr.communicate()[0] or ""
+        last = [l for l in out.splitlines() if l.startswith(("PASS ", "FAIL "))]
+        out += "\nstopped: took longer than %d minutes; stuck in the step after %s" % (LIMIT // 60, repr(last[-1][5:]) if last else "the start")
+        code = -1
     lines = out.splitlines()
     passed = sum(l.startswith("PASS ") for l in lines)
     failed = [l[5:] for l in lines if l.startswith("FAIL ")]

@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.21.0";
+const APP_VER = "0.22.0";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -163,6 +163,11 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.22.0", d: "16 Oct 2026", t: "Event pages and NA banners", i: [
+    "<b>Event pages</b>: press an event in On NA now and it gets its own page. It has the summary and guide, the summoning campaign with its rate-up schedule, the event's servants and Craft Essences (what you can get, plus the wiki's bonus lists), missions, main, free, extra and challenge quests with what free quests drop, the event shop, point rewards and lotteries, misc info and game updates.",
+    "<b>Currency calculator</b> on every Event page: what your servants still need from the event shop for ascensions and skills, what that costs in each currency, and roughly how many runs of the best free quest it takes, with your drop bonus. Fill in what you already have and the numbers follow.",
+    "<b>Simulate NA banners</b>: Simulate on a banner loads it into the Summoning page, with its featured servants and Craft Essences on rate-up. Servants you don't have come from Past Chaldea; nothing is added to your list. Go back to your own banner whenever you like.",
+    "Event data comes from Atlas Academy, and the written parts from the Fate/Grand Order wiki. Wiki text is filtered first, so only plain text, lists, tables, links and wiki pictures come through. An Event page you've opened is kept in this browser and works offline."]},
   {v: "0.21.0", d: "16 Oct 2026", t: "On NA now", i: [
     "<b>On NA now</b> at the top of Home: the events, campaigns and login bonuses running on the NA server, with how long each has left; the summon banners up right now with their featured servants; and the newest servants and Craft Essences. Announced events show when they start.",
     "It comes straight from Atlas Academy's NA data: Fate/Grand Index checks every few hours while it's open and only downloads the lists when NA has updated. What it got is kept in this browser, so Home still shows it offline.",

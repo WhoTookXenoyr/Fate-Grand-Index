@@ -269,6 +269,19 @@ for key, cnt in ICN.items():
 icons.sort(key=lambda r: (r[0][0] != "B", int(re.sub(r"\D", "", r[0]) or 0)))
 
 out = []
+# ascension and skill materials (0.22.0, for the event shop calculator): items get a number in ATLAS_MATS, and each
+# servant lists, per ascension (4) and per skill level-up (9), the flat pairs [material number, amount, ...]
+MATS = {}
+def mats(levels):
+    rows = []
+    for lv in levels:
+        row = []
+        for it in (lv or {}).get("items", []):
+            i = it["item"]
+            if i["id"] not in MATS: MATS[i["id"]] = [i["id"], i["name"], p(i.get("icon", ""))]
+            row += [i["id"], it["amount"]]
+        rows.append(row)
+    return rows
 for x in S:
     if x["type"] not in ("normal", "heroine") or x["className"] not in CLS or not x["collectionNo"]: continue
     tr = all_traits(x)
@@ -326,8 +339,13 @@ for x in S:
            "im": [p(asc[k]) for k in sorted(asc, key=int)], "cs": [p(cos[k]) for k in sorted(cos, key=int)],
            "f": p(face.get("1") or next(iter(face.values()), "")), "sa": x.get("starAbsorb"), "sg": x.get("starGen"), "dt": x.get("instantDeathChance"), "gc": x.get("growthCurve")}
     if x["type"] == "heroine": rec["h"] = 1
+    am, sm = x.get("ascensionMaterials") or {}, x.get("skillMaterials") or {}
+    rec["ma"] = mats([am.get(str(k)) for k in range(4)]); rec["ms"] = mats([sm.get(str(k)) for k in range(1, 10)])
     out.append(rec)
 out.sort(key=lambda r: r["no"])
+MAT_LIST = sorted(MATS.values(), key=lambda m: m[0]); MAT_IX = {m[0]: k for k, m in enumerate(MAT_LIST)}
+for r in out:
+    for key in ("ma", "ms"): r[key] = [[MAT_IX[v] if k % 2 == 0 else v for k, v in enumerate(row)] for row in r[key]]
 
 FLAG = {"normal": "N", "svtEquipEvent": "E", "svtEquipEventReward": "R", "svtEquipFriendShip": "B", "svtEquipChocolate": "V", "svtEquipCampaign": "C", "svtEquipExp": "X", "svtEquipManaExchange": "M", "unknown": "U"}
 id2no = {x["id"]: x["collectionNo"] for x in S}
@@ -363,5 +381,6 @@ for x in S:
             assert b + (m - b) * k[i] // 1000 == v, (x["name"], i)
 js = "const ATLAS_CURVES = %s;\n" % json.dumps({str(k): v for k, v in CURVES.items()}, separators=(",", ":"))
 js += "const ATLAS_IMG = %s;\nconst ATLAS_S = %s;\nconst ATLAS_C = %s;\nconst ATLAS_ICONS = %s;\n" % (json.dumps(BASE), json.dumps(out, ensure_ascii=False, separators=(",", ":")), json.dumps(ces, ensure_ascii=False, separators=(",", ":")), json.dumps(icons, ensure_ascii=False, separators=(",", ":")))
+js += "const ATLAS_MATS = %s;\n" % json.dumps(MAT_LIST, ensure_ascii=False, separators=(",", ":"))
 with open(os.path.join(ROOT, "src", "data", "atlas_data.js"), "w", encoding="utf-8") as f: f.write(js.strip() + "\n")
 print("servants", len(out), "ces", len(ces), "icons", len(icons), "bytes", len(js.encode()))

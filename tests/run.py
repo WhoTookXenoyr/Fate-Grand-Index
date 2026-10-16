@@ -84,12 +84,22 @@ def run(path, retries):
     return os.path.basename(path), tries
 
 
+def annotate(level, name, msg):
+    # on GitHub Actions, failures show up as annotations on the run (readable without the full log)
+    if not os.environ.get("GITHUB_ACTIONS"): return
+    esc = lambda t: str(t).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+    print("::%s title=%s::%s" % (level, esc(name), esc(msg)), flush=True)
+
+
 def report(name, tries):
     r = tries[-1]
     note = "" if len(tries) == 1 else "  (flaky: passed on try %d)" % len(tries) if r["ok"] else "  (failed %d times)" % len(tries)
     print("%s %-44s %3d checks  %4.0fs%s" % ("ok  " if r["ok"] else "FAIL", name, r["passed"] + len(r["failed"]), sum(t["secs"] for t in tries), note), flush=True)
-    for t in tries:
+    for k, t in enumerate(tries):
         if t["ok"]: continue
+        why = [("✗ " + f) for f in t["failed"]] + [("page error: " + e[:200]) for e in t["errors"]]
+        if t["code"] or not t["passed"]: why.append(t["out"].strip().splitlines()[-1][:300] if t["out"].strip() else "no output")
+        annotate("warning" if r["ok"] else "error", "%s (try %d)" % (name, k + 1), "\n".join(why[:12]))
         for f in t["failed"]: print("       ✗ " + f)
         for e in t["errors"]: print("       page error: " + e[:300])
         if t["code"] or not t["passed"]: print("       " + "\n       ".join(t["out"].strip().splitlines()[-25:]))

@@ -18,7 +18,7 @@
 .lv-ev time { font-family: var(--f-data); font-size: 12px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .lv-ev.soon time { color: color-mix(in srgb, #c0392b 80%, var(--ink)); font-weight: 600; }
 .lv-ev.up b { font-weight: 500; color: color-mix(in srgb, var(--ink) 75%, transparent); }
-.lv-ban small { grid-column: 1 / -1; font-size: 12px; color: var(--muted); }
+.lv-ev small { grid-column: 1 / -1; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
 .lv-faces { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .lv-more { font-size: 12.5px; margin: 6px 0 2px; }
 .lv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 8px 6px; }
@@ -32,7 +32,7 @@
 .lv-img img { position: absolute; inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px); object-fit: cover; border-radius: 9px; }
 .lv-face.sm .lv-img img { border-radius: 7px; }
 .lv-new { position: absolute; left: 2px; right: 2px; bottom: 2px; font-style: normal; font-family: var(--f-data); font-size: 8.5px; font-weight: 700; line-height: 1.6; letter-spacing: .1em; text-align: center; color: #fff; background: rgba(170, 32, 32, .88); border-radius: 0 0 9px 9px; }
-.lv-n { width: 100%; font-size: 11px; line-height: 1.2; text-align: center; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.lv-n { width: 100%; font-size: 11px; line-height: 1.2; text-align: center; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
 .lv-warn { margin: 4px 0 0; font-size: 12.5px; color: color-mix(in srgb, #c0392b 80%, var(--ink)); }
 .lv-foot { margin: 14px 0 0; font-size: 12px; color: var(--muted); }
 .lv-foot b { font-family: var(--f-data); font-size: 10px; letter-spacing: .1em; color: #b3261e; }

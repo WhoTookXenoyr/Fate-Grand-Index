@@ -24,6 +24,8 @@ function liveKind(e) {
   return /campaign|success rate|\bexp\b|\bap\b/i.test(n) ? "camp" : "event";
 }
 const LIVE_GACHA = {payGacha: "Saint Quartz", chargeStone: "Paid Saint Quartz", friendPoint: "Friend Points"};
+// the game's own text markup comes through in some names: colours like [FFFF00]…[-], [b], [i], [u], [s], [sup], [sub], [line 3], [r]
+const liveText = (t) => String(t || "").replace(/\[(?:[0-9a-f]{6}|-|\/?(?:b|i|u|s|sup|sub)|line\s*\d+|r)\]/gi, " ").replace(/\s+/g, " ").trim();
 
 let live = (() => { try { const v = JSON.parse(localStorage.getItem(LIVE_KEY)); return v && typeof v === "object" ? v : {}; } catch (e) { return {}; } })();
 const liveOn = () => live.on === undefined ? LIVE_DEFAULT : !!live.on;
@@ -45,9 +47,9 @@ function liveDerive(svts, ces, evs, gas, now) {
   now = now || Date.now() / 1000;
   const SV = new Map(), CE = new Map();
   for (const x of Array.isArray(svts) ? svts : []) if (x && x.collectionNo > 0 && (x.type === "normal" || x.type === "heroine"))
-    SV.set(x.id, {no: x.collectionNo, n: String(x.name || ""), c: liveCls(x.className), r: x.rarity | 0, f: String(x.face || "")});
+    SV.set(x.id, {no: x.collectionNo, n: liveText(x.name), c: liveCls(x.className), r: x.rarity | 0, f: String(x.face || "")});
   for (const x of Array.isArray(ces) ? ces : []) if (x && x.collectionNo > 0)
-    CE.set(x.id, {no: x.collectionNo, n: String(x.name || ""), r: x.rarity | 0, f: String(x.face || ""), atk: x.atkMax | 0, hp: x.hpMax | 0, ce: 1});
+    CE.set(x.id, {no: x.collectionNo, n: liveText(x.name), r: x.rarity | 0, f: String(x.face || ""), atk: x.atkMax | 0, hp: x.hpMax | 0, ce: 1});
   const sv = [...SV.values()].sort((a, b) => b.no - a.no).slice(0, 8);
   // anniversary Craft Essences use numbers in the 400,000s; the newest ones are the highest of the ordinary numbers
   const ce = [...CE.values()].filter((c) => c.no < 100000).sort((a, b) => b.no - a.no).slice(0, 8);
@@ -55,17 +57,17 @@ function liveDerive(svts, ces, evs, gas, now) {
   for (const e of Array.isArray(evs) ? evs : []) {
     if (!e || !e.name || !(e.endedAt > now - 86400) || !(e.startedAt > 0) || e.endedAt - e.startedAt > LIVE_LONG) continue;
     const k = liveKind(e); if (!k) continue;
-    const key = k + "|" + e.name + "|" + e.startedAt + "|" + e.endedAt; if (seen.has(key)) continue; seen.add(key);
-    ev.push({k: k, n: String(e.name), s: e.startedAt, e: e.endedAt, a: e.noticeAt || e.startedAt});
+    const n = liveText(e.name), key = k + "|" + n + "|" + e.startedAt + "|" + e.endedAt; if (!n || seen.has(key)) continue; seen.add(key);
+    ev.push({k: k, n: n, s: e.startedAt, e: e.endedAt, a: e.noticeAt || e.startedAt});
   }
   ev.sort((a, b) => a.e - b.e);
   const ba = [], byKey = new Map();
   for (const g of Array.isArray(gas) ? gas : []) {
     if (!g || !g.name || !(g.closedAt > now - 86400) || !(g.openedAt > 0) || g.closedAt - g.openedAt > LIVE_LONG) continue;
     const ft = (g.featuredSvtIds || []).map((id) => SV.get(id) || CE.get(id)).filter(Boolean);
-    const key = g.name + "|" + g.openedAt + "|" + g.closedAt, had = byKey.get(key);
+    const n = liveText(g.name), key = n + "|" + g.openedAt + "|" + g.closedAt, had = byKey.get(key);
     if (had) { ft.forEach((x) => { if (!had.ft.some((y) => y.no === x.no && !!y.ce === !!x.ce)) had.ft.push(x); }); continue; }
-    const b = {n: String(g.name), t: LIVE_GACHA[g.type] || "Summon", s: g.openedAt, e: g.closedAt, ft: ft};
+    const b = {n: n, t: LIVE_GACHA[g.type] || "", s: g.openedAt, e: g.closedAt, ft: ft};
     byKey.set(key, b); ba.push(b);
   }
   ba.sort((a, b) => (a.t === "Friend Points") - (b.t === "Friend Points") || a.e - b.e);
@@ -108,7 +110,8 @@ function liveTime(x) {
   return `<time data-lv-e="${x.e}" title="Ends ${esc(liveWhen(x.e))}">ends in ${esc(liveLeft(x.e))}</time>`;
 }
 function liveFace(x, small) {
-  const inFile = x.ce ? CE_BY_NO.has(x.no) : ATLAS_BY_NO.has(x.no);
+  const own = (x.ce ? CE_BY_NO : ATLAS_BY_NO).get(x.no), inFile = !!own;
+  if (own) x = Object.assign({}, x, {n: own.n || x.n, c: own.c || x.c});
   const sub = x.ce ? [stars(x.r), [x.atk ? "ATK " + fmt(x.atk) : "", x.hp ? "HP " + fmt(x.hp) : ""].filter(Boolean).join(" ")] : [x.c, stars(x.r)];
   const label = x.n + (inFile ? "" : " (new on NA)") + ", " + sub.filter(Boolean).join(", ");
   const inner = `<span class="lv-img"><img src="${esc(aimg(x.f))}" alt="" loading="lazy">${inFile ? "" : `<i class="lv-new">NEW</i>`}</span>${small ? "" : `<span class="lv-n">${esc(x.n)}</span>`}`;
@@ -135,14 +138,18 @@ function liveHTML() {
     <p class="tr-none">${liveBusy ? "Getting NA's events, banners and newest servants…" : esc(liveErr || "Nothing loaded yet.") + (liveErr ? " Home shows NA's news here once it can reach Atlas Academy." : "")}</p></section>`;
   const live1 = (x) => x.e > now && (x.s <= now || x.a <= now);
   const evs = d.ev.filter(live1), pick = (k) => evs.filter((x) => x.k === k).sort((a, b) => (a.s > now) - (b.s > now) || (a.s > now ? a.s - b.s : a.e - b.e));
-  const evRow = (x) => `<li class="lv-ev${x.s > now ? " up" : x.e - now < 86400 ? " soon" : ""}"><b>${esc(x.n)}</b>${liveTime(x)}</li>`;
+  // a campaign or login bonus on the same dates as an event (or ending with the only event that ends then) belongs to it
+  const evs1 = evs.filter((y) => y.k === "event"), near = (a, b) => Math.abs(a - b) < 3600;
+  const withEv = (x) => { if (x.k === "event") return null; const both = evs1.find((y) => near(y.s, x.s) && near(y.e, x.e)); if (both) return both;
+    const ends = evs1.filter((y) => near(y.e, x.e)); return ends.length === 1 ? ends[0] : null; };
+  const evRow = (x) => { const w = withEv(x); return `<li class="lv-ev${x.s > now ? " up" : x.e - now < 86400 ? " soon" : ""}"><b>${esc(liveText(x.n))}</b>${liveTime(x)}${w ? `<small>with ${esc(liveText(w.n))}</small>` : ""}</li>`; };
   const bas = d.ba.filter((b) => b.e > now && b.s <= now);
-  const baRow = (b) => `<li class="lv-ev lv-ban${b.e - now < 86400 ? " soon" : ""}"><b>${esc(b.n)}</b>${liveTime(b)}<small>${esc(b.t)}</small>${b.ft.length ? `<span class="lv-faces">${b.ft.map((x) => liveFace(x, true)).join("")}</span>` : ""}</li>`;
+  const baRow = (b) => `<li class="lv-ev lv-ban${b.e - now < 86400 ? " soon" : ""}"><b>${esc(liveText(b.n))}</b>${liveTime(b)}${b.t && b.t !== "Summon" ? `<small>${esc(b.t)}</small>` : ""}${b.ft.length ? `<span class="lv-faces">${b.ft.map((x) => liveFace(x, true)).join("")}</span>` : ""}</li>`;
   const note = liveErr ? `<p class="lv-warn">${esc(liveErr)} Showing what came in ${esc(ago(live.checkedAt || Date.now()))}.</p>` : "";
   return `<section class="d-sec hm-block hm-b-live">${head(esc(checked), btn)}${note}
     <div class="lv-cols">
-      <div class="lv-col">${liveList("event", "Events", pick("event"), evRow, "No event running right now.")}${liveList("camp", "Campaigns", pick("camp"), evRow, "")}${liveList("login", "Login bonuses", pick("login"), evRow, "")}</div>
-      <div class="lv-col">${liveList("banner", "Summon banners", bas, baRow, "No limited banner right now.")}</div>
+      <div class="lv-col">${liveList("event", "Events", pick("event"), evRow, "No event running right now.")}${liveList("login", "Login bonuses", pick("login"), evRow, "")}</div>
+      <div class="lv-col">${liveList("banner", "Summon banners", bas, baRow, "No limited banner right now.")}${liveList("camp", "Campaigns", pick("camp"), evRow, "")}</div>
       <div class="lv-col lv-rel"><h4>Newest servants</h4><div class="lv-grid">${d.sv.map((x) => liveFace(x)).join("")}</div>
         <h4>Newest Craft Essences</h4><div class="lv-grid">${d.ce.map((x) => liveFace(x)).join("")}</div></div>
     </div>

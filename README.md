@@ -49,6 +49,10 @@ The tests don't need the internet: most suites swap the pictures that would come
 
 GitHub Actions runs the build check and every suite on each push to `main` and on every pull request (`.github/workflows/test.yml`).
 
+## Live NA updates (0.21.0)
+
+Home's "On NA now" block reads Atlas Academy's NA export files (`info.json`, `basic_servant.json`, `basic_equip.json`, `basic_event.json`, `nice_gacha.json`) straight from the browser: `info.json` at most every six hours while the page is open, the lists only when NA's data changed. A short summary is kept in `localStorage` under `spirit-origin-list:v1:live`. The code is in `src/app/24-live-na.js`. The test copies start with it switched off; `tests/test_17_live_na.py` turns it on against a local stand-in.
+
 ## Your data
 
 Your roster is stored in your browser: `localStorage` key `spirit-origin-list:v1`, pictures in IndexedDB `spirit-origin-list-images`. These names never change, so existing saves keep working with every new version.

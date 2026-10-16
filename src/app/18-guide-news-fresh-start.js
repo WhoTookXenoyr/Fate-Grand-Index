@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.20.1";
+const APP_VER = "0.21.0";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -163,6 +163,10 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.21.0", d: "16 Oct 2026", t: "On NA now", i: [
+    "<b>On NA now</b> at the top of Home: the events, campaigns and login bonuses running on the NA server, with how long each has left; the summon banners up right now with their featured servants; and the newest servants and Craft Essences. Announced events show when they start.",
+    "It comes straight from Atlas Academy's NA data: Fate/Grand Index checks every few hours while it's open and only downloads the lists when NA has updated. What it got is kept in this browser, so Home still shows it offline.",
+    "Servants and Craft Essences this file doesn't have yet are marked <b>NEW</b> and open on Atlas Academy; the ones it has open in Past Chaldea. Your roster is never touched, and you can turn live updates off at the bottom of the block."]},
   {v: "0.20.1", d: "15 Oct 2026", t: "Smoother class names, edges fixed", i: [
     "The big class name behind a servant's page no longer drops frames when it pulses or glows. The letters only move and fade now, and the glow is drawn once instead of on every frame. Berserker, Caster and Avenger were the worst; every class got the same fix, and the letters no longer blur on the way in.",
     "Beast waves (Space Ereshkigal) reach the right edge of the picture and the page instead of stopping short at a slant. Moon Cancer's tide lines got the same fix.",

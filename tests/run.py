@@ -16,13 +16,19 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 WORK = os.path.join(ROOT, "build", "test-work")
 URL = None
+LIVE_ON = "const LIVE_DEFAULT = true;"
 
 
 def prepare():
     if os.path.isdir(WORK): shutil.rmtree(WORK)
     os.makedirs(os.path.join(WORK, "out"))
-    shutil.copy(os.path.join(ROOT, "dist", "Fate_Grand_Index.html"), os.path.join(WORK, "out", "Fate_Grand_Index.html"))
-    shutil.copy(os.path.join(ROOT, "build", "seeded.html"), os.path.join(WORK, "_seeded.html"))
+    # live NA updates start switched off in the test copies, so no suite calls Atlas Academy unless it turns them on
+    # itself (test_17 does, against a local stand-in)
+    for src, dst in ((os.path.join(ROOT, "dist", "Fate_Grand_Index.html"), os.path.join(WORK, "out", "Fate_Grand_Index.html")),
+                     (os.path.join(ROOT, "build", "seeded.html"), os.path.join(WORK, "_seeded.html"))):
+        with open(src, encoding="utf-8", newline="") as f: html = f.read()
+        if html.count(LIVE_ON) != 1: raise SystemExit("can't find the live-updates default in " + src)
+        with open(dst, "w", encoding="utf-8", newline="") as f: f.write(html.replace(LIVE_ON, LIVE_ON.replace("true", "false")))
     shutil.copy(os.path.join(ROOT, "src", "data", "atlas_data.js"), os.path.join(WORK, "atlas_data.js"))
     for n in os.listdir(os.path.join(HERE, "fixtures")):
         if n.startswith("ph_"): shutil.copy(os.path.join(HERE, "fixtures", n), WORK)

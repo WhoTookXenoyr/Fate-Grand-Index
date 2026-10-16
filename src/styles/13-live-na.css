@@ -1,0 +1,42 @@
+
+/* ===== 0.21.0: On NA now (Home). Nothing here moves on its own; only a hover lift on the faces (transform). ===== */
+.hm-b-live { grid-column: 1 / -1; margin-top: 14px; padding: 16px 20px 14px; border: 1px solid var(--line); border-radius: 18px;
+  background: color-mix(in srgb, var(--panel) 72%, transparent); }
+.hm-b-live.off { gap: 10px; }
+.hm-b-live > h3 { align-items: center; }
+.lv-act { margin-left: auto; display: flex; gap: 6px; text-transform: none; letter-spacing: 0; font-family: var(--f-body); }
+.lv-cols { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px 26px; margin-top: 4px; }
+.lv-col { min-width: 0; }
+.lv-col h4 { margin: 14px 0 4px; font-family: var(--f-data); font-size: 11px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); display: flex; gap: 8px; align-items: baseline; }
+.lv-col h4:first-child { margin-top: 2px; }
+.lv-col h4 small { font-family: var(--f-body); letter-spacing: 0; font-size: 11.5px; }
+.lv-col .tr-none { margin: 2px 0 6px; }
+.lv-list { list-style: none; margin: 0; padding: 0; }
+.lv-ev { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+.lv-ev:last-child { border-bottom: 0; }
+.lv-ev b { font-weight: 600; font-size: 13.5px; line-height: 1.3; overflow-wrap: anywhere; }
+.lv-ev time { font-family: var(--f-data); font-size: 12px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.lv-ev.soon time { color: color-mix(in srgb, #c0392b 80%, var(--ink)); font-weight: 600; }
+.lv-ev.up b { font-weight: 500; color: color-mix(in srgb, var(--ink) 75%, transparent); }
+.lv-ev small { grid-column: 1 / -1; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.lv-faces { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.lv-more { font-size: 12.5px; margin: 6px 0 2px; }
+.lv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 8px 6px; }
+.lv-face { box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration: none; cursor: pointer; min-width: 0; transition: transform .16s ease; }
+.lv-face:hover { transform: translateY(-2px); }
+.lv-face:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 12px; }
+.lv-img { position: relative; display: block; width: 100%; max-width: 64px; aspect-ratio: 1; border-radius: 11px; overflow: hidden; background: linear-gradient(160deg, #3b3a48, #17161f); box-shadow: inset 0 0 0 2px var(--metal, #b9c3d3); }
+.lv-face.sm .lv-img { width: 44px; border-radius: 9px; }
+.lv-face.r5, .lv-face.r4 { --metal: #e2b84f; }
+.lv-face.r1, .lv-face.r2 { --metal: #c08a5c; }
+.lv-img img { position: absolute; inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px); object-fit: cover; border-radius: 9px; }
+.lv-face.sm .lv-img img { border-radius: 7px; }
+.lv-new { position: absolute; left: 2px; right: 2px; bottom: 2px; font-style: normal; font-family: var(--f-data); font-size: 8.5px; font-weight: 700; line-height: 1.6; letter-spacing: .1em; text-align: center; color: #fff; background: rgba(170, 32, 32, .88); border-radius: 0 0 9px 9px; }
+.lv-n { width: 100%; font-size: 11px; line-height: 1.2; text-align: center; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.lv-warn { margin: 4px 0 0; font-size: 12.5px; color: color-mix(in srgb, #c0392b 80%, var(--ink)); }
+.lv-foot { margin: 14px 0 0; font-size: 12px; color: var(--muted); }
+.lv-foot b { font-family: var(--f-data); font-size: 10px; letter-spacing: .1em; color: #b3261e; }
+.lv-foot .linkish { font-weight: 500; color: var(--muted); }
+@media (max-width: 1100px) { .lv-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } .lv-rel { grid-column: 1 / -1; } }
+@media (max-width: 640px) { .hm-b-live { padding: 14px 14px 12px; } .lv-cols { grid-template-columns: minmax(0, 1fr); } .lv-act { margin-left: 0; } }
+@media (prefers-reduced-motion: reduce) { .lv-face { transition: none; } }

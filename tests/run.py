@@ -16,13 +16,19 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 WORK = os.path.join(ROOT, "build", "test-work")
 URL = None
+LIVE_ON = "const LIVE_DEFAULT = true;"
 
 
 def prepare():
     if os.path.isdir(WORK): shutil.rmtree(WORK)
     os.makedirs(os.path.join(WORK, "out"))
-    shutil.copy(os.path.join(ROOT, "dist", "Fate_Grand_Index.html"), os.path.join(WORK, "out", "Fate_Grand_Index.html"))
-    shutil.copy(os.path.join(ROOT, "build", "seeded.html"), os.path.join(WORK, "_seeded.html"))
+    # live NA updates start switched off in the test copies, so no suite calls Atlas Academy unless it turns them on
+    # itself (test_17 does, against a local stand-in)
+    for src, dst in ((os.path.join(ROOT, "dist", "Fate_Grand_Index.html"), os.path.join(WORK, "out", "Fate_Grand_Index.html")),
+                     (os.path.join(ROOT, "build", "seeded.html"), os.path.join(WORK, "_seeded.html"))):
+        with open(src, encoding="utf-8", newline="") as f: html = f.read()
+        if html.count(LIVE_ON) != 1: raise SystemExit("can't find the live-updates default in " + src)
+        with open(dst, "w", encoding="utf-8", newline="") as f: f.write(html.replace(LIVE_ON, LIVE_ON.replace("true", "false")))
     shutil.copy(os.path.join(ROOT, "src", "data", "atlas_data.js"), os.path.join(WORK, "atlas_data.js"))
     for n in os.listdir(os.path.join(HERE, "fixtures")):
         if n.startswith("ph_"): shutil.copy(os.path.join(HERE, "fixtures", n), WORK)
@@ -44,20 +50,24 @@ def serve():
 ERRORS = re.compile(r"^(?:page )?errors:? \[(.+)\]$|^\[.+\]$")
 
 
-LIMIT = 15 * 60  # seconds one suite may take before it counts as stuck
+LIMIT = 8 * 60  # seconds one suite may take before it counts as stuck (the slowest takes about 4 minutes on a busy machine)
 
 
 def run_once(path):
     t = time.time()
     # each suite's browser profiles go in its own folder under build/, removed with the next run
     tmp = os.path.join(WORK, "profiles", os.path.basename(path)[:-3]); os.makedirs(tmp, exist_ok=True)
-    env = dict(os.environ, TMPDIR=tmp, PYTHONDONTWRITEBYTECODE="1", FGI_URL=URL)
+    env = dict(os.environ, TMPDIR=tmp, PYTHONDONTWRITEBYTECODE="1", PYTHONUNBUFFERED="1", FGI_URL=URL)
     pr = subprocess.Popen([sys.executable, path, WORK], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
                           cwd=WORK, env=env, start_new_session=True)
     try: out, code = pr.communicate(timeout=LIMIT)[0], pr.returncode
     except subprocess.TimeoutExpired:
-        os.killpg(pr.pid, signal.SIGKILL)  # the suite, its Playwright driver and its browsers
-        out, code = pr.communicate()[0] + "\nstopped: took longer than %d minutes" % (LIMIT // 60), -1
+        try: os.killpg(pr.pid, signal.SIGKILL)  # the suite, its Playwright driver and its browsers
+        except ProcessLookupError: pass
+        out = pr.communicate()[0] or ""
+        last = [l for l in out.splitlines() if l.startswith(("PASS ", "FAIL "))]
+        out += "\nstopped: took longer than %d minutes; stuck in the step after %s" % (LIMIT // 60, repr(last[-1][5:]) if last else "the start")
+        code = -1
     lines = out.splitlines()
     passed = sum(l.startswith("PASS ") for l in lines)
     failed = [l[5:] for l in lines if l.startswith("FAIL ")]
@@ -74,12 +84,22 @@ def run(path, retries):
     return os.path.basename(path), tries
 
 
+def annotate(level, name, msg):
+    # on GitHub Actions, failures show up as annotations on the run (readable without the full log)
+    if not os.environ.get("GITHUB_ACTIONS"): return
+    esc = lambda t: str(t).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+    print("::%s title=%s::%s" % (level, esc(name), esc(msg)), flush=True)
+
+
 def report(name, tries):
     r = tries[-1]
     note = "" if len(tries) == 1 else "  (flaky: passed on try %d)" % len(tries) if r["ok"] else "  (failed %d times)" % len(tries)
     print("%s %-44s %3d checks  %4.0fs%s" % ("ok  " if r["ok"] else "FAIL", name, r["passed"] + len(r["failed"]), sum(t["secs"] for t in tries), note), flush=True)
-    for t in tries:
+    for k, t in enumerate(tries):
         if t["ok"]: continue
+        why = [("✗ " + f) for f in t["failed"]] + [("page error: " + e[:200]) for e in t["errors"]]
+        if t["code"] or not t["passed"]: why.append(t["out"].strip().splitlines()[-1][:300] if t["out"].strip() else "no output")
+        annotate("warning" if r["ok"] else "error", "%s (try %d)" % (name, k + 1), "\n".join(why[:12]))
         for f in t["failed"]: print("       ✗ " + f)
         for e in t["errors"]: print("       page error: " + e[:300])
         if t["code"] or not t["passed"]: print("       " + "\n       ".join(t["out"].strip().splitlines()[-25:]))

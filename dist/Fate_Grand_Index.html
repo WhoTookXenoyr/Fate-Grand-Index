@@ -2540,6 +2540,48 @@ html.cep-open, html.cep-open body { overflow: hidden; }
   /* on a phone the member and their Craft Essence stack, so both fields have room */
   #party-form .slot-row { grid-template-columns: minmax(0, 1fr); gap: 6px; padding-bottom: 6px; }
 }
+
+/* ===== 0.21.0: On NA now (Home). Nothing here moves on its own; only a hover lift on the faces (transform). ===== */
+.hm-b-live { grid-column: 1 / -1; margin-top: 14px; padding: 16px 20px 14px; border: 1px solid var(--line); border-radius: 18px;
+  background: color-mix(in srgb, var(--panel) 72%, transparent); }
+.hm-b-live.off { gap: 10px; }
+.hm-b-live > h3 { align-items: center; }
+.lv-act { margin-left: auto; display: flex; gap: 6px; text-transform: none; letter-spacing: 0; font-family: var(--f-body); }
+.lv-cols { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px 26px; margin-top: 4px; }
+.lv-col { min-width: 0; }
+.lv-col h4 { margin: 14px 0 4px; font-family: var(--f-data); font-size: 11px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); display: flex; gap: 8px; align-items: baseline; }
+.lv-col h4:first-child { margin-top: 2px; }
+.lv-col h4 small { font-family: var(--f-body); letter-spacing: 0; font-size: 11.5px; }
+.lv-col .tr-none { margin: 2px 0 6px; }
+.lv-list { list-style: none; margin: 0; padding: 0; }
+.lv-ev { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+.lv-ev:last-child { border-bottom: 0; }
+.lv-ev b { font-weight: 600; font-size: 13.5px; line-height: 1.3; overflow-wrap: anywhere; }
+.lv-ev time { font-family: var(--f-data); font-size: 12px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.lv-ev.soon time { color: color-mix(in srgb, #c0392b 80%, var(--ink)); font-weight: 600; }
+.lv-ev.up b { font-weight: 500; color: color-mix(in srgb, var(--ink) 75%, transparent); }
+.lv-ev small { grid-column: 1 / -1; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.lv-faces { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.lv-more { font-size: 12.5px; margin: 6px 0 2px; }
+.lv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 8px 6px; }
+.lv-face { box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration: none; cursor: pointer; min-width: 0; transition: transform .16s ease; }
+.lv-face:hover { transform: translateY(-2px); }
+.lv-face:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 12px; }
+.lv-img { position: relative; display: block; width: 100%; max-width: 64px; aspect-ratio: 1; border-radius: 11px; overflow: hidden; background: linear-gradient(160deg, #3b3a48, #17161f); box-shadow: inset 0 0 0 2px var(--metal, #b9c3d3); }
+.lv-face.sm .lv-img { width: 44px; border-radius: 9px; }
+.lv-face.r5, .lv-face.r4 { --metal: #e2b84f; }
+.lv-face.r1, .lv-face.r2 { --metal: #c08a5c; }
+.lv-img img { position: absolute; inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px); object-fit: cover; border-radius: 9px; }
+.lv-face.sm .lv-img img { border-radius: 7px; }
+.lv-new { position: absolute; left: 2px; right: 2px; bottom: 2px; font-style: normal; font-family: var(--f-data); font-size: 8.5px; font-weight: 700; line-height: 1.6; letter-spacing: .1em; text-align: center; color: #fff; background: rgba(170, 32, 32, .88); border-radius: 0 0 9px 9px; }
+.lv-n { width: 100%; font-size: 11px; line-height: 1.2; text-align: center; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.lv-warn { margin: 4px 0 0; font-size: 12.5px; color: color-mix(in srgb, #c0392b 80%, var(--ink)); }
+.lv-foot { margin: 14px 0 0; font-size: 12px; color: var(--muted); }
+.lv-foot b { font-family: var(--f-data); font-size: 10px; letter-spacing: .1em; color: #b3261e; }
+.lv-foot .linkish { font-weight: 500; color: var(--muted); }
+@media (max-width: 1100px) { .lv-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } .lv-rel { grid-column: 1 / -1; } }
+@media (max-width: 640px) { .hm-b-live { padding: 14px 14px 12px; } .lv-cols { grid-template-columns: minmax(0, 1fr); } .lv-act { margin-left: 0; } }
+@media (prefers-reduced-motion: reduce) { .lv-face { transition: none; } }
 </style>
 </head>
 <body>
@@ -8759,7 +8801,7 @@ renderAll = function () { renderAll13(); renderFillNote(); };
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.20.1";
+const APP_VER = "0.21.0";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -8921,6 +8963,10 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.21.0", d: "16 Oct 2026", t: "On NA now", i: [
+    "<b>On NA now</b> at the top of Home: the events, campaigns and login bonuses running on the NA server, with how long each has left; the summon banners up right now with their featured servants; and the newest servants and Craft Essences. Announced events show when they start.",
+    "It comes straight from Atlas Academy's NA data: Fate/Grand Index checks every few hours while it's open and only downloads the lists when NA has updated. What it got is kept in this browser, so Home still shows it offline.",
+    "Servants and Craft Essences this file doesn't have yet are marked <b>NEW</b> and open on Atlas Academy; the ones it has open in Past Chaldea. Your roster is never touched, and you can turn live updates off at the bottom of the block."]},
   {v: "0.20.1", d: "15 Oct 2026", t: "Smoother class names, edges fixed", i: [
     "The big class name behind a servant's page no longer drops frames when it pulses or glows. The letters only move and fade now, and the glow is drawn once instead of on every frame. Berserker, Caster and Avenger were the worst; every class got the same fix, and the letters no longer blur on the way in.",
     "Beast waves (Space Ereshkigal) reach the right edge of the picture and the page instead of stopping short at a slant. Moon Cancer's tide lines got the same fix.",
@@ -10154,6 +10200,192 @@ renderDossier = function (force) {
   if (s && !d.querySelector("#servant-form")) applyFavStats(d, s);
   return r;
 };
+/* ================= 0.21.0: live from NA — events, campaigns, login bonuses, summon banners and new releases ================= */
+// Atlas Academy publishes the NA game data as files that change with every NA update. While the page is open and online,
+// at most every few hours, it asks for the tiny info.json; only when NA's data changed does it download four small lists
+// (servants, Craft Essences, events, summons: about 2.3 MB) and keep the few hundred lines shown on Home. That summary is
+// cached in this browser, so Home still shows it offline. Your roster is never touched.
+const LIVE_KEY = "spirit-origin-list:v1:live";
+const LIVE_API = "https://api.atlasacademy.io/export/NA/";
+const LIVE_DB = "https://apps.atlasacademy.io/db/NA/";
+const LIVE_DEFAULT = true; // tests/run.py turns this off in its copies, so a test only calls Atlas Academy (its stand-in) on purpose
+const LIVE_EVERY = 6 * 3600e3, LIVE_RETRY = 30 * 60e3, LIVE_LONG = 120 * 86400;
+const LIVE_CLS = {saber: "Saber", archer: "Archer", lancer: "Lancer", rider: "Rider", caster: "Caster", assassin: "Assassin", berserker: "Berserker",
+  shielder: "Shielder", ruler: "Ruler", avenger: "Avenger", moonCancer: "Moon Cancer", alterEgo: "Alter Ego", foreigner: "Foreigner", pretender: "Pretender", beast: "Beast"};
+const liveCls = (c) => LIVE_CLS[c] || (/^beast/i.test(c || "") ? "Beast" : String(c || "").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (m) => m.toUpperCase()));
+// what kind of entry an Atlas event is; unknown kinds are sorted by their name, so a new kind still shows up somewhere
+const LIVE_KINDS = {eventQuest: "event", raidBoss: "event", point: "event", boxGacha: "event", boxGachaPoint: "event", warBoard: "event", pvp: "event", bank: "event",
+  loginBonus: "login", loginCampaign: "login", loginCampaignRepeat: "login", loginCampaignStrict: "login", totalLogin: "login", comebackCampaign: "login",
+  combineCampaign: "camp", svtequipCombineCampaign: "camp", questCampaign: "camp", interludeCampaign: "camp", serialCampaign: "camp", locationCampaign: "camp", fortuneCampaign: "camp", combineCosutumeItem: "camp"};
+const LIVE_SKIP = /^(none|shop|terminalBanner|myroom|genderSelect)/;
+function liveKind(e) {
+  const t = String(e.type || ""), n = String(e.name || "");
+  if (/login bonus|login campaign/i.test(n)) return "login";
+  if (LIVE_KINDS[t]) return LIVE_KINDS[t];
+  if (LIVE_SKIP.test(t)) return "";
+  return /campaign|success rate|\bexp\b|\bap\b/i.test(n) ? "camp" : "event";
+}
+const LIVE_GACHA = {payGacha: "Saint Quartz", chargeStone: "Paid Saint Quartz", friendPoint: "Friend Points"};
+// the game's own text markup comes through in some names: colours like [FFFF00]…[-], [b], [i], [u], [s], [sup], [sub], [line 3], [r]
+const liveText = (t) => String(t || "").replace(/\[(?:[0-9a-f]{6}|-|\/?(?:b|i|u|s|sup|sub)|line\s*\d+|r)\]/gi, " ").replace(/\s+/g, " ").trim();
+
+let live = (() => { try { const v = JSON.parse(localStorage.getItem(LIVE_KEY)); return v && typeof v === "object" ? v : {}; } catch (e) { return {}; } })();
+const liveOn = () => live.on === undefined ? LIVE_DEFAULT : !!live.on;
+function liveSave() { try { localStorage.setItem(LIVE_KEY, JSON.stringify(live)); } catch (e) {} }
+let liveBusy = false, liveErr = "";
+const liveMore = new Set();
+
+async function liveJSON(name, fresh) {
+  const ac = new AbortController(), t = setTimeout(() => ac.abort(), 30000);
+  try {
+    const r = await fetch(LIVE_API + name, fresh ? {signal: ac.signal, cache: "no-cache"} : {signal: ac.signal});
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return await r.json();
+  } finally { clearTimeout(t); }
+}
+
+// Turn Atlas Academy's lists into the little that Home shows. `now` is in seconds.
+function liveDerive(svts, ces, evs, gas, now) {
+  now = now || Date.now() / 1000;
+  const SV = new Map(), CE = new Map();
+  for (const x of Array.isArray(svts) ? svts : []) if (x && x.collectionNo > 0 && (x.type === "normal" || x.type === "heroine"))
+    SV.set(x.id, {no: x.collectionNo, n: liveText(x.name), c: liveCls(x.className), r: x.rarity | 0, f: String(x.face || "")});
+  for (const x of Array.isArray(ces) ? ces : []) if (x && x.collectionNo > 0)
+    CE.set(x.id, {no: x.collectionNo, n: liveText(x.name), r: x.rarity | 0, f: String(x.face || ""), atk: x.atkMax | 0, hp: x.hpMax | 0, ce: 1});
+  const sv = [...SV.values()].sort((a, b) => b.no - a.no).slice(0, 8);
+  // anniversary Craft Essences use numbers in the 400,000s; the newest ones are the highest of the ordinary numbers
+  const ce = [...CE.values()].filter((c) => c.no < 100000).sort((a, b) => b.no - a.no).slice(0, 8);
+  const ev = [], seen = new Set();
+  for (const e of Array.isArray(evs) ? evs : []) {
+    if (!e || !e.name || !(e.endedAt > now - 86400) || !(e.startedAt > 0) || e.endedAt - e.startedAt > LIVE_LONG) continue;
+    const k = liveKind(e); if (!k) continue;
+    const n = liveText(e.name), key = k + "|" + n + "|" + e.startedAt + "|" + e.endedAt; if (!n || seen.has(key)) continue; seen.add(key);
+    ev.push({k: k, n: n, s: e.startedAt, e: e.endedAt, a: e.noticeAt || e.startedAt});
+  }
+  ev.sort((a, b) => a.e - b.e);
+  const ba = [], byKey = new Map();
+  for (const g of Array.isArray(gas) ? gas : []) {
+    if (!g || !g.name || !(g.closedAt > now - 86400) || !(g.openedAt > 0) || g.closedAt - g.openedAt > LIVE_LONG) continue;
+    const ft = (g.featuredSvtIds || []).map((id) => SV.get(id) || CE.get(id)).filter(Boolean);
+    const n = liveText(g.name), key = n + "|" + g.openedAt + "|" + g.closedAt, had = byKey.get(key);
+    if (had) { ft.forEach((x) => { if (!had.ft.some((y) => y.no === x.no && !!y.ce === !!x.ce)) had.ft.push(x); }); continue; }
+    const b = {n: n, t: LIVE_GACHA[g.type] || "", s: g.openedAt, e: g.closedAt, ft: ft};
+    byKey.set(key, b); ba.push(b);
+  }
+  ba.sort((a, b) => (a.t === "Friend Points") - (b.t === "Friend Points") || a.e - b.e);
+  return {sv: sv, ce: ce, ev: ev.slice(0, 80), ba: ba.slice(0, 24)};
+}
+
+async function liveCheck(force) {
+  if (!liveOn() || liveBusy) return;
+  const t = Date.now();
+  if (!force && (live.checkedAt && t - live.checkedAt < LIVE_EVERY || live.failedAt && t - live.failedAt < LIVE_RETRY)) return;
+  liveBusy = true; liveErr = ""; liveRefresh();
+  try {
+    const info = await liveJSON("info.json", true);
+    const ver = String(info && info.hash) + "@" + String(info && info.timestamp);
+    if (!live.data || ver !== live.ver) {
+      const [a, b, c, d] = await Promise.all(["basic_servant.json", "basic_equip.json", "basic_event.json", "nice_gacha.json"].map((n) => liveJSON(n)));
+      live.data = liveDerive(a, b, c, d); live.ver = ver; live.dataVer = info && info.dataVer;
+    }
+    live.checkedAt = Date.now(); delete live.failedAt;
+  } catch (e) {
+    liveErr = navigator.onLine === false ? "You're offline." : "Couldn't reach Atlas Academy.";
+    live.failedAt = Date.now();
+  } finally {
+    liveBusy = false; liveSave(); liveRefresh();
+  }
+}
+
+/* ---------- Home: On NA now ---------- */
+// "Tue 20 Oct, 15:03" in your own time zone
+const liveWhen = (ts) => { const d = new Date(ts * 1000), o = (k) => d.toLocaleString("en-GB", k);
+  return o({weekday: "short"}) + " " + o({day: "numeric"}) + " " + o({month: "short"}) + ", " + o({hour: "2-digit", minute: "2-digit", hour12: false}); };
+function liveLeft(ts) {
+  const s = ts - Date.now() / 1000; if (s <= 0) return "ended";
+  const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.max(1, Math.floor(s % 3600 / 60));
+  return d ? d + "d " + h + "h" : h ? h + "h " + m + "m" : m + "m";
+}
+function liveTime(x) {
+  const now = Date.now() / 1000;
+  if (x.s > now) return `<time data-lv-s="${x.s}" title="Starts ${esc(liveWhen(x.s))}">starts ${esc(liveWhen(x.s))}</time>`;
+  return `<time data-lv-e="${x.e}" title="Ends ${esc(liveWhen(x.e))}">ends in ${esc(liveLeft(x.e))}</time>`;
+}
+function liveFace(x, small) {
+  const own = (x.ce ? CE_BY_NO : ATLAS_BY_NO).get(x.no), inFile = !!own;
+  if (own) x = Object.assign({}, x, {n: own.n || x.n, c: own.c || x.c});
+  const sub = x.ce ? [stars(x.r), [x.atk ? "ATK " + fmt(x.atk) : "", x.hp ? "HP " + fmt(x.hp) : ""].filter(Boolean).join(" ")] : [x.c, stars(x.r)];
+  const label = x.n + (inFile ? "" : " (new on NA)") + ", " + sub.filter(Boolean).join(", ");
+  const inner = `<span class="lv-img"><img src="${esc(aimg(x.f))}" alt="" loading="lazy">${inFile ? "" : `<i class="lv-new">NEW</i>`}</span>${small ? "" : `<span class="lv-n">${esc(x.n)}</span>`}`;
+  const cls = `lv-face r${clamp(x.r, 1, 5)}${small ? " sm" : ""}`;
+  return inFile
+    ? `<button type="button" class="${cls}" data-action="${x.ce ? "ce-open" : "pc-open"}" data-no="${x.no}" title="${esc(label)}" aria-label="${esc(label)}">${inner}</button>`
+    : `<a class="${cls}" href="${LIVE_DB}${x.ce ? "craft-essence" : "servant"}/${x.no}" target="_blank" rel="noopener" title="${esc(label)} · opens Atlas Academy" aria-label="${esc(label)}, opens Atlas Academy">${inner}</a>`;
+}
+function liveList(key, title, items, row, empty) {
+  if (!items.length) return empty ? `<h4>${esc(title)}</h4><p class="tr-none">${esc(empty)}</p>` : "";
+  const open = liveMore.has(key), cut = 5, shown = open ? items : items.slice(0, cut);
+  return `<h4>${esc(title)} <small>${items.length}</small></h4><ul class="lv-list">${shown.map(row).join("")}</ul>${items.length > cut
+    ? `<button type="button" class="linkish lv-more" data-action="live-more" data-k="${key}" aria-expanded="${open}">${open ? "Show fewer" : "Show all " + items.length}</button>` : ""}`;
+}
+function liveHTML() {
+  const head = (small, act) => `<h3>On NA now <small>${small}</small>${act ? `<span class="lv-act">${act}</span>` : ""}</h3>`;
+  if (!liveOn()) return `<section class="d-sec hm-block hm-b-live off">${head("live updates are off", "")}
+    <p class="tr-none">Turn them on to see NA's current events, campaigns, login bonuses, summon banners and newest servants here, straight from Atlas Academy.</p>
+    <div><button type="button" class="btn sm" data-action="live-on">Turn on live updates</button></div></section>`;
+  const d = live.data, now = Date.now() / 1000;
+  const checked = liveBusy ? "checking Atlas Academy…" : live.checkedAt ? "from Atlas Academy · checked " + ago(live.checkedAt) : "from Atlas Academy";
+  const btn = `<button type="button" class="btn ghost sm" data-action="live-check"${liveBusy ? " disabled" : ""}>Check now</button>`;
+  if (!d) return `<section class="d-sec hm-block hm-b-live">${head(esc(checked), btn)}
+    <p class="tr-none">${liveBusy ? "Getting NA's events, banners and newest servants…" : esc(liveErr || "Nothing loaded yet.") + (liveErr ? " Home shows NA's news here once it can reach Atlas Academy." : "")}</p></section>`;
+  const live1 = (x) => x.e > now && (x.s <= now || x.a <= now);
+  const evs = d.ev.filter(live1), pick = (k) => evs.filter((x) => x.k === k).sort((a, b) => (a.s > now) - (b.s > now) || (a.s > now ? a.s - b.s : a.e - b.e));
+  // a campaign or login bonus on the same dates as an event (or ending with the only event that ends then) belongs to it
+  const evs1 = evs.filter((y) => y.k === "event"), near = (a, b) => Math.abs(a - b) < 3600;
+  const withEv = (x) => { if (x.k === "event") return null; const both = evs1.find((y) => near(y.s, x.s) && near(y.e, x.e)); if (both) return both;
+    const ends = evs1.filter((y) => near(y.e, x.e)); return ends.length === 1 ? ends[0] : null; };
+  const evRow = (x) => { const w = withEv(x); return `<li class="lv-ev${x.s > now ? " up" : x.e - now < 86400 ? " soon" : ""}"><b>${esc(liveText(x.n))}</b>${liveTime(x)}${w ? `<small>with ${esc(liveText(w.n))}</small>` : ""}</li>`; };
+  const bas = d.ba.filter((b) => b.e > now && b.s <= now);
+  const baRow = (b) => `<li class="lv-ev lv-ban${b.e - now < 86400 ? " soon" : ""}"><b>${esc(liveText(b.n))}</b>${liveTime(b)}${b.t && b.t !== "Summon" ? `<small>${esc(b.t)}</small>` : ""}${b.ft.length ? `<span class="lv-faces">${b.ft.map((x) => liveFace(x, true)).join("")}</span>` : ""}</li>`;
+  const note = liveErr ? `<p class="lv-warn">${esc(liveErr)} Showing what came in ${esc(ago(live.checkedAt || Date.now()))}.</p>` : "";
+  return `<section class="d-sec hm-block hm-b-live">${head(esc(checked), btn)}${note}
+    <div class="lv-cols">
+      <div class="lv-col">${liveList("event", "Events", pick("event"), evRow, "No event running right now.")}${liveList("login", "Login bonuses", pick("login"), evRow, "")}</div>
+      <div class="lv-col">${liveList("banner", "Summon banners", bas, baRow, "No limited banner right now.")}${liveList("camp", "Campaigns", pick("camp"), evRow, "")}</div>
+      <div class="lv-col lv-rel"><h4>Newest servants</h4><div class="lv-grid">${d.sv.map((x) => liveFace(x)).join("")}</div>
+        <h4>Newest Craft Essences</h4><div class="lv-grid">${d.ce.map((x) => liveFace(x)).join("")}</div></div>
+    </div>
+    <p class="lv-foot">Times are in your time zone. <b>NEW</b> means it isn't in this file's NA data yet; it opens on Atlas Academy. <button type="button" class="linkish" data-action="live-off">Turn off live updates</button></p>
+  </section>`;
+}
+function liveRefresh() {
+  const old = document.querySelector("#home .hm-b-live"); if (!old) return;
+  const a = document.activeElement, act = a && old.contains(a) && a.dataset ? a.dataset.action + "|" + (a.dataset.k || "") : "";
+  const t = document.createElement("div"); t.innerHTML = liveHTML(); const nu = t.firstElementChild; old.replaceWith(nu);
+  if (act) { const [ac, k] = act.split("|"); const f = nu.querySelector(`[data-action="${ac}"]${k ? `[data-k="${k}"]` : ""}`) || nu.querySelector("[data-action]"); if (f) f.focus({preventScroll: true}); }
+}
+const renderHome20 = renderHome;
+renderHome = function () {
+  renderHome20();
+  const g = document.querySelector("#home .hm-grid");
+  if (g && !g.querySelector(".hm-b-live")) g.insertAdjacentHTML("afterbegin", liveHTML());
+  if (g) liveCheck(false);
+};
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest('[data-action^="live-"]'); if (!b) return;
+  const a = b.dataset.action;
+  if (a === "live-check") liveCheck(true);
+  else if (a === "live-on") { live.on = true; liveSave(); liveRefresh(); liveCheck(true); }
+  else if (a === "live-off") { live.on = false; liveSave(); liveRefresh(); toast("Live NA updates are off. Turn them back on from Home."); }
+  else if (a === "live-more") { const k = b.dataset.k; if (liveMore.has(k)) liveMore.delete(k); else liveMore.add(k); liveRefresh(); }
+});
+// countdowns stay right while Home is open, and a stale summary is refreshed when you come back to the page
+setInterval(() => {
+  if (S.tab !== "home" || document.hidden) return;
+  document.querySelectorAll("#home [data-lv-e]").forEach((t) => { const l = liveLeft(Number(t.dataset.lvE)); t.textContent = l === "ended" ? "ended" : "ends in " + l; });
+}, 60000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden && S.tab === "home") liveCheck(false); });
+window.addEventListener("online", () => { if (S.tab === "home") { delete live.failedAt; liveCheck(false); } });
 
 
 initFonts();

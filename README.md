@@ -53,6 +53,10 @@ GitHub Actions runs the build check and every suite on each push to `main` and o
 
 Home's "On NA now" block reads Atlas Academy's NA export files (`info.json`, `basic_servant.json`, `basic_equip.json`, `basic_event.json`, `nice_gacha.json`) straight from the browser: `info.json` at most every six hours while the page is open, the lists only when NA's data changed. A short summary is kept in `localStorage` under `spirit-origin-list:v1:live`. The code is in `src/app/24-live-na.js`. The test copies start with it switched off; `tests/test_17_live_na.py` turns it on against a local stand-in.
 
+## Event pages and NA banners (0.22.0)
+
+Pressing an event in "On NA now" opens `#event/<id>` (`src/app/25-event-page.js`), put together in the browser from Atlas Academy (`/nice/NA/event/<id>`, its wars, the free quests' drops, `nice_item.json`, `basic_svt.json`) and the Fate/Grand Order fandom wiki (MediaWiki API with `origin=*`). Wiki HTML is rebuilt in an inert document keeping only plain tags, `href`/`src` that point to the web or the wiki's image servers, and `colspan`/`rowspan`; nothing else is copied. Event pages, item and servant names are cached in IndexedDB `fate-grand-index-cache` (separate from the pictures database). The currency calculator uses each servant's ascension and skill materials (`ma`/`ms` in `atlas_data.js`, items in `ATLAS_MATS`). "Simulate" loads an NA banner into the summoning simulator (`src/app/26-banner-sim.js`). `tests/test_18_event_page.py` covers all of it against stand-ins.
+
 ## Your data
 
 Your roster is stored in your browser: `localStorage` key `spirit-origin-list:v1`, pictures in IndexedDB `spirit-origin-list-images`. These names never change, so existing saves keep working with every new version.

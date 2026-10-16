@@ -27,6 +27,25 @@ const LIVE_GACHA = {payGacha: "Saint Quartz", chargeStone: "Paid Saint Quartz", 
 // the game's own text markup comes through in some names: colours like [FFFF00]…[-], [b], [i], [u], [s], [sup], [sub], [line 3], [r]
 const liveText = (t) => String(t || "").replace(/\[(?:[0-9a-f]{6}|-|\/?(?:b|i|u|s|sup|sub)|line\s*\d+|r)\]/gi, " ").replace(/\s+/g, " ").trim();
 
+// A small key-value store in this browser's IndexedDB for things too big for localStorage (0.22.0): the names of
+// every NA servant and Craft Essence, item names, and the Event pages. A separate database from your pictures.
+const kv = (() => {
+  const mem = new Map(); let dbp = null;
+  const open = () => dbp || (dbp = new Promise((res) => {
+    try { const r = indexedDB.open("fate-grand-index-cache", 1); r.onupgradeneeded = () => r.result.createObjectStore("kv"); r.onsuccess = () => res(r.result); r.onerror = r.onblocked = () => res(null); }
+    catch (e) { res(null); }
+  }));
+  const run = async (mode, fn) => {
+    const db = await open(); if (!db) return undefined;
+    return new Promise((res) => { try { const t = db.transaction("kv", mode), q = fn(t.objectStore("kv")); t.oncomplete = () => res(q && q.result); t.onerror = t.onabort = () => res(undefined); } catch (e) { res(undefined); } });
+  };
+  return {
+    async get(k) { if (mem.has(k)) return mem.get(k); const v = await run("readonly", (st) => st.get(k)); if (v !== undefined) mem.set(k, v); return v; },
+    async set(k, v) { mem.set(k, v); await run("readwrite", (st) => st.put(v, k)); },
+    async del(k) { mem.delete(k); await run("readwrite", (st) => st.delete(k)); }
+  };
+})();
+const LIVE_DV = 2; // how Home's summary is made; a newer one is made again from Atlas Academy at the next check
 let live = (() => { try { const v = JSON.parse(localStorage.getItem(LIVE_KEY)); return v && typeof v === "object" ? v : {}; } catch (e) { return {}; } })();
 const liveOn = () => live.on === undefined ? LIVE_DEFAULT : !!live.on;
 function liveSave() { try { localStorage.setItem(LIVE_KEY, JSON.stringify(live)); } catch (e) {} }
@@ -58,7 +77,7 @@ function liveDerive(svts, ces, evs, gas, now) {
     if (!e || !e.name || !(e.endedAt > now - 86400) || !(e.startedAt > 0) || e.endedAt - e.startedAt > LIVE_LONG) continue;
     const k = liveKind(e); if (!k) continue;
     const n = liveText(e.name), key = k + "|" + n + "|" + e.startedAt + "|" + e.endedAt; if (!n || seen.has(key)) continue; seen.add(key);
-    ev.push({k: k, n: n, s: e.startedAt, e: e.endedAt, a: e.noticeAt || e.startedAt});
+    ev.push({id: e.id | 0, k: k, n: n, s: e.startedAt, e: e.endedAt, a: e.noticeAt || e.startedAt, w: Array.isArray(e.warIds) ? e.warIds : []});
   }
   ev.sort((a, b) => a.e - b.e);
   const ba = [], byKey = new Map();
@@ -67,13 +86,22 @@ function liveDerive(svts, ces, evs, gas, now) {
     const ft = (g.featuredSvtIds || []).map((id) => SV.get(id) || CE.get(id)).filter(Boolean);
     const n = liveText(g.name), key = n + "|" + g.openedAt + "|" + g.closedAt, had = byKey.get(key);
     if (had) { ft.forEach((x) => { if (!had.ft.some((y) => y.no === x.no && !!y.ce === !!x.ce)) had.ft.push(x); }); continue; }
-    const b = {n: n, t: LIVE_GACHA[g.type] || "", s: g.openedAt, e: g.closedAt, ft: ft};
+    // the sub-banners are the rate-up schedule (a different pickup every few days, for example)
+    const sub = (g.gachaSubs || []).filter((x) => x && x.openedAt > 0 && x.closedAt > x.openedAt).map((x) => [x.openedAt, x.closedAt]).sort((a, b2) => a[0] - b2[0]);
+    const b = {id: g.id | 0, n: n, t: LIVE_GACHA[g.type] || "", s: g.openedAt, e: g.closedAt, ft: ft, sub: sub.length > 1 ? sub : []};
     byKey.set(key, b); ba.push(b);
   }
   ba.sort((a, b) => (a.t === "Friend Points") - (b.t === "Friend Points") || a.e - b.e);
   return {sv: sv, ce: ce, ev: ev.slice(0, 80), ba: ba.slice(0, 24)};
 }
 
+// every NA servant and Craft Essence by its Atlas id: [collection number, name, rarity, face, class or "ce"]
+function liveNames(svts, ces) {
+  const m = {};
+  for (const x of Array.isArray(svts) ? svts : []) if (x && x.collectionNo > 0) m[x.id] = [x.collectionNo, liveText(x.name), x.rarity | 0, String(x.face || ""), liveCls(x.className)];
+  for (const x of Array.isArray(ces) ? ces : []) if (x && x.collectionNo > 0) m[x.id] = [x.collectionNo, liveText(x.name), x.rarity | 0, String(x.face || ""), "ce"];
+  return m;
+}
 async function liveCheck(force) {
   if (!liveOn() || liveBusy) return;
   const t = Date.now();
@@ -82,9 +110,10 @@ async function liveCheck(force) {
   try {
     const info = await liveJSON("info.json", true);
     const ver = String(info && info.hash) + "@" + String(info && info.timestamp);
-    if (!live.data || ver !== live.ver) {
+    if (!live.data || ver !== live.ver || live.dv !== LIVE_DV) {
       const [a, b, c, d] = await Promise.all(["basic_servant.json", "basic_equip.json", "basic_event.json", "nice_gacha.json"].map((n) => liveJSON(n)));
-      live.data = liveDerive(a, b, c, d); live.ver = ver; live.dataVer = info && info.dataVer;
+      live.data = liveDerive(a, b, c, d); live.ver = ver; live.dataVer = info && info.dataVer; live.dv = LIVE_DV;
+      await kv.set("names", {ver: ver, map: liveNames(a, b)});
     }
     live.checkedAt = Date.now(); delete live.failedAt;
   } catch (e) {
@@ -142,9 +171,10 @@ function liveHTML() {
   const evs1 = evs.filter((y) => y.k === "event"), near = (a, b) => Math.abs(a - b) < 3600;
   const withEv = (x) => { if (x.k === "event") return null; const both = evs1.find((y) => near(y.s, x.s) && near(y.e, x.e)); if (both) return both;
     const ends = evs1.filter((y) => near(y.e, x.e)); return ends.length === 1 ? ends[0] : null; };
-  const evRow = (x) => { const w = withEv(x); return `<li class="lv-ev${x.s > now ? " up" : x.e - now < 86400 ? " soon" : ""}"><b>${esc(liveText(x.n))}</b>${liveTime(x)}${w ? `<small>with ${esc(liveText(w.n))}</small>` : ""}</li>`; };
+  const evName = (x) => x.id ? `<button type="button" class="lv-go" data-action="ev-open" data-ev="${x.id}">${esc(liveText(x.n))}</button>` : esc(liveText(x.n));
+  const evRow = (x) => { const w = withEv(x); return `<li class="lv-ev${x.s > now ? " up" : x.e - now < 86400 ? " soon" : ""}"><b>${evName(x)}</b>${liveTime(x)}${w ? `<small>with ${w.id ? `<button type="button" class="lv-go sub" data-action="ev-open" data-ev="${w.id}">${esc(liveText(w.n))}</button>` : esc(liveText(w.n))}</small>` : ""}</li>`; };
   const bas = d.ba.filter((b) => b.e > now && b.s <= now);
-  const baRow = (b) => `<li class="lv-ev lv-ban${b.e - now < 86400 ? " soon" : ""}"><b>${esc(liveText(b.n))}</b>${liveTime(b)}${b.t && b.t !== "Summon" ? `<small>${esc(b.t)}</small>` : ""}${b.ft.length ? `<span class="lv-faces">${b.ft.map((x) => liveFace(x, true)).join("")}</span>` : ""}</li>`;
+  const baRow = (b) => `<li class="lv-ev lv-ban${b.e - now < 86400 ? " soon" : ""}"><b>${esc(liveText(b.n))}</b>${liveTime(b)}${b.t && b.t !== "Summon" ? `<small>${esc(b.t)}</small>` : ""}${b.ft.length ? `<span class="lv-faces">${b.ft.map((x) => liveFace(x, true)).join("")}${b.id && b.ft.some((x) => !x.ce) ? `<button type="button" class="btn ghost sm lv-sim" data-action="ev-sim" data-g="${b.id}">Simulate</button>` : ""}</span>` : ""}</li>`;
   const note = liveErr ? `<p class="lv-warn">${esc(liveErr)} Showing what came in ${esc(ago(live.checkedAt || Date.now()))}.</p>` : "";
   return `<section class="d-sec hm-block hm-b-live">${head(esc(checked), btn)}${note}
     <div class="lv-cols">

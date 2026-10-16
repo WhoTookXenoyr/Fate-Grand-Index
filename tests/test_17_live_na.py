@@ -77,7 +77,8 @@ def page(p, init=INIT, w=1500, h=1000, mobile=False, ctx=None):
     pg.route("https://api.atlasacademy.io/**", api); pg.route("https://static.atlasacademy.io/**", pic)
     return ctx, pg
 LIVE = "#home .hm-b-live"
-row = lambda pg, name, cls="lv-ev": pg.locator(f'{LIVE} .{cls}:has(> b:text-is("{name}"))')
+# a row by its own title (event titles are buttons inside the <b> since 0.22.0)
+row = lambda pg, name, cls="lv-ev": pg.locator(f"{LIVE} .{cls}").filter(has=pg.locator(f'xpath=./b[normalize-space(.)="{name}"]'))
 lists = lambda: sum(hits.get(n, 0) for n in FILES)
 # the roster without its save time (the page saves on its own at start, e.g. HP and ATK following the level)
 roster = lambda pg: {k: v for k, v in json.loads(pg.evaluate("localStorage.getItem('spirit-origin-list:v1')") or "{}").items() if k != "savedAt"}

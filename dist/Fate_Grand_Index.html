@@ -2584,6 +2584,7 @@ html.cep-open, html.cep-open body { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { .lv-face { transition: none; } }
 
 /* ===== 0.22.0: the Event page and NA banners in the simulator. Nothing here moves on its own. ===== */
+.evp:focus { outline: none; }
 .evp { display: flex; flex-direction: column; gap: 18px; max-width: 1180px; margin: 0 auto; }
 .ev-top { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .ev-act { margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px; }
@@ -2811,7 +2812,7 @@ html.cep-open, html.cep-open body { overflow: hidden; }
   </section>
 
   <section id="view-past" aria-labelledby="tab-past" hidden><div id="past" class="pc"></div></section>
-  <section id="view-event" aria-label="Event" hidden><div id="event" class="evp"></div></section>
+  <section id="view-event" aria-label="Event" hidden><div id="event" class="evp" tabindex="-1"></div></section>
 </div>
 <dialog id="font-dlg" class="dlg" aria-labelledby="font-title">
   <div class="dlg-in">
@@ -8923,7 +8924,7 @@ renderAll = function () { renderAll13(); renderFillNote(); };
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.22.0";
+const APP_VER = "0.22.1";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -9085,6 +9086,13 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.22.1", d: "16 Oct 2026", t: "Event page and banner fixes", i: [
+    "Simulating a banner whose featured ★5 isn't on your list: the 330-summon guarantee now shows them by name, with their picture, instead of an unknown servant. Featured servants from Past Chaldea are tagged Rate-up or Guaranteed. Featuring one of your own servants while an NA banner is loaded can be undone, back to the NA banner.",
+    "Opening a second event while the first one's wiki text was still loading could show the first event's text on the second page. Each page now only gets its own.",
+    "Refresh on an Event page while free-quest drops were still loading could leave the drops empty. They load again now.",
+    "Currency calculator: a material sold twice (two rows, or for two currencies) is no longer counted as needed twice.",
+    "Banners named \"Fate/…\" aren't taken for an event's own just because the names share \"Fate\".",
+    "With live NA updates off, the Event page says why there are no banners and can turn them on. Opening an Event page moves keyboard focus to it, and only the 30 most recently opened events are kept in this browser."]},
   {v: "0.22.0", d: "16 Oct 2026", t: "Event pages and NA banners", i: [
     "<b>Event pages</b>: press an event in On NA now and it gets its own page. It has the summary and guide, the summoning campaign with its rate-up schedule, the event's servants and Craft Essences (what you can get, plus the wiki's bonus lists), missions, main, free, extra and challenge quests with what free quests drop, the event shop, point rewards and lotteries, misc info and game updates.",
     "<b>Currency calculator</b> on every Event page: what your servants still need from the event shop for ascensions and skills, what that costs in each currency, and roughly how many runs of the best free quest it takes, with your drop bonus. Fill in what you already have and the numbers follow.",
@@ -10688,6 +10696,7 @@ async function evLoad(id, force) {
       const old = c && c.m && c.m.drops; if (old && !force) m.drops = old;
       await kv.set("ev:" + id, {at: Date.now(), v: EV_MV, m: m});
     }
+    evKeep(id);
   } catch (er) {
     const c = await kv.get("ev:" + id);
     if (c && c.m) { m = c.m; if (EV.id === id) EV.err = "Couldn't reach Atlas Academy, so this is the copy from " + ago(c.at) + "."; }
@@ -10698,8 +10707,17 @@ async function evLoad(id, force) {
   }
   if (m && EV.id === id) { evDropsLoad(id); evWikiLoad(id, force); }
 }
+// the cache keeps the 30 events opened most recently, so it doesn't grow forever
+async function evKeep(id) {
+  try {
+    const ix = Object.assign({}, (await kv.get("evlist")) || {}); ix[id] = Date.now();
+    const ids = Object.keys(ix).sort((a, b) => ix[b] - ix[a]);
+    for (const old of ids.slice(30)) { delete ix[old]; await kv.del("ev:" + old); await kv.del("wiki:" + old); }
+    await kv.set("evlist", ix);
+  } catch (e) {}
+}
 async function evDropsLoad(id) {
-  const m = EV.m; if (!m || EV.dropBusy) return;
+  const m = EV.m; if (!m || EV.dropBusy || m.id !== id) return;
   const todo = m.quests.filter((q) => q.g === "free" && !(q.id in m.drops)).slice(0, 16);
   if (!todo.length) return;
   EV.dropBusy = true; evPaint();
@@ -10710,14 +10728,20 @@ async function evDropsLoad(id) {
         try { const d = await evJSON(EV_API + "nice/NA/quest/" + q.id + "/" + q.ph); m.drops[q.id] = evDrops(d.drops, items, names); } catch (e) { /* tried again next time */ }
       }));
     }
-    await kv.set("ev:" + m.id, {at: m.at || Date.now(), v: EV_MV, m: m});
-  } finally { EV.dropBusy = false; if (EV.id === id) evPaint(); }
+    // a Refresh while these were loading made a newer copy: that one is kept, and gets its own drops
+    const c = await kv.get("ev:" + m.id); if (!c || !c.m || c.m === m || (c.m.at || 0) <= (m.at || 0)) await kv.set("ev:" + m.id, {at: m.at || Date.now(), v: EV_MV, m: m});
+  } finally {
+    EV.dropBusy = false;
+    if (EV.m && EV.m !== m) evDropsLoad(EV.id); // another event (or a newer copy) opened in the meantime
+    else if (EV.id === id) evPaint();
+  }
 }
 
 /* ---------- the wiki ---------- */
 const wikiURL = (title) => WIKI + "/wiki/" + encodeURIComponent(String(title).replace(/ /g, "_")).replace(/%2F/g, "/");
 const wikiJSON = (params) => evJSON(WIKI + "/api.php?" + new URLSearchParams(Object.assign({format: "json", formatversion: "2", origin: "*"}, params)));
-const EV_STOP = new Set(["revival", "lite", "summon", "pickup", "limited", "time", "the", "and", "with", "from", "event", "rerun", "part", "daily", "campaign", "quest", "quests"]);
+const EV_STOP = new Set(["revival", "lite", "summon", "summoning", "pickup", "limited", "time", "the", "and", "with", "from", "event", "rerun", "part", "daily", "campaign", "quest", "quests",
+  "fate", "grand", "order", "banner", "servant", "servants", "special", "chaldea"]); // words most event and banner names share
 const evToks = (n) => new Set(nname(n).split(" ").filter((t) => t.length > 3 && !EV_STOP.has(t)));
 async function wikiFind(name) {
   const base = liveText(name), rev = /\brevival\b|\s-\s*lite$/i.test(base);
@@ -10780,7 +10804,8 @@ function wikiSections(html) {
   const root = doc.body.querySelector(".mw-parser-output") || doc.body;
   const secs = []; let cur = {h: "", nodes: []};
   for (const n of [...root.childNodes]) {
-    if (n.nodeType === 1 && n.tagName === "H2") { if (cur.nodes.length) secs.push(cur); cur = {h: (n.querySelector(".mw-headline") || n).textContent.replace(/\[edit\]/gi, "").trim(), nodes: []}; continue; }
+    const h2 = n.nodeType !== 1 ? null : n.tagName === "H2" ? n : n.classList.contains("mw-heading2") ? n.querySelector("h2") : null;
+    if (h2) { if (cur.nodes.length) secs.push(cur); cur = {h: (h2.querySelector(".mw-headline") || h2).textContent.replace(/\[edit\]/gi, "").trim(), nodes: []}; continue; }
     cur.nodes.push(n);
   }
   if (cur.nodes.length) secs.push(cur);
@@ -10788,23 +10813,28 @@ function wikiSections(html) {
     .filter((s) => s.html.replace(/<[^>]*>/g, "").trim().length > 1 || /<img/.test(s.html));
 }
 async function evWikiLoad(id, force) {
-  const m = EV.m; if (!m || EV.wikiBusy) return;
+  const m = EV.m; if (!m || m.id !== id || EV.wikiBusy) return;
+  EV.wikiBusy = id; if (EV.id === id) evPaint();
+  let w = null;
   const c0 = await kv.get("wiki:" + id), c = c0 && c0.secs ? Object.assign({}, c0, {secs: c0.secs.map((x) => Object.assign({}, x, {html: wikiReclean(x.html)}))}) : c0;
-  if (c && !force && (Date.now() - c.at < EV_WIKI_FRESH || navigator.onLine === false)) { EV.wiki = c; if (EV.id === id) evPaint(); return; }
-  EV.wikiBusy = true; if (EV.id === id) evPaint();
   try {
-    const title = await wikiFind(m.n);
-    if (!title) EV.wiki = {at: Date.now(), none: 1};
+    if (c && !force && (Date.now() - c.at < EV_WIKI_FRESH || navigator.onLine === false)) w = c;
     else {
-      const j = await wikiJSON({action: "parse", page: title, prop: "text", redirects: "1", disableeditsection: "1", disabletoc: "1"});
-      const html = j && j.parse && j.parse.text; if (!html) throw new Error("no page");
-      EV.wiki = {at: Date.now(), title: String(j.parse.title || title), secs: wikiSections(typeof html === "string" ? html : html["*"])};
+      const title = await wikiFind(m.n);
+      if (!title) w = {at: Date.now(), none: 1};
+      else {
+        const j = await wikiJSON({action: "parse", page: title, prop: "text", redirects: "1", disableeditsection: "1", disabletoc: "1"});
+        const html = j && j.parse && j.parse.text; if (!html) throw new Error("no page");
+        w = {at: Date.now(), title: String(j.parse.title || title), secs: wikiSections(typeof html === "string" ? html : html["*"])};
+      }
+      await kv.set("wiki:" + id, w);
     }
-    await kv.set("wiki:" + id, EV.wiki);
   } catch (e) {
-    EV.wiki = c ? Object.assign({}, c, {stale: 1}) : {at: Date.now(), fail: 1};
+    w = c ? Object.assign({}, c, {stale: 1}) : {at: Date.now(), fail: 1};
   } finally {
-    EV.wikiBusy = false; if (EV.id === id) evPaint();
+    EV.wikiBusy = false;
+    if (EV.id === id) { EV.wiki = w; evPaint(); }
+    else if (EV.m && !EV.wiki) evWikiLoad(EV.id); // the page moved on to another event while this one was loading
   }
 }
 
@@ -10824,15 +10854,16 @@ function evRosterNeeds(to) {
 }
 const MAT_IDS = new Set(ATLAS_MATS.map((m) => m[0]));
 function evCalcData(m) {
-  const {need, who} = evRosterNeeds(evPref.to), cur = new Map();
+  const {need, who} = evRosterNeeds(evPref.to), cur = new Map(), took = new Map(); // took: bought already in an earlier row
   for (const sh of m.shop) {
     const c = sh.cost; if (!c) continue;
     if (!cur.has(c.id)) cur.set(c.id, {c: c, rows: [], all: 0, open: 0, mine: 0});
     const k = cur.get(c.id); if (sh.lim) k.all += sh.lim * c.q; else k.open++;
     const g = sh.got.length === 1 ? sh.got[0] : null;
     if (!g || g.k !== "i" || !MAT_IDS.has(g.id) || !need.get(g.id)) continue;
-    const have = Math.max(0, num(evPref.have[g.id]) || 0), left = Math.max(0, need.get(g.id) - have);
+    const have = Math.max(0, num(evPref.have[g.id]) || 0), left = Math.max(0, need.get(g.id) - have - (took.get(g.id) || 0));
     const buy = Math.min(sh.lim || Infinity, Math.ceil(left / Math.max(1, g.q)));
+    took.set(g.id, (took.get(g.id) || 0) + buy * Math.max(1, g.q));
     k.rows.push({sh: sh, g: g, need: need.get(g.id), have: have, buy: buy, cost: buy * c.q, who: who.get(g.id)}); k.mine += buy * c.q;
   }
   return [...cur.values()];
@@ -10881,7 +10912,7 @@ function evSummonHTML(m) {
     ${b.ft.length ? `<div class="ev-faces">${b.ft.map((x) => liveFace(x, true)).join("")}</div>` : ""}
     ${b.id && b.ft.some((x) => !x.ce) && b.e > now ? `<button type="button" class="btn sm" data-action="ev-sim" data-g="${b.id}">Simulate this banner</button>` : ""}</li>`;
   const body = (show.length ? `<ul class="ev-bans">${show.map(row).join("")}</ul>${!mine.length ? `<p class="tr-none">None of these is named after the event; they're the banners open at the same time.</p>` : ""}`
-    : `<p class="tr-none">${d ? "No summon banner that's open or coming up runs with this event." : "Banners show up here once On NA now has checked Atlas Academy."}</p>`) + evWikiBlocks(["summon"], "Wiki", false);
+    : `<p class="tr-none">${!liveOn() ? `Live NA updates are off, so the summon banners aren't loaded. <button type="button" class="linkish" data-action="live-on">Turn them on</button>` : d ? "No summon banner that's open or coming up runs with this event." : "Banners show up here once On NA now has checked Atlas Academy."}</p>`) + evWikiBlocks(["summon"], "Wiki", false);
   return evSec("summon", "Summoning campaign", "rate-up servants and Craft Essences", body);
 }
 function evRewardsSvtHTML(m) {
@@ -10962,11 +10993,11 @@ function evHTML() {
   if (!m) return `<div class="ev-top">${back}</div><section class="d-sec ev-sec"><p class="tr-none">${busy ? "Getting this event from Atlas Academy…" : esc(EV.err || "This event isn't loaded yet.")}</p>${!busy ? `<button type="button" class="btn sm" data-action="ev-reload">Try again</button>` : `<div class="skeleton" style="height:220px"></div>`}</section>`;
   const now = Date.now() / 1000, w = EV.wiki;
   const status = now < m.s ? "starts " + liveWhen(m.s) : now < m.e ? "ends in " + liveLeft(m.e) + " (" + liveWhen(m.e) + ")" : "ended " + liveWhen(m.e);
-  const wikiNote = EV.wikiBusy ? "Looking it up on the wiki…" : !w ? "" : w.fail ? `Couldn't reach the Fate/Grand Order wiki. <a href="${WIKI}/wiki/Special:Search?search=${encodeURIComponent(m.n)}" target="_blank" rel="noopener">Search it there ↗</a>`
+  const wikiNote = EV.wikiBusy && (EV.wikiBusy === m.id || !w) ? "Looking it up on the wiki…" : !w ? "" : w.fail ? `Couldn't reach the Fate/Grand Order wiki. <a href="${WIKI}/wiki/Special:Search?search=${encodeURIComponent(m.n)}" target="_blank" rel="noopener">Search it there ↗</a>`
     : w.none ? `The wiki doesn't seem to have a page for this one yet. <a href="${WIKI}/wiki/Special:Search?search=${encodeURIComponent(m.n)}" target="_blank" rel="noopener">Search the wiki ↗</a>`
     : `From the wiki page <a href="${esc(wikiURL(w.title))}" target="_blank" rel="noopener">${esc(w.title)} ↗</a>${w.stale ? " (an older copy; the wiki couldn't be reached)" : ""}.`;
   const secs = [
-    ["summary", "Summary and guide", evSec("summary", "Summary and guide", "", (m.d ? `<p>${esc(m.d)}</p>` : "") + evWikiBlocks(["summary"], "", true) || (EV.wikiBusy ? `<p class="tr-none">Looking it up on the wiki…</p>` : ""))],
+    ["summary", "Summary and guide", evSec("summary", "Summary and guide", "", (m.d ? `<p>${esc(m.d)}</p>` : "") + evWikiBlocks(["summary"], "", true) || (EV.wikiBusy && (EV.wikiBusy === m.id || !w) ? `<p class="tr-none">Looking it up on the wiki…</p>` : ""))],
     ["summon", "Summoning", evSummonHTML(m)],
     ["svts", "Servants and CEs", evRewardsSvtHTML(m)],
     ["missions", "Missions", evMissionsHTML(m)],
@@ -11005,6 +11036,7 @@ function evOpen(id, push) {
   if (push !== false) try { history.pushState({ev: id}, "", "#event/" + id); } catch (e) {}
   if (S.selected && !isWide()) { S.selected = null; renderList(); renderDossier(); }
   renderChrome(); syncPageTheme(); window.scrollTo({top: 0}); evPaint();
+  if (push !== false) { const el = document.getElementById("event"); if (el) el.focus({preventScroll: true}); }
   if (!EV.m) evLoad(id);
   liveCheck(false);
 }
@@ -11120,9 +11152,32 @@ smRates = function () {
 };
 // featuring one of your own servants leaves the NA banner
 const smSetFeat22 = smSetFeat;
-smSetFeat = function (r, id, why) { if (SM.ban) { delete SM.ban; delete SM.banPrev; } return smSetFeat22(r, id, why); };
+// (with its own Undo, which brings the NA banner back too)
+smSetFeat = function (r, id, why) {
+  if (!SM.ban) return smSetFeat22(r, id, why);
+  const before = JSON.parse(JSON.stringify(SM));
+  delete SM.ban; delete SM.banPrev; SM["f" + r] = id || "";
+  Object.assign(SM, smBlank(), {batch: SM.batch}); smSave(); renderSummon();
+  const s = id ? S.servants.find((x) => x.id === id) : null;
+  toastAction((s ? s.name + " is the featured ★" + r + "." : "No ★" + r + " rate-up.") + " Back to your own banner: the counts start from 0.", "Undo", () => { Object.keys(SM).forEach((k) => delete SM[k]); Object.assign(SM, before); smSave(); renderSummon(); });
+};
 const smBatch22 = smBatch;
-smBatch = function (count) { banNoPity = banFt(5, false).length > 1; try { return smBatch22(count); } finally { banNoPity = false; } };
+// The 330 guarantee hands out the featured ★5 by id. One who isn't on your list is turned into a Past Chaldea pull here,
+// so the card, the ceremony and the summary show them by name.
+function banPc(x) {
+  if (!x || !x.id || !String(x.id).startsWith("na:")) return x;
+  const no = Number(String(x.id).slice(3)), ft = banFt(x.r, false).find((y) => y.no === no);
+  delete x.id; x.pc = no; if (ft) { x.nn = ft.n; x.nf = ft.f; }
+  return x;
+}
+smBatch = function (count) {
+  banNoPity = banFt(5, false).length > 1;
+  try {
+    const out = smBatch22(count);
+    if (SM.ban) { out.forEach(banPc); SM.log = (SM.log || []).filter((l) => !String(l.id || "").startsWith("na:")); }
+    return out;
+  } finally { banNoPity = false; }
+};
 const smChance22 = smChance;
 smChance = function (row, n) {
   if (row && row.f && row.r === 5 && banFt(5, false).length > 1) return n > 0 ? (1 - Math.pow(1 - row.p / 100, n)) * 100 : 0;
@@ -11130,10 +11185,14 @@ smChance = function (row, n) {
 };
 // a featured servant who isn't in this file's NA data yet still gets a card, with Atlas Academy's face picture
 const smCardHTML22 = smCardHTML;
+const banTag = (x) => x.pity ? `<i class="smr-tag pity">Guaranteed</i>` : x.f ? `<i class="smr-tag up">Rate-up</i>` : "";
 smCardHTML = function (x, i) {
-  if (!(x.k === "s" && x.pc && !ATLAS_BY_NO.has(x.pc) && x.nn)) return smCardHTML22(x, i);
+  if (!(x.k === "s" && x.pc && !ATLAS_BY_NO.has(x.pc) && x.nn)) {
+    const h = smCardHTML22(x, i);
+    return x.k === "s" && x.pc && (x.f || x.pity) ? h.replace(`<i class="smr-tag pc">Past Chaldea</i>`, banTag(x)) : h;
+  }
   return `<li class="smr is-s r${x.r} ${x.r >= 4 ? "gold" : "silver"} from-pc" style="--i:${i}" data-glow="${x.r >= 5 ? "rainbow" : x.r >= 4 ? "gold" : "silver"}">
-    <div class="smr-card"><div class="smr-in"><div class="smr-face smr-front">${x.nf ? `<img class="smr-art" src="${esc(x.nf)}" alt="" decoding="async">` : ""}<span class="smr-plate">${smStars(x.r)}</span><i class="smr-tag pc">New on NA</i></div><div class="smr-face smr-back"><img src="${backOf("s", x.r)}" alt=""></div></div></div>
+    <div class="smr-card"><div class="smr-in"><div class="smr-face smr-front">${x.nf ? `<img class="smr-art" src="${esc(x.nf)}" alt="" decoding="async">` : ""}<span class="smr-plate">${smStars(x.r)}</span>${banTag(x) || `<i class="smr-tag pc">New on NA</i>`}</div><div class="smr-face smr-back"><img src="${backOf("s", x.r)}" alt=""></div></div></div>
     <span class="smr-n" title="${esc(x.nn)} · summon ${x.p}"><a href="${LIVE_DB}servant/${x.pc}" target="_blank" rel="noopener">${esc(x.nn)}</a></span></li>`;
 };
 const smPullItem22 = smPullItem;

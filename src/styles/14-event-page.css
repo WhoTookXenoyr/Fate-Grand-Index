@@ -1,5 +1,6 @@
 
 /* ===== 0.22.0: the Event page and NA banners in the simulator. Nothing here moves on its own. ===== */
+.evp:focus { outline: none; }
 .evp { display: flex; flex-direction: column; gap: 18px; max-width: 1180px; margin: 0 auto; }
 .ev-top { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .ev-act { margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px; }

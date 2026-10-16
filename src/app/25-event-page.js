@@ -143,6 +143,7 @@ async function evLoad(id, force) {
       const old = c && c.m && c.m.drops; if (old && !force) m.drops = old;
       await kv.set("ev:" + id, {at: Date.now(), v: EV_MV, m: m});
     }
+    evKeep(id);
   } catch (er) {
     const c = await kv.get("ev:" + id);
     if (c && c.m) { m = c.m; if (EV.id === id) EV.err = "Couldn't reach Atlas Academy, so this is the copy from " + ago(c.at) + "."; }
@@ -153,8 +154,17 @@ async function evLoad(id, force) {
   }
   if (m && EV.id === id) { evDropsLoad(id); evWikiLoad(id, force); }
 }
+// the cache keeps the 30 events opened most recently, so it doesn't grow forever
+async function evKeep(id) {
+  try {
+    const ix = Object.assign({}, (await kv.get("evlist")) || {}); ix[id] = Date.now();
+    const ids = Object.keys(ix).sort((a, b) => ix[b] - ix[a]);
+    for (const old of ids.slice(30)) { delete ix[old]; await kv.del("ev:" + old); await kv.del("wiki:" + old); }
+    await kv.set("evlist", ix);
+  } catch (e) {}
+}
 async function evDropsLoad(id) {
-  const m = EV.m; if (!m || EV.dropBusy) return;
+  const m = EV.m; if (!m || EV.dropBusy || m.id !== id) return;
   const todo = m.quests.filter((q) => q.g === "free" && !(q.id in m.drops)).slice(0, 16);
   if (!todo.length) return;
   EV.dropBusy = true; evPaint();
@@ -165,14 +175,20 @@ async function evDropsLoad(id) {
         try { const d = await evJSON(EV_API + "nice/NA/quest/" + q.id + "/" + q.ph); m.drops[q.id] = evDrops(d.drops, items, names); } catch (e) { /* tried again next time */ }
       }));
     }
-    await kv.set("ev:" + m.id, {at: m.at || Date.now(), v: EV_MV, m: m});
-  } finally { EV.dropBusy = false; if (EV.id === id) evPaint(); }
+    // a Refresh while these were loading made a newer copy: that one is kept, and gets its own drops
+    const c = await kv.get("ev:" + m.id); if (!c || !c.m || c.m === m || (c.m.at || 0) <= (m.at || 0)) await kv.set("ev:" + m.id, {at: m.at || Date.now(), v: EV_MV, m: m});
+  } finally {
+    EV.dropBusy = false;
+    if (EV.m && EV.m !== m) evDropsLoad(EV.id); // another event (or a newer copy) opened in the meantime
+    else if (EV.id === id) evPaint();
+  }
 }
 
 /* ---------- the wiki ---------- */
 const wikiURL = (title) => WIKI + "/wiki/" + encodeURIComponent(String(title).replace(/ /g, "_")).replace(/%2F/g, "/");
 const wikiJSON = (params) => evJSON(WIKI + "/api.php?" + new URLSearchParams(Object.assign({format: "json", formatversion: "2", origin: "*"}, params)));
-const EV_STOP = new Set(["revival", "lite", "summon", "pickup", "limited", "time", "the", "and", "with", "from", "event", "rerun", "part", "daily", "campaign", "quest", "quests"]);
+const EV_STOP = new Set(["revival", "lite", "summon", "summoning", "pickup", "limited", "time", "the", "and", "with", "from", "event", "rerun", "part", "daily", "campaign", "quest", "quests",
+  "fate", "grand", "order", "banner", "servant", "servants", "special", "chaldea"]); // words most event and banner names share
 const evToks = (n) => new Set(nname(n).split(" ").filter((t) => t.length > 3 && !EV_STOP.has(t)));
 async function wikiFind(name) {
   const base = liveText(name), rev = /\brevival\b|\s-\s*lite$/i.test(base);
@@ -235,7 +251,8 @@ function wikiSections(html) {
   const root = doc.body.querySelector(".mw-parser-output") || doc.body;
   const secs = []; let cur = {h: "", nodes: []};
   for (const n of [...root.childNodes]) {
-    if (n.nodeType === 1 && n.tagName === "H2") { if (cur.nodes.length) secs.push(cur); cur = {h: (n.querySelector(".mw-headline") || n).textContent.replace(/\[edit\]/gi, "").trim(), nodes: []}; continue; }
+    const h2 = n.nodeType !== 1 ? null : n.tagName === "H2" ? n : n.classList.contains("mw-heading2") ? n.querySelector("h2") : null;
+    if (h2) { if (cur.nodes.length) secs.push(cur); cur = {h: (h2.querySelector(".mw-headline") || h2).textContent.replace(/\[edit\]/gi, "").trim(), nodes: []}; continue; }
     cur.nodes.push(n);
   }
   if (cur.nodes.length) secs.push(cur);
@@ -243,23 +260,28 @@ function wikiSections(html) {
     .filter((s) => s.html.replace(/<[^>]*>/g, "").trim().length > 1 || /<img/.test(s.html));
 }
 async function evWikiLoad(id, force) {
-  const m = EV.m; if (!m || EV.wikiBusy) return;
+  const m = EV.m; if (!m || m.id !== id || EV.wikiBusy) return;
+  EV.wikiBusy = id; if (EV.id === id) evPaint();
+  let w = null;
   const c0 = await kv.get("wiki:" + id), c = c0 && c0.secs ? Object.assign({}, c0, {secs: c0.secs.map((x) => Object.assign({}, x, {html: wikiReclean(x.html)}))}) : c0;
-  if (c && !force && (Date.now() - c.at < EV_WIKI_FRESH || navigator.onLine === false)) { EV.wiki = c; if (EV.id === id) evPaint(); return; }
-  EV.wikiBusy = true; if (EV.id === id) evPaint();
   try {
-    const title = await wikiFind(m.n);
-    if (!title) EV.wiki = {at: Date.now(), none: 1};
+    if (c && !force && (Date.now() - c.at < EV_WIKI_FRESH || navigator.onLine === false)) w = c;
     else {
-      const j = await wikiJSON({action: "parse", page: title, prop: "text", redirects: "1", disableeditsection: "1", disabletoc: "1"});
-      const html = j && j.parse && j.parse.text; if (!html) throw new Error("no page");
-      EV.wiki = {at: Date.now(), title: String(j.parse.title || title), secs: wikiSections(typeof html === "string" ? html : html["*"])};
+      const title = await wikiFind(m.n);
+      if (!title) w = {at: Date.now(), none: 1};
+      else {
+        const j = await wikiJSON({action: "parse", page: title, prop: "text", redirects: "1", disableeditsection: "1", disabletoc: "1"});
+        const html = j && j.parse && j.parse.text; if (!html) throw new Error("no page");
+        w = {at: Date.now(), title: String(j.parse.title || title), secs: wikiSections(typeof html === "string" ? html : html["*"])};
+      }
+      await kv.set("wiki:" + id, w);
     }
-    await kv.set("wiki:" + id, EV.wiki);
   } catch (e) {
-    EV.wiki = c ? Object.assign({}, c, {stale: 1}) : {at: Date.now(), fail: 1};
+    w = c ? Object.assign({}, c, {stale: 1}) : {at: Date.now(), fail: 1};
   } finally {
-    EV.wikiBusy = false; if (EV.id === id) evPaint();
+    EV.wikiBusy = false;
+    if (EV.id === id) { EV.wiki = w; evPaint(); }
+    else if (EV.m && !EV.wiki) evWikiLoad(EV.id); // the page moved on to another event while this one was loading
   }
 }
 
@@ -279,15 +301,16 @@ function evRosterNeeds(to) {
 }
 const MAT_IDS = new Set(ATLAS_MATS.map((m) => m[0]));
 function evCalcData(m) {
-  const {need, who} = evRosterNeeds(evPref.to), cur = new Map();
+  const {need, who} = evRosterNeeds(evPref.to), cur = new Map(), took = new Map(); // took: bought already in an earlier row
   for (const sh of m.shop) {
     const c = sh.cost; if (!c) continue;
     if (!cur.has(c.id)) cur.set(c.id, {c: c, rows: [], all: 0, open: 0, mine: 0});
     const k = cur.get(c.id); if (sh.lim) k.all += sh.lim * c.q; else k.open++;
     const g = sh.got.length === 1 ? sh.got[0] : null;
     if (!g || g.k !== "i" || !MAT_IDS.has(g.id) || !need.get(g.id)) continue;
-    const have = Math.max(0, num(evPref.have[g.id]) || 0), left = Math.max(0, need.get(g.id) - have);
+    const have = Math.max(0, num(evPref.have[g.id]) || 0), left = Math.max(0, need.get(g.id) - have - (took.get(g.id) || 0));
     const buy = Math.min(sh.lim || Infinity, Math.ceil(left / Math.max(1, g.q)));
+    took.set(g.id, (took.get(g.id) || 0) + buy * Math.max(1, g.q));
     k.rows.push({sh: sh, g: g, need: need.get(g.id), have: have, buy: buy, cost: buy * c.q, who: who.get(g.id)}); k.mine += buy * c.q;
   }
   return [...cur.values()];
@@ -336,7 +359,7 @@ function evSummonHTML(m) {
     ${b.ft.length ? `<div class="ev-faces">${b.ft.map((x) => liveFace(x, true)).join("")}</div>` : ""}
     ${b.id && b.ft.some((x) => !x.ce) && b.e > now ? `<button type="button" class="btn sm" data-action="ev-sim" data-g="${b.id}">Simulate this banner</button>` : ""}</li>`;
   const body = (show.length ? `<ul class="ev-bans">${show.map(row).join("")}</ul>${!mine.length ? `<p class="tr-none">None of these is named after the event; they're the banners open at the same time.</p>` : ""}`
-    : `<p class="tr-none">${d ? "No summon banner that's open or coming up runs with this event." : "Banners show up here once On NA now has checked Atlas Academy."}</p>`) + evWikiBlocks(["summon"], "Wiki", false);
+    : `<p class="tr-none">${!liveOn() ? `Live NA updates are off, so the summon banners aren't loaded. <button type="button" class="linkish" data-action="live-on">Turn them on</button>` : d ? "No summon banner that's open or coming up runs with this event." : "Banners show up here once On NA now has checked Atlas Academy."}</p>`) + evWikiBlocks(["summon"], "Wiki", false);
   return evSec("summon", "Summoning campaign", "rate-up servants and Craft Essences", body);
 }
 function evRewardsSvtHTML(m) {
@@ -417,11 +440,11 @@ function evHTML() {
   if (!m) return `<div class="ev-top">${back}</div><section class="d-sec ev-sec"><p class="tr-none">${busy ? "Getting this event from Atlas Academy…" : esc(EV.err || "This event isn't loaded yet.")}</p>${!busy ? `<button type="button" class="btn sm" data-action="ev-reload">Try again</button>` : `<div class="skeleton" style="height:220px"></div>`}</section>`;
   const now = Date.now() / 1000, w = EV.wiki;
   const status = now < m.s ? "starts " + liveWhen(m.s) : now < m.e ? "ends in " + liveLeft(m.e) + " (" + liveWhen(m.e) + ")" : "ended " + liveWhen(m.e);
-  const wikiNote = EV.wikiBusy ? "Looking it up on the wiki…" : !w ? "" : w.fail ? `Couldn't reach the Fate/Grand Order wiki. <a href="${WIKI}/wiki/Special:Search?search=${encodeURIComponent(m.n)}" target="_blank" rel="noopener">Search it there ↗</a>`
+  const wikiNote = EV.wikiBusy && (EV.wikiBusy === m.id || !w) ? "Looking it up on the wiki…" : !w ? "" : w.fail ? `Couldn't reach the Fate/Grand Order wiki. <a href="${WIKI}/wiki/Special:Search?search=${encodeURIComponent(m.n)}" target="_blank" rel="noopener">Search it there ↗</a>`
     : w.none ? `The wiki doesn't seem to have a page for this one yet. <a href="${WIKI}/wiki/Special:Search?search=${encodeURIComponent(m.n)}" target="_blank" rel="noopener">Search the wiki ↗</a>`
     : `From the wiki page <a href="${esc(wikiURL(w.title))}" target="_blank" rel="noopener">${esc(w.title)} ↗</a>${w.stale ? " (an older copy; the wiki couldn't be reached)" : ""}.`;
   const secs = [
-    ["summary", "Summary and guide", evSec("summary", "Summary and guide", "", (m.d ? `<p>${esc(m.d)}</p>` : "") + evWikiBlocks(["summary"], "", true) || (EV.wikiBusy ? `<p class="tr-none">Looking it up on the wiki…</p>` : ""))],
+    ["summary", "Summary and guide", evSec("summary", "Summary and guide", "", (m.d ? `<p>${esc(m.d)}</p>` : "") + evWikiBlocks(["summary"], "", true) || (EV.wikiBusy && (EV.wikiBusy === m.id || !w) ? `<p class="tr-none">Looking it up on the wiki…</p>` : ""))],
     ["summon", "Summoning", evSummonHTML(m)],
     ["svts", "Servants and CEs", evRewardsSvtHTML(m)],
     ["missions", "Missions", evMissionsHTML(m)],
@@ -460,6 +483,7 @@ function evOpen(id, push) {
   if (push !== false) try { history.pushState({ev: id}, "", "#event/" + id); } catch (e) {}
   if (S.selected && !isWide()) { S.selected = null; renderList(); renderDossier(); }
   renderChrome(); syncPageTheme(); window.scrollTo({top: 0}); evPaint();
+  if (push !== false) { const el = document.getElementById("event"); if (el) el.focus({preventScroll: true}); }
   if (!EV.m) evLoad(id);
   liveCheck(false);
 }

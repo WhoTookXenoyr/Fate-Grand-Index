@@ -60,9 +60,32 @@ smRates = function () {
 };
 // featuring one of your own servants leaves the NA banner
 const smSetFeat22 = smSetFeat;
-smSetFeat = function (r, id, why) { if (SM.ban) { delete SM.ban; delete SM.banPrev; } return smSetFeat22(r, id, why); };
+// (with its own Undo, which brings the NA banner back too)
+smSetFeat = function (r, id, why) {
+  if (!SM.ban) return smSetFeat22(r, id, why);
+  const before = JSON.parse(JSON.stringify(SM));
+  delete SM.ban; delete SM.banPrev; SM["f" + r] = id || "";
+  Object.assign(SM, smBlank(), {batch: SM.batch}); smSave(); renderSummon();
+  const s = id ? S.servants.find((x) => x.id === id) : null;
+  toastAction((s ? s.name + " is the featured ★" + r + "." : "No ★" + r + " rate-up.") + " Back to your own banner: the counts start from 0.", "Undo", () => { Object.keys(SM).forEach((k) => delete SM[k]); Object.assign(SM, before); smSave(); renderSummon(); });
+};
 const smBatch22 = smBatch;
-smBatch = function (count) { banNoPity = banFt(5, false).length > 1; try { return smBatch22(count); } finally { banNoPity = false; } };
+// The 330 guarantee hands out the featured ★5 by id. One who isn't on your list is turned into a Past Chaldea pull here,
+// so the card, the ceremony and the summary show them by name.
+function banPc(x) {
+  if (!x || !x.id || !String(x.id).startsWith("na:")) return x;
+  const no = Number(String(x.id).slice(3)), ft = banFt(x.r, false).find((y) => y.no === no);
+  delete x.id; x.pc = no; if (ft) { x.nn = ft.n; x.nf = ft.f; }
+  return x;
+}
+smBatch = function (count) {
+  banNoPity = banFt(5, false).length > 1;
+  try {
+    const out = smBatch22(count);
+    if (SM.ban) { out.forEach(banPc); SM.log = (SM.log || []).filter((l) => !String(l.id || "").startsWith("na:")); }
+    return out;
+  } finally { banNoPity = false; }
+};
 const smChance22 = smChance;
 smChance = function (row, n) {
   if (row && row.f && row.r === 5 && banFt(5, false).length > 1) return n > 0 ? (1 - Math.pow(1 - row.p / 100, n)) * 100 : 0;
@@ -70,10 +93,14 @@ smChance = function (row, n) {
 };
 // a featured servant who isn't in this file's NA data yet still gets a card, with Atlas Academy's face picture
 const smCardHTML22 = smCardHTML;
+const banTag = (x) => x.pity ? `<i class="smr-tag pity">Guaranteed</i>` : x.f ? `<i class="smr-tag up">Rate-up</i>` : "";
 smCardHTML = function (x, i) {
-  if (!(x.k === "s" && x.pc && !ATLAS_BY_NO.has(x.pc) && x.nn)) return smCardHTML22(x, i);
+  if (!(x.k === "s" && x.pc && !ATLAS_BY_NO.has(x.pc) && x.nn)) {
+    const h = smCardHTML22(x, i);
+    return x.k === "s" && x.pc && (x.f || x.pity) ? h.replace(`<i class="smr-tag pc">Past Chaldea</i>`, banTag(x)) : h;
+  }
   return `<li class="smr is-s r${x.r} ${x.r >= 4 ? "gold" : "silver"} from-pc" style="--i:${i}" data-glow="${x.r >= 5 ? "rainbow" : x.r >= 4 ? "gold" : "silver"}">
-    <div class="smr-card"><div class="smr-in"><div class="smr-face smr-front">${x.nf ? `<img class="smr-art" src="${esc(x.nf)}" alt="" decoding="async">` : ""}<span class="smr-plate">${smStars(x.r)}</span><i class="smr-tag pc">New on NA</i></div><div class="smr-face smr-back"><img src="${backOf("s", x.r)}" alt=""></div></div></div>
+    <div class="smr-card"><div class="smr-in"><div class="smr-face smr-front">${x.nf ? `<img class="smr-art" src="${esc(x.nf)}" alt="" decoding="async">` : ""}<span class="smr-plate">${smStars(x.r)}</span>${banTag(x) || `<i class="smr-tag pc">New on NA</i>`}</div><div class="smr-face smr-back"><img src="${backOf("s", x.r)}" alt=""></div></div></div>
     <span class="smr-n" title="${esc(x.nn)} · summon ${x.p}"><a href="${LIVE_DB}servant/${x.pc}" target="_blank" rel="noopener">${esc(x.nn)}</a></span></li>`;
 };
 const smPullItem22 = smPullItem;

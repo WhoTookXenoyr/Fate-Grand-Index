@@ -31,7 +31,12 @@ ces = [{"id": 9400000 + c["no"], "collectionNo": c["no"], "name": c["n"], "type"
 EV_CE = ces[-1]  # the event's own Craft Essence
 WELFARE = next(x for x in ATL if x["r"] == 4 and x["no"] > 300)
 ev = {"id": EID, "type": "eventQuest", "name": "Test Halloween Rising", "noticeAt": NOW - 5 * D, "startedAt": NOW - 3 * D, "endedAt": NOW + 9 * D, "finishedAt": NOW + 9 * D, "materialOpenedAt": NOW + 40 * D, "warIds": [WID]}
-basic_events = [ev, {"id": 20900, "type": "questCampaign", "name": "AP Cost 1/2", "noticeAt": ev["startedAt"], "startedAt": ev["startedAt"], "endedAt": ev["endedAt"], "finishedAt": ev["endedAt"], "warIds": []}]
+PC5 = next(x for x in ATL if x["n"] == "Gilgamesh" and x["r"] == 5)  # a ★5 who isn't on the sample roster or a Guest
+EID2 = 80901
+ev2 = {"id": EID2, "type": "eventQuest", "name": "Fate/Summer Splash Carnival", "noticeAt": NOW - 4 * D, "startedAt": NOW - D, "endedAt": NOW + 12 * D, "finishedAt": NOW + 12 * D, "materialOpenedAt": NOW + 40 * D, "warIds": []}
+event_full2 = dict(ev2, **{"originalName": ev2["name"], "shortName": "", "detail": "Splash around.", "banner": "", "icon": "", "shop": [], "missions": [], "rewards": [], "pointGroups": [], "lotteries": []})
+gacha2 = {"id": 50902, "name": "Fate/Grand Order Fes. 2026 Summon", "type": "payGacha", "openedAt": NOW - 2 * D + 7200, "closedAt": NOW + 8 * D, "featuredSvtIds": [PC5["id"]]}
+basic_events = [ev, ev2, {"id": 20900, "type": "questCampaign", "name": "AP Cost 1/2", "noticeAt": ev["startedAt"], "startedAt": ev["startedAt"], "endedAt": ev["endedAt"], "finishedAt": ev["endedAt"], "warIds": []}]
 gacha = {"id": 50900, "name": "Test Halloween Rising Pickup Summon", "type": "payGacha", "openedAt": NOW - 2 * D, "closedAt": NOW + 7 * D, "featuredSvtIds": [ERESH["id"], NEW_S["id"], EV_CE["id"]],
          "gachaSubs": [{"id": 1, "openedAt": NOW - 2 * D, "closedAt": NOW + 2 * D}, {"id": 2, "openedAt": NOW + 2 * D, "closedAt": NOW + 7 * D}]}
 
@@ -51,6 +56,7 @@ shop = [
     {"id": 1, "name": mat_name[M1], "detail": "", "purchaseType": "item", "targetIds": [M1], "setNum": 1, "limitNum": 5, "cost": cost(CUR, 100), "priority": 9, "openedAt": NOW - 3 * D, "closedAt": NOW + 9 * D, "gifts": [], "itemSet": []},
     {"id": 2, "name": mat_name[M2], "detail": "", "purchaseType": "item", "targetIds": [M2], "setNum": 2, "limitNum": 10, "cost": cost(CUR, 50), "priority": 8, "openedAt": NOW - 3 * D, "closedAt": NOW + 9 * D, "gifts": [], "itemSet": []},
     {"id": 3, "name": EV_CE["name"], "detail": "", "purchaseType": "servant", "targetIds": [EV_CE["id"]], "setNum": 1, "limitNum": 4, "cost": cost(CUR2, 300), "priority": 7, "openedAt": NOW - 3 * D, "closedAt": NOW + 9 * D, "gifts": [], "itemSet": []},
+    {"id": 5, "name": mat_name[M1], "detail": "", "purchaseType": "item", "targetIds": [M1], "setNum": 1, "limitNum": 999, "cost": cost(CUR2, 20), "priority": 6, "openedAt": NOW - 3 * D, "closedAt": NOW + 9 * D, "gifts": [], "itemSet": []},
     {"id": 4, "name": "QP", "detail": "", "purchaseType": "item", "targetIds": [1], "setNum": 1000000, "limitNum": 0, "cost": cost(CUR2, 10), "priority": 1, "openedAt": NOW - 3 * D, "closedAt": NOW + 9 * D, "gifts": [], "itemSet": []},
 ]
 gift = lambda t, i, n=1: {"id": 1, "type": t, "objectId": i, "priority": 0, "num": n, "giftAdds": []}
@@ -80,8 +86,8 @@ def jfulfill(r, body, status=200):
 def atlas(r):
     u = urlparse(r.request.url); p = u.path; count(p)
     files = {"/export/NA/info.json": info, "/export/NA/basic_servant.json": svts + [NEW_S], "/export/NA/basic_equip.json": ces, "/export/NA/basic_event.json": basic_events,
-             "/export/NA/nice_gacha.json": [gacha], "/export/NA/nice_item.json": ITEMS, "/export/NA/basic_svt.json": basic_svt,
-             f"/nice/NA/event/{EID}": event_full, f"/nice/NA/war/{WID}": war}
+             "/export/NA/nice_gacha.json": [gacha, gacha2], "/export/NA/nice_item.json": ITEMS, "/export/NA/basic_svt.json": basic_svt,
+             f"/nice/NA/event/{EID}": event_full, f"/nice/NA/war/{WID}": war, f"/nice/NA/event/{EID2}": event_full2}
     m = re.match(r"/nice/NA/quest/(\d+)/(\d+)$", p)
     if p in files: return jfulfill(r, files[p])
     if m and int(m.group(1)) in drops: return jfulfill(r, {"id": int(m.group(1)), "drops": drops[int(m.group(1))]})
@@ -98,15 +104,22 @@ WIKI_HTML = """<div class="mw-parser-output"><p>Intro: <b>Halloween</b> is back.
 <h2><span class="mw-headline" id="Misc_Info">Misc Info</span></h2><p>Released for Halloween.<style>body{display:none}</style></p>
 <h2><span class="mw-headline" id="Game_Updates">Game Updates</span></h2><p>New interludes.</p>
 <h2><span class="mw-headline" id="Trivia_Gallery">Something Else</span></h2><p>Other things.</p></div>"""
+WIKI_B = """<div class="mw-parser-output"><p>Summer is here.</p>
+<div class="mw-heading mw-heading2"><h2 id="Event_Summary">Event Summary</h2></div><p>Swim and farm shells.</p>
+<div class="mw-heading mw-heading2"><h2 id="Misc_Info">Misc Info</h2></div><p>Splash trivia.</p></div>"""
 wiki_mode = {"v": "ok"}
+hold = {"page": None, "routes": []}  # a wiki page whose answer is held back, to open another event meanwhile
 def wiki(r):
     qs = parse_qs(urlparse(r.request.url).query); count("wiki:" + qs.get("action", ["?"])[0])
     if wiki_mode["v"] == "down": return r.abort()
     if qs.get("origin") != ["*"]: return r.fulfill(status=403, body="no CORS")
     if qs.get("action") == ["query"]:
+        if "Summer" in qs.get("srsearch", [""])[0]: return jfulfill(r, {"query": {"search": [{"title": "Fate/Summer Splash Carnival"}]}})
         return jfulfill(r, {"query": {"search": [{"title": "Talk:Test Halloween Rising"}, {"title": "Test Halloween Rising"}, {"title": "Halloween Event List"}]}})
     if qs.get("action") == ["parse"]:
-        return jfulfill(r, {"parse": {"title": qs.get("page", [""])[0], "text": WIKI_HTML}})
+        pg_ = qs.get("page", [""])[0]
+        if hold["page"] == pg_: hold["routes"].append(r); return
+        return jfulfill(r, {"parse": {"title": pg_, "text": WIKI_B if "Summer" in pg_ else WIKI_HTML}})
     jfulfill(r, {}, 400)
 def pic(r): r.fulfill(path=f"{sp}/ph_face.png", content_type="image/png")
 def page(p, w=1400, h=1000, mobile=False, init=INIT):
@@ -172,6 +185,9 @@ with sync_playwright() as p:
     buy1 = min(5, need1)
     check(f"buy and cost: min(limit, what's needed) × 100 ({r1.locator('td').nth(3).inner_text()}, {r1.locator('td').nth(4).inner_text()})",
           num(r1.locator("td").nth(3).inner_text()) == buy1 and num(r1.locator("td").nth(4).inner_text()) == buy1 * 100)
+    c2 = pg.locator(f'{EVP} .ev-calc[data-cur="{CUR2}"] tbody tr', has_text=mat_name[M1])
+    check(f"the same material sold for the other currency only covers what's still left ({c2.count()} row, buy {c2.locator('td').nth(3).inner_text() if c2.count() else '?'})",
+          c2.count() == 1 and num(c2.locator("td").nth(3).inner_text()) == max(0, need1 - buy1))
     r1.locator("input").fill(str(max(0, need1 - 1))); pg.wait_for_timeout(700)
     r1 = calc.locator("tbody tr", has_text=mat_name[M1])
     check("what you have lowers what to buy", num(r1.locator("td").nth(3).inner_text()) == 1 and num(r1.locator("td").nth(4).inner_text()) == 100)
@@ -218,6 +234,22 @@ with sync_playwright() as p:
     smst = json.loads(pg.evaluate("localStorage.getItem('spirit-origin-list:v1:summon')"))
     check("Back to your own banner leaves the NA one", "ban" not in smst and pg.locator(".sm-ban").count() == 0)
 
+    # ---- 0.22.1: the guarantee for a featured ★5 who isn't on your list
+    pg.click("#tab-home"); pg.wait_for_timeout(600)
+    pg.locator("#home .lv-ban", has_text="Fes. 2026").locator('[data-action="ev-sim"]').click(); pg.wait_for_timeout(900)
+    st = json.loads(pg.evaluate("localStorage.getItem('spirit-origin-list:v1:summon')")); st["n"] = 325; st["got"] = 0
+    pg.evaluate("(v) => localStorage.setItem('spirit-origin-list:v1:summon', v)", json.dumps(st))
+    pg.reload(); pg.wait_for_selector(".sm-ban", timeout=20000); pg.wait_for_timeout(500)
+    check("one featured ★5: the guarantee is on", "guarantee is on" in pg.locator(".sm-ban").inner_text())
+    pg.click('[data-action="sm-roll"][data-n="11"]'); pg.wait_for_timeout(1500)
+    res = pg.locator("#sm-results").inner_text()
+    up = pg.locator("#sm-results .smr", has_text=PC5["n"])
+    check(f"by summon 330 the featured ★5 came, by name, not as an unknown servant ({PC5['n']})", up.count() >= 1 and pg.locator("#sm-results .smr.anon.r5").count() == 0)
+    check("their card says rate-up or guaranteed, not Past Chaldea", up.first.locator(".smr-tag.pity, .smr-tag.up").count() == 1 and up.first.locator(".smr-tag.pc").count() == 0)
+    smst = json.loads(pg.evaluate("localStorage.getItem('spirit-origin-list:v1:summon')"))
+    check(f"the banner counts them as got ({smst.get('got')})", 326 <= smst.get("got", 0) <= 330 and not any(str(l.get("id", "")).startswith("na:") for l in smst.get("log", [])))
+    pg.click('[data-action="sm-ban-off"]'); pg.wait_for_timeout(500)
+
     # ---- straight to an event's address, from what's kept in this browser
     n_ev = hits.get(f"/nice/NA/event/{EID}", 0)
     pg.goto(SEEDED + f"#event/{EID}"); pg.wait_for_selector(f"{EVP} .ev-title", timeout=20000); pg.wait_for_timeout(800)
@@ -235,6 +267,38 @@ with sync_playwright() as p:
     pg.wait_for_timeout(1500)
     check("a first visit straight to an event's address gets the banners too", pg.locator('#ev-summon [data-action="ev-sim"]').count() == 1)
     wiki_mode["v"] = "ok"
+    ctx.close()
+
+    # ================= 0.22.1: two events, one after the other =================
+    ctx, pg = page(p)
+    hold["page"] = "Test Halloween Rising"
+    pg.goto(SEEDED + "#home"); pg.wait_for_selector("#home .hm-b-live .lv-cols", timeout=20000); pg.wait_for_timeout(500)
+    pg.locator('#home .hm-b-live [data-action="ev-open"]', has_text="Test Halloween Rising").first.click(); pg.wait_for_selector(f"{EVP} .ev-title", timeout=20000)
+    check("opening an event moves focus to its page", pg.evaluate("document.activeElement && document.activeElement.id") == "event")
+    for _ in range(40):
+        if hold["routes"]: break
+        pg.wait_for_timeout(250)
+    pg.click(f"{EVP} .ev-back"); pg.wait_for_timeout(400)
+    pg.locator('#home .hm-b-live [data-action="ev-open"]', has_text="Summer Splash").first.click()
+    pg.wait_for_selector(f"{EVP} .ev-title:has-text('Summer Splash')", timeout=20000); pg.wait_for_timeout(800)
+    held = len(hold["routes"]); hold["page"] = None
+    for rr in hold["routes"]: jfulfill(rr, {"parse": {"title": "Test Halloween Rising", "text": WIKI_HTML}})
+    hold["routes"].clear(); pg.wait_for_timeout(2000)
+    t = pg.locator(EVP).inner_text()
+    check(f"the first event's wiki text doesn't land on the second one's page ({held} held)", held == 1 and "Halloween is back" not in t and "Clear the main quests" not in t and "Swim and farm shells." in t)
+    check("newer wiki heading markup still splits the sections", "Splash trivia." in sec(pg, "misc").inner_text() and "Splash trivia." not in sec(pg, "summary").inner_text())
+    check("a banner that only shares 'Fate/Grand Order' with the event isn't taken for its own", "None of these is named after the event" in sec(pg, "summon").inner_text())
+    ctx.close()
+
+    # ================= 0.22.1: live updates off =================
+    ctx, pg = page(p, init=INIT.replace("{on: true}", "{on: false}"))
+    pg.goto(SEEDED + f"#event/{EID}"); pg.wait_for_selector(f"{EVP} .ev-title", timeout=20000); pg.wait_for_timeout(800)
+    so = sec(pg, "summon")
+    check("live updates off: the Event page says why there are no banners and offers to turn them on", "Live NA updates are off" in so.inner_text() and so.locator('[data-action="live-on"]').count() == 1)
+    so.locator('[data-action="live-on"]').click()
+    try: pg.wait_for_selector('#ev-summon [data-action="ev-sim"]', timeout=15000); on = True
+    except Exception: on = False
+    check("turned on from there, the banners arrive", on)
     ctx.close()
 
     # ================= phone =================

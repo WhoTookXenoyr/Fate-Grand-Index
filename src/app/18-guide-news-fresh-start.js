@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.22.0";
+const APP_VER = "0.22.2";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -163,6 +163,19 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.22.2", d: "17 Oct 2026", t: "Event pages rebuilt as tabs", i: [
+    "<b>Tabs</b>: an Event page shows one part at a time, with the same tabs as the wiki's event page (Main Info, Event Shop, Mission List, Main Quests, Free Quests, Summoning Campaign and so on), plus the Calculator. Big parts have tabs of their own, like Event Summary, Event Guide or Event Servants. The tab bar stays at the top while you scroll, and the address remembers the tab.",
+    "Each tab comes from its own wiki page, fetched when it's needed and kept in this browser. The right wiki page is the one whose event header names the event.",
+    "<b>Cleaner wiki text</b>: no more leftovers like \"Tooltip for 25px|link=\" or doubled words like \"RewardCompletion\". Those were the wiki's phone-only copies and hidden tooltip text; they're left out, and a tooltip's text shows when you hover over it.",
+    "<b>Servants open in Past Chaldea</b>: servant icons and names, Noble Phantasms and Craft Essences on an Event page open their Past Chaldea page instead of the wiki. Servants too new for this file open on Atlas Academy.",
+    "The shop shows one currency at a time with its totals, missions come twenty at a time, and random missions (like detective missions) are listed by rank instead of mixed into the mission list."]},
+  {v: "0.22.1", d: "16 Oct 2026", t: "Event page and banner fixes", i: [
+    "Simulating a banner whose featured ★5 isn't on your list: the 330-summon guarantee now shows them by name, with their picture, instead of an unknown servant. Featured servants from Past Chaldea are tagged Rate-up or Guaranteed. Featuring one of your own servants while an NA banner is loaded can be undone, back to the NA banner.",
+    "Opening a second event while the first one's wiki text was still loading could show the first event's text on the second page. Each page now only gets its own.",
+    "Refresh on an Event page while free-quest drops were still loading could leave the drops empty. They load again now.",
+    "Currency calculator: a material sold twice (two rows, or for two currencies) is no longer counted as needed twice.",
+    "Banners named \"Fate/…\" aren't taken for an event's own just because the names share \"Fate\".",
+    "With live NA updates off, the Event page says why there are no banners and can turn them on. Opening an Event page moves keyboard focus to it, and only the 30 most recently opened events are kept in this browser."]},
   {v: "0.22.0", d: "16 Oct 2026", t: "Event pages and NA banners", i: [
     "<b>Event pages</b>: press an event in On NA now and it gets its own page. It has the summary and guide, the summoning campaign with its rate-up schedule, the event's servants and Craft Essences (what you can get, plus the wiki's bonus lists), missions, main, free, extra and challenge quests with what free quests drop, the event shop, point rewards and lotteries, misc info and game updates.",
     "<b>Currency calculator</b> on every Event page: what your servants still need from the event shop for ascensions and skills, what that costs in each currency, and roughly how many runs of the best free quest it takes, with your drop bonus. Fill in what you already have and the numbers follow.",

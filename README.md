@@ -53,9 +53,16 @@ GitHub Actions runs the build check and every suite on each push to `main` and o
 
 Home's "On NA now" block reads Atlas Academy's NA export files (`info.json`, `basic_servant.json`, `basic_equip.json`, `basic_event.json`, `nice_gacha.json`) straight from the browser: `info.json` at most every six hours while the page is open, the lists only when NA's data changed. A short summary is kept in `localStorage` under `spirit-origin-list:v1:live`. The code is in `src/app/24-live-na.js`. The test copies start with it switched off; `tests/test_17_live_na.py` turns it on against a local stand-in.
 
-## Event pages and NA banners (0.22.0)
+## Event pages and NA banners (0.22.0, tabs since 0.22.2)
 
-Pressing an event in "On NA now" opens `#event/<id>` (`src/app/25-event-page.js`), put together in the browser from Atlas Academy (`/nice/NA/event/<id>`, its wars, the free quests' drops, `nice_item.json`, `basic_svt.json`) and the Fate/Grand Order fandom wiki (MediaWiki API with `origin=*`). Wiki HTML is rebuilt in an inert document keeping only plain tags, `href`/`src` that point to the web or the wiki's image servers, and `colspan`/`rowspan`; nothing else is copied. Event pages, item and servant names are cached in IndexedDB `fate-grand-index-cache` (separate from the pictures database). The currency calculator uses each servant's ascension and skill materials (`ma`/`ms` in `atlas_data.js`, items in `ATLAS_MATS`). "Simulate" loads an NA banner into the summoning simulator (`src/app/26-banner-sim.js`). `tests/test_18_event_page.py` covers all of it against stand-ins.
+Pressing an event in "On NA now" opens `#event/<id>` (or `#event/<id>/<tab>`), in `src/app/25-event-page.js`. The page shows one tab at a time:
+
+- **Tabs from the wiki.** The Fate/Grand Order fandom wiki's NA event pages start with an `{{EventHeaderNA}}` (the event's exact name, start date, requirement) and a `<tabber>` of transcluded pages (`Main Info={{:Page/Main Info}} |-| Event Shop=…`). The page whose header names the event (or starts closest to it) is used; each tab's page is fetched through the MediaWiki API (`origin=*`) when it's opened, then the rest in the background. A page without a tabber is split at its headings.
+- **Atlas Academy for the exact parts.** `/nice/NA/event/<id>`, its wars, the free quests' drops, `nice_item.json` and `basic_svt.json` give the shop (per currency, with totals), the calculator, the mission list and random missions by rank, free-quest drops, banners (with Simulate) and point rewards. Without the wiki, the tabs come from this data alone.
+- **The filter.** Wiki HTML is rebuilt in an inert document keeping only plain tags, `href`/`src` that point to the web or the wiki's image servers, and `colspan`/`rowspan`. The wiki's phone-only copies (`.mobile-only`), hidden parts and tooltip buttons are left out; a tooltip's text becomes the `title`. The wiki's tabbers become this page's own tabs. Servant and Craft Essence icons carry their numbers (`S327A1Icon`, `CEIcon1498`), so links to servants, their Noble Phantasms and Craft Essences open Past Chaldea instead of the wiki.
+- **Cache.** Events, wiki tabs and pages, item and servant names are kept in IndexedDB `fate-grand-index-cache` (separate from the pictures database); the 30 most recently opened events are kept.
+
+The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `atlas_data.js`, items in `ATLAS_MATS`). "Simulate" loads an NA banner into the summoning simulator (`src/app/26-banner-sim.js`). `tests/test_18_event_page.py` covers all of it against stand-ins; the wiki stand-in copies the markup of a real NA event page.
 
 ## Your data
 

@@ -392,7 +392,7 @@ function renderDossier(force) {
       <div class="steps three lv-row">
         ${stepper("Level", "level", esc(s.level ?? "—"), st ? `<span class="status ${st.kind}">${st.text}</span>` : "")}
         ${stepper("NP level", "np", s.npLevel ? "NP" + esc(s.npLevel) : "—", s.npLevel ? "" : `<span class="status">Not set</span>`)}
-        ${stepper("Bond", "bond", esc(num(s.bond) || 0), bondNote(s))}
+        ${stepper("Bond", "bond", esc(num(s.bond) || 0), bondGems(s) + bondNote(s))}
       </div>
       <div class="steps three">
         ${[0, 1, 2].map((i) => { const v = (s.skills || [])[i]; return stepper("Skill " + (i + 1), "sk" + i, typeof v === "number" ? v : "Locked", typeof v === "number" && v === 10 ? `<span class="status grail${celebrating(s, i) ? " pop" : ""}">Maxed</span>` : (typeof v === "number" ? `<span class="status">${10 - v} to max</span>` : `<span class="status">Unlock with + </span>`)); }).join("")}

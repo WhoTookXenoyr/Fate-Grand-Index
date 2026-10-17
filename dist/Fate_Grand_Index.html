@@ -2583,31 +2583,87 @@ html.cep-open, html.cep-open body { overflow: hidden; }
 @media (max-width: 640px) { .hm-b-live { padding: 14px 14px 12px; } .lv-cols { grid-template-columns: minmax(0, 1fr); } .lv-act { margin-left: 0; } }
 @media (prefers-reduced-motion: reduce) { .lv-face { transition: none; } }
 
-/* ===== 0.22.0: the Event page and NA banners in the simulator. Nothing here moves on its own. ===== */
-.evp { display: flex; flex-direction: column; gap: 18px; max-width: 1180px; margin: 0 auto; }
+/* ===== 0.22.0: the Event page and NA banners in the simulator (tabs since 0.22.2). Nothing here moves on its own. ===== */
+.evp:focus { outline: none; }
+.evp { display: flex; flex-direction: column; gap: 14px; max-width: 1180px; margin: 0 auto; }
 .ev-top { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .ev-act { margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px; }
 .ev-act a.btn { text-decoration: none; }
-.ev-head { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 18px 24px; align-items: center; padding: 16px; border: 1px solid var(--line); border-radius: 18px; background: color-mix(in srgb, var(--panel) 80%, transparent); }
+/* the header: the event's banner, its name and when it ends */
+.ev-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px 20px; align-items: center; padding: 12px 14px; border: 1px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--panel) 82%, transparent); }
 .ev-head:not(:has(.ev-bn)) { grid-template-columns: minmax(0, 1fr); }
-.ev-bn { width: 100%; height: auto; border-radius: 12px; display: block; }
+.ev-bn { width: auto; max-width: min(300px, 100%); height: auto; max-height: 150px; object-fit: contain; border-radius: 10px; display: block; }
 .ev-kick { margin: 0; font-family: var(--f-data); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
-.ev-title { margin: 4px 0 6px; font-size: clamp(22px, 3vw, 32px); line-height: 1.12; white-space: pre-line; overflow-wrap: anywhere; }
+.ev-title { margin: 2px 0 4px; font-size: clamp(19px, 2.4vw, 26px); line-height: 1.15; overflow-wrap: anywhere; }
 .ev-status { margin: 0; font-family: var(--f-data); font-size: 13px; font-variant-numeric: tabular-nums; }
 .ev-status.soon { color: color-mix(in srgb, #c0392b 80%, var(--ink)); font-weight: 600; }
-.ev-src { margin: 8px 0 0; font-size: 12.5px; color: var(--muted); }
-.ev-src a, .ev-foot a, .ev-note a { color: inherit; }
-.ev-nav { display: flex; flex-wrap: wrap; gap: 6px; }
-.ev-nav .chip { cursor: pointer; font: inherit; font-size: 12.5px; padding: 4px 12px; }
-.ev-sec { padding: 16px 18px; border: 1px solid var(--line); border-radius: 18px; background: color-mix(in srgb, var(--panel) 72%, transparent); scroll-margin-top: 12px; }
-.ev-sec h4 { margin: 10px 0 2px; font-family: var(--f-data); font-size: 11px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
-.ev-sec h4 small { font-family: var(--f-body); letter-spacing: 0; text-transform: none; font-size: 12px; }
-.ev-sec > p { margin: 0; }
-.ev-note { margin: 4px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.45; }
-.ev-list { list-style: none; margin: 0; padding: 0; }
-.ev-list > li { padding: 8px 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
-.ev-list > li:last-child { border-bottom: 0; }
-.ev-more { font-size: 12.5px; margin-top: 4px; align-self: flex-start; }
+.ev-src { margin: 6px 0 0; font-size: 12.5px; color: var(--muted); }
+.ev-src:empty { display: none; }
+.ev-src a, .ev-foot a, .ev-note a, .ev-wsrc a { color: inherit; }
+/* the tabs: one part of the event at a time; the bar stays at the top while you scroll */
+.ev-tabs { position: sticky; top: 0; z-index: 6; margin: 0 -4px; padding: 6px 4px; background: var(--bg); border-bottom: 1px solid var(--line); }
+.ev-tl { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: thin; }
+.ev-tab { flex: none; border: 1px solid transparent; background: transparent; color: var(--muted); font: inherit; font-size: 13.5px; font-weight: 600; padding: 7px 13px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+.ev-tab:hover { color: var(--ink); border-color: var(--line); }
+.ev-tab[aria-selected="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.ev-tab:focus-visible, .ewt-b:focus-visible, .ew-in:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.ev-pane { padding: 14px 18px 18px; border: 1px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--panel) 76%, transparent); min-height: 180px; }
+/* the tab already says which part this is: its heading is there for screen readers only */
+.ev-pane > .ev-ph { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.ev-pane { position: relative; }
+.ev-note { margin: 4px 0 10px; font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+.ev-h { margin: 16px 0 6px; font-family: var(--f-data); font-size: 11px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.ev-h:first-child { margin-top: 0; }
+.ev-h small { font-family: var(--f-body); letter-spacing: 0; text-transform: none; font-size: 12px; }
+.ev-wsrc { margin: 12px 0 0; font-size: 12px; color: var(--muted); }
+.ev-wload .skeleton { margin-top: 8px; }
+/* tabs inside a tab (the wiki's own tabs become these too) */
+.ewt { margin: 4px 0 8px; }
+.ewt-bar { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 10px; }
+.ewt-b { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: inherit; font-size: 12.5px; font-weight: 600; padding: 4px 11px; border-radius: 999px; cursor: pointer; }
+.ewt-b small { font-weight: 500; font-size: 11px; }
+.ewt-b:hover { color: var(--ink); }
+.ewt-b[aria-selected="true"] { background: var(--sunken); color: var(--ink); border-color: color-mix(in srgb, var(--ink) 35%, var(--line)); }
+.ewt-b .ev-it { margin: 0; font-size: 12.5px; }
+.ewt-b .ev-it img { width: 22px; height: 22px; }
+.ewt-p .ewt-b { font-size: 12px; padding: 3px 10px; }
+.ewt-p[hidden] { display: none; }
+/* the wiki's text */
+.ew { font-size: 13.5px; line-height: 1.5; overflow-wrap: anywhere; }
+.ew img { max-width: 100%; height: auto; vertical-align: middle; }
+.ew a { color: var(--ink); }
+.ew p { margin: 6px 0; }
+.ew ul, .ew ol { margin: 6px 0; padding-left: 22px; }
+.ew h3, .ew h4, .ew h5, .ew h6 { margin: 14px 0 6px; font-size: 14.5px; }
+.ew h4, .ew h5, .ew h6 { font-size: 13.5px; }
+.ew figure { margin: 8px 0; text-align: center; }
+.ew figcaption { font-size: 12px; color: var(--muted); }
+.ew figcaption:empty { display: none; }
+.ew table { border-collapse: collapse; font-size: 12.5px; margin: 6px 0; }
+.ew th, .ew td { border: 1px solid color-mix(in srgb, var(--line) 85%, transparent); padding: 4px 6px; vertical-align: middle; }
+.ew th { background: color-mix(in srgb, var(--sunken) 70%, transparent); font-weight: 600; }
+.ew-scroll { max-width: 100%; overflow-x: auto; }
+.ew table.ew-w { width: 100%; }
+.ew-n { display: inline-flex; align-items: flex-end; gap: 1px; margin: 1px 4px 1px 0; vertical-align: middle; white-space: nowrap; }
+.ew-n img { width: 34px; height: auto; }
+.ew-n b { font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.ew-in { all: unset; cursor: pointer; color: var(--ink); text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; border-radius: 4px; }
+.ew-in:hover { text-decoration-style: solid; }
+.ew-in:has(img) { display: inline-block; text-decoration: none; }
+.ew-tip { text-decoration: underline dotted color-mix(in srgb, var(--muted) 70%, transparent); text-underline-offset: 3px; cursor: help; }
+.ew-unr img { border-radius: 5px; box-shadow: 0 0 0 1.5px color-mix(in srgb, #c0392b 75%, transparent); }
+/* the wiki's version of a part shown from Atlas Academy, folded away */
+.ev-wd { margin-top: 14px; border: 1px dashed var(--line); border-radius: 12px; }
+.ev-wd > summary { cursor: pointer; padding: 8px 12px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.ev-wd[open] > summary { color: var(--ink); }
+.ev-wd > .ew, .ev-wd > .ev-wsrc, .ev-wd > .ev-wload, .ev-wd > p { padding: 0 12px; }
+.ev-wd > .ev-wsrc { padding-bottom: 10px; }
+/* the overview */
+.ev-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px 18px; margin: 0 0 12px; }
+.ev-facts div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ev-facts dt { font-family: var(--f-data); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.ev-facts dd { margin: 0; font-size: 13.5px; display: flex; flex-wrap: wrap; align-items: center; }
+.ev-desc { margin: 0 0 12px; font-size: 13.5px; color: var(--muted); }
 /* items and rewards */
 .ev-it { display: inline-flex; align-items: center; gap: 6px; vertical-align: middle; font-size: 13px; line-height: 1.25; margin: 2px 10px 2px 0; }
 .ev-it img { width: 30px; height: 30px; object-fit: contain; flex: none; }
@@ -2615,11 +2671,22 @@ html.cep-open, html.cep-open body { overflow: hidden; }
 .ev-it.sm img { width: 24px; height: 24px; }
 .ev-it.sm { font-size: 12px; margin-right: 12px; }
 .ev-it b { font-variant-numeric: tabular-nums; }
-.ev-gf { display: inline-flex; align-items: flex-end; gap: 2px; margin: 2px 8px 2px 0; vertical-align: middle; }
-.ev-gf small { font-size: 11px; color: var(--muted); }
+.ev-gf { display: inline-flex; align-items: center; gap: 2px; margin: 2px 8px 2px 0; vertical-align: middle; }
+.ev-gf small { font-size: 11px; color: var(--muted); align-self: flex-end; }
+.ev-gf .ev-gn { font-size: 13px; margin: 0 4px 0 6px; }
 .ev-gs { display: flex; flex-wrap: wrap; align-items: center; }
-.ev-gf .ev-gn { align-self: center; font-size: 13px; margin: 0 4px 0 6px; }
-.ev-sec h4 .ev-it { text-transform: none; letter-spacing: 0; font-family: var(--f-body); font-size: 13.5px; color: var(--ink); font-weight: 600; }
+.ev-list { list-style: none; margin: 0; padding: 0; }
+.ev-list > li { padding: 7px 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+.ev-list > li:last-child { border-bottom: 0; }
+.ev-more { font-size: 12.5px; margin-top: 4px; }
+/* the shop */
+.ev-tb { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ev-tb th { text-align: left; font-family: var(--f-data); font-size: 11px; font-weight: 500; letter-spacing: .06em; color: var(--muted); padding: 4px 8px 6px 0; }
+.ev-tb td { padding: 5px 8px 5px 0; border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent); vertical-align: middle; }
+.ev-tb .n { text-align: right; font-family: var(--f-data); font-size: 12.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ev-tb thead th:not(:first-child) { text-align: right; }
+.ev-tb tfoot th, .ev-tb tfoot td { border-top: 2px solid var(--line); padding-top: 7px; font-weight: 600; color: var(--ink); }
+.ev-tb tfoot small { font-weight: 400; color: var(--muted); }
 /* missions */
 .ev-mi { display: grid; grid-template-columns: 34px minmax(0, 1fr) minmax(0, 1.1fr); gap: 4px 12px; align-items: center; }
 .ev-no { font-family: var(--f-data); font-size: 12px; color: var(--muted); text-align: right; }
@@ -2629,15 +2696,10 @@ html.cep-open, html.cep-open body { overflow: hidden; }
 .ev-qh b { font-weight: 600; font-size: 13.5px; }
 .ev-qh small { font-size: 12px; color: var(--muted); }
 .ev-drops { display: flex; flex-wrap: wrap; margin-top: 4px; }
-/* shop */
-.ev-cur + .ev-cur { margin-top: 10px; }
-.ev-sh { display: grid; grid-template-columns: minmax(0, 1fr) auto 70px 80px; gap: 4px 14px; align-items: center; }
-.ev-sc, .ev-sl, .ev-st { font-family: var(--f-data); font-size: 12px; font-variant-numeric: tabular-nums; text-align: right; color: var(--muted); }
-.ev-st { color: var(--ink); }
 /* calculator */
-.ev-cctl { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; }
+.ev-cctl { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; margin-bottom: 8px; }
 .ev-cctl label { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; }
-.ev-calc { margin-top: 12px; padding-top: 10px; border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+.ev-cctl .ev-note { margin: 0; flex: 1 1 320px; }
 .ev-ct { width: 100%; border-collapse: collapse; font-size: 13px; }
 .ev-ct th { text-align: left; font-family: var(--f-data); font-size: 11px; font-weight: 500; letter-spacing: .06em; color: var(--muted); padding: 4px 8px 6px 0; }
 .ev-ct td { padding: 6px 8px 6px 0; border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent); vertical-align: middle; font-variant-numeric: tabular-nums; }
@@ -2657,28 +2719,13 @@ html.cep-open, html.cep-open body { overflow: hidden; }
 .ev-box { margin: 6px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0 4px; font-size: 13px; }
 .ev-box b { font-family: var(--f-data); font-size: 11.5px; font-weight: 500; margin-right: 8px; color: var(--muted); }
 /* banners */
-.ev-bans { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.ev-bans { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .ev-ban { padding: 10px 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
 .ev-ban:last-child { border-bottom: 0; }
 .ev-bh { display: flex; flex-wrap: wrap; gap: 2px 10px; align-items: baseline; }
 .ev-bh small { font-size: 12px; color: var(--muted); }
 .ev-when { margin: 0; font-size: 12.5px; color: var(--muted); }
 .ev-faces { display: flex; flex-wrap: wrap; gap: 6px; }
-.ev-gets { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 10px 8px; }
-.ev-gets li { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
-.ev-gets small { font-size: 10.5px; color: var(--muted); line-height: 1.2; }
-/* the wiki's own text */
-.ev-wiki { margin-top: 10px; border: 1px solid color-mix(in srgb, var(--line) 80%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--panel) 60%, transparent); }
-.ev-wiki > summary { cursor: pointer; padding: 9px 12px; font-weight: 600; font-size: 13.5px; }
-.ev-wiki > summary small { font-weight: 400; font-size: 11.5px; color: var(--muted); margin-left: 6px; }
-.ew { padding: 0 12px 12px; font-size: 13.5px; line-height: 1.5; overflow-wrap: anywhere; }
-.ew img { max-width: 100%; height: auto; vertical-align: middle; }
-.ew a { color: var(--ink); }
-.ew table { border-collapse: collapse; font-size: 12.5px; }
-.ew th, .ew td { border: 1px solid color-mix(in srgb, var(--line) 80%, transparent); padding: 4px 6px; vertical-align: middle; }
-.ew th { background: color-mix(in srgb, var(--sunken) 60%, transparent); font-weight: 600; }
-.ew h3, .ew h4, .ew h5 { margin: 12px 0 4px; font-size: 14px; }
-.ew-scroll { max-width: 100%; overflow-x: auto; }
 .ev-foot { margin: 0; font-size: 12px; color: var(--muted); }
 /* links into the Event page from Home */
 .lv-go { all: unset; cursor: pointer; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--muted) 50%, transparent); text-underline-offset: 3px; }
@@ -2694,14 +2741,35 @@ html.cep-open, html.cep-open body { overflow: hidden; }
 .smb-k { font-size: 13px; min-width: 150px; }
 .smb-k small { display: block; font-size: 11.5px; color: var(--muted); }
 @media (max-width: 760px) {
-  .ev-head { grid-template-columns: minmax(0, 1fr); padding: 12px; }
-  .ev-sec { padding: 14px 12px; }
+  .ev-head { grid-template-columns: minmax(0, 1fr); padding: 10px; }
+  .ev-bn { max-height: 120px; }
+  .ev-pane { padding: 12px 12px 16px; }
+  .ev-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; }
+  .ev-head .ev-bn { max-width: 100%; }
+  .ev-tab { padding: 6px 11px; font-size: 13px; }
   .ev-mi { grid-template-columns: 26px minmax(0, 1fr); }
   .ev-mi .ev-gs { grid-column: 2; }
-  .ev-sh { grid-template-columns: minmax(0, 1fr) auto; }
-  .ev-sl, .ev-st { grid-column: 2; }
   .ev-pt { grid-template-columns: 70px minmax(0, 1fr); }
 }
+
+/* ===== 0.23.0: the Bond gems on the SERVANTPAGE, as the game shows them. Nothing here moves. ===== */
+/* the columns shrink with the box, so a narrow phone gets smaller gems instead of an overflow */
+.bond-gems { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1px 3px; align-self: flex-start; width: 102px; max-width: 100%; }
+.bond-gems.over { grid-template-columns: minmax(0, 26fr) repeat(5, minmax(0, 18fr)); align-items: center; width: 131px; }
+.bg { display: block; width: 100%; aspect-ratio: 1; background: no-repeat center / contain; }
+.bg.gall { aspect-ratio: 26 / 27; }
+.bg.g0 { background-image: url("data:image/webp;base64,UklGRpwDAABXRUJQVlA4TI8DAAAvIUAIEA2gCZg2DewD/4aHiIj+TwAQ/cDdsCnvSW5XMwVOUguQuqi95i4i+h8Sudq2rW3zCiwZwoyru/OKK7cTM0w5z55COzKEwaDKDieGE3hs/1Hwbxm2beOI1/37D3vfobBtI8UHD/uPS5IcQQAIsLnYtl1rs80pzlzbtr25D9Bo27Zt254AEUCja6100TRkWkhXkVcn0etyicEPmXmFBWF0ro+X3fcCA6dpwlGewWH0dYmsmZpwMgzOs/oqP57y4yUObvH6HGudGCJCapYaxv+7ys+n/Dg+ODg4GYEXI2ulrk3v0O4md+7iEd7hA2Zw9gznGdYPUbs26kp6h5o85Xdx9gjJDPiAZxBZEwwbimpRWwTXQK/EYBNt32MEMD7MOnBhFsAsZz6xRQvxZ1/iExChCxbA2D+A1t8IYO8iQoSLlBQyBAoDCOABSEGIkdhVwDoxwSlIl0wRuRc053+6CGMeVIBgsrARwAJ93EL8R/zZg8qJcCOxN6LDoBPaeMBSBR0I4CNGZ5FaEeEO8V78E792ydGHL6AUAviIgElimAQwPjAFHCU48U30ELHbNKW3JxjsnaKXT9InSRIDrAsfR5g0khOghKMIVMgLT4WZ040uEgG3anqFwdM0yQL+Y3zEwEeMKrD4sNYkCaOgiCEM8F8ARJMMTWbh4AQqGIJADMAB4IEUhEXACiL+ioAspavkCSCOf+T8d6wCqEBgCCUAKeyQQReWMY9DCvwVAWKXOAGIG7OsnOVCSNYyKT4ClHAkzMIWQMtDi99IYQhC2y7CEMe/iGW4cQIQj8RasVxkixYiRegCQIAIZhC0j7oBMIAhzPI0jnVUf/N0w3YRrqZ1augoKrrgwwrYNFy0LK2Oh3YV7SUMoYcrEWerb2/R7at4z84iRk3Tsy4qgaQKm4aJYFpmBbQL6BS4HHNfhIgA9upG/YCaWc4so4QIBiAxZNGFH0AcXeWmiGOfbtT7zeLfnGlHADDYxAOscqrA45AU9iuCQwpEVRcVI3BQwTpOBKCIAhRHxWP9M4oahpSI6hHKIYAhiQHzXA645ZJCTTVnm3TN9uLhALIAMN+5Ih54xFJbEe5mj5tl0zwPI0CrVeBFiVNd9BbnaoRahfnfnzmEAcZ3ehFj6WCOQ+X4UXmEU3OfWDF5iPw8FfCFjR61qaeIDaM0T/f+U6Mv8AjQtq0uiIIw2n/ms9inLUpE1qdZAQA="); opacity: .75; }
+.bg.g1 { background-image: url("data:image/webp;base64,UklGRkYFAABXRUJQVlA4TDkFAAAvJoAJEA2gbds2kNLN/v/htL0hov8TwP9Ub21vkwSKuaKGAIlyzFbQF/xcBwratmHMn3a7A0FN20iSIQyE5Y9uy+euEAgk+VOOMEL/JwDvPt8EIYpmAEKEDyCAACgghoFKmO4Wytq2LY6il1RSEdq90xdeWK1wd9lyGFycRFbo8bCFte3cnRZgvL07NhZD1890anK11NRUcEeSrW1r21yDIJx/GBrjLFpDtsrZAU55xJwyc3UqOq6g1batapnoewf9FPcUDgFeRv5TgAKUcHd3eFxUzrZt59+csW3bTup2cn9rsmeqvsB/qjX9v0Ct2TY227bdxjwmQETwUphYK2JE8mfEuOgXw2LsiR3dWc12UuFgBoF8c0Yg35xv5KlCeMJiLN0M9TkifABdc4+Z+wiLAETkkymnm6EiUbECmnukt9guqmyWil4jT7Ui7cmQboYSV9ATcdrX+7YKLDSw0hXZIuMJZKOUIoZC4aBgDj1N39r1qOi/huzyENuFTgf66DbbxyVm+9j2BBCBmLue9z34CS0ALJg0vEdkliyxVlQe3FmfH8ccXMYNUGnCLxgC3hKmvH4/JYZmSpFYK+JFoWiMU2ZAOIUoWvATAkijBmTBEqaYBGKuuCZ+iqHislGKyUbpRzZKdSwMB/MmutGH4WrEpyRiCLSUGcGnD9zg/HBnZjPicnGID6R+zpjoRh/45JqYNFuoDsFZghZ4lzszN5OExAfxqpjEWtEeCo8i4bFmYbgk4fzPKrxfEOxlalD2caiGWtrg86Nwg5tim7gYqOK/+FFAYq2IEcmiTMxAvKcp4AEM4TVO1aGxpQbl6iyBGxwSp8QLMSx+iclcibUiJpCnAkYzgUV408/DFLrl+pDqDkkCE4MpvOb3kqobw+wO1GAIQ+OvfGeEL5qsrNBkZY5IJbdIRoS7MoGt1C1X6QZV3Mkh4FRnlwQxOQkOd8Zf1aANiKUiENUiPY+Yv4T5tjLlipB8Bo/0SGiBRwSOzxiokGmp4I0kAeAWS0WjkP8UmccE6p5pAd5EBb7jO04uhpLwCzyOz3BlBvKK8d8yf25knMhKhAyClG8BvagrA8MpRMqKkYim6AlQ/y0Xa/Cdm4s3RpVATvvWaDKKlGAUKTWX6Mdm+97zcCIrSSfpIW/I+sRvKcgjZAitUcKPzT86PgXafjIS8VXuEDXO3bXilDhFbjFY++wRonf/dji52u/OJAJIJ5Bv8sYYTGtrUBl+KRj3itZfvagB0SLA+o/sWrFOXBU/xWAuMSGeI/a1sfncan/3FRruTCIE5IAQiJQVfhUYiIDhkX/RYsecj6znijj1VtwVg+QXkSJJlIjz8d2Vga6LWaGmJliHdzLsm+Qmg13MGJW5mpoYRtAz207uRIsb0eLWkvu79/Zjyaqseys+ij4KFim/R2+5hAPkTdYAMUQFmPMR+7FkEVLlgXhCsa643x9k/2P9A5BMUsYQYhHZzrAgzB7AnI+sZ79FSJxyKWF/AJvj7wFDgGSP2IDkgJEeo0pzjFvP/nKZkooEkb1s93jvlt3jXZ0fb1QMNRJq02njzbRk/IVocYOdhxtX5/xg/tH5PvFYlTExXBLeiIttnNp35SaQrEkCafiPOT+Is+W7eCWUWvyenPTjY5D+DzNRgThX3oqr//IExanJOXN+4Jow4kHEMYdTb3miIkeU9M8vrTjL0u4paH2z1mc/YrHubahKn0XfE8Hvn1+aI4KzzO2eUvXN4tRbcdflyf5v5ClVVItGITOaJZTFTzHIEzfylA6Z0SyV17wcAgA="); }
+.bg.g2 { background-image: url("data:image/webp;base64,UklGRpoFAABXRUJQVlA4TI0FAAAvJoAJENVIwrbtjKsuj23b5sq2bdu2fVa2bbPKTPplimPbto1cSc11prbtjuo29dSybds27ShfyRHvtLYe9k1SCFZVc1W0yjjRLNu2bdu2jUfJkmSrVsXf2hnibgd3hxWBs++k6YX7wl0W7vDc3WUoVRQAAnBs2zbTJdtmNGd+gtVd7WXVwy/MXrX3GLhtpCjp8jF8gtIaBBgKMAxgFcCE2Fg1KAATDQFOAZz1AlgfCzBItYga8sKOCEfwRaPwO1c+b8InzOUC5jIOMEKVAIwNEzWs3RXgZ6454fvnfXMRCrBOlQFYEXDf8JnH+7wJzJwxl6cycAVgseqKDJyPwkdNfyZJwNfucT4P76gmiCHWBjHM3DK8whe0wtcmCAT4qmH4vjlmwT9T5HqKNjA6dqoC01uGc98Nr3S/Rw2axlcNC/4uEf0zRd6myCU6NjA6dgJMUiEAixiBQ4zAw+cBvwPwsel+WDJ/H3xKCX9/fHweghd0uETHA0OASQAjVQAbYBHAIbI4E+WZJYv+4TnCtbXfpsj1FBEKz8PLAKcA5tIq2AMxHLplePhgIPgyELzo7kDfmRB7MSGWmPix6KWre7/oda29ArO9wov2Cn/aK9zJATOHJ8wc2qyVA2CUjWncd4MvA8G5geBOdwesuwM2IeZ4aULsxYQYWawFAh7vZw6CmTlsM3NoA5jqreSXATAKYMNR2cxF2avXMvjKLQ8GgtMDwaXuDlh3B4kisLV9UgQvlqg7SxS2RMXH8/T0HkzodWVCL9kJvSQm9G4DPAQwFWCSUt9PnAw8eFH26rXsldNFmXMDgS3W3cH7QhGQ8C4tUfIQIYqlsQz8wwbYBDAJYKiiIG7diNvZW27fXgVoXws4GMAIcD0RYH9CsEeQwBCAjJxMgMu1w470lYuDLqRcXHNxUhCAGi6hhkmAsQpB3AoRt30m391ESgXoCl3PBsS78vn8swKiF3Bexsrq1WHnHn3NRWwsAWp4LgCYqRAZR6GMY5+Mw8BBWC7g8XjjBR5bBDabBbMFlN7mgNkBUXFrQrhDCKsTAo+pArrDOvDquBZQw26ABYoZOIhvImVJLCtf2GdmVuzuNQ6n9eZRTXZNUWTj3dMcxs4QfLrpzkmZPn4UZmnZcS1+KAZgBMC6XaXZI4s6ZhX99o0lafI/f6T5/l2O168VevaMqamfWYvDRpDt7VsVLx1qsG9Op61K2OWKS/rvH0PD0jfOPo/vt8+ibmdE3ToBJiraBGAWWpotQ0uzR3p8+/ZOQUhcTMs9e0YgEJjZCUmqX3GFHt4LNRB1WxN16xR1C1S8G0XF75Cf3CHfrr/fiZQlyfj9OwsXv7LXTvCrnNpU7+iKHsv6DZLgcNptVU12TdEOq3XE2dkt3uSPpMuxJl2OPOlyBCZQSrlD3mZI61vk/f6dnwlZWh1dweGEjJPotVWF1Ti2ipf13Tt2xos3+WFHR6ULBTASYC4LndrUoJfbHnZJ/v9X7uoxdvkrrtqJdW02Aafj2gT3UbMbTOmpMD3E0AWCeI4j5s5am2evAOyjlP/maBaa5D/9sD8gooDhAx3iFNB6s/FB8mwfpSJZaBKE71wTvtF4t7MNIBgkQTClp4KNkTu9RXYTybPDSJ4tplQomQaHTWyPZf3GScT1lZjQV2VWTwUjoy2ym1tki0oW5XZgoSubGvQO24jNntRTQThvXIHF7QUWdeirXUlfAZwBGKvyf59mocXmy0KedlybQIQo69sLhAWhSWcCAylV6AGO8TWOpw4O873AuuYCBgdSATTpQTRpA8AoSlX6g+PCGsf3sTOATRQ0FRwVokmjVFcABjkDbGKhhzY16J+lLb0O0QvgGYCdABMp1QowiYWmcuXoPRLHBxgIMJRStcbGcvSWcSIjKS1BCgA="); }
+.bg.g3 { background-image: url("data:image/webp;base64,UklGRnwFAABXRUJQVlA4TG8FAAAvJoAJENVIlrVtbZsLK95Cl93SqsteQLItt0vm3gDDipmZmUGezu8ZuaPRN2/IEFwbQpKZ5TiGgnGGJnI4kSDN2mbKub8p29lNbPONe8Ibs6fqrlPV0VIdJ0ubX2x0bNs2NrBsazvejCHGZWq3f77if+rvX1+KOF/7JrVt27ZtX3YKnpccUQAIULFt25xs2xz/z3YdwbqAVrtZq3EAu1a7xzBg2jYCku7JFfa+QYAa+PcLpzI/S9JSpzsPAaF/AbXvC6e9JZak7Z4mIKnTEJAYQJw4itl3UZT0/QkR0E5AEgFBnYPLckdxWe7WR6pjH1MdoC1S8dPg/TN95yQ7zkk207kQEBXjsty7Uvg+okJrgZ8G/DPhJHuaFRkv7gwExA5yWe5F5NW9wt6oMtPI8Ai0EdgaxEn2VGR8bYSASJshIGKQgMUo2jZelf2KEmxFQpL7spOAXJvNktzFXGPHKq6x4wJ/RPA/Ar+5+BdFA5oftFZZvADdKDCV7z2xO0yITTaHJbknhjA0pYbrBprWanxGCC+S6sFuEE8ME+LO1JhtsCT3MKyR0xiagusXwSQOsgnbimSsUlFNNwp9FJ0DmBDXCZgfk6wi2QkYLqNkTLjRTgw3mkLFMzc8OjAAxk9lrZ1AQCABeaVHjZN7WOPkTWwNwt0qbHNxWgbTMhAxmMyDtTk42oKTXj5sNBKWa5iOW+G0Ha57qQIJBhL3mRDdU5bjLxGwPoXNZ7hbJdXj9TqGs7TjcDjouJWqeqGIzoS4z4Q4JFi0Mkv94QwZyBmyjzPkehS3fVYUScJcJZqR0liugck8XpcLy6NoppdpplcSuxsaON5j2l6DsXJQBJ0DmBDvBIu2d4qALPP+cIbs4wx5FMVtn9F38FlB3xpedQin06YZKU3E5AU1ScJcP0VxpFKphq4PDCC7QpCAukRHCCiA1bUFDYM/sHovBCXIsoypBtgdoetQHTBWw+3GXIuBAVwtwtG1aDQqy7KM0VkvJX0D1O2AWmgOGgbdoC2yQIymGYjhiUiSZCAiENF1RqRNBrVFUFskCWOqVCr1UpKkOQRkwuqaO8J9z5eOfhleS9e20jW12tS4ZFvjpMONk1ztayclKZfLNwXzXkQxiChOtbqcPqjLWj/tkO3fzCEgNviSi5PraMvwwsk/qppY03gmIk1EIlIbzXLR4MxTEc/prCYSiR2y/dtLSccAdcD8tDEC2kXGd19i/M/qihsLpv6FQiuq7zUVLtleOKrWLBbNnxTkoSDfeZS7PN1R7pX5zKP4BB5l5HRmyK7MVpszhl9dTpKvCNhJQAsBiR7zixKQJDKeqhyV1/dDoXXyWltqu0WL1rTSpoc8mS97lhc5nRnyIDNE5pPkYo6ASAux2zWN59T9jNP9A7ze7CG91gldCodvxjHv46IY4qLUhTg9JFmAR3G/DmCCZwJctqYNGnqQGbpR4JNkrNU25XLPON2edebNCKZSiMg3MTHh+pUZ2l2pWO8cAbki4/OfGT+Vz98yO2Ve2Ucx2utRgB6CjASLjgfZDorokuCSS65bgO/ABQLGCShq+6PWLTKeJDI+/0KX11t5Y1Z0AAlmHo/okuC9S4LvwAVEFq4ioMhum0TGk37rctMLXd7JGM2Kb/YWsNdDuB0F6PGuOvCza2jvXRKeiC4JTxBZOGC3XcNGs3In+qcDiE+lVWDRBuydgIBiAtaagMu8jQ5MdvBMlRSgQJIGjH8m4DMBKwiosHfOMNmf5nJJBZHZZALWdy52AiIIqIOf87hg62CwdYBTnEH3XwLyCIi1d9Lwc8544BT36b8bkdl7SyV7JyEgiIAEAuoJWJomYJ6Aqrb+dFrhcDhLQJjH3ifIDgA="); }
+.bg.g4 { background-image: url("data:image/webp;base64,UklGRsYEAABXRUJQVlA4TLoEAAAvJoAJEBrJsratbXOBvRLGC8BVt7RnZmZm5tYa/5VeSxPNhJnhm8iRobT+5TAzc1J1wmC2Q5AjSVIkKbwSnQz3IgkYn3M/Zlze7rOaTXPIsW2bttazbRvf1lkPV9+2bbXcZAAO4Gcq17atY3ts2zYr23ZU2sZ7CzF6t3ZqtT9uIXZaO9OB2zaORDvbd6++gv8lAkzx+YB1wChgpNuAYT5gM3B9N3ANsA6Y6nZZpBjb8mrBtry6kO/jE/mnmsIiHWGRikx3h0VqWrAtr3i9LSwSFmmHCUx0D4tUziJtk209TXJGtqVdMUiodkK1f1YM7gDWuAVYziJtA+1OU7ulFryZalqSKaqrWYY2ulWhVnezXC6q7sRq+qrNF1YzKq8+UQuLAgvtlWhqnWm6Cpj2T6jVxcrK0sct5lVghsUs+CUZ73rMuy5eWWjngOtcBIxtAa4RavVBsmtw61s/1qz51mGpquFdF75EAnwIDIBlLg2wELhGJV8u05SWvqM3A3Z901WVoikqmRc4DSwDxjgntq1+U2xbT1LcILvmiCRtWZYZSO5QR6yInlEYyO5gewrJH7uQGXNqG3motpFArnrishMsUuaiKbatFfIioo1ndnZWYxjhcHFzTIvKVV+3DIx1/PxFFimIW+6tkD+d5BnxISZdXYYuhfEIkAASQ/bVylV/FQJ2jE3qTLYAu0ELVFN/tIlb7ulyIuCpJftyLL9KMP4KeKhM/78CJtqWm6tty81L+e6QT6SpgbTJajGFMdNiGMSlLa8CpqdJCpmV1Wh5Oa86kWFE40/Q+CZX/1m5+kd0C2DuUL67597hhtDSErEjXvOTxMogMbP19aTFGDnU2BiORCL+HFMSNL7J1X9Arv7SkoAlgvTeLBQK6S+zLwzDMIhNsD6YJ6WmpoZMG1d0HlB0lurdXxp/HBpgPq+gqytpCtkdnAgGa740ePAM5pkBzgz4pjciEUNvp9Uz+w6tn1dN8HnbN+znY+5em5yawrUCmUkSnwfPYNpvVaeQVmAYxC96h9+GPVhc3LMPd+4yR4BNwBjdbRIRWvWtT+3Yd2j9vPUetAYeMLEUJPEJP3gG+3YBkzk7Vc1Y6A7/O1CPgFoFzNP/XBIR2v2tTxUNXP/MP1y9A3uP4fpnXv0bPq2tKpsaR7LMCN1/Cq0IY9fJFe4o3f/+2cwE1z/zD4tVOPHjDy4fwaFjEMauFWHs6p91+o/jwPGHz8UrR04sDlw43Hopefbv0/SVTawU4uO1b+ToZRXy8Bs8b6fVyxKxBlg4xp3Hum2Mt+/ahZ5bvyYDjxv8T2dSksdjFXowKRFprgy3bhvl1m1j5tZL6WbPkVu48Aznn6E0tiCUwcTr9X5el9299/q8Li9Kencvcc5d6nfK5na7UEScQlyBt1Ib7mqAMRKRKBHr3k6rr2bfz2MUHRQu/eIU4sogWQupx7ydVu9IxLbuMZfbpPXkJQSLxZUBiWmOSeZpg0SUj3HXA4wDdrIMHb57b+E5cwMKlwwuRjAmmYUhzrlbVXQcfT+PefkN/UZcGb7HJHOhgbsZYCpwiGXoDEuXKej7A30BsBuYBgxzEzASGNoPfUeGFqEvs4W7nZkZ6KuqGB3lf4dw"); }
+.bg.g5 { background-image: url("data:image/webp;base64,UklGRnAFAABXRUJQVlA4TGQFAAAvJoAJEA0oatsGUrr9wh/xDgwR/Z8A/qVZagQoRQNx0QT3hB5Voy/yOAcK2jZyzB/0zR8URkBR20ZS+KP0e+9l0P8JoE8QTgAeIgCETQfaoDsYBz7ApTNAnxrJrratcfPaA0oth63ARFjmdjdZFW4g11G8snbZHXeX7MrMLjNYHiwHPKX1U2ZmZmZmSZKzbY4TPSrJoS2Tc4Ze9pYtS07ISbhLzkzOMw5luXpc0MCxbWtZs7F//cTdvXeXloqeLvPIFDIXeir6VEwh7oZLUDm0bZvaM3/btv8/Tmn7lbHtVGbvV8VmlS6lbdu2bWcCRASHhiPPcjkiA8Rj8Uf8ztXIs1ykyBIloiE8FxfFlxyJf+K1eX3eWgQD9yZ7xedkNle4zJt7WlhNbkUkoTJ/6Xe8MuY6sYiY81ts3yFIz8VjkUCozJ+u3tOxGotdgnopsShcOWe6qP6UAzKt4V9k5/KX4nOqYGNK6lo843hsTigaiGoRH5j4Lh6H42FM8vqm0JNSrcUVsnKgsijZKYKY65RFA4piZti260z7VJxoGpg5rWfib2atjPD4buduAM8IsPvE5nSs3hOQihPNghEJpJYKr+g2l7XKoqRVfk5g/dskq9sHYV1Wi2q8i80ZiqgK4rXIFh2LakHjsmYAL/Pe6qJtCAeA49VMdFkhGnz/064bzuV84Yeqi8u+1XS257YImy2QCrIN1oyrUV1pgYwoI7N1sK9siZ75ijehNqYnmdfpHqKiXRvKOx9EcCUW8RusQBp+Deec0BfVBnDL1mS14N1v0VzUF9fbJHJEkw3l3Rsxc8i5qvg17h7cNvI7oKJFFLePJhKULWEbSGvzM8fjlY5VwsVGDNuK7eycaz0Xv1sa+Z6LEemiRARdCx2HbKrCBeHARauFjbUZalrczgbABjxam+H48diccGU0XWwXyeJLS4Z6dOLfVu3vwX8yg7ruSYSledJNwztSDaRnUAy4tB1WBhuUtYoWDbD79LOf4qKf/VXuZ/M2VLcHxO6WRPbvxmXzbwA3eUQCcLsY2YbbwCPgI1TDRfWeOaKBqGgJGIOegJ2KgIRJQAcA4VeAfMCzySbR5kTaGiTmzxocoicYXQFMOAJw4OI4xgBwVsm+wjOaSkC8b22n4Seiox8Eyz7Pjx2bDtUX9ymd/ZlyXOShDI9WnLyLztjchbobKMswdTnkoKTgnK2IKR2asG0pJFR7F2euOCy+tASio/l1vnoW4QJTKVh4CdEZWA1+4FHZALw+50oS5wTo/58GbF0qEner2Sq2iMfidUviv4gRyZFpkPJ7Hn3WG+n0/hFP7UEEPC19jCjL4LeI5D68Cbc2tVgP2FoU71rZdHFV3DKbdiRtjEyDUn6WwC4TjtkTeAq3H0HZgAcsGnD4/sbEvAHZZvINoiHiH20WCZleOznTaz80NtvZxfnzomh63vneBOfzhiEoqin/2GA1LEdzZIcHF6M+mdoFpvYZUzuB9oq/7Ag+4onw+ghAFFYNXAIuhoOTiMcEKa7JgN81Nk3vcP0BnD8fCv+E4Hw2jPEDLggHG8R2kSm+ByJ+IUpwPj4oAZS18OBnsAKba1ZC7Dkh9hGwiBUNzPfIp/zYyOjSm9NJQTVKxW1MrP+Ds4pTrPkTjcVtYrskT0rye1CAkepln1dGgK57ONhozZQf7p64LN7cCE5EGqn+5bT7OfzcHH3uM3xO+V8oYYuOUSbvzkumi0tnbgjBP0NsF9Or91rhlQ/M++zbvGQfZ8il+Cce7ewNf95Qbd+ZNXe8ZoDfIQ1owpQfVu0shlc9F69zAqcvp9k+5Yfhork4wfOH5PgqlzdsTp4VyafFN/GBQ0M="); }
+.bg.g6 { background-image: url("data:image/webp;base64,UklGRsIFAABXRUJQVlA4TLYFAAAvJoAJEA0oattIUo9flj/izmKI6P8E6D/gEaCVFABVMlP2Abb0UyfJEG+dAwRtpKYS8K/uJeBhwCwobts2YpJez4zQZ/cfsBAIJPlTjjBC/ycAAAL2AMfkwFwYfA3CM16geaY2NIyuqMAc8KuhrG3/ITl7e6Z1VaqHlUFfqdi2V9l5Za5yDF7POkeRE/Dexsq23am5psaucP1Ew9jOZ9v+5IYCQNDRi21bZUondVbgDFkgI3ABt1whrVHavODjfPf95VjbtjzKFf+Dj7tPhbv7Cui1Yw22g1kCW3B3qBzS4e6ekz+c2JdRObdtG9szP9u27djWpzJGq9pJz6eP/QdSOk8dO+ls6zPHBIgIrgmbLMzE+BLiRKJIFv3i+8UTYyI9dPhsGmKWuJ0zsH5EhCLmYiFKnk22atusbbJGT5gzsP+SI7oiHl0k8aPdeqFMdI6eLW/sbyDx8KncqdMTubNH9/UtYtf+0SNX4r9/Ky3MFnlRtoyueyquRC1c8mKbhuYVnNBukE8GE/yJiL0IIsGXUCiWiMD2raq1Bk6AnveFlLWd6w3yafXveTVjyWLSO5H9nSF09vGyCixFFqjreV8w+PraUvJqxt7htRjKOPww8F2P5SdbbZZFVXC0e7EkQXJ+TAifBpiqEtc+22P4T1yglCpeilFvDvWMQnQ+AoJwZZ0ReZAjMHFMC+bOHIb4gIj14MtnYp3Y2cfLma19wgM/yAMu4jIWC5rkiBiSkobZVMBc954M3DlJNHogsgsSetPEW17wwBBU8WvQDEPKD9kZeVUvaTocYVOBJyyePJqGiBJDFXtWkDCNYYsTW9ozM/O96gQalAcxCzgyiCgxZRnAlVXlSKKRFEOGiejpi7bCkR0/I4EPZZHAh37E+wqISMQL0sTBCKWZYAEMU8CAadLHjogLkkRMU752TGHD1F6IfnHlfM1YX60YK0dkmYeFDLHFZl0fL6sgRQM5DTn88EFAkCbGx4XpaTGY+DocAccUmub+sLJls426++ydU52i4zFlN1n4mCNKbLZEVQ5QwZqP4VtHxrcf8EHNMRmxrgF9Xx5Z2bK5ry+BIXR+V45IFvPH31/aITKwFPkrp5HfnUKyWMwCgKmKj/2mYf0pIhCHglacnAzf9zSY8n45JWv3xE5/4MMMf+BDSVlgKWYsN+DOCe0iKvjCxI9QwwfU1NzZVjyAhtKIqeL89xb7YWN//gAqmlWxyypEcbvhd4S3JGtxh7eqaGGpOmGB/wOmfIypKkUJ7JCw+3sQwwdkj+DT4m5Z4o14KQ7uZ/++919Iy+8Bd7bhTgq+qb3zIxyTQXMxYBN2AUwGHfb5uSJ+liVixP3TgztPis4dBO7te8nBFylpgPiKUSmAUxWx9mhpDgcrWr2ltYYLFXmGIPk+1reTAyW9lltIvLIIC2vCdfFB/C1LjIl+qlqy6zswwY8W4OcvIEWDpYhfDIEra78eYPFK7OJT8YOKigYxKztwa6NY2hp3cjqBD6LfY0Hgh1X4nwEHYb+crBjl4hD2Y2vFwGVxRYR1VFI0NAjc6vpTLD0BPqB0HiAtNulYRQu/WSBuVomwjsqKeFEkGl3lVWJHy467onEEQolphFKzCEcCYrlZRnxKoHDKpqylDv3vPeeIrog74iceiiopZ4tjn1A6GJvkZqUA/LjDvDufPRRDz7xAyjMJ5b+qs9972C9zFFyBtO9wKi+HJND64QpU8DsXMYTXvvxX84jC/h+7C+cK8mgJmj6chfiN5yI+XzSRF1nzIy0yPmN3xnCfP8G/kS8COIt+na1i+ds/F/zuHnslErwjX4jny/0GrGposb8hDQs0S5daKUiI5aLGRyLxkei7X7IzM/vliZHvS6WEYW7BdpsIRYiIvCiIVOzs11v7WLq/yxnLWwZ+b+J0VR1i8uJ8I5JFmygB8UJ8iMtORH7IRRYxIvoViD/vuTYE"); }
+.bg.g7 { background-image: url("data:image/webp;base64,UklGRpQFAABXRUJQVlA4TIgFAAAvJoAJEBrJsratbdML6w3wjrldkuvPEPSMXGZmhhUzMzMzMzPX0CjfSCG5tP7DYG5G5iSqrTBzQ1M5t20be7Zj27jZsW3bSW3bKVOblW3btp0OdT7jLxiSbdumnXTPaMBPA1xkySn9Yliz+WPbtnVj+/6Mk7HHkmNb27E9ttnZNlrbaO0/dtKy+us4GYEm8L8DeMt/AO8E4uRDvR24beNIkr297949gvweBCpTJqxAJqxKJqyh4HsAVOUA6835wADrzacBoCaI3+ACNdBwvIHv+J/vf8PtuBCBKjUUSUD1uiSg+v3hjowkfp2Bvw6RzZ1zMVVa8FTqeF9TClSaQciENQpzCleib/cNBPw2C38dwl/EMqWO96elQOUYAFC5VpmwY8/TLQjC19cQP/7C48tfSzIIpI7394HqACqLe4GqbhnjwbenW4hO3vVulAK1xT0hnmtlIZ5rW6ty8i6vtLXCnXb0Ui2xFG/mJES87LDg+4WnJ2OWJPBZanR/wLUyYWXeEM+1T4JudYMoirjWiD4a8e/jwxK3Je16PZYk8FlqdD/dChEpXCZziEzYtRDPtXBnNXSrG/6JyaKo2elDH43AvQFmeqsHnozBN9xdwpTM0NWUzNA0h5U5Npmwa2M8CHdWA8/AkJwsJuPZhAQ8GVOiWWlX7XTeXeKqmNkhJy4kBn7dvqp0JLzSdQvnDmlG1uHKHHpqhGakj02zM48+WoU3+xJwc4aDnh9i+vjgRLy8wPc/T0/2Medh3ltsAJVGJAa+xT4jhEi3B/yIfHpqV2ZGRsb/BBZcHmNyGI3GZOY8zHsDqhSozFi+DIl8qEUiH3oxx/00eloDnw9XztnoqVM4dwlX7iRqVu7hSVgJ7n2iD15otu5k4ckHPPuEN2H00asq/InHG9hcex9TxXWeAjUR2/czx/30xe4keFny83HuEpPEQnrrlR/3PtXTBy/wyhOamv5odu6lZj3eIGYMt+MiZoCqB+o2dvPna5WHNcBu4ABYcRGsOAncRWIibiEZ72DCZ2ThOfS7BpdQi29wbsmH3Gz/CVDVMal8mOY0NenrDau+27B+bfeazeavEx7P8x6P5+3imzfNpxyO2shlxMYU+2rdkMzbMkMUKFcrZCjfplLqsn2IpfSMRSue5+9ajGKNjDjldO6WqDLEMENR0XDnAnKzfTEhQE3LVQpfelsjVlN3RGJVI8lC5Co2UghYgRL5fOMUpPNGIUeiNohkNPaSDyRFudl+L1C5MX5PboXZfY3C7P60v9perCOmYp2QqR8KJCaqEDQF1ZYp9Pg3CuX2YsNbVxTfM/izA9tqCp86QB+C+P0yzlZ/UFLH+mMsoqSO31cAVRnzUH6eTepAmaBgjUpuplbrXmyI4pMTKs/I3bls4KXsl3FStvqDkjqOKKnj9VQHiVWg2oHaH4itgJK/NdUwrHYZwpZD+NWSOIM3j1TwzgA16A6MRuCmsrPN5F/DQukrasxSWvANqGOgGuP8mFIp+dv7lPxtkF7rLGW5IWXMvremXqAovaGhQY3ZSw4lQOWUALWsNOQV6MoUeW+ZIdbByWeoqdEbm4DOAy0bvLDQDOF2fAJqC6hqoHIJB4FqVBoyCrp6pYLDH4LH4vMJAst4NR/WA1XGqYTYbCq4gL+igIyHMFoNvJbBVbx5q/4GrdFyRe1VYTDcNaDKCFdtKrj7U+R90PBCIDv7IcxVvBHQHSWrMBPWE+5WADWktGBnrhWxreHEsrOfwst+koj0MR58kwk7ZvfgLlAlVkrp6zTpIpxmrQbQCulrdb6iFpmwRraGhFL6qvHuxb23pjCb1+p8mYq991Zi2L8N8ftHofMlb96L+9+WqdhbN/z/EqhSoMaA2hYEoAYcQKUZnhygWhoaHOT3IAE="); }
+.bg.g8 { background-image: url("data:image/webp;base64,UklGRgoFAABXRUJQVlA4TP4EAAAvJoAJELVIsrVtbZsFdSPtFjr0AroCnjF3zMzMzMzMHP49CEg+f/Wd90gmBcdyBI5iC4xK/KsOnFfbUzdvGTZ3uvP3W+8asvQWLLkpBT+pKzrF2c1UZh4/dcodJd22beqR3xix7X2jd78veLF9WrFOesZNz7btss03qmWjx69Zxl9Is7pStQEgAOezbdtKl2yb0b4Zj2B1V3tZ9fAKs1ft/Yzcto0k2Z39ls4jjIlBIkKICCWikoj4IBiBEpHQIGKSiJlJIuoCIgKHC1PKNd6+2o70v9oAdjpx/Kkzb17ozJtjnDJ8mBARw5RymdJq/6sN8B9gp4mfa2qcsnaYIaKcKa1i1PJZaAA/debNp5xymVMWDa9EzGHU8hl/i58zmEY3/w6nXCaiSD9SEDFOf6bp/kyvkngFeA+wiYFjmqge+WXmJku8MQykIKb7M53DY8MrjleECDj+EUIAH0hmYok3p4hI1AkRhVIQh7BrfYjHBpj0A/b4wHkx8FALeKCF6hEX1RGW+AERk20iInRARPgMEYPYtT7EQYl6nWMTsMf3CSbf91E94qM6gus+iPJyg4ic/HGcoChVIQAAskwCnTSBTUIAs4AuZWDBLH4X9Cd+0p+41c0HEZHqF+p5FEWRBNJuAzV8n2NCqx/MKs+GYX/iHZcTKZWck1Egoj756judfPV9ha8gMAFwlCngAogEuIpjQON5gC9Ui4BTvF82scOJQxUiEnPNT0DEwSq+gl7BhGwKcSaeZBPUuOim/0FIOEREIxGJpaxQEF3MMs4yy/gmw0Uhn8qMC7NQkBd9FYeWCTAMuO0PNv1LfOln4gkiYjKhIAooiH3MMr4xy1DQR3lombjAbS5u+p/PEJGRTaPBVjIIIQALzaJmaiGEZjYOcBtu+v1MvJuI/GwOW/O3hF2WkMsOSzPPOy3VLOuFpPpWwKMiSzN8V0i/ikhx3LEYqn/Rk8ZLl2KdGxYuxibvTuIf2RARTkTt16gfOR2rzXNfzXfPJJzJXCi3LZIjy2XTVtl0TpTFssLcJcp1KfVRMti7pNUpV+OLiwX4aXc7ZYWbt8A95Sb08ufD2vyZKZ1hSh1EJBiZEpGJtqUUbcuRZc58l3AmNXNzlai+UQYslhUtaSmDsIta2+WTTql7Vaa0Os2UArI/Mwy0LaVy4pNPE+8sS4vclTYh3GbKIVOOW73bVuh/t2XAxIUmN6HDBMd5kFm9/iDzIwpilYLIpSACZo1cyolbS7arVaPVks1FE/+OauU3ZnXDStQ35X6TDzI/+pv5sOPkrkFEBBE5CuVkB+XltXlEbV9WbmflvuZ6qRmgvmJ+qhEY+/LlcZrq2XGlxt2Y71fUrxDRa+SfOVehTPRuZ/VAy2UlRR40aGuEELjSpFGifkWJeq+hy6aktPFRaXOXtrquJIqSwVeNui5M7PuIUh1DX8fwrmPo6xg3lagPKVEv0rtt1ARFbTHlrgszstSmOsaC7rpE5MAnLCdruKPUXIQhVn3xmguTdwEH6bAW+0omXhExTUQMEeGG7sAnFMEnLPfXPJ921EKpMeE9QROUIrVTw9n5FbTixzrK0KevymQdZSgTm6FKPhEHiagnInJ4/5EIrfgLqTLke6oMoS4+7+LocEtEIBGJRDQScUgm/vBaCPhI8JFn4CM71PkZrkQkEpFShY88YsJHdsBHBhARYgxb2yaiNCIioGxMCBo="); }
+.bg.g9 { background-image: url("data:image/webp;base64,UklGRkYFAABXRUJQVlA4TDoFAAAvJoAJEBbZ0vYvTtPb7A30AuhpL8DbTI+wZP7lh20Nd3d3d88M7qSD/YYtEfT4z4bsEnfIOgRFkhw5+v/fvPcrRuelnkN90AcNSUqibdu0oxvbxhs7uLFt29bLsO30bNu27bJt23b1qltybGs7tse2bbO3bXdmrLfMSmeMgOVfZgQ/2mAETt4yrZ3txm0bQWJsbLXV+u4R9J44kjQhq5k6Wc5qJhFA7NWRpEUkaVtWM6vBYFYzfQAyrx6StI4kvb7mc+g//XlW0ePsEwDtABKvBkAUBVAnjhlLkiQNwOUrhjRNpEykXe3+vPVlyz+2j3+5XKv775rWM5/zbjv2jWlV5rxKSdNSf48trzyelfVnc8tbT65Vr37Ou+34bEyrfSeABMeRplmk6RITaa8s7tnyj8XTB/Pf7/jNmy/cq14VLzPk0JhWAYAqhwHIipZq+1gQQt2ft4w+PeH3++PxYfOJAKYcDhNpZ5hIOxFcSz8fTbw+13N52/DDI+Mvz4TD0+tX5vfvmI9f+ETZmFapYUeQptUKE2nPBOGi4ZfeqzsuzH694RtdnvDxCdGYVisOAJDqJ01362+3npnPjx37XWD2+MTw+hZJmts+sRKvhKLT60dGlzvC5uMb6H+b3vTrqyX89dWyAqDB3nfiATSRprul2j5lGxjf39O7XKG+hLbPX3hW/9+Z3z8zutzhf9KVTW+GEQAbABp4m0jSrOJtwryzeJvwFr3qyEd2vMN8viSweNoSGt8vCB33Vehr2tY8yTwPJPb6vFNvUne8Qw1UG/k5OUz3k8O0jLexlxhJ2lW8TXjw/PSkbXCDJ7DlSW63G70vcNxXaZGIk+VRzVZ/ZmO9KwC5JGlupY7BzDz5Y9/7NG1rNjvufqq6f+qAjnh4QNedsYzjztiDHkFP49CT5K054hG9aM1F/dmu6LHguvULTpI0GDP2z773sVR0kh9dhY6QZRldxynKJeiWQEBnE7QKgLq00Lq+aplVF8RisTWTaZp2ZBxFUdAijzu68h9bjEfjKWichNke8XEXcBwH4CKASmt1+mmqKu68kSP2+YYbexmPAiRJMm4FRCpSiPJ9K8hXGeL8/alJSQ43HtPI0WyPwqrCWQMQmRZag2mhdd9QcTIsUGqd6FuNvE4ZmpbUxDt5vJlExLZSi2mG8mco/wcAhl9dkAgraaEVKRkq7hobg/50XVffKyGpiQs92hhSw2VrOqs2Q7zUYoby/2Qo/weG8p+3elIKIBZAJoAOAFdSMQoztQk7rZZZrOThKfCjCJ7nRyexIQ/fYhNbk+Dqh5bhstNlIeeYpZwA/gAIALQBSAAQRW0cgCQAHSbNVlIxCkvNJdaa63exihSgqm0yFpvw+f4p4biFobIkVqVRSDq8BBAAyLW3dt2kWapJs5XMYg+FQavVmqutGTw/oxnLmZDPIFBOPlTNsUmGy86Y5Ro6nYukQ5/T/uZMmqVKmcUG+u9iBeIDaknEUU6UovxEkee7LFQy2ZNw2JEBA0gAUA1gmrT+QamuVq0zYoHF4eOo4qCKZFm2WIC3WK3HSH/UeQxgCUAWdez8pPXHSOsfNFWcmP4fashiAbROgAnTlw6XUvqcN3wOYwJa4Kj86ToaT+CDTJj2ASi9ym8/b/gETRV3iNYR0GKKIKB1BobPOyZM78hXaQhCqwxCa79Nv8+7ln1GZ6mq2qijv+peB9AWutK/Dc+GtTjKaeklX+dorffiATD4R537Fqt/WKzGM2H6KEEpvXKYMD3nZcJ0UbkCW7sCUCQCKASQ6qb3wlE="); }
+.bg.g10 { background-image: url("data:image/webp;base64,UklGRsYEAABXRUJQVlA4TLoEAAAvJoAJEJXItm1bbZsf7yfwK1d2WXdIGuemDGFmZmZmOXyGZFKoz1cMVwC32vaEyodfwb10ayk5lMygX5kC+wfIAFhWyArYAj9SOcHr4C65VNpAkSRZdpPM30wPfmZdW1f4V3hYRh+Led+3ft4nQkSOtm2H6Ni2bZ/OxgJc24iddJMuK+ASsoIpY1fmlGnnlMHNwG0jRV7mw0+w/0UAanSAOhhQ6rUBJTlA80BnUqA1H6jw2pGI3JxeLOT04m4OnZeLq1xcrz53+vl1ExFdOb24W6sXatGNo6uNq+y5c5VTyr0eIkqJuFCrF6eqXkhVdGpc+VOO505AaeBaKKuUD4g/tq2i0+E6FqW960Rx2ZQFKR+wMKxkhoPMcIZL2RmesFMMuxiag+hRsJq3cj2jiFFkicteOQguSgYXcSdEvIsQA8N/UXMQ5a1VDyjNEMrKtImxHOMtCHSIgRXhP8eBQSvMWxeAuoDSjCTKqiXG8oDxAG+JsTA4pdkphtiycI5BKwRaBuoCyqx+6vNlC+bUsvd4xkYmEAOLT3GQJAmiS/H1RaQmPG8r8UuFT9UFyaqzq74nc2rZNzwjOsqEZiYTuzjQHOPgEJ2n2UtYljuj/FKhZO1KVp1sZFZGRBsRgQDfOsEucBFwvoIyk9k7yuwxto7uEF0hXuA7Ad9fCMwoWZsVS9aubAzLRmb59xJSVptPRDAgxMUa5wcoM5k9xDnNNLp4OV5I9TQW0CxbcZsVfzXOReXfFVCu4C1R775UR9LY0aw3N0Ew0T2zrJaBWW3dSs2u0vG6VW0d3nhs7I0T8Iu9nUnHzqRrh5Yd/L4dmpTX6iEdMUhHVJUCqhS8pVZP0laH3NE0djTDHY1dMzDjnNfWrUxTVxubeOOETNO3QziyQxIEdMRJGaAGwTvSJA+HG+vDcBO+HJyladrc0SRJUtR9QjazM3G6dksURaBUtlyHF4aNQ40/0z5z3ZIt1CxcjadcvAS/wEPsvd1i4y32mMLLARU+9/qfe1enPLjNOWIeYZoLrRsjrRuD/VuzbWeO8hPdJUpwCQrgDPCDJ1aeOI+4+M18ZED4JwKgPqCMsmXPvX49aonzrYaNkdaN9v4te6Z2UlK9BJzziycOntC4TdEpEQERbUBVrDzIk7LkSSPypPPNgeMA/mOdVJzQWBu1kxK8BJ4Rid5n0btBRBtjrGJ8FNxqDp6mGnOwf8veqJ3wY3AKLlFKCizg6YlVC0CZ8qROedL6oBXhnAhfYQUE4mivJlbqIlazgXiQcM7x4U8UtRiPFGObspoNfJpe3lrNlgL4CuKogAi36sIMD9AhHiB+BDze9iH6PFaMbcVoNvSh561cpyYIlwK2fYYFoksSyzpDJPFIDNHnlegzpRi1ipFpjPcguFAThP2IAiLdwcLV7SDc+HXMK9FnyjaWGAPK0BZ0O3HBiZdTsHXsOBtY+MsakbYCqLn8XzWy4LOz2+3EyynaUgxjp0jS/HbDa/35n506W0qRNWLH7MOCSRrPNHcVo08xMq7HfZZyO3AcikXmP9MsGE9l35XgzFLnTquDD0j9+Sd1gbLGKKsIKOmagFIFJzETnCAjUheIVCln1w7ypMRUntRmhyH7PwQG"); }
+.bg.gall { background-image: url("data:image/webp;base64,UklGRgwJAABXRUJQVlA4WAoAAAAQAAAALwAAMQAAQUxQSD4DAAABoDzt/9q4HdonSWX2/jaj/GqHyQ5z4tnA4i2grbxwi3amYZQnWOZQmUHlXsO3LTMzMzP/UgYVPgeBtYqICUDU2XwCMU8m41Vc2DY6ESMpa+Qbs2fFqEqSD8VnQpfy8MHmeCQmdCs/vtycioEm1zHk46U4TPsgDI/HgnFKpFKaXBeqjHQqMQBSGoaU5q0h9rWkKpUF0aVk19fskjDvC9g3Pd1yLa+rZKMa1aVI1VVE730+znS0vkHy2eaIRi1XHnVKEb3Hyf8cA9Nf9/Cl5ki08nH6V4BVB3m2gfTK/+h7sCGSUtACYPyqg2drSK/8PyAfwUkaTvW7Fpi4inzT0NJTj/zvMx71pooLp0mULvPcVcHEdST5hZFO9x0m+eGqcQ3TFxYyIaTsUqoqpW6/8+5tppTr6fv8uPGacZBclclYR/jgrFkhqkopVZXQ9+wxIbsYeGi8pq1atWpcpuMwyYeCptj0renIdKBYVUE8aGhYOF50vEvvc82e1JQtDLT1TKZoqjD8whAQC9/x40stWaB8+i9BqkvKDazz+QoMh8GPT0J+6S8MPnGiq4t1X7vAYdjzkVvK8DvqY+WbUJyM0t2hZs16vq7rFhihzgdS1t8hLijnanW8844J89agd95dC0BYX/j9e8FkYETNDfXuniJgHg94dw+84rQvfJzJyOcw4hI3RP+ebD4HrHvZ5+6Lsj7QTnuPpGNg8tKlIyEu/iSg//RstrS0nMfal0nevSGT8cMwy+XONRAXf8tLGtF42heed96xdaxz+I1RQOfNjz+xDWFF384x0C92SfcSAe20Lzx7dH3tyyS/7gQ6t29HeDEG+mqXJF2rESNs8sE9Wb3pZXofmQM0D60DgE5/txEYaV9xRTajb6XfI4g0f3GAAAyHNSlll1Ienp+KpKHtCx9LYJ5DsktKeaPf5CGR4OTTviDpWGLeEySpuoowbyV59wWIWjvtyd8cQ/Q98biPMoswr+PdGxD9MNteljMcBtsCTbatDwD0hbmSw7CWQJOOgc0vY2hXYODLTigrDqLPDXr8iSWIo7DcgCe2D40FChf/7dO/HXEVF39C8u7TEd+C5T7++HbEWVjbtiPeoqcQFVZQOCCoBQAAkB4AnQEqMAAyAD4ZCINBIQWpSQQAYS2AGKIwP8z1Boyu3P2z77fjNv6Ba+tT9N9xXaA8wD9JOkB5gP1p9Bj9gPdF6AH9C/ynpAewB6AH7Z+lz+2PwZfuF+4vtF5oB/APwA72v5X+Gfm/+CfEf178k84b9UPuH5J6YJ/Dv7j+VWWy/PP9Z/WPwz1kv/SehfeDdx+pL/gPU7/Wf919uHsR/MP6z/vP8R8AX8h/m/+g/OH/CfMp7APQe/W9hSDgOgKmxgU+apbWdmIeNRKZW4vCNSBLNwV4k3QnnegZrM/sL7zWBmdoKvRFlIzdTBNmGrSaxcKkMLuqhFZSQeA4AAD+/tBEN/es6xVZwqKaY/ptoNGrwOLDz3i6UmHDW/3hrpB8cTs2Uf3E2sluhuCrt/1pCzYgmGtBnUwsi0/LHHoS6FZGQb2i+qfUxX5eS0vD/4YpYBv9oDk++fgFFSC/1dBOn4La2XZoJMejzH05ImIHizNtPjfHwzeFVL2ljKKbsPw7DaI8ZHT/8wBAYVcL/0YXUeer4/Is2xe1FkNTQuKcb2cv+P48WsG/12gjtD8FQNzW9EygnSuwHIph+OGJB7FGzZ7dRVDG3Prv2nWQvhdDgOmYIRHUNd53zGMQxFo/4Sq6Nc5/jDhOb5YT/ltsniaxt1/8nP3+KSR//tePfR53gakbnDbAK34nhbqhvFr8TIlzLX/S5CP5H7sc2s+SjmoPNcfTFqybvmnSa5mZ+eyG2vqf9Bg7Ff9nXBfqp2lz6a9FCivxuEag4CAdUSy9FPeyuMuDM2sOBecaq6AsJZHTKi1pI6PsB7Cd6/roP3S77b61T/wM0rGFSOJwuebdNKWCJpOg2JkS43od5e0cKMUVFgGpGSWwglBOl4gPYvDFeUI9kR/sqZ9A8jsvv/6UgYHdEEXulgkIh+4gozoCDsUOz9LNyGwK6//spHF/bT+nySHg3RC72qwxqvQ7LOU+LRuz60+wP2sqTZtGcDKm+ZBZaBvVLEDHotbuzoLv1RbKGcSqcVJ0u9DstG22mCQeKvDuWtY9DgVrgAPNqEoYDh2BK8M+D36FDdOM8WXubtgYgYrQbPRR1bhUbbk2uJrko4FK8GfK+b2R4jt29yuF4j8rjtKoN/qbd0BpBiXU+H8NvnmSq0YtoKR//qPKpNA38D+w00GXn+jQ88h+ICDCmClL41P5gse4sJYbz2SE0xQbYg9zt1ufnuPfXDt76fHNar2GAp5SuZbkcWmwh//N9egxmOJSC0iP1tvHXUjWrg1vkjePz9HyXbaCQUd3v/adF8erMtr3Fso9vd5NlEmmhghZowIv/dfH05E2y/Orfqz/hkufC41S2vaS5T0SiZ6Oy0+YcNS1gZzv8ErkfMyuYNOfd84JTBbktWCghTJa19VivY/V6zc0eiW+TutCg5KjzLvJWeihZIA7E4HHhOJvfETxF8S2UzHI/6tT9FJ5+8CilGS77q+3dHkpbX9HmoMqq8c9FElVP/pA4+Zhkyk0UbVdyO2VSONKay44SoF4uOpT/Okb/SBIkwXSnlwSoy0IWDrpzl2r0XX2ncyGF17/EYKjMcQWosEtXUsZkaaAF/ZgdY+N3wAK3+6zSzkFdtQ5UewSdFXmJAc/bCpfKZJAs73KLajoTDPPTXbT3+dNlzbfw4PPR3h0ajeFuJtrLQvZb+//r1Poe81myeT0g1mbZS+FwQjDMe6biy3s7LyhuIa5KtlkTNeNR9zG5y9rReSGFdzYufJL47+tql+1VUhSNfaFieoZqv5NEs2jqmz3Tr1H/i0L1U9L0Jg4+qQJJIGlCeHV6W4Kcgg2f/mBAVFRSQ5y34Lh4E8/PQemSfE+rP2JzwflmV+tyoR5h0PWl1fcCZyv/gh2I//hYf/+r8XsqjtdsgZVHa7ZXoe4C25zHr21gsfp//ovgAAAAAA="); }
 </style>
 </head>
 <body>
@@ -2790,7 +2858,7 @@ html.cep-open, html.cep-open body { overflow: hidden; }
 
   <section id="view-ranking" class="d-sec" aria-labelledby="tab-ranking" hidden>
     <div class="toolbar">
-      <p class="rank-note grow">Score out of 100: stats with Fou and class ATK bonus (35) + skills (30) + NP level (15) + level (10) + rarity (10). Skills count like the game: reaching Lv 6 and Lv 10 is worth more because those steps also shorten the cooldown, and Lv 10 gives the full value. Reaching max level and Lv 100 add a bump. Arrows show moves since you last pressed Mark as seen.</p>
+      <p class="rank-note grow">Score out of 100: stats with Fou and class ATK bonus (32) + skills (27) + NP level (13) + Bond (10) + level (9) + rarity (9). Skills count like the game: reaching Lv 6 and Lv 10 is worth more because those steps also shorten the cooldown, and Lv 10 gives the full value. Bond counts more the higher it goes: Bond 1–5 add a little each, 6–10 more, 11–14 more again, and 14 → 15 the most. Reaching max level and Lv 100 add a bump. Arrows show moves since you last pressed Mark as seen.</p>
       <div class="rank-tools"><div class="seg" role="group" aria-label="Ranking view"><button data-action="rank-view" data-v="list" aria-pressed="true">List</button><button data-action="rank-view" data-v="tiers" aria-pressed="false">Tier board</button></div><button class="btn sm" data-action="rank-seen">Mark as seen</button></div>
     </div>
     <div id="roi-top" class="roi-top" aria-label="Best upgrades right now"></div>
@@ -2811,7 +2879,7 @@ html.cep-open, html.cep-open body { overflow: hidden; }
   </section>
 
   <section id="view-past" aria-labelledby="tab-past" hidden><div id="past" class="pc"></div></section>
-  <section id="view-event" aria-label="Event" hidden><div id="event" class="evp"></div></section>
+  <section id="view-event" aria-label="Event" hidden><div id="event" class="evp" tabindex="-1"></div></section>
 </div>
 <dialog id="font-dlg" class="dlg" aria-labelledby="font-title">
   <div class="dlg-in">
@@ -3759,21 +3827,27 @@ function skillPower(v) {
   const lv = clamp(v, 1, 10);
   return 0.8 * (lv >= 10 ? 1 : (lv - 1) / 10) + 0.2 * ((lv >= 6 ? 0.5 : 0) + (lv >= 10 ? 0.5 : 0));
 }
-// Level: steady growth, plus a bump for reaching max level and for Lv 100
-function levelPart(lv, cap) { return 6.5 * lv / 120 + (cap && lv >= cap ? 2 : 0) + (lv >= 100 ? 1.5 : 0); }
+// Level (9 of 100): steady growth, plus a bump for reaching max level and for Lv 100
+function levelPart(lv, cap) { return (6.5 * lv / 120 + (cap && lv >= cap ? 2 : 0) + (lv >= 100 ? 1.5 : 0)) * 0.9; }
+// Bond (10 of 100, since 0.23.0): each level is worth more than the one before, the way each takes longer to earn.
+// Bond 1-5 add 0.3 each, 6-10 add 0.6 each, 11-14 add 1 each, and 14 -> 15 adds the most, 1.5.
+const BOND_STEP = [0, 0.3, 0.3, 0.3, 0.3, 0.3, 0.6, 0.6, 0.6, 0.6, 0.6, 1, 1, 1, 1, 1.5];
+const bondPart = (b) => BOND_STEP.slice(1, clamp(Math.floor(num(b) || 0), 0, 15) + 1).reduce((a, x) => a + x, 0);
 function scoreOf(s, over) {
   over = over || {};
   const atk = total(s, "atk"), hp = total(s, "hp"), mod = CLASS_ATK[s.cls] || 1;
   const missing = atk == null || hp == null;
   const sk = over.skills || s.skills || [], lv = clamp(num(over.level != null ? over.level : s.level) || 1, 1, 120);
+  // out of 100: stats 32, skills 27, NP level 13, Bond 10, level 9, rarity 9
   const parts = {
-    stats: missing ? 0 : Math.min(1, (atk * mod / 16000) * 0.7 + (hp / 18000) * 0.3) * 35,
-    skills: [0, 1, 2].reduce((a, i) => a + skillPower(sk[i]), 0) / 3 * 30,
-    np: clamp(num(s.npLevel) || 1, 1, 5) / 5 * 15,
+    stats: missing ? 0 : Math.min(1, (atk * mod / 16000) * 0.7 + (hp / 18000) * 0.3) * 32,
+    skills: [0, 1, 2].reduce((a, i) => a + skillPower(sk[i]), 0) / 3 * 27,
+    np: clamp(num(s.npLevel) || 1, 1, 5) / 5 * 13,
+    bond: bondPart(over.bond != null ? over.bond : s.bond),
     level: levelPart(lv, CAPS[s.rarity]),
-    rarity: clamp(num(s.rarity) || 0, 0, 5) / 5 * 10
+    rarity: clamp(num(s.rarity) || 0, 0, 5) / 5 * 9
   };
-  return {total: parts.stats + parts.skills + parts.np + parts.level + parts.rarity, parts: parts, missing: missing};
+  return {total: parts.stats + parts.skills + parts.np + parts.bond + parts.level + parts.rarity, parts: parts, missing: missing};
 }
 function rankRows() {
   return owned().map((s) => ({s: s, sc: scoreOf(s)})).sort((a, b) => b.sc.total - a.sc.total || String(a.s.name).localeCompare(String(b.s.name)));
@@ -3858,7 +3932,7 @@ function renderRanking() {
   el.innerHTML = rows.map((r, i) => {
     const rank = i + 1, prev = base[r.s.id], q = r.sc.parts, roi = roiOf(r.s);
     const mv = prev == null ? `<span class="mv">new</span>` : prev > rank ? `<span class="mv up" title="Up ${prev - rank}">▲${prev - rank}</span>` : prev < rank ? `<span class="mv down" title="Down ${rank - prev}">▼${rank - prev}</span>` : `<span class="mv" title="No change">–</span>`;
-    const parts = "Stats " + q.stats.toFixed(1) + " · Skills " + q.skills.toFixed(1) + " · NP " + q.np.toFixed(1) + " · Level " + q.level.toFixed(1) + " · Rarity " + q.rarity.toFixed(1);
+    const parts = "Stats " + q.stats.toFixed(1) + " · Skills " + q.skills.toFixed(1) + " · NP " + q.np.toFixed(1) + " · Bond " + (q.bond || 0).toFixed(1) + " · Level " + q.level.toFixed(1) + " · Rarity " + q.rarity.toFixed(1);
     const roiLine = roi ? `<span class="rk-roi${roi.flag ? " " + roi.flag : ""}">${roi.flag === "top" ? "<b>Highest ROI</b> · " : roi.flag === "good" ? "<b>Good value</b> · " : "Next: "}${esc(roiText(roi))} (+${roi.gain.toFixed(1)})</span>` : "";
     return `<li class="rank-row${rank <= 3 ? " top" : ""}${roi && roi.flag ? " has-roi-" + roi.flag : ""}"><span class="rk">${rank}</span>${mv}${iconHTML(r.s, "")}<span class="rk-main"><button class="rk-name" data-action="goto" data-id="${esc(r.s.id)}">${esc(r.s.name)}</button><span class="rk-parts">${r.sc.missing ? "Stats not filled in · " : ""}${parts}</span>${roiLine}</span><span class="rk-bar" title="${esc(r.s.name)}: ${r.sc.total.toFixed(1)} of 100 (${esc(parts)})"><i style="width:${Math.min(100, r.sc.total).toFixed(1)}%"></i></span><b class="rk-score">${r.sc.total.toFixed(1)}</b></li>`;
   }).join("");
@@ -5735,7 +5809,7 @@ function renderDossier(force) {
       <div class="steps three lv-row">
         ${stepper("Level", "level", esc(s.level ?? "—"), st ? `<span class="status ${st.kind}">${st.text}</span>` : "")}
         ${stepper("NP level", "np", s.npLevel ? "NP" + esc(s.npLevel) : "—", s.npLevel ? "" : `<span class="status">Not set</span>`)}
-        ${stepper("Bond", "bond", esc(num(s.bond) || 0), bondNote(s))}
+        ${stepper("Bond", "bond", esc(num(s.bond) || 0), bondGems(s) + bondNote(s))}
       </div>
       <div class="steps three">
         ${[0, 1, 2].map((i) => { const v = (s.skills || [])[i]; return stepper("Skill " + (i + 1), "sk" + i, typeof v === "number" ? v : "Locked", typeof v === "number" && v === 10 ? `<span class="status grail${celebrating(s, i) ? " pop" : ""}">Maxed</span>` : (typeof v === "number" ? `<span class="status">${10 - v} to max</span>` : `<span class="status">Unlock with + </span>`)); }).join("")}
@@ -8923,7 +8997,7 @@ renderAll = function () { renderAll13(); renderFillNote(); };
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.22.0";
+const APP_VER = "0.23.0";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -9085,6 +9159,24 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.23.0", d: "17 Oct 2026", t: "Bond counts in the Ranking", i: [
+    "<b>Bond in the rank score</b>: Bond is now worth up to 10 of the 100 points. Each level is worth more than the one before: Bond 1 to 5 add 0.3 each, 6 to 10 add 0.6 each, 11 to 14 add 1 each, and 14 to 15 adds the most, 1.5.",
+    "To keep the top at 100, the other parts are a little smaller: stats 32, skills 27, NP level 13, level 9 and rarity 9. A servant whose Bond isn't filled in loses up to a tenth of their old score, so fill in Bond on the SERVANTPAGE to get it back.",
+    "Every row in the Ranking shows its Bond points next to the other parts.",
+    "<b>Bond gems</b> on the SERVANTPAGE, the way the game shows them: up to Bond 10, ten gems that light up one colour at a time; from Bond 11, the ten fold into one rainbow gem and five more follow for Bond 11 to 15. Levels not reached yet show the dark gem."]},
+  {v: "0.22.2", d: "17 Oct 2026", t: "Event pages rebuilt as tabs", i: [
+    "<b>Tabs</b>: an Event page shows one part at a time, with the same tabs as the wiki's event page (Main Info, Event Shop, Mission List, Main Quests, Free Quests, Summoning Campaign and so on), plus the Calculator. Big parts have tabs of their own, like Event Summary, Event Guide or Event Servants. The tab bar stays at the top while you scroll, and the address remembers the tab.",
+    "Each tab comes from its own wiki page, fetched when it's needed and kept in this browser. The right wiki page is the one whose event header names the event.",
+    "<b>Cleaner wiki text</b>: no more leftovers like \"Tooltip for 25px|link=\" or doubled words like \"RewardCompletion\". Those were the wiki's phone-only copies and hidden tooltip text; they're left out, and a tooltip's text shows when you hover over it.",
+    "<b>Servants open in Past Chaldea</b>: servant icons and names, Noble Phantasms and Craft Essences on an Event page open their Past Chaldea page instead of the wiki. Servants too new for this file open on Atlas Academy.",
+    "The shop shows one currency at a time with its totals, missions come twenty at a time, and random missions (like detective missions) are listed by rank instead of mixed into the mission list."]},
+  {v: "0.22.1", d: "16 Oct 2026", t: "Event page and banner fixes", i: [
+    "Simulating a banner whose featured ★5 isn't on your list: the 330-summon guarantee now shows them by name, with their picture, instead of an unknown servant. Featured servants from Past Chaldea are tagged Rate-up or Guaranteed. Featuring one of your own servants while an NA banner is loaded can be undone, back to the NA banner.",
+    "Opening a second event while the first one's wiki text was still loading could show the first event's text on the second page. Each page now only gets its own.",
+    "Refresh on an Event page while free-quest drops were still loading could leave the drops empty. They load again now.",
+    "Currency calculator: a material sold twice (two rows, or for two currencies) is no longer counted as needed twice.",
+    "Banners named \"Fate/…\" aren't taken for an event's own just because the names share \"Fate\".",
+    "With live NA updates off, the Event page says why there are no banners and can turn them on. Opening an Event page moves keyboard focus to it, and only the 30 most recently opened events are kept in this browser."]},
   {v: "0.22.0", d: "16 Oct 2026", t: "Event pages and NA banners", i: [
     "<b>Event pages</b>: press an event in On NA now and it gets its own page. It has the summary and guide, the summoning campaign with its rate-up schedule, the event's servants and Craft Essences (what you can get, plus the wiki's bonus lists), missions, main, free, extra and challenge quests with what free quests drop, the event shop, point rewards and lotteries, misc info and game updates.",
     "<b>Currency calculator</b> on every Event page: what your servants still need from the event shop for ascensions and skills, what that costs in each currency, and roughly how many runs of the best free quest it takes, with your drop bonus. Fill in what you already have and the numbers follow.",
@@ -9558,6 +9650,15 @@ function starClass(s) {
 }
 
 /* ---------- Bond ---------- */
+// the gems the game shows for a Bond level (0.23.0): up to Bond 10, ten gems in two rows, lit up to the level; from
+// Bond 11 the ten fold into one rainbow gem and five more follow for 11-15, in the colours of Bond 1-5. Unreached
+// levels show the dark gem, as in the game. Pictures from the Fate/Grand Order wiki, built into the page.
+function bondGems(s) {
+  const b = clamp(Math.floor(num(s.bond) || 0), 0, 15), gem = (k) => `<i class="bg g${k}"></i>`;
+  const row = b <= 10 ? [...Array(10).keys()].map((i) => gem(i < b ? i + 1 : 0)).join("")
+    : gem("all") + [...Array(5).keys()].map((i) => gem(10 + i < b ? i + 1 : 0)).join("");
+  return `<span class="bond-gems${b > 10 ? " over" : ""}" title="Bond ${b} of 15" aria-hidden="true">${row}</span>`;
+}
 function bondNote(s) {
   const b = num(s.bond) || 0;
   return b >= 15 ? `<span class="status grail">Max bond</span>` : b >= 10 ? `<span class="status cap">Bond CE</span>` : `<span class="status">${10 - b} to Bond 10</span>`;
@@ -10543,19 +10644,25 @@ setInterval(() => {
 }, 60000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden && S.tab === "home") liveCheck(false); });
 window.addEventListener("online", () => { if (S.tab === "home") { delete live.failedAt; liveCheck(false); } });
-/* ================= 0.22.0: the Event page ================= */
-// Press an event in On NA now and it opens here (address #event/<id>, so Back returns to Home). The page is put together
-// from Atlas Academy's NA data (the event with its shop, missions, point rewards and lotteries; its war with every quest;
-// the drops of the free quests; items, servants and Craft Essences by id) and, for the written parts (summary and guide,
-// bonus servants and Craft Essences, misc info, game updates), the Fate/Grand Order fandom wiki. Wiki text goes through a
-// strict filter first: only plain text formatting, lists, tables, links and wiki pictures survive, so nothing from the
-// wiki can run on this page. Everything is kept in this browser's IndexedDB, so a page you opened once also works offline.
+/* ================= 0.22.0: the Event page (rebuilt as tabs in 0.22.2) ================= */
+// Press an event in On NA now and it opens here (address #event/<id>, or #event/<id>/<tab>). The page has tabs, like the
+// Fate/Grand Order wiki's own event page: one section shows at a time, and big sections have tabs of their own.
+// - The tabs come from the wiki: its event page lists them (Main Info, Event Shop, Mission List, …) and names the page each
+//   one is on, so each tab is fetched from the wiki when it's needed. The right wiki page is the one whose event header
+//   names this event (or starts the same day).
+// - Atlas Academy's NA data fills the parts it knows exactly: the shop and its totals, the calculator, missions, free-quest
+//   drops, banners (with Simulate) and point rewards. Without the wiki the page is made from that data alone.
+// - Wiki text goes through a strict filter: only plain formatting, lists, tables, links and wiki pictures survive, so nothing
+//   from the wiki can run here. The wiki's phone-only copies and hidden tooltip text are left out (their text becomes the
+//   hover text), and its tabs become tabs here. Servants, Noble Phantasms and Craft Essences open in Past Chaldea.
+// Everything is kept in this browser's IndexedDB, so an event opened once also works offline.
 const EV_API = "https://api.atlasacademy.io/";
 const WIKI = "https://fategrandorder.fandom.com";
 const EV_KEY = "spirit-origin-list:v1:event"; // calculator settings: skill target, materials and currency you have, drop bonuses
-const EV_MV = 1; // how an event page is made from Atlas Academy's data; a newer one is made again
+const EV_MV = 2; // how an event is made from Atlas Academy's data; an older copy is made again
+const WIKI_V = 2; // how wiki text is filtered; an older copy is fetched again
 const EV_FRESH = 6 * 3600e3, EV_WIKI_FRESH = 12 * 3600e3;
-const EV = {id: 0, m: null, err: "", wiki: null, loading: new Set(), wikiBusy: false, dropBusy: false, more: new Set(), open: new Set()};
+const EV = {id: 0, m: null, err: "", wiki: null, loading: new Set(), wikiBusy: 0, dropBusy: false, tab: "", kind: "", want: "", sub: {}, more: new Set(), open: new Set(), pages: {}, pageBusy: new Set()};
 let evPref = (() => { try { const v = JSON.parse(localStorage.getItem(EV_KEY)); return v && typeof v === "object" ? v : {}; } catch (e) { return {}; } })();
 if (!evPref.have || typeof evPref.have !== "object") evPref.have = {};
 if (!evPref.bonus || typeof evPref.bonus !== "object") evPref.bonus = {};
@@ -10642,11 +10749,17 @@ function evQuests(wars) {
 function evDerive(e, wars, items, names) {
   const gf = (g) => evGift(g, items, names);
   const mText = (mi) => liveText(mi.name) || liveText(mi.detail) || liveText(((mi.conds || []).find((c) => c && c.missionProgressType === "clear") || {}).conditionMessage);
+  const mrow = (mi) => ({no: mi.dispNo | 0, n: mText(mi), g: (mi.gifts || []).map(gf).filter(Boolean)});
+  // random missions (detective missions and the like) come in ranks; the rest is the event's mission list
+  const rank = new Map((e.randomMissions || []).map((r) => [r.missionId, r.missionRank | 0])), byRank = new Map();
+  (e.missions || []).filter((mi) => mi.type === "random").forEach((mi) => { const r = rank.has(mi.id) ? rank.get(mi.id) : 0; if (!byRank.has(r)) byRank.set(r, []); const x = mrow(mi); if (x.n) byRank.get(r).push(x); });
   const lots = (e.lotteries || []).map((l) => {
     const by = new Map();
     for (const b of l.boxes || []) { const k = b.boxIndex | 0; if (!by.has(k)) by.set(k, []); const gg = (b.gifts || []).map(gf).filter(Boolean); if (gg.length) by.get(k).push({g: gg[0], max: b.maxNum | 0, rare: !!b.isRare}); }
     return {cost: evCost(l.cost), lim: !!l.limited, boxes: [...by.entries()].sort((a, b) => a[0] - b[0]).slice(0, 12).map(([k, v]) => ({bi: k, it: v.sort((a, b) => b.rare - a.rare)}))};
   }).filter((l) => l.boxes.length);
+  const sv = [], svSeen = new Set();
+  (e.svts || []).filter((x) => x && x.type === "join").forEach((x) => { const g = gf({type: "servant", objectId: x.svtId, num: 1}); if (g && g.k === "s" && !svSeen.has(g.no)) { svSeen.add(g.no); sv.push(g); } });
   return {
     id: e.id | 0, n: liveText(e.name), t: String(e.type || ""), d: liveText(e.detail) !== liveText(e.name) ? liveText(e.detail) : "",
     s: e.startedAt | 0, e: e.endedAt | 0, bn: String(e.banner || e.noticeBanner || ""), w: e.warIds || [], at: Date.now(),
@@ -10654,12 +10767,15 @@ function evDerive(e, wars, items, names) {
       const got = evShopGot(sh, items, names);
       return {n: liveText(sh.name) || (got[0] && got[0].n) || "Shop item", got: got, cost: evCost(sh.cost), lim: sh.limitNum | 0, s: sh.openedAt | 0, e: sh.closedAt | 0, pr: sh.priority | 0};
     }).filter((x) => x.cost).sort((a, b) => a.cost.id - b.cost.id || b.pr - a.pr),
-    mis: (e.missions || []).map((mi) => ({no: mi.dispNo | 0, n: mText(mi), g: (mi.gifts || []).map(gf).filter(Boolean)})).filter((x) => x.n).sort((a, b) => a.no - b.no),
+    mis: (e.missions || []).filter((mi) => mi.type !== "random").map(mrow).filter((x) => x.n).sort((a, b) => a.no - b.no),
+    rmis: [...byRank.entries()].sort((a, b) => a[0] - b[0]).map(([r, list]) => ({r: r, list: list.sort((a, b) => a.no - b.no)})).filter((x) => x.list.length),
     pts: (e.rewards || []).map((r) => ({grp: r.groupId | 0, pt: r.point | 0, g: (r.gifts || []).map(gf).filter(Boolean)})).sort((a, b) => a.grp - b.grp || a.pt - b.pt),
     ptn: (e.pointGroups || []).map((g) => ({grp: g.groupId | 0, n: liveText(g.name), ic: String(g.icon || "")})),
-    lots: lots, quests: evQuests(wars), drops: {}
+    lots: lots, sv: sv, quests: evQuests(wars), drops: {}
   };
 }
+// a copy kept from an older version still shows; the parts it doesn't have are empty
+const evNorm = (m) => Object.assign({sv: [], rmis: [], mis: [], shop: [], pts: [], ptn: [], lots: [], quests: [], drops: {}}, m);
 function evDrops(drops, items, names) {
   return (drops || []).map((d) => {
     const g = evGift({type: d.type === "item" ? "item" : "servant", objectId: d.objectId, num: d.num}, items, names);
@@ -10668,7 +10784,7 @@ function evDrops(drops, items, names) {
   }).filter(Boolean).sort((a, b) => b.q * b.ex - a.q * a.ex);
 }
 
-/* ---------- loading ---------- */
+/* ---------- loading from Atlas Academy ---------- */
 async function evLoad(id, force) {
   if (!id || EV.loading.has(id)) return;
   EV.loading.add(id); if (EV.id === id) { EV.err = ""; evPaint(); }
@@ -10682,15 +10798,16 @@ async function evLoad(id, force) {
       const ids = [];
       const walkG = (gs) => (gs || []).forEach((g) => { if (g && (g.type === "servant" || g.type === "equip")) ids.push(g.objectId); });
       (e.missions || []).forEach((x) => walkG(x.gifts)); (e.rewards || []).forEach((x) => walkG(x.gifts)); (e.shop || []).forEach((x) => { walkG(x.gifts); if (x.purchaseType === "servant") ids.push(...(x.targetIds || [])); });
-      (e.lotteries || []).forEach((l) => (l.boxes || []).forEach((b) => walkG(b.gifts)));
+      (e.lotteries || []).forEach((l) => (l.boxes || []).forEach((b) => walkG(b.gifts))); (e.svts || []).forEach((x) => { if (x) ids.push(x.svtId); });
       const names = await evNames(ids);
       m = evDerive(e, wars, items, names);
       const old = c && c.m && c.m.drops; if (old && !force) m.drops = old;
       await kv.set("ev:" + id, {at: Date.now(), v: EV_MV, m: m});
     }
+    evKeep(id);
   } catch (er) {
     const c = await kv.get("ev:" + id);
-    if (c && c.m) { m = c.m; if (EV.id === id) EV.err = "Couldn't reach Atlas Academy, so this is the copy from " + ago(c.at) + "."; }
+    if (c && c.m) { m = evNorm(c.m); if (EV.id === id) EV.err = "Couldn't reach Atlas Academy, so this is the copy from " + ago(c.at) + "."; }
     else if (EV.id === id) EV.err = navigator.onLine === false ? "You're offline, and this event hasn't been opened in this browser before." : "Couldn't get this event from Atlas Academy.";
   } finally {
     EV.loading.delete(id);
@@ -10698,8 +10815,22 @@ async function evLoad(id, force) {
   }
   if (m && EV.id === id) { evDropsLoad(id); evWikiLoad(id, force); }
 }
+// the cache keeps the 30 events opened most recently, so it doesn't grow forever
+async function evKeep(id) {
+  try {
+    const ix = Object.assign({}, (await kv.get("evlist")) || {}); ix[id] = Date.now();
+    const ids = Object.keys(ix).sort((a, b) => ix[b] - ix[a]);
+    for (const old of ids.slice(30)) {
+      delete ix[old];
+      const w = await kv.get("wiki:" + old);
+      for (const t of (w && w.tabs) || []) await kv.del("wikip:" + old + ":" + wikiKey(t));
+      await kv.del("ev:" + old); await kv.del("wiki:" + old);
+    }
+    await kv.set("evlist", ix);
+  } catch (e) {}
+}
 async function evDropsLoad(id) {
-  const m = EV.m; if (!m || EV.dropBusy) return;
+  const m = EV.m; if (!m || EV.dropBusy || m.id !== id) return;
   const todo = m.quests.filter((q) => q.g === "free" && !(q.id in m.drops)).slice(0, 16);
   if (!todo.length) return;
   EV.dropBusy = true; evPaint();
@@ -10710,48 +10841,150 @@ async function evDropsLoad(id) {
         try { const d = await evJSON(EV_API + "nice/NA/quest/" + q.id + "/" + q.ph); m.drops[q.id] = evDrops(d.drops, items, names); } catch (e) { /* tried again next time */ }
       }));
     }
-    await kv.set("ev:" + m.id, {at: m.at || Date.now(), v: EV_MV, m: m});
-  } finally { EV.dropBusy = false; if (EV.id === id) evPaint(); }
+    // a Refresh while these were loading made a newer copy: that one is kept, and gets its own drops
+    const c = await kv.get("ev:" + m.id); if (!c || !c.m || c.m === m || (c.m.at || 0) <= (m.at || 0)) await kv.set("ev:" + m.id, {at: m.at || Date.now(), v: EV_MV, m: m});
+  } finally {
+    EV.dropBusy = false;
+    if (EV.m && EV.m !== m) evDropsLoad(EV.id); // another event (or a newer copy) opened in the meantime
+    else if (EV.id === id) evPaint();
+  }
 }
 
-/* ---------- the wiki ---------- */
+/* ---------- the wiki: which page, and its tabs ---------- */
 const wikiURL = (title) => WIKI + "/wiki/" + encodeURIComponent(String(title).replace(/ /g, "_")).replace(/%2F/g, "/");
 const wikiJSON = (params) => evJSON(WIKI + "/api.php?" + new URLSearchParams(Object.assign({format: "json", formatversion: "2", origin: "*"}, params)));
-const EV_STOP = new Set(["revival", "lite", "summon", "pickup", "limited", "time", "the", "and", "with", "from", "event", "rerun", "part", "daily", "campaign", "quest", "quests"]);
+const EV_STOP = new Set(["revival", "lite", "summon", "summoning", "pickup", "limited", "time", "the", "and", "with", "from", "event", "rerun", "part", "daily", "campaign", "quest", "quests",
+  "fate", "grand", "order", "banner", "servant", "servants", "special", "chaldea"]); // words most event and banner names share
 const evToks = (n) => new Set(nname(n).split(" ").filter((t) => t.length > 3 && !EV_STOP.has(t)));
-async function wikiFind(name) {
-  const base = liveText(name), rev = /\brevival\b|\s-\s*lite$/i.test(base);
-  const q = base.replace(/^revival:\s*/i, "").replace(/\s*-\s*lite$/i, "").replace(/\s+/g, " ").trim();
-  const j = await wikiJSON({action: "query", list: "search", srsearch: q, srnamespace: "0", srlimit: "8"});
-  const want = evToks(q); let best = null, bs = 0;
-  for (const h of (j && j.query && j.query.search) || []) {
-    const t = String(h.title || ""), tt = evToks(t); let hit = 0; want.forEach((w) => { if (tt.has(w)) hit++; });
-    if (/^(talk|user|user talk|user blog|template|category|file|forum|board|thread|message wall|module|help|fate\/grand order wiki)( talk)?:/i.test(t)) continue;
-    let sc = want.size ? hit / want.size : 0;
-    if (/revival|rerun|\blite\b/i.test(t) === rev) sc += 0.15;
-    if (/\/(gallery|dialogue|story|quests?)$/i.test(t)) sc -= 0.5;
-    if (sc > bs) { bs = sc; best = t; }
-  }
-  return bs >= 0.5 ? best : null;
+const W_NS = /^(talk|user|user talk|user blog|template|category|file|forum|board|thread|message wall|module|help|fate\/grand order wiki)( talk)?:/i;
+const W_SUBPAGE = /\/(main info|event info|event shop|mission list|[a-z ]*missions|main quests?|free quests?|extra quests?|challenge quests?|summoning campaign|gallery|dialogue|story)$/i;
+const MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+// the event header at the top of a wiki event page: {{EventHeaderNA |name=… |start=October 16th 2026 02:00 |requirement=…}}
+function wikiHeader(wt) {
+  const s = String(wt || ""), x = /\{\{\s*EventHeader\w*([\s\S]*?)\n\s*\}\}/i.exec(s) || /\{\{\s*EventHeader\w*([\s\S]*?)\}\}/i.exec(s); if (!x) return null;
+  const h = {}; ("\n" + x[1]).split(/\n\s*\|/).forEach((l) => { const i = l.indexOf("="); if (i > 0) h[l.slice(0, i).trim().toLowerCase()] = l.slice(i + 1).trim(); });
+  const d = /([a-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i.exec(h.start || ""), mo = d ? MONTHS.indexOf(d[1].toLowerCase()) : -1;
+  const req = (h.requirement || "").replace(/\[\[(?:[^|\]]*\|)?([^\]]*)\]\]/g, "$1").replace(/'''?|[{}[\]<>]/g, "").trim().slice(0, 120);
+  return {name: h.name || "", req: req, start: mo >= 0 ? Date.UTC(+d[3], mo, +d[2]) / 1000 : 0};
 }
-// what a wiki section is, from its heading (the order matters: the first that fits wins)
-const WIKI_KIND = [["summary", /summary|guide|overview|walkthrough|synopsis|story|details/i], ["servants", /servants?/i], ["cards", /event cards?|craft essences?|\bces?\b|\bcards?\b/i],
-  ["summon", /summon|gacha|banner|rate.?up/i], ["missions", /missions?|sections/i], ["quests", /quests?/i], ["shop", /shop|exchange/i], ["updates", /updates?|maintenance/i], ["misc", /misc|trivia|notes?|other|info/i]];
-const wikiKind = (h, i) => { if (!h) return i === 0 ? "summary" : "other"; for (const [k, rx] of WIKI_KIND) if (rx.test(h)) return k; return "other"; };
-const W_OK = new Set("P BR B STRONG I EM U S SMALL SUP SUB SPAN DIV UL OL LI DL DT DD TABLE THEAD TBODY TFOOT TR TH TD CAPTION A IMG H3 H4 H5 H6 BLOCKQUOTE CENTER CODE PRE HR FIGURE FIGCAPTION".split(" "));
+const wName = (s) => nname(liveText(String(s || "").replace(/<[^>]*>|'''?/g, " ")));
+// the tabs of a wiki event page: <tabber> Main Info={{:Page/Main Info}} |-| Event Shop={{:Page/Event Shop}} … </tabber>
+function wikiTabsOf(wt) {
+  const x = /<tabber>([\s\S]*?)<\/tabber>/i.exec(String(wt || "")); if (!x) return null;
+  const tabs = x[1].split(/\|-\|/).map((s) => {
+    const i = s.indexOf("="); if (i < 0) return null;
+    const h = s.slice(0, i).trim(), body = s.slice(i + 1).trim(), t = /^\{\{\s*:([^{}|<>[\]]+?)\s*\}\}$/.exec(body);
+    return h ? {h: h.slice(0, 60), page: t ? t[1].replace(/_/g, " ").trim() : ""} : null;
+  }).filter(Boolean);
+  return tabs.length ? tabs : null;
+}
+async function wikiFind(m) {
+  const base = liveText(m.n), rev = /\brevival\b|\s-\s*lite$/i.test(base);
+  const q = base.replace(/^revival:\s*/i, "").replace(/\s*-\s*lite$/i, "").replace(/\s+/g, " ").trim();
+  const j = await wikiJSON({action: "query", list: "search", srsearch: q, srnamespace: "0", srlimit: "10"});
+  const want = evToks(q), cands = [];
+  for (const hit of (j && j.query && j.query.search) || []) {
+    const t = String(hit.title || ""); if (!t || W_NS.test(t) || W_SUBPAGE.test(t)) continue;
+    const tt = evToks(t); let n = 0; want.forEach((w) => { if (tt.has(w)) n++; });
+    let sc = want.size ? n / want.size : 0;
+    if (/revival|rerun|\blite\b/i.test(t) === rev) sc += 0.15;
+    if (/\(us\)$/i.test(t)) sc += 0.1;
+    cands.push({t: t, sc: sc});
+  }
+  cands.sort((a, b) => b.sc - a.sc);
+  const top = cands.slice(0, 6); if (!top.length) return null;
+  const r = await wikiJSON({action: "query", prop: "revisions", rvprop: "content", rvslots: "main", redirects: "1", titles: top.map((x) => x.t).join("|")});
+  const byTitle = new Map();
+  ((r && r.query && r.query.pages) || []).forEach((p) => { const v = p && p.revisions && p.revisions[0], c = v && (v.slots ? v.slots.main && v.slots.main.content : v.content); if (c) byTitle.set(p.title, c); });
+  ((r && r.query && r.query.redirects) || []).forEach((x) => { if (byTitle.has(x.to)) byTitle.set(x.from, byTitle.get(x.to)); });
+  const pages = top.map((x) => { const wt = byTitle.get(x.t) || ""; return {t: x.t, sc: x.sc, wt: wt, h: wikiHeader(wt)}; }).filter((x) => x.h);
+  // the page whose header names this event; else the one that starts closest to it (within a week: a campaign's page
+  // often starts a few days before the part Atlas Academy lists)
+  const named = pages.find((x) => x.h.name && wName(x.h.name) === wName(base)); if (named) return named;
+  const near = pages.filter((x) => x.h.start && Math.abs(x.h.start - m.s) < 7 * 86400 && x.sc >= 0.3).sort((a, b) => Math.abs(a.h.start - m.s) - Math.abs(b.h.start - m.s));
+  return near[0] || null;
+}
+const wikiKey = (t) => t.page || "#" + t.i;
+
+/* ---------- the wiki: a filtered copy ---------- */
+const W_OK = new Set("P BR B STRONG I EM U S SMALL SUP SUB SPAN DIV UL OL LI DL DT DD TABLE THEAD TBODY TFOOT TR TH TD CAPTION A IMG H2 H3 H4 H5 H6 BLOCKQUOTE CENTER CODE PRE HR FIGURE FIGCAPTION".split(" "));
 const W_DROP = new Set("SCRIPT STYLE IFRAME OBJECT EMBED FORM INPUT BUTTON TEXTAREA SELECT OPTION LINK META NOSCRIPT SVG MATH TEMPLATE AUDIO VIDEO SOURCE TRACK CANVAS TITLE BASE FRAME FRAMESET".split(" "));
 const W_IMG = /^https:\/\/(static|vignette\d*|images)\.wikia\.nocookie\.net\//;
-const W_SKIP = /\b(mw-editsection|reference|references|noprint|navbox|toc|mw-references-wrap|printfooter)\b/;
-// Builds a clean copy in a separate, inert document: no script runs, no picture loads, and only the tags above with
-// a few safe attributes are copied. Everything else (styles, classes, ids, event handlers, forms, frames) is left out.
-function wikiClean(nodes) {
+// left out: edit links, notes, navigation boxes, the wiki's phone-only copies, hidden parts and the tooltip buttons
+const W_SKIP = /\b(mw-editsection|reference|references|noprint|navbox|toc|mw-references-wrap|printfooter|mobile-only|hidden|InumWrapper|screen-reader-text|mw-collapsible-toggle|custom-tt|wds-tabs__wrapper|mw-empty-elt)\b/;
+const W_HID = /(^|;)\s*(display\s*:\s*none|visibility\s*:\s*hidden)/i;
+const W_HEAD = {H2: "h3", H3: "h4", H4: "h5", H5: "h6", H6: "h6"};
+const W_BLOCK = "table,div,ul,ol,p,figure,h2,h3,h4,h5,h6,blockquote,pre";
+function wikiTitleOf(href) {
+  let h = String(href || "").trim(); if (h.startsWith(WIKI)) h = h.slice(WIKI.length);
+  const x = /^\/wiki\/([^?#]+)/.exec(h); if (!x) return "";
+  try { return decodeURIComponent(x[1]).replace(/_/g, " ").trim(); } catch (e) { return ""; }
+}
+// servants, Noble Phantasms and Craft Essences by name (the wiki writes ō where NA writes ou: Ryōma, Ryouma)
+const wKey = (s) => nname(s).replace(/ou/g, "o").replace(/uu/g, "u");
+let W_NAMES = null;
+function wNames() {
+  if (W_NAMES) return W_NAMES;
+  const sv = new Map(), np = new Map(), ce = new Map();
+  ATLAS_S.forEach((x) => {
+    const k = wKey(x.n); if (!sv.has(k)) sv.set(k, x.no);
+    [].concat(x.np || []).forEach((p) => { const n = p && p.n ? wKey(p.n) : ""; if (n && !np.has(n)) np.set(n, x.no); });
+  });
+  ATLAS_C.forEach((c) => { const k = wKey(c.n); if (!ce.has(k)) ce.set(k, c.no); });
+  return (W_NAMES = {sv: sv, np: np, ce: ce});
+}
+// on a wiki page, servant and Craft Essence icons carry their numbers (S327A1Icon, CEIcon1498); a support's
+// Noble Phantasm link sits in the same box as their icon
+function wikiCtx(doc) {
+  const sv = new Map(), ce = new Map();
+  doc.querySelectorAll("a[href] img").forEach((im) => {
+    const a = im.closest("a[href]"), t = wikiTitleOf(a.getAttribute("href")); if (!t) return;
+    const nm = im.getAttribute("data-image-name") || im.getAttribute("alt") || "";
+    let x = /^S0*(\d{1,4})(?:A\d+)?Icon\b/i.exec(nm); if (x) { if (!sv.has(t)) sv.set(t, Number(x[1])); return; }
+    x = /^CEIcon0*(\d{1,5})\b/i.exec(nm); if (x && !ce.has(t)) ce.set(t, Number(x[1]));
+  });
+  doc.querySelectorAll(".ServantSupport").forEach((box) => {
+    const a = box.querySelector(".servant_icon a[href]"), no = a ? sv.get(wikiTitleOf(a.getAttribute("href"))) : 0; if (!no) return;
+    box.querySelectorAll("b").forEach((b) => { if (!/^\s*NP\b/.test(b.textContent)) return; b.querySelectorAll("a[href]").forEach((l) => { const t = wikiTitleOf(l.getAttribute("href")); if (t && !sv.has(t)) sv.set(t, no); }); });
+  });
+  const nm = wNames();
+  return {
+    svt: (t) => sv.get(t) || nm.sv.get(wKey(t)) || nm.np.get(wKey(t)) || 0,
+    ce: (t) => ce.get(t) || nm.ce.get(wKey(t)) || 0
+  };
+}
+// Builds a clean copy in a separate, inert document: no script runs, no picture loads, and only the tags above with a
+// few safe attributes are copied. Styles, classes, ids, event handlers, forms and frames are all left out. The tab
+// controls, the in-app links and the icon-and-number badges are this page's own markup, made here.
+function wikiClean(nodes, ctx) {
   const d = document.implementation.createHTMLDocument(""), root = d.createElement("div");
+  const tabs = (pairs) => {
+    const box = d.createElement("div"), bar = d.createElement("div"); box.setAttribute("class", "ewt"); bar.setAttribute("class", "ewt-bar"); bar.setAttribute("role", "tablist"); box.appendChild(bar);
+    pairs.forEach(([lab, src], i) => {
+      const b = d.createElement("button"); b.setAttribute("type", "button"); b.setAttribute("role", "tab"); b.setAttribute("class", "ewt-b"); b.setAttribute("data-action", "ewt"); b.setAttribute("data-i", String(i));
+      b.setAttribute("aria-selected", i ? "false" : "true"); b.textContent = lab.slice(0, 60); bar.appendChild(b);
+      const p = d.createElement("div"); p.setAttribute("class", "ewt-p"); p.setAttribute("role", "tabpanel"); if (i) p.setAttribute("hidden", ""); walk(src.childNodes, p); box.appendChild(p);
+    });
+    return box;
+  };
   const walk = (src, dst) => {
     for (const n of src) {
       if (n.nodeType === 3) { dst.appendChild(d.createTextNode(n.nodeValue)); continue; }
       if (n.nodeType !== 1) continue;
       const t = n.tagName, cls = typeof n.className === "string" ? n.className : "";
-      if (W_DROP.has(t) || W_SKIP.test(cls)) continue;
+      if (W_DROP.has(t) || W_HID.test(n.getAttribute("style") || "")) continue;
+      if (/\bInumMobileDisplay\b/.test(cls)) { // an item icon with its number
+        const s = d.createElement("span"); s.setAttribute("class", "ew-n"); walk(n.childNodes, s);
+        const last = s.lastChild; if (last && last.nodeType === 3 && /^\s*[\d,.]+[kKmM]?\s*$/.test(last.nodeValue)) { const b = d.createElement("b"); b.textContent = "×" + last.nodeValue.trim(); s.replaceChild(b, last); }
+        dst.appendChild(s); continue;
+      }
+      if (W_SKIP.test(cls)) continue;
+      if (/\btabber\b/.test(cls)) {
+        const labs = [...n.querySelectorAll(":scope > .wds-tabs__wrapper .wds-tabs__tab")].map((x) => x.textContent.replace(/\s+/g, " ").trim());
+        const panes = [...n.querySelectorAll(":scope > .wds-tab__content")];
+        if (panes.length) dst.appendChild(tabs(panes.map((p, i) => [labs[i] || "Part " + (i + 1), p]))); else walk(n.childNodes, dst);
+        continue;
+      }
       if (!W_OK.has(t)) { walk(n.childNodes, dst); continue; }
       if (t === "IMG") {
         const raw = n.getAttribute("data-src") || n.getAttribute("src") || "";
@@ -10760,52 +10993,113 @@ function wikiClean(nodes) {
         ["width", "height"].forEach((k) => { const v = Number(n.getAttribute(k)); if (v > 0 && v <= 1600) im.setAttribute(k, String(Math.round(v))); });
         im.setAttribute("loading", "lazy"); im.setAttribute("referrerpolicy", "no-referrer"); dst.appendChild(im); continue;
       }
-      const el = d.createElement(t === "CENTER" ? "div" : t.toLowerCase());
+      let el;
       if (t === "A") {
         let h = (n.getAttribute("href") || "").trim();
         if (h.startsWith("/") && !h.startsWith("//")) h = WIKI + h;
-        if (/^https?:\/\//i.test(h)) { el.setAttribute("href", h); el.setAttribute("target", "_blank"); el.setAttribute("rel", "noopener noreferrer"); }
-      }
+        const title = wikiTitleOf(h), sv = title && ctx ? ctx.svt(title) : 0, ce = !sv && title && ctx ? ctx.ce(title) : 0, inl = !n.querySelector(W_BLOCK);
+        if (((sv && ATLAS_BY_NO.has(sv)) || (ce && CE_BY_NO.has(ce))) && inl) { // opens in Past Chaldea
+          el = d.createElement("button"); el.setAttribute("type", "button"); el.setAttribute("class", "ew-in"); el.setAttribute("data-action", sv ? "pc-open" : "ce-open"); el.setAttribute("data-no", String(sv || ce));
+          el.setAttribute("title", (title + " · opens in Past Chaldea").slice(0, 200));
+        } else if (sv || ce) { // new on NA, not in this file's data yet: Atlas Academy's page
+          el = d.createElement("a"); el.setAttribute("href", LIVE_DB + (sv ? "servant/" + sv : "craft-essence/" + ce)); el.setAttribute("target", "_blank"); el.setAttribute("rel", "noopener noreferrer");
+        } else if (/^https?:\/\//i.test(h)) {
+          el = d.createElement("a"); el.setAttribute("href", h); el.setAttribute("target", "_blank"); el.setAttribute("rel", "noopener noreferrer");
+          const ti = n.getAttribute("title"); if (ti) el.setAttribute("title", ti.slice(0, 200));
+        } else el = d.createElement("span");
+      } else el = d.createElement(t === "CENTER" ? "div" : W_HEAD[t] || t.toLowerCase());
+      if (t === "SPAN" && /\bUnremovableStatusFrame\b/.test(cls)) el.setAttribute("class", "ew-unr");
+      if (t !== "A") { const ti = n.getAttribute("title"); if (ti && /\b(text|hover)-tooltip\b/.test(cls)) { el.setAttribute("title", ti.slice(0, 300)); el.setAttribute("class", "ew-tip"); } }
       if (t === "TD" || t === "TH") ["colspan", "rowspan"].forEach((k) => { const v = n.getAttribute(k); if (v && /^\d{1,2}$/.test(v)) el.setAttribute(k, v); });
-      if (t === "TABLE") { const box = d.createElement("div"); box.setAttribute("class", "ew-scroll"); box.appendChild(el); dst.appendChild(box); walk(n.childNodes, el); continue; }
+      if (t === "TABLE") { // a table the wiki stretches across the page stays that wide here
+        if (/(^|;)\s*width\s*:\s*100%/i.test(n.getAttribute("style") || "") || n.getAttribute("width") === "100%") el.setAttribute("class", "ew-w");
+        const box = d.createElement("div"); box.setAttribute("class", "ew-scroll"); box.appendChild(el); dst.appendChild(box); walk(n.childNodes, el); continue;
+      }
       walk(n.childNodes, el); dst.appendChild(el);
     }
   };
   walk(nodes, root);
   return root.innerHTML;
 }
-const wikiReclean = (html) => wikiClean(new DOMParser().parseFromString("<div>" + String(html || "") + "</div>", "text/html").body.firstChild.childNodes);
-function wikiSections(html) {
+function wikiCleanHTML(html) {
   const doc = new DOMParser().parseFromString(String(html || ""), "text/html");
-  const root = doc.body.querySelector(".mw-parser-output") || doc.body;
+  return wikiClean((doc.body.querySelector(".mw-parser-output") || doc.body).childNodes, wikiCtx(doc));
+}
+// a page whose tabs aren't pages of their own: the tabs (or, failing that, the sections) of the page itself
+function wikiSplit(html) {
+  const doc = new DOMParser().parseFromString(String(html || ""), "text/html"), ctx = wikiCtx(doc);
+  const root = doc.body.querySelector(".mw-parser-output") || doc.body, top = root.querySelector(":scope > .tabber");
+  if (top) {
+    const labs = [...top.querySelectorAll(":scope > .wds-tabs__wrapper .wds-tabs__tab")].map((x) => x.textContent.replace(/\s+/g, " ").trim());
+    return [...top.querySelectorAll(":scope > .wds-tab__content")].map((p, i) => ({h: (labs[i] || "Part " + (i + 1)).slice(0, 60), html: wikiClean(p.childNodes, ctx)}));
+  }
   const secs = []; let cur = {h: "", nodes: []};
   for (const n of [...root.childNodes]) {
-    if (n.nodeType === 1 && n.tagName === "H2") { if (cur.nodes.length) secs.push(cur); cur = {h: (n.querySelector(".mw-headline") || n).textContent.replace(/\[edit\]/gi, "").trim(), nodes: []}; continue; }
+    const h2 = n.nodeType !== 1 ? null : n.tagName === "H2" ? n : n.classList.contains("mw-heading2") ? n.querySelector("h2") : null;
+    if (h2) { if (cur.nodes.length) secs.push(cur); cur = {h: (h2.querySelector(".mw-headline") || h2).textContent.replace(/\[edit\]/gi, "").trim(), nodes: []}; continue; }
     cur.nodes.push(n);
   }
   if (cur.nodes.length) secs.push(cur);
-  return secs.map((s, i) => ({h: (s.h || (i ? "More" : "Introduction")).slice(0, 120), k: wikiKind(s.h, i), html: wikiClean(s.nodes)}))
+  return secs.map((s, i) => ({h: (s.h || (i ? "More" : "Main Info")).slice(0, 60), html: wikiClean(s.nodes, ctx)}))
     .filter((s) => s.html.replace(/<[^>]*>/g, "").trim().length > 1 || /<img/.test(s.html));
 }
 async function evWikiLoad(id, force) {
-  const m = EV.m; if (!m || EV.wikiBusy) return;
-  const c0 = await kv.get("wiki:" + id), c = c0 && c0.secs ? Object.assign({}, c0, {secs: c0.secs.map((x) => Object.assign({}, x, {html: wikiReclean(x.html)}))}) : c0;
-  if (c && !force && (Date.now() - c.at < EV_WIKI_FRESH || navigator.onLine === false)) { EV.wiki = c; if (EV.id === id) evPaint(); return; }
-  EV.wikiBusy = true; if (EV.id === id) evPaint();
+  const m = EV.m; if (!m || m.id !== id || EV.wikiBusy) return;
+  EV.wikiBusy = id; if (EV.id === id) evPaint();
+  let w = null;
+  const c = await kv.get("wiki:" + id);
   try {
-    const title = await wikiFind(m.n);
-    if (!title) EV.wiki = {at: Date.now(), none: 1};
+    if (c && c.v === WIKI_V && !force && (Date.now() - c.at < EV_WIKI_FRESH || navigator.onLine === false)) w = c;
     else {
-      const j = await wikiJSON({action: "parse", page: title, prop: "text", redirects: "1", disableeditsection: "1", disabletoc: "1"});
-      const html = j && j.parse && j.parse.text; if (!html) throw new Error("no page");
-      EV.wiki = {at: Date.now(), title: String(j.parse.title || title), secs: wikiSections(typeof html === "string" ? html : html["*"])};
+      const f = await wikiFind(m);
+      if (!f) w = {v: WIKI_V, at: Date.now(), none: 1};
+      else {
+        let tabs = wikiTabsOf(f.wt);
+        if (!tabs || tabs.some((t) => !t.page)) { // the tabs aren't pages of their own: the whole page, split up
+          const j = await wikiJSON({action: "parse", page: f.t, prop: "text", redirects: "1", disableeditsection: "1", disabletoc: "1"});
+          const html = j && j.parse && j.parse.text; if (!html) throw new Error("no page");
+          const parts = wikiSplit(typeof html === "string" ? html : html["*"]);
+          tabs = parts.map((x, i) => ({h: x.h, page: "", i: i}));
+          for (let i = 0; i < parts.length; i++) { await kv.set("wikip:" + id + ":#" + i, {v: WIKI_V, at: Date.now(), html: parts[i].html}); EV.pages["#" + i] = {html: parts[i].html}; }
+        }
+        w = {v: WIKI_V, at: Date.now(), title: f.t, req: f.h.req, tabs: tabs};
+      }
+      await kv.set("wiki:" + id, w);
     }
-    await kv.set("wiki:" + id, EV.wiki);
   } catch (e) {
-    EV.wiki = c ? Object.assign({}, c, {stale: 1}) : {at: Date.now(), fail: 1};
+    w = c && c.v === WIKI_V ? Object.assign({}, c, {stale: 1}) : {v: WIKI_V, at: Date.now(), fail: 1};
   } finally {
-    EV.wikiBusy = false; if (EV.id === id) evPaint();
+    EV.wikiBusy = 0;
+    if (EV.id === id) { EV.wiki = w; evPaint(); wikiPrefetch(id, force); }
+    else if (EV.m && !EV.wiki) evWikiLoad(EV.id); // the page moved on to another event while this one was loading
   }
+}
+// one tab's wiki page (kept in this browser), then the others in the background, one at a time
+async function wikiPageLoad(id, t, force) {
+  const k = wikiKey(t); if (EV.pageBusy.has(k) || (EV.pages[k] && !force)) return;
+  EV.pageBusy.add(k);
+  try {
+    const c = await kv.get("wikip:" + id + ":" + k);
+    if (!t.page) EV.pages[k] = c && c.v === WIKI_V ? {html: c.html} : {fail: 1}; // a part of the page itself: made when the page was
+    else if (c && c.v === WIKI_V && !force && (Date.now() - c.at < EV_WIKI_FRESH || navigator.onLine === false)) EV.pages[k] = {html: c.html};
+    else {
+      try {
+        const j = await wikiJSON({action: "parse", page: t.page, prop: "text", redirects: "1", disableeditsection: "1", disabletoc: "1"});
+        const html = j && j.parse && j.parse.text; if (!html) throw new Error("no page");
+        const clean = wikiCleanHTML(typeof html === "string" ? html : html["*"]);
+        await kv.set("wikip:" + id + ":" + k, {v: WIKI_V, at: Date.now(), html: clean}); EV.pages[k] = {html: clean};
+      } catch (e) { EV.pages[k] = c && c.v === WIKI_V ? {html: c.html, stale: 1} : {fail: 1}; }
+    }
+  } finally {
+    EV.pageBusy.delete(k);
+    if (EV.id === id && EV.m) { const cur = evTabs(EV.m).find((x) => x.k === EV.tab); if (cur && cur.wiki && wikiKey(cur.wiki) === k) evPaint(); }
+  }
+}
+async function wikiPrefetch(id, force) {
+  const w = EV.wiki; if (!w || !w.tabs || !EV.m) return;
+  const cur = evTabs(EV.m).find((x) => x.k === EV.tab), first = cur && cur.wiki ? wikiKey(cur.wiki) : "";
+  const order = w.tabs.slice().sort((a, b) => (wikiKey(b) === first) - (wikiKey(a) === first));
+  for (const t of order) { if (EV.id !== id || EV.wiki !== w) return; await wikiPageLoad(id, t, force); }
 }
 
 /* ---------- what your roster still needs ---------- */
@@ -10824,15 +11118,16 @@ function evRosterNeeds(to) {
 }
 const MAT_IDS = new Set(ATLAS_MATS.map((m) => m[0]));
 function evCalcData(m) {
-  const {need, who} = evRosterNeeds(evPref.to), cur = new Map();
+  const {need, who} = evRosterNeeds(evPref.to), cur = new Map(), took = new Map(); // took: bought already in an earlier row
   for (const sh of m.shop) {
     const c = sh.cost; if (!c) continue;
     if (!cur.has(c.id)) cur.set(c.id, {c: c, rows: [], all: 0, open: 0, mine: 0});
     const k = cur.get(c.id); if (sh.lim) k.all += sh.lim * c.q; else k.open++;
     const g = sh.got.length === 1 ? sh.got[0] : null;
     if (!g || g.k !== "i" || !MAT_IDS.has(g.id) || !need.get(g.id)) continue;
-    const have = Math.max(0, num(evPref.have[g.id]) || 0), left = Math.max(0, need.get(g.id) - have);
+    const have = Math.max(0, num(evPref.have[g.id]) || 0), left = Math.max(0, need.get(g.id) - have - (took.get(g.id) || 0));
     const buy = Math.min(sh.lim || Infinity, Math.ceil(left / Math.max(1, g.q)));
+    took.set(g.id, (took.get(g.id) || 0) + buy * Math.max(1, g.q));
     k.rows.push({sh: sh, g: g, need: need.get(g.id), have: have, buy: buy, cost: buy * c.q, who: who.get(g.id)}); k.mine += buy * c.q;
   }
   return [...cur.values()];
@@ -10849,6 +11144,37 @@ function evBestRun(m, curId) {
   return best;
 }
 
+/* ---------- the tabs ---------- */
+// what a tab is about, from its name (the first that fits wins); Atlas Academy's data fills the kinds it knows
+const EV_KINDS = [["overview", /main info|overview|event info|^summary$/i], ["shop", /shop|exchange/i], ["free", /free quests?/i], ["main", /main quests?|^story/i], ["extra", /extra quests?/i],
+  ["challenge", /challenge|high difficulty|super recollection/i], ["missions", /mission list|master missions?|^missions?$/i], ["rmissions", /missions?/i], ["summon", /summon|gacha|banner/i], ["points", /point|lottery|lotto|box/i]];
+const evKind = (h) => { for (const [k, rx] of EV_KINDS) if (rx.test(h)) return k; return "wiki"; };
+const evSlug = (h) => nname(h).replace(/ /g, "-") || "tab";
+function evBanners(m) {
+  const d = live.data, all = d && Array.isArray(d.ba) ? d.ba : [], toks = evToks(m.n.replace(/^revival:\s*/i, ""));
+  const over = all.filter((b) => b.s < m.e && b.e > m.s - 86400);
+  const mine = over.filter((b) => { const bt = evToks(b.n); return [...toks].some((t) => bt.has(t)) || Math.abs(b.s - m.s) < 3600; });
+  return {show: mine.length ? mine : over, mine: mine.length > 0};
+}
+function evTabs(m) {
+  if (!m) return [];
+  const w = EV.wiki && EV.wiki.tabs && EV.wiki.tabs.length ? EV.wiki.tabs : null, out = [];
+  const at = (kind) => out.findIndex((t) => t.kind === kind);
+  const after = (kinds, t) => { let i = -1; kinds.forEach((k) => { i = Math.max(i, at(k)); }); out.splice(i + 1, 0, t); };
+  if (w) w.forEach((t) => out.push({k: evSlug(t.h), h: t.h, kind: evKind(t.h), wiki: t}));
+  if (at("overview") < 0) out.unshift({k: "overview", h: w ? "Overview" : "Main Info", kind: "overview"});
+  if (m.shop.length && at("shop") < 0) after(["overview"], {k: "shop", h: "Event Shop", kind: "shop"});
+  if (m.shop.length) after(["shop"], {k: "calc", h: "Calculator", kind: "calc"});
+  if (m.mis.length && at("missions") < 0) after(["calc", "shop", "overview"], {k: "missions", h: "Mission List", kind: "missions"});
+  if (m.rmis.length && at("rmissions") < 0) after(["missions", "calc", "shop", "overview"], {k: "more-missions", h: "Random Missions", kind: "rmissions"});
+  if (m.quests.length && !["main", "free", "extra", "challenge"].some((k) => at(k) >= 0)) after(["rmissions", "missions", "calc", "shop", "overview"], {k: "quests", h: "Quests", kind: "quests"});
+  else if (m.quests.some((q) => q.g === "free") && at("free") < 0) after(["main", "rmissions", "missions", "calc", "shop", "overview"], {k: "free-quests", h: "Free Quests", kind: "free"});
+  if (at("summon") < 0 && evBanners(m).show.length) out.push({k: "summon", h: "Summoning", kind: "summon"});
+  if ((m.pts.length || m.lots.length) && at("points") < 0) out.push({k: "rewards", h: "Rewards", kind: "points"});
+  const seen = new Set(); out.forEach((t) => { let k = t.k, n = 2; while (seen.has(k)) k = t.k + "-" + n++; t.k = k; seen.add(k); });
+  return out;
+}
+
 /* ---------- drawing the page ---------- */
 const evIt = (g, big, named) => {
   if (!g) return "";
@@ -10856,133 +11182,173 @@ const evIt = (g, big, named) => {
   return `<span class="ev-it${big ? " big" : ""}">${g.ic ? `<img src="${esc(g.ic)}" alt="" loading="lazy">` : ""}<span>${esc(g.n)}${g.q > 1 ? ` <b>×${fmt(g.q)}</b>` : ""}</span></span>`;
 };
 const evNum = (v) => fmt(Math.round(v));
-function evMoreList(key, items, cut, row, tag) {
-  const open = EV.more.has(key), shown = open || items.length <= cut + 2 ? items : items.slice(0, cut);
-  return `<${tag || "ul"} class="ev-list">${shown.map(row).join("")}</${tag || "ul"}>${shown.length < items.length || open ? `<button type="button" class="linkish ev-more" data-action="ev-more" data-k="${key}" aria-expanded="${open}">${open ? "Show fewer" : "Show all " + items.length}</button>` : ""}`;
+// this page's own tabs inside a tab (the wiki's tabs become the same thing); labels are made here, already escaped
+function evSub(key, parts) {
+  parts = parts.filter(Boolean); if (!parts.length) return "";
+  if (parts.length === 1) return parts[0].html;
+  return `<div class="ewt" data-k="${esc(key)}"><div class="ewt-bar" role="tablist">${parts.map((p, i) => `<button type="button" role="tab" class="ewt-b" data-action="ewt" data-i="${i}" aria-selected="${i ? "false" : "true"}">${p.label}</button>`).join("")}</div>${parts.map((p, i) => `<div class="ewt-p" role="tabpanel"${i ? " hidden" : ""}>${p.html}</div>`).join("")}</div>`;
 }
-function evWikiBlocks(kinds, title, open) {
-  const w = EV.wiki; if (!w || !w.secs) return "";
-  return w.secs.filter((s) => kinds.includes(s.k)).map((s, i) => {
-    const key = "w:" + s.h, isOpen = EV.open.has(key) || (open && !EV.open.has("!" + key));
-    return `<details class="ev-wiki" data-k="${esc(key)}"${isOpen ? " open" : ""}><summary>${esc(title ? title + ": " + s.h : s.h)} <small>from the wiki</small></summary><div class="ew">${s.html}</div></details>`;
-  }).join("");
+const evChunks = (list, size) => { const out = []; for (let i = 0; i < list.length; i += size) out.push(list.slice(i, i + size)); return out; };
+const evWikiLink = (title) => title ? `<a href="${esc(wikiURL(title))}" target="_blank" rel="noopener">${esc(title)} ↗</a>` : "";
+function evWikiPane(t) {
+  if (!t || !t.wiki) return "";
+  const p = EV.pages[wikiKey(t.wiki)], src = t.wiki.page || (EV.wiki && EV.wiki.title) || "";
+  if (!p) return `<div class="ev-wload"><p class="tr-none">Getting ${esc(t.h)} from the wiki…</p><div class="skeleton" style="height:180px"></div></div>`;
+  if (p.fail) return `<p class="tr-none">Couldn't get this part from the Fate/Grand Order wiki. ${evWikiLink(src)}</p>`;
+  return `<div class="ew">${p.html}</div><p class="ev-wsrc">From the wiki: ${evWikiLink(src)}${p.stale ? " (an older copy; the wiki couldn't be reached)" : ""}</p>`;
 }
-function evSec(id, title, small, body) {
-  return body ? `<section class="d-sec ev-sec" id="ev-${id}"><h3>${esc(title)}${small ? ` <small>${small}</small>` : ""}</h3>${body}</section>` : "";
+// the wiki's version of a part this page shows from Atlas Academy: folded away underneath
+function evWikiAside(t, label) {
+  if (!t || !t.wiki) return "";
+  const key = "wd-" + t.k, open = EV.open.has(key);
+  return `<details class="ev-wd" data-k="${esc(key)}"${open ? " open" : ""}><summary>${esc(label || "The wiki's page for this")}</summary>${open ? evWikiPane(t) : ""}</details>`;
 }
-function evSummonHTML(m) {
-  const d = live.data, all = d && Array.isArray(d.ba) ? d.ba : [], now = Date.now() / 1000, toks = evToks(m.n.replace(/^revival:\s*/i, ""));
-  const over = all.filter((b) => b.s < m.e && b.e > m.s - 86400);
-  const mine = over.filter((b) => { const bt = evToks(b.n); return [...toks].some((t) => bt.has(t)) || Math.abs(b.s - m.s) < 3600; });
-  const show = mine.length ? mine : over;
+const evReq = (r) => /^(none|no|-|n\/a)$/i.test(r) ? "Open to everyone" : /^clear\b/i.test(r) ? r : "Clear " + r;
+function evOverviewHTML(m, t) {
+  const curs = [...new Map(m.shop.map((x) => [x.cost.id, x.cost])).values()], w = EV.wiki;
+  const facts = [
+    ["Runs", `${esc(liveWhen(m.s))} – ${esc(liveWhen(m.e))}`],
+    w && w.req ? ["To take part", esc(evReq(w.req))] : null,
+    m.sv.length ? ["Joins your roster", m.sv.map((g) => evIt(g, false, true)).join("")] : null,
+    curs.length ? ["Event currency", curs.map((c) => evIt({k: "i", n: c.n, ic: c.ic, q: 1})).join("")] : null,
+    m.quests.length ? ["Quests", esc(["main", "free", "extra", "challenge"].map((g) => { const n = m.quests.filter((q) => q.g === g).length; return n ? n + " " + g : ""; }).filter(Boolean).join(" · "))] : null,
+    m.mis.length ? ["Missions", esc(plural(m.mis.length, "mission") + (m.rmis.length ? " · " + plural(m.rmis.reduce((a, r) => a + r.list.length, 0), "random mission") : ""))] : null
+  ].filter(Boolean);
+  return `<dl class="ev-facts">${facts.map((f) => `<div><dt>${f[0]}</dt><dd>${f[1]}</dd></div>`).join("")}</dl>${m.d ? `<p class="ev-desc">${esc(m.d)}</p>` : ""}${evWikiPane(t)}`;
+}
+function evShopHTML(m, t) {
+  if (!m.shop.length) return evWikiPane(t) || `<p class="tr-none">This event has no shop.</p>`;
+  const by = new Map(); m.shop.forEach((x) => { if (!by.has(x.cost.id)) by.set(x.cost.id, []); by.get(x.cost.id).push(x); });
+  const parts = [...by.values()].map((rows) => {
+    const c = rows[0].cost, all = rows.reduce((a, x) => a + (x.lim ? x.lim * x.cost.q : 0), 0), open = rows.filter((x) => !x.lim).length;
+    const item = (x) => x.got.length === 1 && x.got[0].k !== "?" ? evIt(Object.assign({}, x.got[0], {n: x.n}), false, true) : evIt({k: "i", n: x.n, ic: (x.got[0] || {}).ic || "", q: 1});
+    return {label: evIt({k: "i", n: c.n, ic: c.ic, q: 1}), html: `<div class="ew-scroll"><table class="ev-tb"><thead><tr><th>Item</th><th>Price</th><th>Limit</th><th>Total</th></tr></thead><tbody>
+      ${rows.map((x) => `<tr><td>${item(x)}</td><td class="n">${evNum(x.cost.q)}</td><td class="n">${x.lim ? "×" + x.lim : "no limit"}</td><td class="n">${x.lim ? evNum(x.lim * x.cost.q) : "—"}</td></tr>`).join("")}
+      </tbody><tfoot><tr><th colspan="3">Everything${open ? ` <small>(+ ${plural(open, "unlimited item")})</small>` : ""}</th><td class="n">${evNum(all)}</td></tr></tfoot></table></div>`};
+  });
+  return `<p class="ev-note">${plural(m.shop.length, "item")} for ${plural(by.size, "currency", "currencies")}. The <button type="button" class="linkish" data-action="ev-tab" data-k="calc">Calculator</button> works out what your servants need from it.</p>`
+    + evSub("shop", parts) + evWikiAside(t, "The wiki's shop page");
+}
+function evCalcHTML(m) {
+  const cs = evCalcData(m), own = owned().length;
+  const parts = cs.map((k) => {
+    const have = Math.max(0, num(evPref.have["c" + k.c.id]) || 0), left = Math.max(0, k.mine - have), best = evBestRun(m, k.c.id);
+    const runs = best && best.per > 0 ? Math.ceil(left / best.per) : null;
+    return {label: evIt({k: "i", n: k.c.n, ic: k.c.ic, q: 1}), html: `<div class="ev-calc" data-cur="${k.c.id}">
+      ${k.rows.length ? `<div class="ew-scroll"><table class="ev-ct"><thead><tr><th>Material</th><th>Your servants need</th><th>You have</th><th>Buy</th><th>Costs</th></tr></thead><tbody>
+        ${k.rows.map((r) => `<tr><td>${evIt(Object.assign({}, r.g, {q: r.g.q}))}<small>${r.sh.lim ? "×" + r.sh.lim + " in the shop" : "no limit"}, ${evNum(r.sh.cost.q)} each</small></td>
+          <td title="${esc([...r.who.entries()].sort((a, b) => b[1] - a[1]).map((w) => w[0] + " " + w[1]).join(" · "))}">${evNum(r.need)}</td>
+          <td><input type="number" min="0" step="1" inputmode="numeric" data-ev-have="${r.g.id}" value="${esc(evPref.have[r.g.id] || "")}" placeholder="0" aria-label="${esc(r.g.n)} you have"></td>
+          <td>${r.buy ? "×" + r.buy : "—"}</td><td>${r.cost ? evNum(r.cost) : "—"}</td></tr>`).join("")}
+      </tbody></table></div>` : `<p class="tr-none">Nothing sold for this currency is a material your servants still need.</p>`}
+      <dl class="ev-tot"><div><dt>For your servants</dt><dd>${evNum(k.mine)}</dd></div><div><dt>Whole shop</dt><dd>${evNum(k.all)}${k.open ? ` <small>+ ${k.open} unlimited</small>` : ""}</dd></div>
+        <div><dt>You have</dt><dd><input type="number" min="0" step="1" inputmode="numeric" data-ev-have="c${k.c.id}" value="${esc(evPref.have["c" + k.c.id] || "")}" placeholder="0" aria-label="${esc(k.c.n)} you have"></dd></div>
+        <div><dt>Still to farm</dt><dd>${evNum(left)}</dd></div></dl>
+      <p class="ev-run">${best ? `Best quest: <b>${esc(best.q.n)}</b> (${best.q.ap} AP) gives about ${best.per.toFixed(1)} a run with <label class="ev-bonus">+<input type="number" min="0" step="1" inputmode="numeric" data-ev-bonus="${k.c.id}" value="${esc(evPref.bonus[k.c.id] || "")}" placeholder="0" aria-label="Bonus per drop"> per drop</label> from your event Craft Essences and servants.${left ? ` About <b>${fmt(runs)} runs</b> (${fmt(runs * best.q.ap)} AP) for what your servants need.` : ""}`
+        : EV.dropBusy ? "Working out the best quest from the drops…" : "No free quest drops this currency in Atlas Academy's data yet."}</p></div>`};
+  });
+  return `<div class="ev-cctl"><label>Skills up to <select data-ev-to><option value="10"${evPref.to === 10 ? " selected" : ""}>Lv 10</option><option value="9"${evPref.to === 9 ? " selected" : ""}>Lv 9</option></select></label>
+      <p class="ev-note">Counts your ${plural(own, "servant")} (not Guests): ascensions still to do by level, and skills up to Lv ${evPref.to}. Append skills aren't counted. Fill in what you already have and the numbers follow.</p></div>`
+    + evSub("calc", parts);
+}
+const evMiRow = (x) => `<li class="ev-mi"><span class="ev-no">${x.no || ""}</span><span class="ev-mt">${esc(x.n)}</span><span class="ev-gs">${x.g.map((g) => evIt(g, false, true)).join("")}</span></li>`;
+function evMissionsHTML(m, t) {
+  if (!m.mis.length) return evWikiPane(t);
+  const parts = evChunks(m.mis, 20).map((ch) => ({label: esc(`${ch[0].no || ""}–${ch[ch.length - 1].no || ""}`), html: `<ol class="ev-list">${ch.map(evMiRow).join("")}</ol>`}));
+  return evSub("mis", parts) + evWikiAside(t, "The wiki's mission list");
+}
+function evRandomHTML(m, t) {
+  if (!m.rmis.length) return evWikiPane(t);
+  const parts = m.rmis.map((r) => ({label: "Rank " + (r.r + 1) + ` <small>${r.list.length}</small>`, html: `<ol class="ev-list">${r.list.map(evMiRow).join("")}</ol>`}));
+  return `<p class="ev-note">Random missions: a few from each rank are handed out at a time.</p>` + evSub("rmis", parts) + evWikiAside(t, "The wiki's page for these");
+}
+function evQuestRows(m, qs) {
+  return `<ul class="ev-list">${qs.map((q) => {
+    const ds = m.drops[q.id];
+    return `<li class="ev-q"><div class="ev-qh"><b>${esc(q.n)}</b><small>${[q.ap ? q.ap + " AP" : "", q.lv ? "Lv " + esc(q.lv) : "", q.sp ? esc(q.sp) : ""].filter(Boolean).join(" · ")}</small></div>
+      ${q.g === "free" ? (ds ? (ds.length ? `<div class="ev-drops">${ds.slice(0, 10).map((d) => `<span class="ev-it sm" title="${esc(d.n)}: ${d.q > 1 ? d.q + " each drop, " : ""}${d.ex.toFixed(2)} drops a run">${d.ic ? `<img src="${esc(d.ic)}" alt="" loading="lazy">` : ""}<span>${esc(d.n)} <b>${(d.q * d.ex).toFixed(d.q * d.ex >= 10 ? 0 : 2)}</b></span></span>`).join("")}</div>` : `<p class="tr-none">No drop data yet.</p>`)
+        : `<p class="tr-none">${EV.dropBusy ? "Getting drops…" : "Drops not loaded."}</p>`) : ""}</li>`;
+  }).join("")}</ul>`;
+}
+function evFreeHTML(m, t) {
+  const qs = m.quests.filter((q) => q.g === "free");
+  const head = qs.length ? `<h4 class="ev-h">Drops per run <small>averages from Atlas Academy, without event bonuses</small></h4>${evQuestRows(m, qs)}` : "";
+  return (head + (t && t.wiki ? `<h4 class="ev-h">Quests in detail <small>from the wiki</small></h4>` + evWikiPane(t) : "")) || `<p class="tr-none">No free quests in Atlas Academy's data for this event.</p>`;
+}
+function evQuestsHTML(m, t) {
+  if (t && t.wiki) return evWikiPane(t);
+  const groups = [["main", "Main"], ["free", "Free"], ["extra", "Extra"], ["challenge", "Challenge"]].filter(([g]) => !t || t.kind === "quests" || t.kind === g);
+  return evSub("quests", groups.map(([g, lab]) => { const qs = m.quests.filter((q) => q.g === g); return qs.length ? {label: lab + ` <small>${qs.length}</small>`, html: evQuestRows(m, qs) + (g === "free" ? `<p class="ev-note">Drops per run are the averages Atlas Academy gathered from players' runs, without event bonuses.</p>` : "")} : null; }))
+    || `<p class="tr-none">No quests in Atlas Academy's data for this event.</p>`;
+}
+function evSummonHTML(m, t) {
+  const d = live.data, now = Date.now() / 1000, {show, mine} = evBanners(m);
   const row = (b) => `<li class="ev-ban"><div class="ev-bh"><b>${esc(liveText(b.n))}</b>${b.t ? `<small>${esc(b.t)}</small>` : ""}</div>
     <p class="ev-when">${b.s > now ? "opens " + esc(liveWhen(b.s)) + " · " : ""}${b.e > now ? "closes " + esc(liveWhen(b.e)) : "closed"}</p>
     ${b.sub && b.sub.length ? `<p class="ev-when">Rate-up schedule: ${b.sub.map((x) => esc(liveWhen(x[0]).replace(/, \d\d:\d\d$/, "")) + " – " + esc(liveWhen(x[1]).replace(/, \d\d:\d\d$/, ""))).join(" · ")}</p>` : ""}
     ${b.ft.length ? `<div class="ev-faces">${b.ft.map((x) => liveFace(x, true)).join("")}</div>` : ""}
     ${b.id && b.ft.some((x) => !x.ce) && b.e > now ? `<button type="button" class="btn sm" data-action="ev-sim" data-g="${b.id}">Simulate this banner</button>` : ""}</li>`;
-  const body = (show.length ? `<ul class="ev-bans">${show.map(row).join("")}</ul>${!mine.length ? `<p class="tr-none">None of these is named after the event; they're the banners open at the same time.</p>` : ""}`
-    : `<p class="tr-none">${d ? "No summon banner that's open or coming up runs with this event." : "Banners show up here once On NA now has checked Atlas Academy."}</p>`) + evWikiBlocks(["summon"], "Wiki", false);
-  return evSec("summon", "Summoning campaign", "rate-up servants and Craft Essences", body);
+  const ours = show.length ? `<ul class="ev-bans">${show.map(row).join("")}</ul>${!mine ? `<p class="tr-none">None of these is named after the event; they're the banners open at the same time.</p>` : ""}`
+    : `<p class="tr-none">${!liveOn() ? `Live NA updates are off, so the summon banners aren't loaded. <button type="button" class="linkish" data-action="live-on">Turn them on</button>` : d ? "No summon banner that's open or coming up runs with this event." : "Banners show up here once On NA now has checked Atlas Academy."}</p>`;
+  return ours + (t && t.wiki ? `<h4 class="ev-h">Featured and schedule <small>from the wiki</small></h4>` + evWikiPane(t) : "");
 }
-function evRewardsSvtHTML(m) {
-  const seen = new Map(), add = (g, from) => { if (!g || (g.k !== "s" && g.k !== "c") || !g.no) return; const k = g.k + g.no; if (!seen.has(k)) seen.set(k, {g: g, from: new Set()}); seen.get(k).from.add(from); };
-  m.shop.forEach((x) => x.got.forEach((g) => add(g, "shop"))); m.mis.forEach((x) => x.g.forEach((g) => add(g, "missions"))); m.pts.forEach((x) => x.g.forEach((g) => add(g, "point rewards")));
-  m.lots.forEach((l) => l.boxes.forEach((b) => b.it.forEach((x) => add(x.g, "lottery"))));
-  const got = [...seen.values()].sort((a, b) => (a.g.k === "s" ? 0 : 1) - (b.g.k === "s" ? 0 : 1) || b.g.r - a.g.r);
-  const body = (got.length ? `<ul class="ev-gets">${got.map((x) => `<li>${liveFace({no: x.g.no, n: x.g.n, r: x.g.r, f: x.g.ic, ce: x.g.k === "c" ? 1 : 0, c: x.g.c})}<small>${esc([...x.from].join(", "))}</small></li>`).join("")}</ul>` : "")
-    + evWikiBlocks(["servants", "cards"], "", true);
-  return evSec("svts", "Event servants and Craft Essences", got.length ? "what you can get here, and the wiki's bonus lists" : "the wiki's bonus lists", body);
-}
-function evMissionsHTML(m) {
-  const body = (m.mis.length ? evMoreList("mis", m.mis, 12, (x) => `<li class="ev-mi"><span class="ev-no">${x.no || ""}</span><span class="ev-mt">${esc(x.n)}</span><span class="ev-gs">${x.g.map((g) => evIt(g, false, true)).join("")}</span></li>`, "ol") : "")
-    + evWikiBlocks(["missions"], "Wiki", !m.mis.length);
-  return evSec("missions", "Missions", m.mis.length ? plural(m.mis.length, "mission") : "", body);
-}
-function evQuestsHTML(m) {
-  const groups = [["main", "Main quests"], ["free", "Free quests"], ["extra", "Extra quests"], ["challenge", "Challenge quests"]];
-  const row = (q) => {
-    const ds = m.drops[q.id];
-    return `<li class="ev-q"><div class="ev-qh"><b>${esc(q.n)}</b><small>${[q.ap ? q.ap + " AP" : "", q.lv ? "Lv " + esc(q.lv) : "", q.sp ? esc(q.sp) : ""].filter(Boolean).join(" · ")}</small></div>
-      ${q.g === "free" ? (ds ? (ds.length ? `<div class="ev-drops">${ds.slice(0, 10).map((d) => `<span class="ev-it sm" title="${esc(d.n)}: ${d.q > 1 ? d.q + " each drop, " : ""}${d.ex.toFixed(2)} drops a run">${d.ic ? `<img src="${esc(d.ic)}" alt="" loading="lazy">` : ""}<span>${esc(d.n)} <b>${(d.q * d.ex).toFixed(d.q * d.ex >= 10 ? 0 : 2)}</b></span></span>`).join("")}</div>` : `<p class="tr-none">No drop data yet.</p>`)
-        : `<p class="tr-none">${EV.dropBusy ? "Getting drops…" : "Drops not loaded."}</p>`) : ""}</li>`;
-  };
-  const body = groups.map(([g, t]) => { const qs = m.quests.filter((q) => q.g === g); return qs.length ? `<h4>${t} <small>${qs.length}</small></h4>${evMoreList("q" + g, qs, g === "main" ? 6 : 12, row)}` : ""; }).join("")
-    + (m.quests.some((q) => q.g === "free") ? `<p class="ev-note">Drops per run are the averages Atlas Academy gathered from players' runs, without event bonuses.</p>` : "")
-    + evWikiBlocks(["quests"], "Wiki", !m.quests.length);
-  return evSec("quests", "Quests", m.quests.length ? plural(m.quests.length, "quest") : "", body);
-}
-function evShopHTML(m) {
-  if (!m.shop.length) return evSec("shop", "Event shop", "", evWikiBlocks(["shop"], "Wiki", true));
-  const by = new Map(); m.shop.forEach((x) => { if (!by.has(x.cost.id)) by.set(x.cost.id, []); by.get(x.cost.id).push(x); });
-  const body = [...by.values()].map((rows, k) => {
-    const c = rows[0].cost, all = rows.reduce((a, x) => a + (x.lim ? x.lim * x.cost.q : 0), 0), open = rows.filter((x) => !x.lim).length;
-    return `<div class="ev-cur"><h4>${evIt({k: "i", n: c.n, ic: c.ic, q: 1}, true)} <small>${plural(rows.length, "item")} · everything ${evNum(all)}${open ? ` + ${open} unlimited` : ""}</small></h4>
-      ${evMoreList("shop" + k, rows, 10, (x) => `<li class="ev-sh"><span class="ev-sn">${x.got.length === 1 ? evIt(Object.assign({}, x.got[0], {n: x.n}), false, true) : evIt({k: "i", n: x.n, ic: (x.got[0] || {}).ic || "", q: 1})}</span><span class="ev-sc">${evNum(x.cost.q)} each</span><span class="ev-sl">${x.lim ? "×" + x.lim : "no limit"}</span><span class="ev-st">${x.lim ? evNum(x.lim * x.cost.q) : "—"}</span></li>`)}</div>`;
-  }).join("") + evWikiBlocks(["shop"], "Wiki", false);
-  return evSec("shop", "Event shop", plural(m.shop.length, "item"), body);
-}
-function evCalcHTML(m) {
-  if (!m.shop.length) return "";
-  const cs = evCalcData(m), own = owned().length;
-  const body = `<div class="ev-cctl"><label>Skills up to <select data-ev-to><option value="10"${evPref.to === 10 ? " selected" : ""}>Lv 10</option><option value="9"${evPref.to === 9 ? " selected" : ""}>Lv 9</option></select></label>
-      <p class="ev-note">Counts your ${plural(own, "servant")} (not Guests): ascensions still to do by level, and skills up to Lv ${evPref.to}. Append skills aren't counted. Fill in what you already have and the numbers follow.</p></div>
-    ${cs.map((k) => {
-      const have = Math.max(0, num(evPref.have["c" + k.c.id]) || 0), left = Math.max(0, k.mine - have), best = evBestRun(m, k.c.id);
-      const runs = best && best.per > 0 ? Math.ceil(left / best.per) : null;
-      return `<div class="ev-calc" data-cur="${k.c.id}"><h4>${evIt({k: "i", n: k.c.n, ic: k.c.ic, q: 1}, true)}</h4>
-        ${k.rows.length ? `<div class="ew-scroll"><table class="ev-ct"><thead><tr><th>Material</th><th>Your servants need</th><th>You have</th><th>Buy</th><th>Costs</th></tr></thead><tbody>
-          ${k.rows.map((r) => `<tr><td>${evIt(Object.assign({}, r.g, {q: r.g.q}))}<small>${r.sh.lim ? "×" + r.sh.lim + " in the shop" : "no limit"}, ${evNum(r.sh.cost.q)} each</small></td>
-            <td title="${esc([...r.who.entries()].sort((a, b) => b[1] - a[1]).map((w) => w[0] + " " + w[1]).join(" · "))}">${evNum(r.need)}</td>
-            <td><input type="number" min="0" step="1" inputmode="numeric" data-ev-have="${r.g.id}" value="${esc(evPref.have[r.g.id] || "")}" placeholder="0" aria-label="${esc(r.g.n)} you have"></td>
-            <td>${r.buy ? "×" + r.buy : "—"}</td><td>${r.cost ? evNum(r.cost) : "—"}</td></tr>`).join("")}
-        </tbody></table></div>` : `<p class="tr-none">Nothing sold for this currency is a material your servants still need.</p>`}
-        <dl class="ev-tot"><div><dt>For your servants</dt><dd>${evNum(k.mine)}</dd></div><div><dt>Whole shop</dt><dd>${evNum(k.all)}${k.open ? ` <small>+ ${k.open} unlimited</small>` : ""}</dd></div>
-          <div><dt>You have</dt><dd><input type="number" min="0" step="1" inputmode="numeric" data-ev-have="c${k.c.id}" value="${esc(evPref.have["c" + k.c.id] || "")}" placeholder="0" aria-label="${esc(k.c.n)} you have"></dd></div>
-          <div><dt>Still to farm</dt><dd>${evNum(left)}</dd></div></dl>
-        <p class="ev-run">${best ? `Best quest: <b>${esc(best.q.n)}</b> (${best.q.ap} AP) gives about ${best.per.toFixed(1)} a run with <label class="ev-bonus">+<input type="number" min="0" step="1" inputmode="numeric" data-ev-bonus="${k.c.id}" value="${esc(evPref.bonus[k.c.id] || "")}" placeholder="0" aria-label="Bonus per drop"> per drop</label> from your event Craft Essences and servants.${left ? ` About <b>${fmt(runs)} runs</b> (${fmt(runs * best.q.ap)} AP) for what your servants need.` : ""}`
-          : EV.dropBusy ? "Working out the best quest from the drops…" : "No free quest drops this currency in Atlas Academy's data yet."}</p></div>`;
-    }).join("")}`;
-  return evSec("calc", "Currency calculator", "what your servants still need from the shop", body);
-}
-function evPointsHTML(m) {
+function evPointsHTML(m, t) {
   let body = "";
   if (m.pts.length) {
     const grps = [...new Set(m.pts.map((x) => x.grp))];
-    body += grps.map((g, i) => { const rows = m.pts.filter((x) => x.grp === g), nm = (m.ptn.find((x) => x.grp === g) || {}).n;
-      return `<h4>${esc(nm || (grps.length > 1 ? "Point rewards " + (i + 1) : "Point rewards"))} <small>${plural(rows.length, "reward")}</small></h4>${evMoreList("pt" + g, rows, 8, (x) => `<li class="ev-pt"><span class="ev-pp">${evNum(x.pt)}</span><span class="ev-gs">${x.g.map((gg) => evIt(gg, false, true)).join("")}</span></li>`)}`; }).join("");
+    body += evSub("pts", grps.map((g, i) => { const rows = m.pts.filter((x) => x.grp === g), nm = (m.ptn.find((x) => x.grp === g) || {}).n;
+      return {label: esc(nm || (grps.length > 1 ? "Point rewards " + (i + 1) : "Point rewards")), html: `<ul class="ev-list">${rows.map((x) => `<li class="ev-pt"><span class="ev-pp">${evNum(x.pt)}</span><span class="ev-gs">${x.g.map((gg) => evIt(gg, false, true)).join("")}</span></li>`).join("")}</ul>`}; }));
   }
-  if (m.lots.length) body += m.lots.map((l) => `<h4>Lottery ${l.cost ? `<small>${evNum(l.cost.q)} ${esc(l.cost.n)} a draw${l.lim ? "" : ", no box limit"}</small>` : ""}</h4>
+  if (m.lots.length) body += m.lots.map((l) => `<h4 class="ev-h">Lottery ${l.cost ? `<small>${evNum(l.cost.q)} ${esc(l.cost.n)} a draw${l.lim ? "" : ", no box limit"}</small>` : ""}</h4>
     ${l.boxes.map((b, i) => (i < 3 || EV.more.has("lot")) ? `<p class="ev-box"><b>Box ${b.bi + 1}</b> ${b.it.map((x) => evIt(Object.assign({}, x.g, {q: x.g.q * Math.max(1, x.max)}))).join("")}</p>` : "").join("")}
     ${l.boxes.length > 3 ? `<button type="button" class="linkish ev-more" data-action="ev-more" data-k="lot">${EV.more.has("lot") ? "Show fewer" : "Show all " + l.boxes.length + " boxes"}</button>` : ""}`).join("");
-  return evSec("points", "Point rewards and lottery", "", body);
+  return (body || evWikiPane(t)) + (body ? evWikiAside(t, "The wiki's page for these") : "");
+}
+function evPaneHTML(m, t) {
+  switch (t.kind) {
+    case "overview": return evOverviewHTML(m, t);
+    case "shop": return evShopHTML(m, t);
+    case "calc": return evCalcHTML(m);
+    case "missions": return evMissionsHTML(m, t);
+    case "rmissions": return evRandomHTML(m, t);
+    case "free": return evFreeHTML(m, t);
+    case "main": case "extra": case "challenge": case "quests": return evQuestsHTML(m, t);
+    case "summon": return evSummonHTML(m, t);
+    case "points": return evPointsHTML(m, t);
+    default: return evWikiPane(t);
+  }
 }
 function evHTML() {
   const back = `<button type="button" class="btn ghost sm ev-back" data-action="tab" data-tab="home">← Home</button>`;
   const m = EV.m, busy = EV.loading.has(EV.id);
-  if (!m) return `<div class="ev-top">${back}</div><section class="d-sec ev-sec"><p class="tr-none">${busy ? "Getting this event from Atlas Academy…" : esc(EV.err || "This event isn't loaded yet.")}</p>${!busy ? `<button type="button" class="btn sm" data-action="ev-reload">Try again</button>` : `<div class="skeleton" style="height:220px"></div>`}</section>`;
-  const now = Date.now() / 1000, w = EV.wiki;
+  if (!m) return `<div class="ev-top">${back}</div><section class="ev-pane"><p class="tr-none">${busy ? "Getting this event from Atlas Academy…" : esc(EV.err || "This event isn't loaded yet.")}</p>${!busy ? `<button type="button" class="btn sm" data-action="ev-reload">Try again</button>` : `<div class="skeleton" style="height:220px"></div>`}</section>`;
+  const now = Date.now() / 1000, w = EV.wiki, tabs = evTabs(m);
+  // the tab the address asked for may only exist once the wiki's tabs are in; until then it's kept in mind
+  let t = null;
+  if (EV.want) {
+    t = tabs.find((x) => x.k === EV.want) || null;
+    if (!t && EV.wiki) { const kd = evKind(EV.want.replace(/-/g, " ")); t = kd !== "wiki" ? tabs.find((x) => x.kind === kd) || null : null; }
+    if (t || EV.wiki) EV.want = "";
+  }
+  if (!t) t = tabs.find((x) => x.k === EV.tab) || tabs.find((x) => x.kind === EV.kind) || tabs[0];
+  EV.tab = t.k; EV.kind = t.kind;
   const status = now < m.s ? "starts " + liveWhen(m.s) : now < m.e ? "ends in " + liveLeft(m.e) + " (" + liveWhen(m.e) + ")" : "ended " + liveWhen(m.e);
-  const wikiNote = EV.wikiBusy ? "Looking it up on the wiki…" : !w ? "" : w.fail ? `Couldn't reach the Fate/Grand Order wiki. <a href="${WIKI}/wiki/Special:Search?search=${encodeURIComponent(m.n)}" target="_blank" rel="noopener">Search it there ↗</a>`
-    : w.none ? `The wiki doesn't seem to have a page for this one yet. <a href="${WIKI}/wiki/Special:Search?search=${encodeURIComponent(m.n)}" target="_blank" rel="noopener">Search the wiki ↗</a>`
-    : `From the wiki page <a href="${esc(wikiURL(w.title))}" target="_blank" rel="noopener">${esc(w.title)} ↗</a>${w.stale ? " (an older copy; the wiki couldn't be reached)" : ""}.`;
-  const secs = [
-    ["summary", "Summary and guide", evSec("summary", "Summary and guide", "", (m.d ? `<p>${esc(m.d)}</p>` : "") + evWikiBlocks(["summary"], "", true) || (EV.wikiBusy ? `<p class="tr-none">Looking it up on the wiki…</p>` : ""))],
-    ["summon", "Summoning", evSummonHTML(m)],
-    ["svts", "Servants and CEs", evRewardsSvtHTML(m)],
-    ["missions", "Missions", evMissionsHTML(m)],
-    ["quests", "Quests", evQuestsHTML(m)],
-    ["shop", "Shop", evShopHTML(m)],
-    ["calc", "Calculator", evCalcHTML(m)],
-    ["points", "Rewards", evPointsHTML(m)],
-    ["misc", "Misc info", evSec("misc", "Misc info and game updates", "from the wiki", evWikiBlocks(["misc", "updates"], "", true))],
-    ["other", "More", evSec("other", "More from the wiki", "", evWikiBlocks(["other"], "", false))]
-  ].filter((x) => x[2]);
+  const search = `<a href="${WIKI}/wiki/Special:Search?search=${encodeURIComponent(m.n)}" target="_blank" rel="noopener">Search the wiki ↗</a>`;
+  const wikiNote = EV.wikiBusy === m.id && !w ? "Finding this event on the Fate/Grand Order wiki…" : !w ? "" : w.fail ? `Couldn't reach the Fate/Grand Order wiki. ${search}`
+    : w.none ? `The wiki doesn't seem to have a page for this one yet. ${search}` : `Tabs and text from the wiki page ${evWikiLink(w.title)}${w.stale ? " (an older copy; the wiki couldn't be reached)" : ""}.`;
   return `<div class="ev-top">${back}<span class="ev-act"><a class="btn ghost sm" href="https://apps.atlasacademy.io/db/NA/event/${m.id}" target="_blank" rel="noopener">Atlas Academy ↗</a><button type="button" class="btn ghost sm" data-action="ev-reload"${busy ? " disabled" : ""}>Refresh</button></span></div>
-    <header class="ev-head">${m.bn ? `<img class="ev-bn" src="${esc(m.bn)}" alt="" loading="lazy">` : ""}<div><p class="ev-kick">NA event</p><h2 class="ev-title">${esc(m.n)}</h2>
+    <header class="ev-head">${m.bn ? `<img class="ev-bn" src="${esc(m.bn)}" alt="" loading="lazy">` : ""}<div class="ev-hb"><p class="ev-kick">NA event</p><h2 class="ev-title">${esc(m.n)}</h2>
       <p class="ev-status${now >= m.s && now < m.e && m.e - now < 86400 ? " soon" : ""}">${esc(status)}</p><p class="ev-src">${wikiNote}</p>${EV.err ? `<p class="lv-warn">${esc(EV.err)}</p>` : ""}</div></header>
-    <nav class="ev-nav" aria-label="On this page">${secs.map((x) => `<button type="button" class="chip" data-action="ev-jump" data-to="${x[0]}">${esc(x[1])}</button>`).join("")}</nav>
-    ${secs.map((x) => x[2]).join("")}
-    <p class="ev-foot">Times are in your time zone. Data from <a href="https://atlasacademy.io/" target="_blank" rel="noopener">Atlas Academy</a>${w && w.title ? ` and the <a href="${WIKI}" target="_blank" rel="noopener">Fate/Grand Order wiki</a> (text under CC BY-SA)` : ""}. Nothing here changes your roster; the calculator's numbers are kept in this browser.</p>`;
+    <nav class="ev-tabs" aria-label="Event sections"><div class="ev-tl" role="tablist">${tabs.map((x) => `<button type="button" role="tab" class="ev-tab" id="evt-${esc(x.k)}" data-action="ev-tab" data-k="${esc(x.k)}" aria-selected="${x === t}" aria-controls="ev-pane" tabindex="${x === t ? 0 : -1}">${esc(x.h)}</button>`).join("")}</div></nav>
+    <section class="ev-pane" id="ev-pane" role="tabpanel" aria-labelledby="evt-${esc(t.k)}" data-kind="${t.kind}"><h3 class="ev-ph">${esc(t.h)}</h3>${evPaneHTML(m, t)}</section>
+    <p class="ev-foot">Times are in your time zone. Data from <a href="https://atlasacademy.io/" target="_blank" rel="noopener">Atlas Academy</a>${w && w.title ? ` and the <a href="${WIKI}" target="_blank" rel="noopener">Fate/Grand Order wiki</a> (text under CC BY-SA)` : ""}. Servants and Craft Essences open in Past Chaldea. Nothing here changes your roster; the calculator's numbers are kept in this browser.</p>`;
+}
+// a tab inside a tab: shows its part, and remembers which one was open
+function ewtSel(box, i) {
+  const bs = box.querySelectorAll(":scope > .ewt-bar > .ewt-b"), ps = box.querySelectorAll(":scope > .ewt-p");
+  if (!(i < ps.length)) i = 0;
+  bs.forEach((b, j) => { b.setAttribute("aria-selected", j === i ? "true" : "false"); b.tabIndex = j === i ? 0 : -1; });
+  ps.forEach((p, j) => { p.hidden = j !== i; });
 }
 function evPaint() {
   const el = document.getElementById("event"); if (!el) return;
@@ -10990,30 +11356,46 @@ function evPaint() {
   const a = document.activeElement, keep = a && el.contains(a) && a.dataset ? Object.keys(a.dataset).filter((k) => k.startsWith("ev")).map((k) => [k, a.dataset[k]])[0] : null;
   const pos = keep && typeof a.selectionStart === "number" ? a.selectionStart : null;
   el.innerHTML = evHTML();
+  el.querySelectorAll(".ev-pane .ewt").forEach((box, i) => { const k = EV.tab + ":" + (box.dataset.k || "w" + i); box.dataset.key = k; ewtSel(box, EV.sub[k] | 0); });
   if (keep) {
     const attr = "data-" + keep[0].replace(/[A-Z]/g, (c) => "-" + c.toLowerCase()), f = el.querySelector(`[${attr}="${CSS.escape(keep[1])}"]`);
     if (f) { f.focus({preventScroll: true}); if (pos !== null) try { f.setSelectionRange(pos, pos); } catch (e) {} }
   }
+  // the open tab's wiki page, if it isn't here yet
+  const t = EV.m && evTabs(EV.m).find((x) => x.k === EV.tab);
+  if (t && t.wiki && !EV.pages[wikiKey(t.wiki)] && !EV.pageBusy.has(wikiKey(t.wiki)) && EV.wiki && !EV.wiki.fail) wikiPageLoad(EV.id, t.wiki);
+}
+function evSetTab(k, focus) {
+  if (!EV.m || !evTabs(EV.m).some((x) => x.k === k)) return;
+  EV.tab = k; EV.kind = ""; EV.want = ""; evPaint();
+  try { history.replaceState(history.state, "", "#event/" + EV.id + "/" + k); } catch (e) {}
+  // a long tab scrolled away: the next one starts at its top, under the tab bar
+  const nav = document.querySelector("#event .ev-tabs"), pane = document.getElementById("ev-pane");
+  if (nav && pane) { const top = pane.getBoundingClientRect().top - nav.offsetHeight - 8; if (top < 0) window.scrollTo({top: Math.max(0, window.scrollY + top)}); }
+  const b = document.getElementById("evt-" + k); if (b) b.focus({preventScroll: true});
 }
 
 /* ---------- getting there and back ---------- */
 const evIdOf = (h) => { const x = /^#?event\/(\d+)/.exec(h || ""); return x ? Number(x[1]) : 0; };
-function evOpen(id, push) {
+const evTabOf = (h) => { const x = /^#?event\/\d+\/([a-z0-9-]+)/.exec(h || ""); return x ? x[1] : ""; };
+function evOpen(id, push, tab) {
   id = Number(id) || 0; if (!id) return;
-  if (EV.id !== id) { EV.id = id; EV.m = null; EV.wiki = null; EV.err = ""; EV.more.clear(); }
+  if (EV.id !== id) { EV.id = id; EV.m = null; EV.wiki = null; EV.err = ""; EV.more.clear(); EV.open.clear(); EV.sub = {}; EV.pages = {}; EV.tab = ""; EV.kind = ""; EV.want = ""; }
+  if (tab) EV.want = tab;
   S.tab = "event";
-  if (push !== false) try { history.pushState({ev: id}, "", "#event/" + id); } catch (e) {}
+  if (push !== false) try { history.pushState({ev: id}, "", "#event/" + id + (EV.want || EV.tab ? "/" + (EV.want || EV.tab) : "")); } catch (e) {}
   if (S.selected && !isWide()) { S.selected = null; renderList(); renderDossier(); }
   renderChrome(); syncPageTheme(); window.scrollTo({top: 0}); evPaint();
+  if (push !== false) { const el = document.getElementById("event"); if (el) el.focus({preventScroll: true}); }
   if (!EV.m) evLoad(id);
   liveCheck(false);
 }
-(function () { const id = evIdOf(location.hash); if (id) { S.tab = "event"; EV.id = id; } })();
+(function () { const id = evIdOf(location.hash); if (id) { S.tab = "event"; EV.id = id; EV.want = evTabOf(location.hash); } })();
 const renderChrome22 = renderChrome;
 renderChrome = function () {
   renderChrome22();
   const v = document.getElementById("view-event"); if (v) v.hidden = S.tab !== "event";
-  if (S.tab === "event" && EV.id) try { if (evIdOf(location.hash) !== EV.id) history.replaceState(history.state, "", "#event/" + EV.id); } catch (e) {}
+  if (S.tab === "event" && EV.id) try { if (evIdOf(location.hash) !== EV.id) history.replaceState(history.state, "", "#event/" + EV.id + (EV.tab ? "/" + EV.tab : "")); } catch (e) {}
 };
 // banners come from On NA now's summary: the Event page asks for it too, and is drawn again when it arrives
 const liveRefresh22 = liveRefresh;
@@ -11026,22 +11408,34 @@ renderAll = function () {
 // the page only adds history steps for the Event page and a simulated banner, so Back walks back through those
 window.addEventListener("popstate", () => {
   const id = evIdOf(location.hash);
-  if (id) { evOpen(id, false); return; }
+  if (id) { evOpen(id, false, evTabOf(location.hash)); return; }
   const h = (location.hash || "").slice(1), tab = TABS.includes(h) ? h : "home";
   if (tab !== S.tab) { S.tab = tab; renderChrome(); syncPageTheme(); renderAll(); window.scrollTo({top: 0}); }
 });
 document.addEventListener("click", (e) => {
-  const b = e.target.closest && e.target.closest('[data-action^="ev-"]'); if (!b) return;
+  const b = e.target.closest && e.target.closest('[data-action^="ev-"], [data-action="ewt"]'); if (!b) return;
   const a = b.dataset.action;
   if (a === "ev-open") { e.preventDefault(); evOpen(b.dataset.ev); }
-  else if (a === "ev-reload") { EV.err = ""; evLoad(EV.id, true); }
+  else if (a === "ev-reload") { EV.err = ""; EV.pages = {}; evLoad(EV.id, true); }
+  else if (a === "ev-tab") evSetTab(b.dataset.k);
+  else if (a === "ewt") { const box = b.closest(".ewt"); if (!box) return; const i = Number(b.dataset.i) || 0; if (box.dataset.key) EV.sub[box.dataset.key] = i; ewtSel(box, i); }
   else if (a === "ev-more") { const k = b.dataset.k; if (EV.more.has(k)) EV.more.delete(k); else EV.more.add(k); evPaint(); const nb = document.querySelector(`[data-action="ev-more"][data-k="${CSS.escape(k)}"]`); if (nb) nb.focus({preventScroll: true}); }
-  else if (a === "ev-jump") { const t = document.getElementById("ev-" + b.dataset.to); if (t) t.scrollIntoView({block: "start", behavior: RM.matches ? "auto" : "smooth"}); }
 });
-// open and closed wiki parts stay that way when the page is drawn again
+// arrow keys move between tabs (and between a tab's own tabs)
+document.addEventListener("keydown", (e) => {
+  const b = e.target; if (!b || !b.matches || !b.matches(".ev-tab, .ewt-b") || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+  const all = [...b.parentElement.querySelectorAll(":scope > button")], i = all.indexOf(b);
+  const j = e.key === "Home" ? 0 : e.key === "End" ? all.length - 1 : (i + (e.key === "ArrowRight" ? 1 : -1) + all.length) % all.length;
+  e.preventDefault();
+  if (b.matches(".ev-tab")) { evSetTab(all[j].dataset.k); return; }
+  all[j].click(); all[j].focus();
+});
+// the wiki's version under an Atlas part is only drawn once it's opened
 document.addEventListener("toggle", (e) => {
-  const d = e.target; if (!d || !d.matches || !d.matches("details.ev-wiki")) return;
-  const k = d.dataset.k; EV.open.delete(k); EV.open.delete("!" + k); EV.open.add(d.open ? k : "!" + k);
+  const d = e.target; if (!d || !d.matches || !d.matches("details.ev-wd")) return;
+  const k = d.dataset.k, was = EV.open.has(k);
+  if (d.open) EV.open.add(k); else EV.open.delete(k);
+  if (d.open && !was) evPaint();
 }, true);
 let evCalcT = 0;
 document.addEventListener("input", (e) => {
@@ -11120,9 +11514,32 @@ smRates = function () {
 };
 // featuring one of your own servants leaves the NA banner
 const smSetFeat22 = smSetFeat;
-smSetFeat = function (r, id, why) { if (SM.ban) { delete SM.ban; delete SM.banPrev; } return smSetFeat22(r, id, why); };
+// (with its own Undo, which brings the NA banner back too)
+smSetFeat = function (r, id, why) {
+  if (!SM.ban) return smSetFeat22(r, id, why);
+  const before = JSON.parse(JSON.stringify(SM));
+  delete SM.ban; delete SM.banPrev; SM["f" + r] = id || "";
+  Object.assign(SM, smBlank(), {batch: SM.batch}); smSave(); renderSummon();
+  const s = id ? S.servants.find((x) => x.id === id) : null;
+  toastAction((s ? s.name + " is the featured ★" + r + "." : "No ★" + r + " rate-up.") + " Back to your own banner: the counts start from 0.", "Undo", () => { Object.keys(SM).forEach((k) => delete SM[k]); Object.assign(SM, before); smSave(); renderSummon(); });
+};
 const smBatch22 = smBatch;
-smBatch = function (count) { banNoPity = banFt(5, false).length > 1; try { return smBatch22(count); } finally { banNoPity = false; } };
+// The 330 guarantee hands out the featured ★5 by id. One who isn't on your list is turned into a Past Chaldea pull here,
+// so the card, the ceremony and the summary show them by name.
+function banPc(x) {
+  if (!x || !x.id || !String(x.id).startsWith("na:")) return x;
+  const no = Number(String(x.id).slice(3)), ft = banFt(x.r, false).find((y) => y.no === no);
+  delete x.id; x.pc = no; if (ft) { x.nn = ft.n; x.nf = ft.f; }
+  return x;
+}
+smBatch = function (count) {
+  banNoPity = banFt(5, false).length > 1;
+  try {
+    const out = smBatch22(count);
+    if (SM.ban) { out.forEach(banPc); SM.log = (SM.log || []).filter((l) => !String(l.id || "").startsWith("na:")); }
+    return out;
+  } finally { banNoPity = false; }
+};
 const smChance22 = smChance;
 smChance = function (row, n) {
   if (row && row.f && row.r === 5 && banFt(5, false).length > 1) return n > 0 ? (1 - Math.pow(1 - row.p / 100, n)) * 100 : 0;
@@ -11130,10 +11547,14 @@ smChance = function (row, n) {
 };
 // a featured servant who isn't in this file's NA data yet still gets a card, with Atlas Academy's face picture
 const smCardHTML22 = smCardHTML;
+const banTag = (x) => x.pity ? `<i class="smr-tag pity">Guaranteed</i>` : x.f ? `<i class="smr-tag up">Rate-up</i>` : "";
 smCardHTML = function (x, i) {
-  if (!(x.k === "s" && x.pc && !ATLAS_BY_NO.has(x.pc) && x.nn)) return smCardHTML22(x, i);
+  if (!(x.k === "s" && x.pc && !ATLAS_BY_NO.has(x.pc) && x.nn)) {
+    const h = smCardHTML22(x, i);
+    return x.k === "s" && x.pc && (x.f || x.pity) ? h.replace(`<i class="smr-tag pc">Past Chaldea</i>`, banTag(x)) : h;
+  }
   return `<li class="smr is-s r${x.r} ${x.r >= 4 ? "gold" : "silver"} from-pc" style="--i:${i}" data-glow="${x.r >= 5 ? "rainbow" : x.r >= 4 ? "gold" : "silver"}">
-    <div class="smr-card"><div class="smr-in"><div class="smr-face smr-front">${x.nf ? `<img class="smr-art" src="${esc(x.nf)}" alt="" decoding="async">` : ""}<span class="smr-plate">${smStars(x.r)}</span><i class="smr-tag pc">New on NA</i></div><div class="smr-face smr-back"><img src="${backOf("s", x.r)}" alt=""></div></div></div>
+    <div class="smr-card"><div class="smr-in"><div class="smr-face smr-front">${x.nf ? `<img class="smr-art" src="${esc(x.nf)}" alt="" decoding="async">` : ""}<span class="smr-plate">${smStars(x.r)}</span>${banTag(x) || `<i class="smr-tag pc">New on NA</i>`}</div><div class="smr-face smr-back"><img src="${backOf("s", x.r)}" alt=""></div></div></div>
     <span class="smr-n" title="${esc(x.nn)} · summon ${x.p}"><a href="${LIVE_DB}servant/${x.pc}" target="_blank" rel="noopener">${esc(x.nn)}</a></span></li>`;
 };
 const smPullItem22 = smPullItem;

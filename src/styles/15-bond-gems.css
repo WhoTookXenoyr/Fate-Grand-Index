@@ -1,0 +1,19 @@
+
+/* ===== 0.23.0: the Bond gems on the SERVANTPAGE, as the game shows them. Nothing here moves. ===== */
+/* the columns shrink with the box, so a narrow phone gets smaller gems instead of an overflow */
+.bond-gems { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1px 3px; align-self: flex-start; width: 102px; max-width: 100%; }
+.bond-gems.over { grid-template-columns: minmax(0, 26fr) repeat(5, minmax(0, 18fr)); align-items: center; width: 131px; }
+.bg { display: block; width: 100%; aspect-ratio: 1; background: no-repeat center / contain; }
+.bg.gall { aspect-ratio: 26 / 27; }
+.bg.g0 { background-image: url("@@asset:bond-gem-0.webp@@"); opacity: .75; }
+.bg.g1 { background-image: url("@@asset:bond-gem-1.webp@@"); }
+.bg.g2 { background-image: url("@@asset:bond-gem-2.webp@@"); }
+.bg.g3 { background-image: url("@@asset:bond-gem-3.webp@@"); }
+.bg.g4 { background-image: url("@@asset:bond-gem-4.webp@@"); }
+.bg.g5 { background-image: url("@@asset:bond-gem-5.webp@@"); }
+.bg.g6 { background-image: url("@@asset:bond-gem-6.webp@@"); }
+.bg.g7 { background-image: url("@@asset:bond-gem-7.webp@@"); }
+.bg.g8 { background-image: url("@@asset:bond-gem-8.webp@@"); }
+.bg.g9 { background-image: url("@@asset:bond-gem-9.webp@@"); }
+.bg.g10 { background-image: url("@@asset:bond-gem-10.webp@@"); }
+.bg.gall { background-image: url("@@asset:bond-gem-all.webp@@"); }

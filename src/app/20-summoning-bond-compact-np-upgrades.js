@@ -40,6 +40,15 @@ function starClass(s) {
 }
 
 /* ---------- Bond ---------- */
+// the gems the game shows for a Bond level (0.23.0): up to Bond 10, ten gems in two rows, lit up to the level; from
+// Bond 11 the ten fold into one rainbow gem and five more follow for 11-15, in the colours of Bond 1-5. Unreached
+// levels show the dark gem, as in the game. Pictures from the Fate/Grand Order wiki, built into the page.
+function bondGems(s) {
+  const b = clamp(Math.floor(num(s.bond) || 0), 0, 15), gem = (k) => `<i class="bg g${k}"></i>`;
+  const row = b <= 10 ? [...Array(10).keys()].map((i) => gem(i < b ? i + 1 : 0)).join("")
+    : gem("all") + [...Array(5).keys()].map((i) => gem(10 + i < b ? i + 1 : 0)).join("");
+  return `<span class="bond-gems${b > 10 ? " over" : ""}" title="Bond ${b} of 15" aria-hidden="true">${row}</span>`;
+}
 function bondNote(s) {
   const b = num(s.bond) || 0;
   return b >= 15 ? `<span class="status grail">Max bond</span>` : b >= 10 ? `<span class="status cap">Bond CE</span>` : `<span class="status">${10 - b} to Bond 10</span>`;

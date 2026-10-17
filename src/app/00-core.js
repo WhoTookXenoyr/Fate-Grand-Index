@@ -924,21 +924,27 @@ function skillPower(v) {
   const lv = clamp(v, 1, 10);
   return 0.8 * (lv >= 10 ? 1 : (lv - 1) / 10) + 0.2 * ((lv >= 6 ? 0.5 : 0) + (lv >= 10 ? 0.5 : 0));
 }
-// Level: steady growth, plus a bump for reaching max level and for Lv 100
-function levelPart(lv, cap) { return 6.5 * lv / 120 + (cap && lv >= cap ? 2 : 0) + (lv >= 100 ? 1.5 : 0); }
+// Level (9 of 100): steady growth, plus a bump for reaching max level and for Lv 100
+function levelPart(lv, cap) { return (6.5 * lv / 120 + (cap && lv >= cap ? 2 : 0) + (lv >= 100 ? 1.5 : 0)) * 0.9; }
+// Bond (10 of 100, since 0.23.0): each level is worth more than the one before, the way each takes longer to earn.
+// Bond 1-5 add 0.3 each, 6-10 add 0.6 each, 11-14 add 1 each, and 14 -> 15 adds the most, 1.5.
+const BOND_STEP = [0, 0.3, 0.3, 0.3, 0.3, 0.3, 0.6, 0.6, 0.6, 0.6, 0.6, 1, 1, 1, 1, 1.5];
+const bondPart = (b) => BOND_STEP.slice(1, clamp(Math.floor(num(b) || 0), 0, 15) + 1).reduce((a, x) => a + x, 0);
 function scoreOf(s, over) {
   over = over || {};
   const atk = total(s, "atk"), hp = total(s, "hp"), mod = CLASS_ATK[s.cls] || 1;
   const missing = atk == null || hp == null;
   const sk = over.skills || s.skills || [], lv = clamp(num(over.level != null ? over.level : s.level) || 1, 1, 120);
+  // out of 100: stats 32, skills 27, NP level 13, Bond 10, level 9, rarity 9
   const parts = {
-    stats: missing ? 0 : Math.min(1, (atk * mod / 16000) * 0.7 + (hp / 18000) * 0.3) * 35,
-    skills: [0, 1, 2].reduce((a, i) => a + skillPower(sk[i]), 0) / 3 * 30,
-    np: clamp(num(s.npLevel) || 1, 1, 5) / 5 * 15,
+    stats: missing ? 0 : Math.min(1, (atk * mod / 16000) * 0.7 + (hp / 18000) * 0.3) * 32,
+    skills: [0, 1, 2].reduce((a, i) => a + skillPower(sk[i]), 0) / 3 * 27,
+    np: clamp(num(s.npLevel) || 1, 1, 5) / 5 * 13,
+    bond: bondPart(over.bond != null ? over.bond : s.bond),
     level: levelPart(lv, CAPS[s.rarity]),
-    rarity: clamp(num(s.rarity) || 0, 0, 5) / 5 * 10
+    rarity: clamp(num(s.rarity) || 0, 0, 5) / 5 * 9
   };
-  return {total: parts.stats + parts.skills + parts.np + parts.level + parts.rarity, parts: parts, missing: missing};
+  return {total: parts.stats + parts.skills + parts.np + parts.bond + parts.level + parts.rarity, parts: parts, missing: missing};
 }
 function rankRows() {
   return owned().map((s) => ({s: s, sc: scoreOf(s)})).sort((a, b) => b.sc.total - a.sc.total || String(a.s.name).localeCompare(String(b.s.name)));
@@ -1023,7 +1029,7 @@ function renderRanking() {
   el.innerHTML = rows.map((r, i) => {
     const rank = i + 1, prev = base[r.s.id], q = r.sc.parts, roi = roiOf(r.s);
     const mv = prev == null ? `<span class="mv">new</span>` : prev > rank ? `<span class="mv up" title="Up ${prev - rank}">▲${prev - rank}</span>` : prev < rank ? `<span class="mv down" title="Down ${rank - prev}">▼${rank - prev}</span>` : `<span class="mv" title="No change">–</span>`;
-    const parts = "Stats " + q.stats.toFixed(1) + " · Skills " + q.skills.toFixed(1) + " · NP " + q.np.toFixed(1) + " · Level " + q.level.toFixed(1) + " · Rarity " + q.rarity.toFixed(1);
+    const parts = "Stats " + q.stats.toFixed(1) + " · Skills " + q.skills.toFixed(1) + " · NP " + q.np.toFixed(1) + " · Bond " + (q.bond || 0).toFixed(1) + " · Level " + q.level.toFixed(1) + " · Rarity " + q.rarity.toFixed(1);
     const roiLine = roi ? `<span class="rk-roi${roi.flag ? " " + roi.flag : ""}">${roi.flag === "top" ? "<b>Highest ROI</b> · " : roi.flag === "good" ? "<b>Good value</b> · " : "Next: "}${esc(roiText(roi))} (+${roi.gain.toFixed(1)})</span>` : "";
     return `<li class="rank-row${rank <= 3 ? " top" : ""}${roi && roi.flag ? " has-roi-" + roi.flag : ""}"><span class="rk">${rank}</span>${mv}${iconHTML(r.s, "")}<span class="rk-main"><button class="rk-name" data-action="goto" data-id="${esc(r.s.id)}">${esc(r.s.name)}</button><span class="rk-parts">${r.sc.missing ? "Stats not filled in · " : ""}${parts}</span>${roiLine}</span><span class="rk-bar" title="${esc(r.s.name)}: ${r.sc.total.toFixed(1)} of 100 (${esc(parts)})"><i style="width:${Math.min(100, r.sc.total).toFixed(1)}%"></i></span><b class="rk-score">${r.sc.total.toFixed(1)}</b></li>`;
   }).join("");

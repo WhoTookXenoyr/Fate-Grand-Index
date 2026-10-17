@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.22.2";
+const APP_VER = "0.23.0";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -163,6 +163,11 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.23.0", d: "17 Oct 2026", t: "Bond counts in the Ranking", i: [
+    "<b>Bond in the rank score</b>: Bond is now worth up to 10 of the 100 points. Each level is worth more than the one before: Bond 1 to 5 add 0.3 each, 6 to 10 add 0.6 each, 11 to 14 add 1 each, and 14 to 15 adds the most, 1.5.",
+    "To keep the top at 100, the other parts are a little smaller: stats 32, skills 27, NP level 13, level 9 and rarity 9. A servant whose Bond isn't filled in loses up to a tenth of their old score, so fill in Bond on the SERVANTPAGE to get it back.",
+    "Every row in the Ranking shows its Bond points next to the other parts.",
+    "<b>Bond gems</b> on the SERVANTPAGE, the way the game shows them: up to Bond 10, ten gems that light up one colour at a time; from Bond 11, the ten fold into one rainbow gem and five more follow for Bond 11 to 15. Levels not reached yet show the dark gem."]},
   {v: "0.22.2", d: "17 Oct 2026", t: "Event pages rebuilt as tabs", i: [
     "<b>Tabs</b>: an Event page shows one part at a time, with the same tabs as the wiki's event page (Main Info, Event Shop, Mission List, Main Quests, Free Quests, Summoning Campaign and so on), plus the Calculator. Big parts have tabs of their own, like Event Summary, Event Guide or Event Servants. The tab bar stays at the top while you scroll, and the address remembers the tab.",
     "Each tab comes from its own wiki page, fetched when it's needed and kept in this browser. The right wiki page is the one whose event header names the event.",

@@ -172,16 +172,21 @@ with sync_playwright() as p:
         if pg.locator(".tier-row").count() == 0: pg.tap('[data-action="rank-view"][data-v="tiers"]'); pg.wait_for_timeout(300)
         sw.append(pg.evaluate("document.documentElement.scrollWidth")); pg.screenshot(path=f"{sp}/v8-phone{wdt}-tiers.png")
         # long-press drag with touch
-        pg.evaluate("document.querySelector('.tier-row[data-tier-drop=\"A\"]').scrollIntoView({block: 'start'})"); pg.wait_for_timeout(200)
-        c = pg.locator('.tier-card[data-id="illya"]'); b = c.bounding_box(); t = pg.locator('.tier-row[data-tier-drop="A"]'); tb = t.bounding_box()
+        # the first card of the lowest tier that has any, dragged to the tier above it: both rows are on screen at
+        # any width, whatever the scores are
+        who, was, goal = pg.evaluate("""(() => { const rows = [...document.querySelectorAll('.tier-row')], i = rows.map((r) => !!r.querySelector('.tier-card')).lastIndexOf(true);
+          const c = rows[i].querySelector('.tier-card'); return [c.dataset.id, rows[i].dataset.tierDrop, rows[i - 1].dataset.tierDrop]; })()""")
+        pg.evaluate(f"document.querySelector('.tier-card[data-id=\"{who}\"]').scrollIntoView({{block: 'center'}})"); pg.wait_for_timeout(200)
+        c = pg.locator(f'.tier-card[data-id="{who}"]'); b = c.bounding_box(); t = pg.locator(f'.tier-row[data-tier-drop="{goal}"]'); tb = t.bounding_box()
+        ty = tb["y"] + tb["height"] - 24  # the near edge of the row it goes to
         cdp = ctx.new_cdp_session(pg)
         x0, y0 = b["x"] + 15, b["y"] + 15
         cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": x0, "y": y0}]}); pg.wait_for_timeout(450)
         for k in range(1, 11):
-            cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": x0 + (tb["x"] + 80 - x0) * k / 10, "y": y0 + (tb["y"] + tb["height"] / 2 - y0) * k / 10}]}); pg.wait_for_timeout(30)
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": x0 + (tb["x"] + 80 - x0) * k / 10, "y": y0 + (ty - y0) * k / 10}]}); pg.wait_for_timeout(30)
         cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []}); pg.wait_for_timeout(400)
-        where = pg.evaluate("document.querySelector('.tier-card[data-id=\"illya\"]').closest('[data-tier-drop]').dataset.tierDrop")
-        check(f"phone {wdt}: long-press drag moves Illya to {where}", where == "A")
+        where = pg.evaluate(f"document.querySelector('.tier-card[data-id=\"{who}\"]').closest('[data-tier-drop]').dataset.tierDrop")
+        check(f"phone {wdt}: long-press drag moves {who} from {was} to {where}", where == goal)
         pg.tap('[data-action="tab"][data-tab="parties"]'); pg.wait_for_timeout(700); sw.append(pg.evaluate("document.documentElement.scrollWidth")); pg.locator("#dna").screenshot(path=f"{sp}/v8-phone{wdt}-dna.png")
         pg.tap('[data-action="tab"][data-tab="versus"]'); pg.wait_for_timeout(600); pg.locator(".vs-trm").scroll_into_view_if_needed(); sw.append(pg.evaluate("document.documentElement.scrollWidth"))
         check(f"phone {wdt}: no sideways scroll {sw}", max(sw) <= wdt)

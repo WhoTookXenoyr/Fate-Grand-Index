@@ -68,6 +68,8 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
 
 Your roster is stored in your browser: `localStorage` key `spirit-origin-list:v1`, pictures in IndexedDB `spirit-origin-list-images`. These names never change, so existing saves keep working with every new version.
 
+Importing a backup or a spreadsheet replaces entries that share an ID, so the page keeps a copy of the list in memory first and offers **Undo import** until you press Keep it, import again or reload (`importSnap` / `importUndo` in `src/app/07-core-rendering-forms-events.js`). If a save fails because the browser's storage is full, `#save-warn` stays above the page until a save works again. In Chrome, every page opened from a file shares one storage space (`file://`), so other local pages count toward the same limit.
+
 ## Credits
 
 Servant and Craft Essence data and the pictures loaded at runtime come from [Atlas Academy](https://atlasacademy.io/). Fate/Grand Order is © TYPE-MOON / FGO PROJECT. This is an unofficial fan project, not affiliated with TYPE-MOON, Aniplex or Lasengle.

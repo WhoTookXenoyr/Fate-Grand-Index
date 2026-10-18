@@ -375,6 +375,7 @@ button.cmd:hover { transform: translateY(-3px); }
 /* Notices */
 .notice { padding: 14px 18px; border-radius: 14px; background: var(--warn-bg); color: var(--warn-ink); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .notice p { margin: 0; flex: 1 1 260px; }
+.save-warn { box-shadow: inset 0 0 0 2px var(--buster); margin-bottom: 10px; }
 
 /* Parties: formation screen (Starting Member / Sub Member cards) */
 .party-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }

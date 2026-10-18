@@ -8,17 +8,36 @@ function syncDossierFrame() {
   d.classList.toggle("gr100", g === "gr100"); d.classList.toggle("gr102", g === "gr102");
 }
 const renderDossier9 = renderDossier;
-renderDossier = function (force) { const r = renderDossier9(force); syncDossierFrame(); return r; };
+renderDossier = function (force) { const r = renderDossier9(force); syncDossierFrame(); syncSheetHistory(); return r; };
 // the edit form is drawn without renderDossier, so watch the panel itself
 (function () { const d = document.getElementById("dossier"); if (d && window.MutationObserver) new MutationObserver(syncDossierFrame).observe(d, {childList: true}); })();
 
-/* ---------- tabs: open on Home, and a reload stays on the tab you were on ---------- */
+/* ---------- tabs: open on Home, a reload stays on the tab you were on, and Back goes back through the tabs ---------- */
+// Each tab you open is a step in the browser's history (0.23.1; before, the address was only replaced, so Back left
+// the page). While the page is starting, the address is only corrected. The Event page keeps its own address.
+let navReady = false;
 const renderChrome9 = renderChrome;
 renderChrome = function () {
   renderChrome9();
   document.documentElement.dataset.tab = S.tab;
-  try { if (location.hash.slice(1) !== S.tab) history.replaceState(null, "", "#" + S.tab); } catch (e) {}
+  if (S.tab !== "event") try {
+    if (location.hash.slice(1) !== S.tab) { if (navReady) history.pushState(null, "", "#" + S.tab); else history.replaceState(null, "", "#" + S.tab); }
+  } catch (e) {}
+  navReady = true;
 };
+// on a phone, the servant page is a step of its own ({sheet: id} on #servants); Back closes it (25-event-page.js)
+let sheetPop = false;
+function syncSheetHistory() {
+  if (sheetPop || !navReady) return;
+  const open = S.tab === "servants" && !!S.selected && !isWide(), st = history.state, on = !!(st && st.sheet);
+  try {
+    if (open && !on) { if (location.hash === "#servants") history.pushState({sheet: S.selected}, "", "#servants"); }
+    else if (open && st.sheet !== S.selected) history.replaceState({sheet: S.selected}, "", "#servants");
+    // closed on the page itself (×, Escape, Delete): take the step back too, so the next Back isn't a dead press.
+    // Left for another tab, the step stays: Back from that tab brings the servant page back.
+    else if (!open && on && S.tab === "servants") { if (!isWide()) history.back(); else history.replaceState(null, "", location.hash); }
+  } catch (e) {}
+}
 (function () { const h = (location.hash || "").slice(1); S.tab = TABS.includes(h) ? h : "home"; })();
 
 /* ---------- Home ---------- */

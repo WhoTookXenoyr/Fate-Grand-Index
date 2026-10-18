@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.23.0";
+const APP_VER = "0.23.1";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -163,6 +163,12 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.23.1", d: "18 Oct 2026", t: "Undo for imports, and Back works", i: [
+    "<b>Undo import</b>: after importing a backup or a spreadsheet, Undo import puts your list back the way it was. It stays offered until you press Keep it, import something else or reload.",
+    "Before a backup is imported, it says how many servants on your list would get the backup's values, with a list of them, and warns when the backup is older than your latest changes.",
+    "<b>Back and Forward</b> now move between the tabs you opened. On a phone, Back also closes a servant's page, and an edit form with typing in it stays open.",
+    "Opening the page from a bookmark or a restored tab no longer lands at the bottom on phones.",
+    "If the browser's storage is full, a warning stays above the page until saving works again, with a button to download a backup that has your latest changes."]},
   {v: "0.23.0", d: "17 Oct 2026", t: "Bond counts in the Ranking", i: [
     "<b>Bond in the rank score</b>: Bond is now worth up to 10 of the 100 points. Each level is worth more than the one before: Bond 1 to 5 add 0.3 each, 6 to 10 add 0.6 each, 11 to 14 add 1 each, and 14 to 15 adds the most, 1.5.",
     "To keep the top at 100, the other parts are a little smaller: stats 32, skills 27, NP level 13, level 9 and rarity 9. A servant whose Bond isn't filled in loses up to a tenth of their old score, so fill in Bond on the SERVANTPAGE to get it back.",

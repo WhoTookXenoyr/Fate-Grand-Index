@@ -28,10 +28,18 @@ function renderChrome() {
       <button class="btn primary sm" data-action="import-go">Import</button><button class="btn ghost sm" data-action="import-cancel">Cancel</button>
       <details><summary>See the list</summary><ul>${all.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></details>`;
   } else if (S.importData) {
-    const d = S.importData;
+    const d = S.importData, ch = d.changed || [], made = d.when ? " (made " + dayStr(d.when) + ")" : "";
     n.hidden = false;
-    n.innerHTML = `<p>Import ${d.servants.length} servants, ${d.parties.length} parties and ${d.guests.length} guests from this backup? Entries with the same ID are replaced; everything else stays.</p>
-      <button class="btn primary sm" data-action="import-go">Import</button><button class="btn ghost sm" data-action="import-cancel">Cancel</button>`;
+    n.innerHTML = `<p>Import ${d.servants.length} servants, ${d.parties.length} parties and ${d.guests.length} guests from this backup${made}? Entries with the same ID are replaced; everything else stays.${ch.length
+        ? ` <b>${plural(ch.length, "entry", "entries")} already on your list ${ch.length === 1 ? "gets" : "get"} the backup's values instead.</b>` : ""}${d.older && ch.length
+        ? ` This backup is older than your list's last change (${dayStr(d.saved)}), so newer progress on ${ch.length === 1 ? "it" : "those"} would be replaced.` : ""} You can undo the import afterwards.</p>
+      <button class="btn primary sm" data-action="import-go">Import</button><button class="btn ghost sm" data-action="import-cancel">Cancel</button>${ch.length
+        ? `<details><summary>See what changes</summary><ul>${ch.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></details>` : ""}`;
+  } else if (S.importUndo) {
+    const u = S.importUndo;
+    n.hidden = false;
+    n.innerHTML = `<p>${esc(u.msg)} Undo puts your list back the way it was before this import${u.later ? ", along with anything you changed after it" : ""}.</p>
+      <button class="btn primary sm" data-action="import-undo">Undo import</button><button class="btn ghost sm" data-action="import-keep">Keep it</button>`;
   } else if (S.dbState === "missing") {
     n.hidden = false;
     n.innerHTML = `<p>Your roster is saved with this page on claude.ai. Open the page from its claude.ai link while signed in to load and edit it.</p>`;
@@ -950,6 +958,15 @@ function readImport(file) {
       const arr = (k) => Array.isArray(d[k]) ? d[k].filter((x) => x && typeof x === "object" && x.name) : [];
       const data = {servants: arr("servants"), parties: arr("parties"), guests: arr("guests"), images: (d.images && typeof d.images === "object") ? d.images : {}, settings: (d.settings && typeof d.settings === "object") ? d.settings : null};
       if (!data.servants.length && !data.parties.length && !data.guests.length) { toast("That file has no servants, parties or guests in it."); return; }
+      data.when = Date.parse(d.exportedAt) || 0;
+      try { data.saved = Date.parse(JSON.parse(localStorage.getItem(LS_KEY) || "{}").savedAt) || 0; } catch (e) { data.saved = 0; }
+      data.older = !!(data.when && data.saved && data.when < data.saved);
+      data.changed = [];
+      COLS.forEach((col) => data[col].forEach((x) => {
+        const cur = x.id && S[col].find((y) => y.id === x.id); if (!cur) return;
+        const a = Object.assign({}, cur), b2 = Object.assign({}, x); delete a.id; delete b2.id;
+        if (stableJSON(a) !== stableJSON(b2)) data.changed.push(x.name + (col === "parties" ? " (party)" : col === "guests" ? " (guest)" : ""));
+      }));
       S.importData = data; renderChrome();
     } catch (e) { toast("That file isn't a backup from this page. Pick the .json file from Export backup."); }
   };
@@ -957,8 +974,20 @@ function readImport(file) {
 }
 
 async function runImport() {
-  const d = S.importData; S.importData = null; renderChrome();
-  if (d && d.kind === "planner") { const n = await applyPlanner(d); toast("Imported " + n + " servant" + (n === 1 ? "" : "s") + " from " + d.source + "."); return; }
+  const d = S.importData; S.importData = null; S.importUndo = null; renderChrome();
+  if (!d) return;
+  const snap = importSnap();
+  importBusy = true;
+  try {
+    if (d.kind === "planner") {
+      const n = await applyPlanner(d);
+      importDone(snap, "Imported " + plural(n, "servant") + " from " + d.source + ".");
+      return;
+    }
+    await importBackup(d, snap);
+  } finally { importBusy = false; }
+}
+async function importBackup(d, snap) {
   let imgs = 0;
   for (const id of Object.keys(d.images || {})) {
     const url = d.images[id];
@@ -972,7 +1001,7 @@ async function runImport() {
       const o = Object.assign({}, item, {id: id});
       if (col === "servants" && o.art && typeof o.art === "object") { const art = {}; Object.keys(o.art).forEach((k) => { if (S.urlCache[o.art[k]]) art[k] = o.art[k]; }); o.art = art; }
       if (num(o.order) == null) o.order = nextOrder(S[col]) + n;
-      if (await putDoc(col, id, bodyOf(o))) n++; else return;
+      if (await putDoc(col, id, bodyOf(o))) n++; else { if (n) importDone(snap, "Only " + plural(n, "entry", "entries") + " could be imported before saving stopped."); return; }
     }
   }
   if (d.settings && d.settings.fonts && typeof d.settings.fonts === "object") {
@@ -983,7 +1012,45 @@ async function runImport() {
   }
   if (d.settings && d.settings.affinity && typeof d.settings.affinity === "object") { setAffOverrides(d.settings.affinity); renderVersus(); }
   if (d.settings && d.settings.tiers && typeof d.settings.tiers === "object") { setTierOverrides(Object.assign({}, tierOverrides(), d.settings.tiers)); renderRanking(); }
-  toast("Imported " + n + " entries" + (imgs ? " and " + imgs + " images." : "."));
+  importDone(snap, "Imported " + plural(n, "entry", "entries") + (imgs ? " and " + plural(imgs, "image") : "") + ".");
+}
+
+/* ---------- undoing an import (0.23.1) ---------- */
+// An import replaces entries that share an ID, so an older backup can wipe newer progress. Before every import the
+// list, the settings a backup carries and the pictures already here are kept in memory; "Undo import" puts them back.
+let importBusy = false;
+function stableJSON(v) {
+  if (Array.isArray(v)) return "[" + v.map(stableJSON).join(",") + "]";
+  if (v && typeof v === "object") return "{" + Object.keys(v).filter((k) => v[k] !== undefined).sort().map((k) => JSON.stringify(k) + ":" + stableJSON(v[k])).join(",") + "}";
+  return JSON.stringify(v);
+}
+function dayStr(t) { return new Date(t).toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "numeric"}); }
+function importSnap() {
+  Object.keys(timers).forEach((k) => { if (timers[k]) { clearTimeout(timers[k]); timers[k] = null; const o = dirty[k]; if (o) writeDoc(k.split("/")[0], o); } });
+  let tiers = null, aff = null, fonts = null;
+  try { tiers = JSON.parse(JSON.stringify(tierOverrides())); aff = JSON.parse(JSON.stringify(affOverrides())); fonts = JSON.parse(JSON.stringify(fontPrefs())); } catch (e) {}
+  return {cols: JSON.parse(JSON.stringify({servants: store.servants, parties: store.parties, guests: store.guests})), imgs: new Set(Object.keys(S.urlCache)), tiers: tiers, aff: aff, fonts: fonts};
+}
+function importDone(snap, msg) {
+  S.importUndo = {snap: snap, msg: msg, later: false};
+  renderChrome();
+  const n = $("#notice"); if (n && n.getBoundingClientRect().top < 0) n.scrollIntoView({block: "nearest"});
+}
+async function importUndo() {
+  const u = S.importUndo; if (!u || S.readOnly) return;
+  S.importUndo = null;
+  Object.keys(timers).forEach((k) => { clearTimeout(timers[k]); timers[k] = null; delete dirty[k]; });
+  COLS.forEach((c) => { store[c] = JSON.parse(JSON.stringify(u.snap.cols[c] || [])); });
+  const ok = persist();
+  COLS.forEach((c) => notify(c));
+  // pictures the import brought in, and nothing from before uses
+  const used = new Set(); store.servants.forEach((x) => Object.values(x.art || {}).forEach((id) => used.add(id)));
+  for (const id of Object.keys(S.urlCache)) if (!u.snap.imgs.has(id) && !used.has(id)) { try { await localAssets.delete(id); } catch (e) {} }
+  if (u.snap.tiers) { setTierOverrides(u.snap.tiers); }
+  if (u.snap.aff) { setAffOverrides(u.snap.aff); }
+  if (u.snap.fonts) { setFontPrefs(u.snap.fonts); initFonts(); }
+  renderAll();
+  toast(ok ? "Import undone: your list is back the way it was." : "Import undone on screen, but this browser couldn't save it.");
 }
 
 document.addEventListener("click", async (e) => {
@@ -1287,6 +1354,9 @@ document.addEventListener("click", async (e) => {
   if (a === "export") { const em = $("#export-menu"); if (em) { em.hidden = true; $("#btn-export").setAttribute("aria-expanded", "false"); } exportBackup(); return; }
   if (a === "import-go") { runImport(); return; }
   if (a === "import-cancel") { S.importData = null; renderChrome(); return; }
+  if (a === "import-undo") { importUndo(); return; }
+  if (a === "import-keep") { S.importUndo = null; renderChrome(); return; }
+  if (a === "save-retry") { if (!persist()) toast("Still no room to save. Make some space first, then try again."); return; }
 });
 
 document.addEventListener("submit", (e) => {

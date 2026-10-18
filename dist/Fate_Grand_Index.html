@@ -386,6 +386,7 @@ button.cmd:hover { transform: translateY(-3px); }
 /* Notices */
 .notice { padding: 14px 18px; border-radius: 14px; background: var(--warn-bg); color: var(--warn-ink); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .notice p { margin: 0; flex: 1 1 260px; }
+.save-warn { box-shadow: inset 0 0 0 2px var(--buster); margin-bottom: 10px; }
 
 /* Parties: formation screen (Starting Member / Sub Member cards) */
 .party-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
@@ -2804,6 +2805,7 @@ html.cep-open, html.cep-open body { overflow: hidden; }
 
   <p id="save-note" class="save-note"></p>
   <p id="summary" class="summary" hidden></p>
+  <div id="save-warn" class="notice save-warn" role="alert" hidden></div>
   <div id="notice" class="notice" hidden></div>
 
   <nav class="tabs" role="tablist" aria-label="Sections">
@@ -2966,7 +2968,7 @@ function bodyOf(o) { const c = JSON.parse(JSON.stringify(o)); delete c.id; retur
 function writeFailed(e) {
   const code = e && e.code;
   if (code === "invalid_argument") { S.readOnly = true; toast("This page is view-only for you, so changes aren't saved."); renderAll(); }
-  else if (code === "quota_exceeded") toast("The roster storage is full. Delete something you no longer need, then try again.");
+  else if (code === "quota_exceeded") renderSaveWarn(); // the warning above the page says it and stays until saving works
   else if (code === "revoked") { S.dbState = "revoked"; renderAll(); }
   else toast("Couldn't save that change. Check your connection, then try again.");
 }
@@ -2982,6 +2984,7 @@ async function putDoc(col, id, data) {
 }
 async function writeDoc(col, obj) {
   if (!S.db || S.readOnly) return false;
+  if (S.importUndo && !importBusy && !S.importUndo.later) { S.importUndo.later = true; renderChrome(); }
   const key = col + "/" + obj.id;
   const q = queue[key] || (queue[key] = {busy: false, next: null});
   q.next = bodyOf(obj);
@@ -3042,9 +3045,27 @@ function loadState() {
 }
 const store = loadState();
 const listeners = {servants: [], parties: [], guests: []};
+// When the browser's storage is full, the change stays on screen (and in a backup) but isn't saved. A toast is gone in
+// seconds, so a warning stays above the page until a save works again (0.23.1).
 function persist() {
-  try { localStorage.setItem(LS_KEY, JSON.stringify({servants: store.servants, parties: store.parties, guests: store.guests, savedAt: new Date().toISOString()})); return true; }
-  catch (e) { toast("Couldn't save in this browser. Export a backup so nothing is lost."); return false; }
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({servants: store.servants, parties: store.parties, guests: store.guests, savedAt: new Date().toISOString()}));
+    if (S.saveFail) { S.saveFail = false; renderSaveWarn(); toast("Saving works again: everything on screen is saved."); }
+    return true;
+  } catch (e) {
+    S.saveFail = true; renderSaveWarn();
+    // on a phone the servant page covers the warning, so a failed save says so in a toast too (at most every few seconds)
+    if (!(persist.told > Date.now() - 4000)) { persist.told = Date.now(); toast("Not saved: this browser's storage is full. The warning at the top of the page says what to do."); }
+    return false;
+  }
+}
+function renderSaveWarn() {
+  const w = document.getElementById("save-warn"); if (!w) return;
+  if (!S.saveFail) { w.hidden = true; w.innerHTML = ""; return; }
+  if (!w.hidden && w.innerHTML) return;
+  w.hidden = false;
+  w.innerHTML = `<p><b>Your changes aren't being saved.</b> This browser's storage is full, so your latest changes are only on screen and are gone after a reload. Download a backup to keep them, then make room: in Chrome, every page opened from a file on this computer shares this space.</p>
+    <button class="btn primary sm" type="button" data-action="export">Download a backup</button><button class="btn ghost sm" type="button" data-action="save-retry">Try saving again</button>`;
 }
 function snapshotOf(col) {
   const docs = store[col].slice().sort((a, b) => (num(a.order) ?? 1e9) - (num(b.order) ?? 1e9)).map((d) => { const body = Object.assign({}, d); delete body.id; return {id: d.id, exists: true, data: () => body, metadata: {fromCache: false, hasPendingWrites: false}}; });
@@ -5445,10 +5466,18 @@ function renderChrome() {
       <button class="btn primary sm" data-action="import-go">Import</button><button class="btn ghost sm" data-action="import-cancel">Cancel</button>
       <details><summary>See the list</summary><ul>${all.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></details>`;
   } else if (S.importData) {
-    const d = S.importData;
+    const d = S.importData, ch = d.changed || [], made = d.when ? " (made " + dayStr(d.when) + ")" : "";
     n.hidden = false;
-    n.innerHTML = `<p>Import ${d.servants.length} servants, ${d.parties.length} parties and ${d.guests.length} guests from this backup? Entries with the same ID are replaced; everything else stays.</p>
-      <button class="btn primary sm" data-action="import-go">Import</button><button class="btn ghost sm" data-action="import-cancel">Cancel</button>`;
+    n.innerHTML = `<p>Import ${d.servants.length} servants, ${d.parties.length} parties and ${d.guests.length} guests from this backup${made}? Entries with the same ID are replaced; everything else stays.${ch.length
+        ? ` <b>${plural(ch.length, "entry", "entries")} already on your list ${ch.length === 1 ? "gets" : "get"} the backup's values instead.</b>` : ""}${d.older && ch.length
+        ? ` This backup is older than your list's last change (${dayStr(d.saved)}), so newer progress on ${ch.length === 1 ? "it" : "those"} would be replaced.` : ""} You can undo the import afterwards.</p>
+      <button class="btn primary sm" data-action="import-go">Import</button><button class="btn ghost sm" data-action="import-cancel">Cancel</button>${ch.length
+        ? `<details><summary>See what changes</summary><ul>${ch.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></details>` : ""}`;
+  } else if (S.importUndo) {
+    const u = S.importUndo;
+    n.hidden = false;
+    n.innerHTML = `<p>${esc(u.msg)} Undo puts your list back the way it was before this import${u.later ? ", along with anything you changed after it" : ""}.</p>
+      <button class="btn primary sm" data-action="import-undo">Undo import</button><button class="btn ghost sm" data-action="import-keep">Keep it</button>`;
   } else if (S.dbState === "missing") {
     n.hidden = false;
     n.innerHTML = `<p>Your roster is saved with this page on claude.ai. Open the page from its claude.ai link while signed in to load and edit it.</p>`;
@@ -6367,6 +6396,15 @@ function readImport(file) {
       const arr = (k) => Array.isArray(d[k]) ? d[k].filter((x) => x && typeof x === "object" && x.name) : [];
       const data = {servants: arr("servants"), parties: arr("parties"), guests: arr("guests"), images: (d.images && typeof d.images === "object") ? d.images : {}, settings: (d.settings && typeof d.settings === "object") ? d.settings : null};
       if (!data.servants.length && !data.parties.length && !data.guests.length) { toast("That file has no servants, parties or guests in it."); return; }
+      data.when = Date.parse(d.exportedAt) || 0;
+      try { data.saved = Date.parse(JSON.parse(localStorage.getItem(LS_KEY) || "{}").savedAt) || 0; } catch (e) { data.saved = 0; }
+      data.older = !!(data.when && data.saved && data.when < data.saved);
+      data.changed = [];
+      COLS.forEach((col) => data[col].forEach((x) => {
+        const cur = x.id && S[col].find((y) => y.id === x.id); if (!cur) return;
+        const a = Object.assign({}, cur), b2 = Object.assign({}, x); delete a.id; delete b2.id;
+        if (stableJSON(a) !== stableJSON(b2)) data.changed.push(x.name + (col === "parties" ? " (party)" : col === "guests" ? " (guest)" : ""));
+      }));
       S.importData = data; renderChrome();
     } catch (e) { toast("That file isn't a backup from this page. Pick the .json file from Export backup."); }
   };
@@ -6374,8 +6412,20 @@ function readImport(file) {
 }
 
 async function runImport() {
-  const d = S.importData; S.importData = null; renderChrome();
-  if (d && d.kind === "planner") { const n = await applyPlanner(d); toast("Imported " + n + " servant" + (n === 1 ? "" : "s") + " from " + d.source + "."); return; }
+  const d = S.importData; S.importData = null; S.importUndo = null; renderChrome();
+  if (!d) return;
+  const snap = importSnap();
+  importBusy = true;
+  try {
+    if (d.kind === "planner") {
+      const n = await applyPlanner(d);
+      importDone(snap, "Imported " + plural(n, "servant") + " from " + d.source + ".");
+      return;
+    }
+    await importBackup(d, snap);
+  } finally { importBusy = false; }
+}
+async function importBackup(d, snap) {
   let imgs = 0;
   for (const id of Object.keys(d.images || {})) {
     const url = d.images[id];
@@ -6389,7 +6439,7 @@ async function runImport() {
       const o = Object.assign({}, item, {id: id});
       if (col === "servants" && o.art && typeof o.art === "object") { const art = {}; Object.keys(o.art).forEach((k) => { if (S.urlCache[o.art[k]]) art[k] = o.art[k]; }); o.art = art; }
       if (num(o.order) == null) o.order = nextOrder(S[col]) + n;
-      if (await putDoc(col, id, bodyOf(o))) n++; else return;
+      if (await putDoc(col, id, bodyOf(o))) n++; else { if (n) importDone(snap, "Only " + plural(n, "entry", "entries") + " could be imported before saving stopped."); return; }
     }
   }
   if (d.settings && d.settings.fonts && typeof d.settings.fonts === "object") {
@@ -6400,7 +6450,45 @@ async function runImport() {
   }
   if (d.settings && d.settings.affinity && typeof d.settings.affinity === "object") { setAffOverrides(d.settings.affinity); renderVersus(); }
   if (d.settings && d.settings.tiers && typeof d.settings.tiers === "object") { setTierOverrides(Object.assign({}, tierOverrides(), d.settings.tiers)); renderRanking(); }
-  toast("Imported " + n + " entries" + (imgs ? " and " + imgs + " images." : "."));
+  importDone(snap, "Imported " + plural(n, "entry", "entries") + (imgs ? " and " + plural(imgs, "image") : "") + ".");
+}
+
+/* ---------- undoing an import (0.23.1) ---------- */
+// An import replaces entries that share an ID, so an older backup can wipe newer progress. Before every import the
+// list, the settings a backup carries and the pictures already here are kept in memory; "Undo import" puts them back.
+let importBusy = false;
+function stableJSON(v) {
+  if (Array.isArray(v)) return "[" + v.map(stableJSON).join(",") + "]";
+  if (v && typeof v === "object") return "{" + Object.keys(v).filter((k) => v[k] !== undefined).sort().map((k) => JSON.stringify(k) + ":" + stableJSON(v[k])).join(",") + "}";
+  return JSON.stringify(v);
+}
+function dayStr(t) { return new Date(t).toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "numeric"}); }
+function importSnap() {
+  Object.keys(timers).forEach((k) => { if (timers[k]) { clearTimeout(timers[k]); timers[k] = null; const o = dirty[k]; if (o) writeDoc(k.split("/")[0], o); } });
+  let tiers = null, aff = null, fonts = null;
+  try { tiers = JSON.parse(JSON.stringify(tierOverrides())); aff = JSON.parse(JSON.stringify(affOverrides())); fonts = JSON.parse(JSON.stringify(fontPrefs())); } catch (e) {}
+  return {cols: JSON.parse(JSON.stringify({servants: store.servants, parties: store.parties, guests: store.guests})), imgs: new Set(Object.keys(S.urlCache)), tiers: tiers, aff: aff, fonts: fonts};
+}
+function importDone(snap, msg) {
+  S.importUndo = {snap: snap, msg: msg, later: false};
+  renderChrome();
+  const n = $("#notice"); if (n && n.getBoundingClientRect().top < 0) n.scrollIntoView({block: "nearest"});
+}
+async function importUndo() {
+  const u = S.importUndo; if (!u || S.readOnly) return;
+  S.importUndo = null;
+  Object.keys(timers).forEach((k) => { clearTimeout(timers[k]); timers[k] = null; delete dirty[k]; });
+  COLS.forEach((c) => { store[c] = JSON.parse(JSON.stringify(u.snap.cols[c] || [])); });
+  const ok = persist();
+  COLS.forEach((c) => notify(c));
+  // pictures the import brought in, and nothing from before uses
+  const used = new Set(); store.servants.forEach((x) => Object.values(x.art || {}).forEach((id) => used.add(id)));
+  for (const id of Object.keys(S.urlCache)) if (!u.snap.imgs.has(id) && !used.has(id)) { try { await localAssets.delete(id); } catch (e) {} }
+  if (u.snap.tiers) { setTierOverrides(u.snap.tiers); }
+  if (u.snap.aff) { setAffOverrides(u.snap.aff); }
+  if (u.snap.fonts) { setFontPrefs(u.snap.fonts); initFonts(); }
+  renderAll();
+  toast(ok ? "Import undone: your list is back the way it was." : "Import undone on screen, but this browser couldn't save it.");
 }
 
 document.addEventListener("click", async (e) => {
@@ -6704,6 +6792,9 @@ document.addEventListener("click", async (e) => {
   if (a === "export") { const em = $("#export-menu"); if (em) { em.hidden = true; $("#btn-export").setAttribute("aria-expanded", "false"); } exportBackup(); return; }
   if (a === "import-go") { runImport(); return; }
   if (a === "import-cancel") { S.importData = null; renderChrome(); return; }
+  if (a === "import-undo") { importUndo(); return; }
+  if (a === "import-keep") { S.importUndo = null; renderChrome(); return; }
+  if (a === "save-retry") { if (!persist()) toast("Still no room to save. Make some space first, then try again."); return; }
 });
 
 document.addEventListener("submit", (e) => {
@@ -7265,17 +7356,36 @@ function syncDossierFrame() {
   d.classList.toggle("gr100", g === "gr100"); d.classList.toggle("gr102", g === "gr102");
 }
 const renderDossier9 = renderDossier;
-renderDossier = function (force) { const r = renderDossier9(force); syncDossierFrame(); return r; };
+renderDossier = function (force) { const r = renderDossier9(force); syncDossierFrame(); syncSheetHistory(); return r; };
 // the edit form is drawn without renderDossier, so watch the panel itself
 (function () { const d = document.getElementById("dossier"); if (d && window.MutationObserver) new MutationObserver(syncDossierFrame).observe(d, {childList: true}); })();
 
-/* ---------- tabs: open on Home, and a reload stays on the tab you were on ---------- */
+/* ---------- tabs: open on Home, a reload stays on the tab you were on, and Back goes back through the tabs ---------- */
+// Each tab you open is a step in the browser's history (0.23.1; before, the address was only replaced, so Back left
+// the page). While the page is starting, the address is only corrected. The Event page keeps its own address.
+let navReady = false;
 const renderChrome9 = renderChrome;
 renderChrome = function () {
   renderChrome9();
   document.documentElement.dataset.tab = S.tab;
-  try { if (location.hash.slice(1) !== S.tab) history.replaceState(null, "", "#" + S.tab); } catch (e) {}
+  if (S.tab !== "event") try {
+    if (location.hash.slice(1) !== S.tab) { if (navReady) history.pushState(null, "", "#" + S.tab); else history.replaceState(null, "", "#" + S.tab); }
+  } catch (e) {}
+  navReady = true;
 };
+// on a phone, the servant page is a step of its own ({sheet: id} on #servants); Back closes it (25-event-page.js)
+let sheetPop = false;
+function syncSheetHistory() {
+  if (sheetPop || !navReady) return;
+  const open = S.tab === "servants" && !!S.selected && !isWide(), st = history.state, on = !!(st && st.sheet);
+  try {
+    if (open && !on) { if (location.hash === "#servants") history.pushState({sheet: S.selected}, "", "#servants"); }
+    else if (open && st.sheet !== S.selected) history.replaceState({sheet: S.selected}, "", "#servants");
+    // closed on the page itself (×, Escape, Delete): take the step back too, so the next Back isn't a dead press.
+    // Left for another tab, the step stays: Back from that tab brings the servant page back.
+    else if (!open && on && S.tab === "servants") { if (!isWide()) history.back(); else history.replaceState(null, "", location.hash); }
+  } catch (e) {}
+}
 (function () { const h = (location.hash || "").slice(1); S.tab = TABS.includes(h) ? h : "home"; })();
 
 /* ---------- Home ---------- */
@@ -8997,7 +9107,7 @@ renderAll = function () { renderAll13(); renderFillNote(); };
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.23.0";
+const APP_VER = "0.23.1";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -9159,6 +9269,12 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.23.1", d: "18 Oct 2026", t: "Undo for imports, and Back works", i: [
+    "<b>Undo import</b>: after importing a backup or a spreadsheet, Undo import puts your list back the way it was. It stays offered until you press Keep it, import something else or reload.",
+    "Before a backup is imported, it says how many servants on your list would get the backup's values, with a list of them, and warns when the backup is older than your latest changes.",
+    "<b>Back and Forward</b> now move between the tabs you opened. On a phone, Back also closes a servant's page, and an edit form with typing in it stays open.",
+    "Opening the page from a bookmark or a restored tab no longer lands at the bottom on phones.",
+    "If the browser's storage is full, a warning stays above the page until saving works again, with a button to download a backup that has your latest changes."]},
   {v: "0.23.0", d: "17 Oct 2026", t: "Bond counts in the Ranking", i: [
     "<b>Bond in the rank score</b>: Bond is now worth up to 10 of the 100 points. Each level is worth more than the one before: Bond 1 to 5 add 0.3 each, 6 to 10 add 0.6 each, 11 to 14 add 1 each, and 14 to 15 adds the most, 1.5.",
     "To keep the top at 100, the other parts are a little smaller: stats 32, skills 27, NP level 13, level 9 and rarity 9. A servant whose Bond isn't filled in loses up to a tenth of their old score, so fill in Bond on the SERVANTPAGE to get it back.",
@@ -11405,12 +11521,29 @@ renderAll = function () {
   renderAll22(); evPaint();
   if (S.tab === "event" && EV.id && !EV.m && !EV.loading.has(EV.id) && !EV.err) { evLoad(EV.id); liveCheck(false); }
 };
-// the page only adds history steps for the Event page and a simulated banner, so Back walks back through those
+// Back walks back through the tabs, Event pages and a simulated banner. On a phone, the servant page is a step of its
+// own ({sheet: id} on #servants), so Back closes it and Forward opens it again (0.23.1).
+// a reload starts with the servant page closed
+try { if (history.state && history.state.sheet) history.replaceState(null, "", location.hash); } catch (e) {}
 window.addEventListener("popstate", () => {
   const id = evIdOf(location.hash);
   if (id) { evOpen(id, false, evTabOf(location.hash)); return; }
-  const h = (location.hash || "").slice(1), tab = TABS.includes(h) ? h : "home";
-  if (tab !== S.tab) { S.tab = tab; renderChrome(); syncPageTheme(); renderAll(); window.scrollTo({top: 0}); }
+  const h = (location.hash || "").slice(1), tab = TABS.includes(h) ? h : "home", st = history.state, phone = !isWide();
+  const want = phone && tab === "servants" && st && st.sheet && S.servants.some((x) => x.id === st.sheet) ? st.sheet : null;
+  // an open edit form on a phone stays put: Back doesn't throw away what was typed
+  if (phone && S.editing && S.tab === "servants" && (tab !== "servants" || want !== S.selected)) {
+    try { history.pushState(S.selected ? {sheet: S.selected} : null, "", "#servants"); } catch (e) {}
+    toast("Save or cancel your changes first."); return;
+  }
+  const moved = tab !== S.tab;
+  if (!moved && (!phone || (S.selected || null) === want)) return;
+  sheetPop = true;
+  try {
+    S.tab = tab;
+    if (phone) S.selected = tab === "servants" ? want : null;
+    renderChrome(); syncPageTheme(); renderAll();
+    if (moved) window.scrollTo({top: 0});
+  } finally { sheetPop = false; }
 });
 document.addEventListener("click", (e) => {
   const b = e.target.closest && e.target.closest('[data-action^="ev-"], [data-action="ewt"]'); if (!b) return;
@@ -11601,6 +11734,17 @@ document.addEventListener("click", (e) => {
 
 initFonts();
 init();
+// Opening the page on a tab's address (a bookmark, a link, a restored tab) made the browser scroll to the element with
+// that id: <div id="home"> while Home was still empty, then down with the footer as Home filled in (0.23.1). A reload or
+// Back/Forward keeps the browser's own scroll position, and a scroll of your own is never undone.
+(function () {
+  let nav = null; try { nav = performance.getEntriesByType("navigation")[0]; } catch (e) {}
+  if (!location.hash || (nav && (nav.type === "reload" || nav.type === "back_forward"))) return;
+  let own = false; const mine = () => { own = true; };
+  ["wheel", "touchstart", "keydown", "mousedown"].forEach((t) => window.addEventListener(t, mine, {once: true, passive: true, capture: true}));
+  const top = () => { if (!own && window.scrollY) window.scrollTo(0, 0); };
+  top(); window.addEventListener("load", () => { top(); setTimeout(top, 0); setTimeout(top, 250); }, {once: true});
+})();
 })();
 </script>
 </body>

@@ -759,12 +759,29 @@ renderAll = function () {
   renderAll22(); evPaint();
   if (S.tab === "event" && EV.id && !EV.m && !EV.loading.has(EV.id) && !EV.err) { evLoad(EV.id); liveCheck(false); }
 };
-// the page only adds history steps for the Event page and a simulated banner, so Back walks back through those
+// Back walks back through the tabs, Event pages and a simulated banner. On a phone, the servant page is a step of its
+// own ({sheet: id} on #servants), so Back closes it and Forward opens it again (0.23.1).
+// a reload starts with the servant page closed
+try { if (history.state && history.state.sheet) history.replaceState(null, "", location.hash); } catch (e) {}
 window.addEventListener("popstate", () => {
   const id = evIdOf(location.hash);
   if (id) { evOpen(id, false, evTabOf(location.hash)); return; }
-  const h = (location.hash || "").slice(1), tab = TABS.includes(h) ? h : "home";
-  if (tab !== S.tab) { S.tab = tab; renderChrome(); syncPageTheme(); renderAll(); window.scrollTo({top: 0}); }
+  const h = (location.hash || "").slice(1), tab = TABS.includes(h) ? h : "home", st = history.state, phone = !isWide();
+  const want = phone && tab === "servants" && st && st.sheet && S.servants.some((x) => x.id === st.sheet) ? st.sheet : null;
+  // an open edit form on a phone stays put: Back doesn't throw away what was typed
+  if (phone && S.editing && S.tab === "servants" && (tab !== "servants" || want !== S.selected)) {
+    try { history.pushState(S.selected ? {sheet: S.selected} : null, "", "#servants"); } catch (e) {}
+    toast("Save or cancel your changes first."); return;
+  }
+  const moved = tab !== S.tab;
+  if (!moved && (!phone || (S.selected || null) === want)) return;
+  sheetPop = true;
+  try {
+    S.tab = tab;
+    if (phone) S.selected = tab === "servants" ? want : null;
+    renderChrome(); syncPageTheme(); renderAll();
+    if (moved) window.scrollTo({top: 0});
+  } finally { sheetPop = false; }
 });
 document.addEventListener("click", (e) => {
   const b = e.target.closest && e.target.closest('[data-action^="ev-"], [data-action="ewt"]'); if (!b) return;

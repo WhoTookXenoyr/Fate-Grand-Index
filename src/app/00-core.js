@@ -63,7 +63,7 @@ function bodyOf(o) { const c = JSON.parse(JSON.stringify(o)); delete c.id; retur
 function writeFailed(e) {
   const code = e && e.code;
   if (code === "invalid_argument") { S.readOnly = true; toast("This page is view-only for you, so changes aren't saved."); renderAll(); }
-  else if (code === "quota_exceeded") toast("The roster storage is full. Delete something you no longer need, then try again.");
+  else if (code === "quota_exceeded") renderSaveWarn(); // the warning above the page says it and stays until saving works
   else if (code === "revoked") { S.dbState = "revoked"; renderAll(); }
   else toast("Couldn't save that change. Check your connection, then try again.");
 }
@@ -79,6 +79,7 @@ async function putDoc(col, id, data) {
 }
 async function writeDoc(col, obj) {
   if (!S.db || S.readOnly) return false;
+  if (S.importUndo && !importBusy && !S.importUndo.later) { S.importUndo.later = true; renderChrome(); }
   const key = col + "/" + obj.id;
   const q = queue[key] || (queue[key] = {busy: false, next: null});
   q.next = bodyOf(obj);
@@ -139,9 +140,27 @@ function loadState() {
 }
 const store = loadState();
 const listeners = {servants: [], parties: [], guests: []};
+// When the browser's storage is full, the change stays on screen (and in a backup) but isn't saved. A toast is gone in
+// seconds, so a warning stays above the page until a save works again (0.23.1).
 function persist() {
-  try { localStorage.setItem(LS_KEY, JSON.stringify({servants: store.servants, parties: store.parties, guests: store.guests, savedAt: new Date().toISOString()})); return true; }
-  catch (e) { toast("Couldn't save in this browser. Export a backup so nothing is lost."); return false; }
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({servants: store.servants, parties: store.parties, guests: store.guests, savedAt: new Date().toISOString()}));
+    if (S.saveFail) { S.saveFail = false; renderSaveWarn(); toast("Saving works again: everything on screen is saved."); }
+    return true;
+  } catch (e) {
+    S.saveFail = true; renderSaveWarn();
+    // on a phone the servant page covers the warning, so a failed save says so in a toast too (at most every few seconds)
+    if (!(persist.told > Date.now() - 4000)) { persist.told = Date.now(); toast("Not saved: this browser's storage is full. The warning at the top of the page says what to do."); }
+    return false;
+  }
+}
+function renderSaveWarn() {
+  const w = document.getElementById("save-warn"); if (!w) return;
+  if (!S.saveFail) { w.hidden = true; w.innerHTML = ""; return; }
+  if (!w.hidden && w.innerHTML) return;
+  w.hidden = false;
+  w.innerHTML = `<p><b>Your changes aren't being saved.</b> This browser's storage is full, so your latest changes are only on screen and are gone after a reload. Download a backup to keep them, then make room: in Chrome, every page opened from a file on this computer shares this space.</p>
+    <button class="btn primary sm" type="button" data-action="export">Download a backup</button><button class="btn ghost sm" type="button" data-action="save-retry">Try saving again</button>`;
 }
 function snapshotOf(col) {
   const docs = store[col].slice().sort((a, b) => (num(a.order) ?? 1e9) - (num(b.order) ?? 1e9)).map((d) => { const body = Object.assign({}, d); delete body.id; return {id: d.id, exists: true, data: () => body, metadata: {fromCache: false, hasPendingWrites: false}}; });

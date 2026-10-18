@@ -10,7 +10,8 @@ errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
     if not ok: fails.append(label)
-INIT = "localStorage.setItem('spirit-origin-list:v1:intro','1');localStorage.setItem('spirit-origin-list:v1:news','9.9.9');if(!localStorage.getItem('spirit-origin-list:v1:summon'))localStorage.setItem('spirit-origin-list:v1:summon',JSON.stringify({anim:false}))"
+TOASTS = "window.__toasts = []; document.addEventListener('DOMContentLoaded', () => { const t = document.getElementById('toast'); if (t) new MutationObserver(() => { const x = t.textContent.trim(); if (x && window.__toasts[window.__toasts.length - 1] !== x) window.__toasts.push(x); }).observe(t, {childList: true, characterData: true, subtree: true}); });"
+INIT = TOASTS + "localStorage.setItem('spirit-origin-list:v1:intro','1');localStorage.setItem('spirit-origin-list:v1:news','9.9.9');if(!localStorage.getItem('spirit-origin-list:v1:summon'))localStorage.setItem('spirit-origin-list:v1:summon',JSON.stringify({anim:false}))"
 LS = "JSON.parse(localStorage.getItem('spirit-origin-list:v1'))"
 def page(ctx):
     pg = ctx.new_page(); pg.add_init_script(INIT); pg.on("pageerror", lambda e: errs.append(str(e)))
@@ -93,11 +94,17 @@ with sync_playwright() as p:
             if pg.evaluate("scrollY") > 0: jumps.append((v, pg.evaluate("scrollY")))
             ctx.close()
         check(f"{w}px: opening any tab's address starts at the top ({jumps or 'all 0'})", not jumps)
-    ctx = b.new_context(viewport={"width": 360, "height": 760}); pg = page(ctx)
-    pg.goto(f"{SEEDED}#home"); pg.wait_for_timeout(1300); pg.mouse.wheel(0, 900); pg.wait_for_timeout(300)
-    y = pg.evaluate("scrollY"); pg.reload(); pg.wait_for_timeout(1500)
-    check(f"a reload keeps your own scroll position ({y} -> {pg.evaluate('scrollY')})", y > 0 and abs(pg.evaluate("scrollY") - y) < 5)
-    ctx.close()
+    # a reload after scrolling down came back at the bottom on a phone (scroll anchoring followed the footer)
+    for w, h in ((360, 760), (1360, 900)):
+        ctx = b.new_context(viewport={"width": w, "height": h}); pg = page(ctx)
+        pg.goto(f"{SEEDED}#home"); pg.wait_for_timeout(1300)
+        got = []
+        for t in ("home", "ranking", "past"):
+            pg.evaluate(f"document.querySelector('#tab-{t}').click()"); pg.wait_for_timeout(500); pg.mouse.wheel(0, 700); pg.wait_for_timeout(300)
+            y = pg.evaluate("scrollY"); pg.reload(); pg.wait_for_timeout(1500); got.append((t, y, pg.evaluate("scrollY")))
+        # Home's daily servant can change the height a little; the bottom is thousands of pixels away
+        check(f"{w}px: a reload comes back where you were ({got})", all(y > 0 and abs(y2 - y) < 120 for t, y, y2 in got))
+        ctx.close()
 
     # ---- import: say what changes, and undo it
     ctx = b.new_context(viewport={"width": 1360, "height": 900}, accept_downloads=True); pg = page(ctx)
@@ -157,7 +164,8 @@ with sync_playwright() as p:
     warn = pg.locator("#save-warn")
     check(f"a full storage shows a warning ({warn.inner_text()[:80]!r})", warn.is_visible() and "aren't being saved" in warn.inner_text() and pg.get_attribute("#save-warn", "role") == "alert")
     check(f"the change wasn't saved ({b0} stays {sv(pg, sid).get('bond')})", sv(pg, sid).get("bond") == b0)
-    check(f"and a toast says so too, for when the servant page covers the warning ({toast(pg)[:40]!r})", "Not saved" in toast(pg))
+    told = pg.evaluate("window.__toasts")
+    check(f"and a toast says so too, for when the servant page covers the warning ({[x[:30] for x in told]})", any("Not saved" in x for x in told))
     pg.wait_for_timeout(5000)
     check("the warning stays after toasts would have gone", warn.is_visible())
     with pg.expect_download() as dl: pg.click('#save-warn [data-action="export"]')

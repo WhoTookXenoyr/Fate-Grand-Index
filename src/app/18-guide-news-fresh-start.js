@@ -167,7 +167,7 @@ const CHANGES = [
     "<b>Undo import</b>: after importing a backup or a spreadsheet, Undo import puts your list back the way it was. It stays offered until you press Keep it, import something else or reload.",
     "Before a backup is imported, it says how many servants on your list would get the backup's values, with a list of them, and warns when the backup is older than your latest changes.",
     "<b>Back and Forward</b> now move between the tabs you opened. On a phone, Back also closes a servant's page, and an edit form with typing in it stays open.",
-    "Opening the page from a bookmark or a restored tab no longer lands at the bottom on phones.",
+    "A reload comes back where you were scrolled, on a phone and on a PC (on a phone it used to land at the bottom; on a PC, at the top). Opening the page from a bookmark or a restored tab starts at the top.",
     "If the browser's storage is full, a warning stays above the page until saving works again, with a button to download a backup that has your latest changes."]},
   {v: "0.23.0", d: "17 Oct 2026", t: "Bond counts in the Ranking", i: [
     "<b>Bond in the rank score</b>: Bond is now worth up to 10 of the 100 points. Each level is worth more than the one before: Bond 1 to 5 add 0.3 each, 6 to 10 add 0.6 each, 11 to 14 add 1 each, and 14 to 15 adds the most, 1.5.",

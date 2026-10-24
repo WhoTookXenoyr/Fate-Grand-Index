@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.23.1";
+const APP_VER = "0.23.2";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -163,6 +163,9 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.23.2", d: "24 Oct 2026", t: "Servant pages on phones scroll cleanly", i: [
+    "On a phone, a servant's page covers the whole screen, and now it's solid: the moving background and the tab bar no longer show through or smear while you scroll it.",
+    "Scrolling past the end of a servant's page no longer scrolls the list behind it, and nothing behind it is drawn while it's open, so phones do less work. Closing it brings you back to the same place in the list."]},
   {v: "0.23.1", d: "18 Oct 2026", t: "Undo for imports, and Back works", i: [
     "<b>Undo import</b>: after importing a backup or a spreadsheet, Undo import puts your list back the way it was. It stays offered until you press Keep it, import something else or reload.",
     "Before a backup is imported, it says how many servants on your list would get the backup's values, with a list of them, and warns when the backup is older than your latest changes.",

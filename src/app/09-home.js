@@ -8,7 +8,14 @@ function syncDossierFrame() {
   d.classList.toggle("gr100", g === "gr100"); d.classList.toggle("gr102", g === "gr102");
 }
 const renderDossier9 = renderDossier;
-renderDossier = function (force) { const r = renderDossier9(force); syncDossierFrame(); syncSheetHistory(); return r; };
+renderDossier = function (force) { const r = renderDossier9(force); syncDossierFrame(); syncSheetHistory(); syncSheetCover(); return r; };
+// on a phone, while a servant's page covers the screen, the page behind it isn't drawn (16-phone-sheet.css, 0.23.2)
+function syncSheetCover() {
+  const d = document.getElementById("dossier");
+  document.documentElement.classList.toggle("sheet-on", !!d && S.tab === "servants" && d.classList.contains("open") && !isWide());
+}
+window.addEventListener("resize", syncSheetCover);
+(function () { const d = document.getElementById("dossier"); if (d && window.MutationObserver) new MutationObserver(syncSheetCover).observe(d, {attributes: true, attributeFilter: ["class"]}); })();
 // the edit form is drawn without renderDossier, so watch the panel itself
 (function () { const d = document.getElementById("dossier"); if (d && window.MutationObserver) new MutationObserver(syncDossierFrame).observe(d, {childList: true}); })();
 
@@ -24,6 +31,7 @@ renderChrome = function () {
     if (location.hash.slice(1) !== S.tab) { if (navReady) history.pushState(null, "", "#" + S.tab); else history.replaceState(null, "", "#" + S.tab); }
   } catch (e) {}
   navReady = true;
+  syncSheetCover();
 };
 // on a phone, the servant page is a step of its own ({sheet: id} on #servants); Back closes it (25-event-page.js)
 let sheetPop = false;

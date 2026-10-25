@@ -1,0 +1,10 @@
+/* 0.23.2: a servant's page on a phone covers the whole screen, so it's solid, its scrolling stays inside it, and nothing
+   behind it is drawn. Before, it was 95% opaque over a page that kept animating (class name, emblem, glows, colour
+   shifts), so the moving background and the tab bar showed through while scrolling, and touches past the end of the
+   servant page scrolled the page behind it. The page keeps its layout (visibility, not display), so closing the servant
+   page brings you back to the same place in the list. */
+@media (max-width: 900px) {
+  .dossier { background: var(--panel); overscroll-behavior: contain; }
+  html.sheet-on .shell, html.sheet-on .aura, html.sheet-on .page-emblem, html.sheet-on .page-class, html.sheet-on .page-fx, html.sheet-on .idle-bg { visibility: hidden; }
+  html.sheet-on #dossier, html.sheet-on .ds-frame { visibility: visible; }
+}

@@ -91,6 +91,8 @@ with sync_playwright() as p:
     check("on a computer the roster is the list it was", pg.evaluate("getComputedStyle(document.getElementById('list')).display") == "flex")
     pg.click('#list [data-id="oberon"]'); pg.wait_for_timeout(800)
     check("and the servant page has no shortcut bar", pg.locator("#dossier .ds-jump").count() == 0)
+    art = pg.evaluate("(() => { const f = document.querySelector('#dossier .art-frame').getBoundingClientRect(), c = document.querySelector('#dossier .stage-btn').getBoundingClientRect(); return [Math.round(f.width), Math.round(c.width)]; })()")
+    check(f"Modern on a computer: a bigger picture, small stage cards ({art})", art[0] >= 270 and art[1] <= 90)
     ctx.close(); b.close()
 print("errors", errs)
 print("ALL PASSED" if not fails and not errs else f"FAILED {len(fails)}: {fails} errors {errs}")

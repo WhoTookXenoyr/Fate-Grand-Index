@@ -233,6 +233,46 @@ bump = function (f, d) {
   const b = document.querySelector(`#dossier [data-action="bump"][data-f="${f}"][data-d="${d}"]`); if (b && !b.disabled) b.focus({preventScroll: true});
 };
 
+/* ---------- Servant Coins follow the + and − (0.24.0 fixes) ----------
+   A copy (NP up) adds the coins a summon of this servant gives (none for event servants), and a Bond level adds 5 (Bond
+   1 to 6), 10 (7 to 9) or 20 (10 to 15). A Grail past Lv 100 takes 30 and unlocking an append skill takes 120. The −
+   gives them back. Coins never go below 0, and the toast's Undo puts the coins back as they were. */
+const BOND_COINS = (b) => b <= 0 ? 0 : b <= 6 ? 5 : b <= 9 ? 10 : 20;
+const grailCoinsTo = (a, L) => { const t = grailRows(a), mx = lvMax(a); let c = 0; for (let g = 0; g < grailsFor(a, L) && g < t.length; g++) if (mx + t[g][1] > 100) c += GRAIL_COINS; return c; };
+const COIN_LOG = new Map();
+const bump24c = bump;
+bump = function (f, d) {
+  const s = S.servants.find((x) => x.id === shownId());
+  if (!s || S.readOnly || !/^(np|bond|level|ap[0-4])$/.test(f)) return bump24c(f, d);
+  const was = {np: num(s.npLevel) || 0, bond: num(s.bond) || 0, level: num(s.level) || 1, ap: apLevels(s)};
+  bump24c(f, d);
+  const a = atlasOf(s); if (!a) return;
+  let dc = 0, why = "";
+  if (f === "np") { const n = (num(s.npLevel) || 0) - was.np; if (n && was.np >= 1 && a.cn) { dc = n * a.cn; why = n > 0 ? "a copy, NP" + num(s.npLevel) : "back to NP" + num(s.npLevel); } }
+  else if (f === "bond") { const b = num(s.bond) || 0; if (b > was.bond) { dc = BOND_COINS(b); why = "Bond " + b; } else if (b < was.bond) { dc = -BOND_COINS(was.bond); why = "back to Bond " + b; } }
+  else if (f === "level") { const L = num(s.level) || 1; dc = grailCoinsTo(a, was.level) - grailCoinsTo(a, L); const g = grailsFor(a, L), row = grailRows(a)[g - 1]; why = dc < 0 ? "a Grail (Lv " + (lvMax(a) + (row ? row[1] : 0)) + " cap)" : "a Grail given back"; }
+  else { const i = Number(f.slice(2)), now = apLevels(s)[i]; if (!was.ap[i] && now) { dc = -AP_COINS; why = "unlocking an append skill"; } else if (was.ap[i] && !now) { dc = AP_COINS; why = "the append skill locked again"; } }
+  if (!dc) return;
+  // a cost takes what's there (up to the cost), and its − gives back what it took; with nothing taken and no coins
+  // recorded, nothing comes back
+  const before = s.coins, cur = num(s.coins) || 0, key = s.id + "|" + (f === "level" ? "lv" : f), log = COIN_LOG.get(key) || [];
+  const cost = f === "level" || /^ap/.test(f);
+  let next = Math.max(0, cur + dc);
+  if (cost && dc < 0) { log.push(cur - next); COIN_LOG.set(key, log); }
+  else if (cost && dc > 0) next = cur + (log.length ? log.pop() : before === undefined ? 0 : dc);
+  if (next === cur) return;
+  if (next) s.coins = next; else delete s.coins;
+  scheduleWrite("servants", s);
+  const ci = document.querySelector("#dossier input[data-coins]"); if (ci && ci !== document.activeElement) ci.value = next || "";
+  plPatch();
+  const msg = (next > cur ? "+" + fmt(next - cur) : "−" + fmt(cur - next)) + " Servant Coins for " + why + (cur + dc < 0 ? " (you had " + fmt(cur) + ")" : "") + ": " + fmt(next) + " now.";
+  toastAction(msg, "Undo", () => {
+    const x = S.servants.find((y) => y.id === s.id); if (!x) return;
+    if (before === undefined) delete x.coins; else x.coins = before;
+    scheduleWrite("servants", x); renderDossier(true);
+  });
+};
+
 /* ---------- changing the plan ---------- */
 function setPlan(s, fn) {
   const a = atlasOf(s); if (!a || S.readOnly) return;

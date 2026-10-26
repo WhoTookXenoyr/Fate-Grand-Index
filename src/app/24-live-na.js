@@ -3,6 +3,8 @@
 // at most every few hours, it asks for the tiny info.json; only when NA's data changed does it download four small lists
 // (servants, Craft Essences, events, summons: about 2.3 MB) and keep the few hundred lines shown on Home. That summary is
 // cached in this browser, so Home still shows it offline. Your roster is never touched.
+// Since 0.24.0 the events and summon banners are on Home's event board (33-home-board.js); this block keeps the login
+// bonuses, the other campaigns and the newest servants and Craft Essences.
 const LIVE_KEY = "spirit-origin-list:v1:live";
 const LIVE_API = "https://api.atlasacademy.io/export/NA/";
 const LIVE_DB = "https://apps.atlasacademy.io/db/NA/";
@@ -158,13 +160,13 @@ function liveList(key, title, items, row, empty) {
 function liveHTML() {
   const head = (small, act) => `<h3>On NA now <small>${small}</small>${act ? `<span class="lv-act">${act}</span>` : ""}</h3>`;
   if (!liveOn()) return `<section class="d-sec hm-block hm-b-live off">${head("live updates are off", "")}
-    <p class="tr-none">Turn them on to see NA's current events, campaigns, login bonuses, summon banners and newest servants here, straight from Atlas Academy.</p>
+    <p class="tr-none">Turn them on to see NA's events, summoning campaigns, login bonuses, other campaigns and newest servants here, straight from Atlas Academy.</p>
     <div><button type="button" class="btn sm" data-action="live-on">Turn on live updates</button></div></section>`;
   const d = live.data, now = Date.now() / 1000;
   const checked = liveBusy ? "checking Atlas Academy…" : live.checkedAt ? "from Atlas Academy · checked " + ago(live.checkedAt) : "from Atlas Academy";
   const btn = `<button type="button" class="btn ghost sm" data-action="live-check"${liveBusy ? " disabled" : ""}>Check now</button>`;
   if (!d) return `<section class="d-sec hm-block hm-b-live">${head(esc(checked), btn)}
-    <p class="tr-none">${liveBusy ? "Getting NA's events, banners and newest servants…" : esc(liveErr || "Nothing loaded yet.") + (liveErr ? " Home shows NA's news here once it can reach Atlas Academy." : "")}</p></section>`;
+    <p class="tr-none">${liveBusy ? "Getting NA's login bonuses, campaigns and newest servants…" : esc(liveErr || "Nothing loaded yet.") + (liveErr ? " Home shows NA's news here once it can reach Atlas Academy." : "")}</p></section>`;
   const live1 = (x) => x.e > now && (x.s <= now || x.a <= now);
   const evs = d.ev.filter(live1), pick = (k) => evs.filter((x) => x.k === k).sort((a, b) => (a.s > now) - (b.s > now) || (a.s > now ? a.s - b.s : a.e - b.e));
   // a campaign or login bonus on the same dates as an event (or ending with the only event that ends then) belongs to it
@@ -173,15 +175,13 @@ function liveHTML() {
     const ends = evs1.filter((y) => near(y.e, x.e)); return ends.length === 1 ? ends[0] : null; };
   const evName = (x) => x.id ? `<button type="button" class="lv-go" data-action="ev-open" data-ev="${x.id}">${esc(liveText(x.n))}</button>` : esc(liveText(x.n));
   const evRow = (x) => { const w = withEv(x); return `<li class="lv-ev${x.s > now ? " up" : x.e - now < 86400 ? " soon" : ""}"><b>${evName(x)}</b>${liveTime(x)}${w ? `<small>with ${w.id ? `<button type="button" class="lv-go sub" data-action="ev-open" data-ev="${w.id}">${esc(liveText(w.n))}</button>` : esc(liveText(w.n))}</small>` : ""}</li>`; };
-  const bas = d.ba.filter((b) => b.e > now && b.s <= now);
-  const baRow = (b) => `<li class="lv-ev lv-ban${b.e - now < 86400 ? " soon" : ""}"><b>${esc(liveText(b.n))}</b>${liveTime(b)}${b.t && b.t !== "Summon" ? `<small>${esc(b.t)}</small>` : ""}${b.ft.length ? `<span class="lv-faces">${b.ft.map((x) => liveFace(x, true)).join("")}${b.id && b.ft.some((x) => !x.ce) ? `<button type="button" class="btn ghost sm lv-sim" data-action="ev-sim" data-g="${b.id}">Simulate</button>` : ""}</span>` : ""}</li>`;
+  // events and summon banners are on Home's board above (0.24.0); this block keeps the rest of what's on
   const note = liveErr ? `<p class="lv-warn">${esc(liveErr)} Showing what came in ${esc(ago(live.checkedAt || Date.now()))}.</p>` : "";
   return `<section class="d-sec hm-block hm-b-live">${head(esc(checked), btn)}${note}
     <div class="lv-cols">
-      <div class="lv-col">${liveList("event", "Events", pick("event"), evRow, "No event running right now.")}${liveList("login", "Login bonuses", pick("login"), evRow, "")}</div>
-      <div class="lv-col">${liveList("banner", "Summon banners", bas, baRow, "No limited banner right now.")}${liveList("camp", "Campaigns", pick("camp"), evRow, "")}</div>
-      <div class="lv-col lv-rel"><h4>Newest servants</h4><div class="lv-grid">${d.sv.map((x) => liveFace(x)).join("")}</div>
-        <h4>Newest Craft Essences</h4><div class="lv-grid">${d.ce.map((x) => liveFace(x)).join("")}</div></div>
+      <div class="lv-col">${liveList("login", "Login bonuses", pick("login"), evRow, "No login bonus right now.")}${liveList("camp", "Campaigns", pick("camp"), evRow, "No campaign right now.")}</div>
+      <div class="lv-col lv-rel"><h4>Newest servants</h4><div class="lv-grid">${d.sv.map((x) => liveFace(x)).join("")}</div></div>
+      <div class="lv-col lv-rel"><h4>Newest Craft Essences</h4><div class="lv-grid">${d.ce.map((x) => liveFace(x)).join("")}</div></div>
     </div>
     <p class="lv-foot">Times are in your time zone. <b>NEW</b> means it isn't in this file's NA data yet; it opens on Atlas Academy. <button type="button" class="linkish" data-action="live-off">Turn off live updates</button></p>
   </section>`;

@@ -94,14 +94,30 @@ async function hbLoad(force) {
 }
 
 /* ---------- what's on: the wiki's events matched with NA's data ---------- */
+// names compared word by word, numbers included: "25M Downloads Campaign" is "25 Million Downloads Campaign"
+const HB_UNIT = {k: "thousand", m: "million"};
+const hbToks = (n) => new Set(nname(n).replace(/\b(\d+)\s?([km])\b/g, (m, d, u) => d + " " + HB_UNIT[u]).split(" ").filter((t) => (t.length > 3 || /^\d+$/.test(t)) && !EV_STOP.has(t)));
+// how sure it is that the wiki's event is this one in NA's data (0: it isn't): starting within a few hours of each
+// other counts most, then the words they share, within four days of each other
+function hbSame(w, x) {
+  const ds = Math.abs(x.s - w.s); if (w.s && ds > 4 * 86400) return 0;
+  const a = hbToks(w.n), b = hbToks(x.n); let n = 0; a.forEach((t) => { if (b.has(t)) n++; });
+  const r = n / Math.max(1, Math.min(a.size, b.size)), words = n >= 2 || (n >= 1 && r >= 0.6) ? n + r : 0;
+  return ds < 3 * 3600 ? 5 + words : words;
+}
 function hbEvents() {
-  const now = Date.now() / 1000, d = live.data, at = d ? d.ev.filter((x) => x.k === "event" && x.e > now) : [];
+  // events NA has announced (not ones only in the data, still to be announced)
+  const now = Date.now() / 1000, d = live.data, at = d ? d.ev.filter((x) => x.k === "event" && x.e > now && (x.s <= now || (x.a || x.s) <= now)) : [];
   const out = [], used = new Set();
   (HB.wiki ? HB.wiki.ev : []).forEach((w) => {
     if (w.e && w.e <= now) return;
-    const wt = evToks(w.n), m = at.find((x) => !used.has(x.id) && (Math.abs(x.s - w.s) < 3 * 3600 || [...evToks(x.n)].filter((t) => wt.has(t)).length >= 2) && Math.abs(x.s - w.s) < 3 * 86400);
+    let m = null, best = 0;
+    at.forEach((x) => { if (used.has(x.id)) return; const sc = hbSame(w, x); if (sc > best) { best = sc; m = x; } });
     if (m) used.add(m.id);
-    out.push({n: w.n, s: w.s || (m && m.s), e: w.e || (m && m.e), img: w.url, req: w.req, story: w.story, pick: w.pick, wiki: w.t, id: m ? m.id : 0});
+    // not in NA's data (yet): its page here is made from the wiki
+    const id = m ? m.id : wikiEvId(w.t);
+    if (!m) EV_WIKI_EVS.set(id, {t: w.t, n: w.n, s: w.s, e: w.e, img: w.url || "", req: w.req, story: w.story, pick: w.pick});
+    out.push({n: w.n, s: w.s || (m && m.s), e: w.e || (m && m.e), img: w.url, req: w.req, story: w.story, pick: w.pick, wiki: w.t, id: id, own: !m});
   });
   at.forEach((x) => { if (!used.has(x.id) && !/^(recollection quest|.*download.*campaign)$/i.test(x.n)) out.push({n: x.n, s: x.s, e: x.e, img: "", req: "", story: "", pick: [], wiki: "", id: x.id}); });
   const cur = out.filter((x) => x.s <= now).sort((a, b) => a.e - b.e), up = out.filter((x) => x.s > now).sort((a, b) => a.s - b.s);
@@ -128,9 +144,9 @@ function hbCard(x, up, i) {
   const now = Date.now() / 1000, span = Math.max(1, x.e - x.s), p = up ? 0 : clamp((now - x.s) / span, 0, 1);
   const soon = up ? x.s - now < 3 * 86400 : x.e - now < 86400;
   const faces = x.pick.length ? `<span class="hb-faces">${x.pick.map((p) => { const a = hbAtlas(p.n); return `<span class="hb-pk ${p.k}">${hbFace(a ? {no: a.no, n: a.n} : {n: p.n})}<i>${p.k === "reward" ? "Free" : "Pickup"}</i></span>`; }).join("")}</span>` : "";
-  const open = x.id ? `data-action="ev-open" data-ev="${x.id}"` : x.wiki ? `data-action="hb-wiki" data-t="${esc(x.wiki)}"` : "";
+  const open = x.id ? `data-action="ev-open" data-ev="${x.id}"` : "";
   return `<article class="hb-ev${up ? " up" : " now"}${soon ? " soon" : ""}${x.img ? "" : " noimg"}" style="--i:${i};--p:${p.toFixed(3)}">
-    <button type="button" class="hb-hit" ${open} aria-label="${esc(x.n)}${x.id ? ": open the Event page" : x.wiki ? ": open it on the wiki" : ""}"${open ? "" : " disabled"}>
+    <button type="button" class="hb-hit" ${open} aria-label="${esc(x.n)}${x.id ? ": open the Event page" : ""}"${open ? "" : " disabled"}>
       <span class="hb-art">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy" decoding="async">` : `<span class="hb-ph" aria-hidden="true">${esc(x.n)}</span>`}<i class="hb-shine" aria-hidden="true"></i>
         <span class="hb-badge">${up ? (soon ? "Soon" : "Upcoming") : "<b class=\"hb-dot\"></b>Now on"}</span></span>
       <span class="hb-body"><b class="hb-n">${esc(x.n)}</b>
@@ -148,7 +164,9 @@ function hbBoardHTML() {
   const evs = hbEvents(), camps = hbCampaigns(evs), now = Date.now() / 1000;
   const empty = (t) => `<p class="tr-none hb-empty">${t}</p>`;
   const wait = HB.busy && !HB.wiki ? "Getting the events from the wiki…" : "";
-  const camp = (b) => `<li class="hb-camp${b.s > now ? " up" : ""}"><span class="hb-cf">${b.ft.slice(0, 4).map(hbFace).join("") || `<i class="hb-noface">?</i>`}</span>
+  // featured servants open in Past Chaldea (or on Atlas Academy when they're new on NA)
+  const cface = (x) => x.no && x.f ? liveFace(Object.assign({r: 0}, x), true) : hbFace(x);
+  const camp = (b) => `<li class="hb-camp${b.s > now ? " up" : ""}"><span class="hb-cf">${b.ft.slice(0, 4).map(cface).join("") || `<i class="hb-noface">?</i>`}</span>
       <span class="hb-cm"><b>${esc(liveText(b.n))}</b><span class="hb-ctag ${b.ev ? "ev" : "oth"}">${b.ev ? "Event campaign" : "Other campaign"}</span><small>${b.s > now ? "starts in " : "ends in "}<b data-hb-t="${b.s > now ? b.s : b.e}">${esc(hbLeft(b.s > now ? b.s : b.e))}</b>${b.src === "wiki" ? " · announced on the wiki" : ""}</small></span>
       ${b.id && b.e > now && b.ft.some((x) => x.no && !x.ce) ? `<button type="button" class="btn sm ghost" data-action="ev-sim" data-g="${b.id}">Simulate</button>` : ""}</li>`;
   return `<section class="hb-events" aria-label="Events">

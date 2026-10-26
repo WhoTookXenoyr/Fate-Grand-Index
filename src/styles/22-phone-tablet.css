@@ -89,3 +89,13 @@
   .dossier .step > :not(.step-k):not(.stepper) { grid-column: 1 / -1; }
   .dossier .step > .status { grid-column: 1; grid-row: 2; }
 }
+
+/* ---------- Modern on a computer: the picture takes more of the room, the stage cards stay small (0.24.0 fixes) ---------- */
+@media (min-width: 901px) {
+  html:not([data-layout="compact"]) .dossier .art { flex-wrap: nowrap; }
+  html:not([data-layout="compact"]) .dossier .art-frame { flex: 0 0 clamp(250px, 46%, 440px); }
+  html:not([data-layout="compact"]) .dossier .art-side { flex: 1 1 0; }
+  html:not([data-layout="compact"]) .dossier .stage-list { grid-template-columns: repeat(auto-fill, minmax(60px, 76px)); }
+  html:not([data-layout="compact"]) .dossier .stage-btn { padding: 4px; border-radius: 10px; }
+  html:not([data-layout="compact"]) .dossier .stage-btn b, html:not([data-layout="compact"]) .dossier .stage-btn small { font-size: 10px; }
+}

@@ -26,7 +26,8 @@ NOW = int(time.time()); D = 86400
 ev = lambda i, t, n, s, e: {"id": i, "type": t, "name": n, "noticeAt": s - D, "startedAt": s, "endedAt": e, "finishedAt": e, "materialOpenedAt": e, "warIds": []}
 EVENTS = [ev(80534, "eventQuest", "Revival: Showa Kishin Project: GUDAGUDA Test Escape - Lite", NOW - 10 * D, NOW + 10 * D),
           ev(80600, "eventQuest", "Atlas Only Mystery Event", NOW - 2 * D, NOW + 3 * D),
-          ev(80601, "questCampaign", "AP Cost 1/2", NOW - D, NOW + 5 * D)]
+          ev(80601, "questCampaign", "AP Cost 1/2", NOW - D, NOW + 5 * D),
+          ev(80610, "eventQuest", "25 Million Downloads Campaign", NOW - D, NOW + 11 * D)]  # the wiki says "25M", and starts it two days earlier
 TUT = next(x for x in ATL if x["n"] == "Ereshkigal")
 g = lambda i, n, s, e, ft: {"id": i, "name": n, "type": "payGacha", "openedAt": s, "closedAt": e, "gachaSubs": [], "featuredSvtIds": ft}
 GACHAS = [g(1, "GUDAGUDA Test Escape Pickup Summon", NOW - 10 * D, NOW + 10 * D, [TUT["id"]]), g(2, "Class-Based Summoning Campaign (Saber)", NOW - D, NOW + 6 * D, [])]
@@ -35,6 +36,7 @@ info = {"hash": "h1", "timestamp": NOW - 3600}
 def pst(ts): d = datetime.fromtimestamp(ts, timezone(timedelta(hours=-8))); return d.strftime("%B ") + str(d.day) + "th " + d.strftime("%Y %H:%M")
 WIKI = {
   "GUDAGUDA Test Escape 2023 Revival (US)": f"{{{{EventHeaderNA\n|pagename=GUDAGUDA Test Escape (US)\n|image=GudaTestUS.png\n|start={pst(NOW - 10 * D)}\n|end={pst(NOW + 10 * D)}\n|timezone=PST\n|name=Revival: Showa Kishin Project: GUDAGUDA Test Escape - Lite\n|requirement=[[Fuyuki]]\n}}}}\nrest",
+  "25M Downloads Campaign (US)": f"{{{{EventHeaderNA\n|start={pst(NOW - 3 * D)}\n|end={pst(NOW + 11 * D)}\n|timezone=PST\n|name=25M Downloads Campaign\n|requirement=None\n}}}}\nrest",
   "Mystery House Testers (US)": f"{{{{EventHeaderNA\n|pagename = Mystery House Testers (US)\n|image = MysteryTestUS.png\n|start = {pst(NOW + 17 * D)}\n|end = {pst(NOW + 36 * D)}\n|timezone = PST\n|name = Smash! Mystery House Testers\n|requirement = Olympus\n|story = Imaginary Scramble\n}}}}\n== New Servants ==\n|{{{{Star}}}} {{{{Lancer}}}} [[Van Gogh (Miner)]] {{{{EventR}}}}\n|{{{{Star}}}} {{{{Archer}}}} [[{TUT['n']}]] {{{{LimitedS}}}}\n",
   "Template:GameUpdatesNA": "{{Data Updates\n|squest1= {{Inum|{{Yagyū Munenori|stage=2|68px|link=x}}|STR{{Mini NP Icon}}}}\n|newserv1={{Inum|{{Ereshkigal|stage=3|68px}}|{{LimitedS}}}}\n|newce1= {{Craft Essence Icon|Formal Craft|31|68px}}\n|newcc1={{Command Code Icon|Fairy King's Crown|177|68px}}\n|newitem1= {{Moonlight Nucleus}}\n}}"}
 wiki_hits = []
@@ -42,12 +44,14 @@ def wiki(r):
     q = parse_qs(urlparse(r.request.url).query); q = {k: v[0] for k, v in q.items()}; wiki_hits.append(q.get("list") or q.get("prop"))
     h = {"Access-Control-Allow-Origin": "*", "Content-Type": "application/json"}
     if q.get("list") == "categorymembers":
-        t = ["GUDAGUDA Test Escape 2023 Revival (US)"] if "Current" in q["cmtitle"] else ["Mystery House Testers (US)"]
+        t = ["GUDAGUDA Test Escape 2023 Revival (US)", "25M Downloads Campaign (US)"] if "Current" in q["cmtitle"] else ["Mystery House Testers (US)"]
         return r.fulfill(body=json.dumps({"query": {"categorymembers": [{"title": x} for x in t]}}), headers=h)
     if q.get("prop") == "revisions":
         return r.fulfill(body=json.dumps({"query": {"pages": [{"title": t, "revisions": [{"slots": {"main": {"content": WIKI.get(t, "")}}}]} for t in q["titles"].split("|")]}}), headers=h)
     if q.get("prop") == "imageinfo":
         return r.fulfill(body=json.dumps({"query": {"pages": [{"title": t, "imageinfo": [{"thumburl": "https://static.wikia.nocookie.net/test/" + t[5:]}]} for t in q["titles"].split("|")]}}), headers=h)
+    if q.get("action") == "parse" and q.get("page") == "Mystery House Testers (US)":
+        return r.fulfill(body=json.dumps({"parse": {"title": q["page"], "text": '<div class="mw-parser-output"><p>A mystery to test.</p><div class="mw-heading mw-heading2"><h2 id="Event_Summary">Event Summary</h2></div><p>Solve the test mystery.</p><div class="mw-heading mw-heading2"><h2 id="Event_Shop">Event Shop</h2></div><p>Clue shop.</p></div>'}}), headers=h)
     r.fulfill(body="{}", headers=h)
 def itunes(r):
     cc = parse_qs(urlparse(r.request.url).query)["country"][0]
@@ -90,7 +94,9 @@ with sync_playwright() as p:
     pg.goto(SEEDED + "#home"); pg.wait_for_selector("#home .hb-ev", timeout=20000); pg.wait_for_timeout(1500)
     now_cards = pg.evaluate("[...document.querySelectorAll('#home .hb-grid:not(.up) .hb-ev')].map(e => e.querySelector('.hb-n').textContent)")
     up_cards = pg.evaluate("[...document.querySelectorAll('#home .hb-grid.up .hb-ev')].map(e => e.querySelector('.hb-n').textContent)")
-    check(f"Now on: the wiki's current event and the one only NA's data knows, ending first first ({now_cards})", now_cards == ["Atlas Only Mystery Event", "Revival: Showa Kishin Project: GUDAGUDA Test Escape - Lite"])
+    check(f"Now on: the wiki's current events and the one only NA's data knows, ending first first ({now_cards})", now_cards == ["Atlas Only Mystery Event", "Revival: Showa Kishin Project: GUDAGUDA Test Escape - Lite", "25M Downloads Campaign"])
+    dl = pg.locator("#home .hb-ev", has_text="25M Downloads")
+    check("\"25M Downloads Campaign\" on the wiki is \"25 Million Downloads Campaign\" in NA's data, two days apart: one card, opening NA's event", dl.count() == 1 and dl.locator('[data-action="ev-open"]').get_attribute("data-ev") == "80610")
     check(f"Coming up: the wiki's announced event ({up_cards})", up_cards == ["Smash! Mystery House Testers"])
     guda = pg.locator("#home .hb-ev", has_text="GUDAGUDA")
     check("the wiki's banner is the card's picture", "GudaTestUS.png" in (guda.locator(".hb-art img").get_attribute("src") or ""))
@@ -101,7 +107,8 @@ with sync_playwright() as p:
     check(f"the upcoming one: starts in 17 days, needs Olympus, story after Imaginary Scramble ({' '.join(up.inner_text().split())[:200]!r})", "starts in 16d" in up.inner_text() or "starts in 17d" in up.inner_text())
     check("its requirement and story", "Olympus" in up.inner_text() and "Imaginary Scramble" in up.inner_text())
     check("and its new servants, pickup and free", up.locator(".hb-pk.pickup").count() == 1 and up.locator(".hb-pk.reward").count() == 1)
-    check("an event NA's data doesn't have yet opens on the wiki", up.locator('[data-action="hb-wiki"]').count() == 1 and up.locator(".hb-wl").get_attribute("href").endswith("Mystery_House_Testers_(US)"))
+    wid = up.locator('[data-action="ev-open"]').get_attribute("data-ev") or ""
+    check(f"an event NA's data doesn't have yet still opens a page here ({wid}), with the wiki link beside it", wid.startswith("-") and up.locator(".hb-wl").get_attribute("href").endswith("Mystery_House_Testers_(US)"))
     camps = pg.evaluate("[...document.querySelectorAll('#home .hb-camp')].map(c => [c.querySelector('.hb-cm > b').textContent, c.querySelector('.hb-ctag').textContent, c.classList.contains('up')])")
     check(f"summoning campaigns: the event's pickup, another kind, and the announced event's pickup ({camps})",
           ["GUDAGUDA Test Escape Pickup Summon", "Event campaign", False] in camps and ["Class-Based Summoning Campaign (Saber)", "Other campaign", False] in camps
@@ -118,7 +125,17 @@ with sync_playwright() as p:
     pg.keyboard.press("Escape"); pg.wait_for_timeout(300)
     n_wiki = len(wiki_hits)
     pg.reload(); pg.wait_for_selector("#home .hb-ev", timeout=20000); pg.wait_for_timeout(1200)
-    check(f"after a reload it's all there without asking the wiki again ({len(wiki_hits) - n_wiki} asks)", len(wiki_hits) == n_wiki and pg.locator("#home .hb-ev").count() == 3)
+    check(f"after a reload it's all there without asking the wiki again ({len(wiki_hits) - n_wiki} asks)", len(wiki_hits) == n_wiki and pg.locator("#home .hb-ev").count() == 4)
+    # the upcoming event's own page, made from the wiki
+    pg.click('#home .hb-ev.up [data-action="ev-open"]'); pg.wait_for_selector("#event .ev-title", timeout=20000); pg.wait_for_timeout(1500)
+    head = pg.locator("#event .ev-head").inner_text()
+    check(f"its page: the wiki's name, from the wiki, when it starts ({' '.join(head.split())[:120]!r})", pg.evaluate("location.hash") == "#event/" + wid and "Smash! Mystery House Testers" in head and "from the wiki" in head and "starts" in head)
+    tabs = [x.strip() for x in pg.locator("#event .ev-tab").all_inner_texts()]
+    ov = pg.locator("#event .ev-pane").inner_text()
+    check(f"with the wiki page's sections as tabs ({tabs}) and what the board knew: requirement, story, servants", "Event Summary" in tabs and "Event Shop" in tabs and "Olympus" in ov and "Imaginary Scramble" in ov and "pickup" in ov)
+    pg.reload(); pg.wait_for_selector("#event .ev-title", timeout=20000); pg.wait_for_timeout(800)
+    check("it opens again after a reload", "Smash! Mystery House Testers" in pg.locator("#event .ev-title").inner_text())
+    pg.click('#event [data-action="tab"][data-tab="home"]'); pg.wait_for_selector("#home .hb-ev", timeout=20000); pg.wait_for_timeout(600)
     pg.click('#home .hb-ev.now [data-action="ev-open"][data-ev="80534"]'); pg.wait_for_timeout(800)
     check("a card opens the Event page", pg.evaluate("location.hash").startswith("#event/80534"))
     ctx.close()

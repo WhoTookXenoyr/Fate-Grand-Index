@@ -166,6 +166,51 @@ def skill_vals(k):
         seen.add(sig)
         rows.append([lab, num(a, div), num(b, div), unit])
     return rows[:6]
+# 0.24.0: what a skill does to NP damage, for the damage calculator's supports: [kind, target, cards, 10 values, (whose
+# traits it needs)]. Kinds: a ATK, c card, n NP Strength, p special attack, d enemy DEF down, r enemy card resistance
+# down, f Damage Plus. Targets: s self, o one ally, a all allies, x allies but the user, e the enemy. Cards: "" (all) or
+# some of "QAB". The trait it needs: "@Sky" an attribute, "#Saber" a class, "%Female" a gender, "&Evil" an alignment, else the trait's name;
+# "+" in front: the attacker needs it (who the skill picks among your allies), "-": the enemy does; "?hp", "?pick",
+# "?field", "?stack", "?cond": it only works some of the time (low HP, a choice, some quests, stacking, a condition).
+BUFF_K = {"upAtk": "a", "upCommandall": "c", "upNpdamage": "n", "upDamage": "p", "upDamageIndividuality": "p", "downDefence": "d", "downDefencecommandall": "r", "addDamage": "f"}
+TGT_K = {"self": "s", "ptOne": "o", "ptAll": "a", "ptFull": "a", "ptOther": "x", "ptOtherFull": "x", "ptOneOther": "x", "enemy": "e", "enemyAll": "e", "enemyFull": "e"}
+CARD_T = {"cardQuick": "Q", "cardArts": "A", "cardBuster": "B"}
+CLS_T = {"class" + k[:1].upper() + k[1:]: v for k, v in CLS.items()}
+def trait_key(name):
+    if name.startswith("attribute"): return "@" + ATTR.get(name[9:].lower(), name[9:])
+    if name in CLS_T: return "#" + CLS_T[name]
+    if name.startswith("gender"): return "%" + name[6:]
+    if name in ORD or name in MOR: return "&" + (ORD.get(name) or MOR.get(name))
+    return TRAIT.get(name) or re.sub(r"([a-z])([A-Z])", r"\1 \2", name).capitalize()
+def skill_buffs(k):
+    out = []
+    for f in k["functions"]:
+        if not f.get("buffs"): continue
+        b, g = f["buffs"][0], TGT_K.get(f["funcTargetType"])
+        kk = BUFF_K.get(b["type"])
+        if not kk or not g: continue
+        # DEF down on your own side is a drawback, and buffs only count on your side
+        if (kk in "dr") != (g == "e"): continue
+        sv = f.get("svals") or []
+        if len(sv) < 10: continue
+        vals = [num(s.get("Value") or 0, 1 if kk == "f" else 10) for s in sv[:10]]
+        if not any(vals): continue
+        ind = [t["name"] for t in (b.get("ckSelfIndv") or []) + (b.get("ckOpIndv") or [])]
+        cards = "".join(c for c in "QAB" if any(CARD_T.get(t) == c for t in ind))
+        row = [kk, g, cards, vals]
+        need = [("+" + trait_key(t["name"])) for t in (f.get("functvals") or []) if t.get("name") and t["name"] not in CARD_T]
+        need += [("-" + trait_key(t["name"])) for t in (b.get("ckOpIndv") or []) if t.get("name") and t["name"] not in CARD_T]
+        # parts that only work some of the time ("?"): with low HP, one of a choice, on some quests, stacking, or a
+        # condition on the holder; the calculator doesn't count these on its own
+        sc, s0 = b.get("script") or {}, sv[0]
+        if "HP_LOWER" in sc or "HP_HIGHER" in sc or any(k.startswith("RatioHP") for k in s0): need = ["?hp"]
+        elif "ActSelectIndex" in s0 or "ActSet" in s0: need = ["?pick"]
+        elif f.get("funcquestTvals"): need = ["?field"]
+        elif any(k.startswith("ParamAdd") for k in s0): need = ["?stack"]
+        elif "INDIVIDUALITIE" in sc or "checkIndvType" in sc: need = ["?cond"]
+        if need: row.append(need[0])
+        out.append(row)
+    return out
 def pick(items, key="num"):
     best = {}
     for k in items:
@@ -303,6 +348,8 @@ for x in S:
     slots = [k for k in x["skills"] if k["num"] in (1, 2, 3)]
     for k in pick(slots):
         o = one(k); o["up"] = 1 if k.get("strengthStatus") == 99 else 0
+        bf = skill_buffs(k)
+        if bf: o["b"] = bf
         # skills a Rank Up quest, an interlude or the story upgrades: every version, oldest first ("u" holds the ones before this)
         same = [c for c in slots if c["num"] == k["num"]]
         chain = sorted(same, key=lambda c: c.get("priority", 0)) if any(c.get("strengthStatus") in (1, 2, 99) or c.get("condQuestId") for c in same) else []

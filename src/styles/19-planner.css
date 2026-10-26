@@ -121,3 +121,16 @@
 .npc-foot { margin: 0; font-size: 11.5px; color: var(--muted); }
 @media (max-width: 900px) { .npc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (prefers-reduced-motion: reduce) { .npc > summary::before { transition: none; } }
+
+/* ---------- party image (31-party-image.js) ---------- */
+.party-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.pimg-dlg { width: min(980px, calc(100% - 32px)); }
+.pimg-view { position: relative; display: grid; place-items: center; min-height: 160px; border-radius: 12px; background: var(--sunken); overflow: hidden; }
+.pimg-view img { display: block; width: 100%; height: auto; transition: opacity .2s ease; }
+.pimg-view img:not([src]) { display: none; }
+.pimg-view img.dim { opacity: .45; }
+.pimg-wait { position: absolute; inset: auto 0 auto 0; text-align: center; font-size: 13px; color: var(--muted); }
+.pimg-acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pimg-acts .spacer { flex: 1; }
+.pimg-theme { display: flex; gap: 6px; }
+.pimg-msg:empty { display: none; }

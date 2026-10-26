@@ -738,7 +738,7 @@ function renderParties() {
     const cost = own.reduce((a, s) => a + (COST[clamp(num(s.rarity) || 0, 0, 5)] || 0), 0);
     const gaps = own.some((s) => total(s, "atk") == null);
     return `<article class="party">
-      <header><div><h3>${esc(p.name)}</h3>${p.bestFor ? `<p class="for">${esc(p.bestFor)}</p>` : ""}</div>${S.readOnly ? "" : `<button class="btn sm" data-action="edit-party" data-id="${esc(p.id)}">Edit party</button>`}</header>
+      <header><div><h3>${esc(p.name)}</h3>${p.bestFor ? `<p class="for">${esc(p.bestFor)}</p>` : ""}</div><div class="party-acts"><button class="btn sm ghost" type="button" data-action="party-img" data-id="${esc(p.id)}" title="Make a picture of this party to save or share">Share image</button>${S.readOnly ? "" : `<button class="btn sm" data-action="edit-party" data-id="${esc(p.id)}">Edit party</button>`}</div></header>
       <div class="formation">
         <section class="f-group start" aria-label="Starting members"><h4><b>Starting</b> Member</h4><div class="f-cards${start.length > 3 ? " four" : ""}">${start.join("")}</div></section>
         <section class="f-group sub" aria-label="Sub members"><h4><b>Sub</b> Member</h4><div class="f-cards">${sub.join("")}</div></section>

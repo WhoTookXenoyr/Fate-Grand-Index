@@ -27,7 +27,7 @@ with sync_playwright() as p:
         sh = rect(pg, ".shell")
         check(f"{tag}: zoom {zz} (expected {z}); the page is {sh[4] / w:.0%} of the screen", abs(zz - z) < 0.01 and (0.7 <= sh[4] / w <= 0.99 if w > 1300 else True))
         side = []
-        for t in ("home", "servants", "summon", "parties", "ranking", "versus", "past"):
+        for t in ("home", "servants", "story", "summon", "parties", "ranking", "versus", "past"):
             pg.evaluate(f"document.querySelector('#tab-{t}').click()"); pg.wait_for_timeout(500)
             if pg.evaluate("document.documentElement.scrollWidth > innerWidth"): side.append(t)
         check(f"{tag}: no tab scrolls sideways ({side or 'none'})", not side)

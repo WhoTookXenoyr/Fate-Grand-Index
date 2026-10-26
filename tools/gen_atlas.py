@@ -272,6 +272,7 @@ out = []
 # ascension and skill materials (0.22.0, for the event shop calculator): items get a number in ATLAS_MATS, and each
 # servant lists, per ascension (4) and per skill level-up (9), the flat pairs [material number, amount, ...]
 MATS = {}
+APPENDS, APPEND_IX = [], {}
 def mats(levels):
     rows = []
     for lv in levels:
@@ -341,11 +342,27 @@ for x in S:
     if x["type"] == "heroine": rec["h"] = 1
     am, sm = x.get("ascensionMaterials") or {}, x.get("skillMaterials") or {}
     rec["ma"] = mats([am.get(str(k)) for k in range(4)]); rec["ms"] = mats([sm.get(str(k)) for k in range(1, 10)])
+    # 0.24.0: QP per ascension and skill level, append skills (the same few for everyone, kept once in ATLAS_APPENDS), their
+    # materials and QP, and the servant's coins (how many a summon gives, and the coin's picture)
+    pm = x.get("appendSkillMaterials") or {}
+    rec["mp"] = mats([pm.get(str(k)) for k in range(1, 10)])
+    rec["qa"] = [(am.get(str(k)) or {}).get("qp", 0) for k in range(4)]
+    rec["qs"] = [(sm.get(str(k)) or {}).get("qp", 0) for k in range(1, 10)]
+    rec["qp"] = [(pm.get(str(k)) or {}).get("qp", 0) for k in range(1, 10)]
+    aps = []
+    for a in sorted(x.get("appendPassive") or [], key=lambda a: a.get("num", 0)):
+        o = one(a["skill"]); o.pop("cd", None)
+        key = json.dumps(o, sort_keys=True, ensure_ascii=False)
+        if key not in APPEND_IX: APPEND_IX[key] = len(APPENDS); APPENDS.append(o)
+        aps.append(APPEND_IX[key])
+    rec["ap"] = aps
+    coin = x.get("coin") or {}
+    if coin.get("item"): rec["cn"] = coin.get("summonNum", 0); rec["ci"] = p(coin["item"].get("icon", ""))
     out.append(rec)
 out.sort(key=lambda r: r["no"])
 MAT_LIST = sorted(MATS.values(), key=lambda m: m[0]); MAT_IX = {m[0]: k for k, m in enumerate(MAT_LIST)}
 for r in out:
-    for key in ("ma", "ms"): r[key] = [[MAT_IX[v] if k % 2 == 0 else v for k, v in enumerate(row)] for row in r[key]]
+    for key in ("ma", "ms", "mp"): r[key] = [[MAT_IX[v] if k % 2 == 0 else v for k, v in enumerate(row)] for row in r[key]]
 
 FLAG = {"normal": "N", "svtEquipEvent": "E", "svtEquipEventReward": "R", "svtEquipFriendShip": "B", "svtEquipChocolate": "V", "svtEquipCampaign": "C", "svtEquipExp": "X", "svtEquipManaExchange": "M", "unknown": "U"}
 id2no = {x["id"]: x["collectionNo"] for x in S}
@@ -382,5 +399,16 @@ for x in S:
 js = "const ATLAS_CURVES = %s;\n" % json.dumps({str(k): v for k, v in CURVES.items()}, separators=(",", ":"))
 js += "const ATLAS_IMG = %s;\nconst ATLAS_S = %s;\nconst ATLAS_C = %s;\nconst ATLAS_ICONS = %s;\n" % (json.dumps(BASE), json.dumps(out, ensure_ascii=False, separators=(",", ":")), json.dumps(ces, ensure_ascii=False, separators=(",", ":")), json.dumps(icons, ensure_ascii=False, separators=(",", ":")))
 js += "const ATLAS_MATS = %s;\n" % json.dumps(MAT_LIST, ensure_ascii=False, separators=(",", ":"))
+js += "const ATLAS_APPENDS = %s;\n" % json.dumps(APPENDS, ensure_ascii=False, separators=(",", ":"))
+# QP per grail by rarity, and how far each grail raises the level cap ([qp, addLvMax] for grail 1, 2, ...), from Atlas
+# Academy's NiceSvtGrailCost (NA, Oct 2026); each grail past Lv 100 also costs 30 of the servant's coins
+GRAIL = {
+  0: [(600000, 5), (800000, 10), (1000000, 15), (2000000, 20), (3000000, 25)] + [(q, 25 + 2 * i) for i, q in enumerate([4000000, 5000000, 6000000, 7000000, 8000000] + [9000000] * 10, 1)],
+  1: [(400000, 10), (600000, 15), (800000, 20), (1000000, 25), (2000000, 30)] + [(q, 30 + 2 * i) for i, q in enumerate([3000000, 4000000, 5000000, 6000000, 7000000] + [8000000] * 10, 1)],
+  2: [(600000, 5), (800000, 10), (1000000, 15), (2000000, 20), (3000000, 25)] + [(q, 25 + 2 * i) for i, q in enumerate([4000000, 5000000, 6000000, 7000000, 8000000] + [9000000] * 10, 1)],
+  3: [(1000000, 5), (2000000, 10), (3000000, 15), (4000000, 20)] + [(q, 20 + 2 * i) for i, q in enumerate([5000000, 6000000, 7000000, 8000000, 9000000] + [10000000] * 10, 1)],
+  4: [(4000000, 5), (5000000, 10)] + [(q, 10 + 2 * i) for i, q in enumerate([6000000, 7000000, 8000000, 9000000, 10000000] + [12000000] * 10, 1)],
+  5: [(q, 2 * i) for i, q in enumerate([9000000, 10000000, 11000000, 12000000, 13000000] + [15000000] * 10, 1)]}
+js += "const ATLAS_GRAIL = %s;\n" % json.dumps({str(k): [list(t) for t in v] for k, v in GRAIL.items()}, separators=(",", ":"))
 with open(os.path.join(ROOT, "src", "data", "atlas_data.js"), "w", encoding="utf-8") as f: f.write(js.strip() + "\n")
 print("servants", len(out), "ces", len(ces), "icons", len(icons), "bytes", len(js.encode()))

@@ -13,10 +13,11 @@ const tickMs = () => 1000 / motionFps;
 const STEPPED = new WeakMap();
 // a still element's animation is left alone; the summon's own clockwork is timed in JavaScript, so it runs free
 const inSummon = (a) => { const t = a.effect && a.effect.target; return !!(t && t.closest && t.closest("#summon")); };
-function alignAnim(a) {
+function alignAnim(a, again) {
   if (a.playState !== "running") return;
   const st = a.startTime;
-  if (st == null) { a.ready.then(() => alignAnim(a)).catch(() => {}); return; }
+  // not started yet: try once more when it has (never again after that, so it can't keep calling itself)
+  if (st == null) { if (!again) a.ready.then(() => alignAnim(a, true)).catch(() => {}); return; }
   const k = tickMs(), g = Math.round(st / k) * k;
   if (Math.abs(g - st) > 0.5) { try { a.startTime = g; } catch (e) {} }
 }
@@ -36,13 +37,55 @@ function stepAnim(a) {
   }
   alignAnim(a);
 }
-const stepAll = () => { if (!resting) document.getAnimations().forEach(stepAnim); };
-document.addEventListener("animationstart", (e) => { const t = e.target; if (t && t.getAnimations) t.getAnimations({subtree: true}).forEach(stepAnim); }, true);
-// new pictures, pages and class changes start new animations (some only after a delay): catch them right away
+// 0.24.0: many animations are stepped in two passes, reading first and changing after. Reading an animation's state
+// right after changing another one makes the browser redo the page's styles each time, once per animation.
+// animations that haven't started yet are lined up together on a later frame (asking each one when it will start
+// cost as much as a style update each); twice at most, so nothing keeps calling itself
+let stepLater = [], stepLaterT = 0;
+function stepMany(list, tries) {
+  const k = tickMs(), rows = [], later = [];
+  for (const a of list) {
+    if (!isCssAnim(a) || inSummon(a)) continue;
+    const ef = a.effect; if (!ef || !ef.getTiming) continue;
+    let o = STEPPED.get(a);
+    if (!o) { const t = ef.getTiming(); if (typeof t.duration !== "number" || !(t.duration > 0)) continue; o = {d: t.duration, dl: t.delay || 0, fps: 0}; STEPPED.set(a, o); }
+    rows.push([a, o, a.playState, a.startTime]);
+  }
+  for (const [a, o, ps, st] of rows) {
+    if (o.fps !== motionFps) {
+      const n = Math.max(1, Math.round(o.d / k));
+      try { a.effect.updateTiming({duration: n * k, delay: Math.round(o.dl / k) * k, easing: "steps(" + n + ", end)"}); } catch (e) { continue; }
+      o.fps = motionFps;
+    }
+    if (ps !== "running") continue;
+    if (st == null) { later.push(a); continue; }
+    const g = Math.round(st / k) * k;
+    if (Math.abs(g - st) > 0.5) { try { a.startTime = g; } catch (e) {} }
+  }
+  if (later.length && (tries || 0) < 2) {
+    later.forEach((a) => stepLater.push([a, (tries || 0) + 1]));
+    if (!stepLaterT) stepLaterT = requestAnimationFrame(() => requestAnimationFrame(() => {
+      stepLaterT = 0; const items = stepLater; stepLater = [];
+      [1, 2].forEach((t) => { const l = items.filter((x) => x[1] === t).map((x) => x[0]); if (l.length) stepMany(l, t); });
+    }));
+  }
+}
+const stepAll = () => { if (!resting) stepMany(document.getAnimations()); };
+// New animations (a new picture, page or class, some only after a delay) are stepped as soon as they start. 0.24.0: in one
+// pass over the page's animations per burst of changes, touching only the ones not stepped yet. Asking each changed
+// element for its own animations costs as much as asking the page (the browser looks through all of them either way),
+// so doing it per element cost a second per press with 200 servants. A full pass every 15 s is the safety net.
 let stepT = 0;
-if (window.MutationObserver) new MutationObserver(() => { if (!stepT) stepT = setTimeout(() => { stepT = 0; stepAll(); }, 120); })
-  .observe(document.documentElement, {childList: true, subtree: true, attributes: true, attributeFilter: ["class", "data-off"]});
-setInterval(stepAll, 2500);
+function stepNewSoon() {
+  if (stepT) return;
+  stepT = setTimeout(() => {
+    stepT = 0; if (resting) return;
+    stepMany(document.getAnimations().filter((a) => { const o = STEPPED.get(a); return !o || o.fps !== motionFps; }));
+  }, 60);
+}
+document.addEventListener("animationstart", stepNewSoon, true);
+if (window.MutationObserver) new MutationObserver(stepNewSoon).observe(document.documentElement, {childList: true, subtree: true, attributes: true, attributeFilter: ["class"]});
+setInterval(stepAll, 15000);
 const setMotionFps18 = setMotionFps;
 setMotionFps = function (v, quiet) { setMotionFps18(v, quiet); stepAll(); };
 
@@ -53,7 +96,7 @@ const fxRO = "ResizeObserver" in window ? new ResizeObserver((es) => es.forEach(
 fxSize = function (F) {
   const c = F.cv, dpr = F.page ? 1 : Math.min(2, window.devicePixelRatio || 1);
   let d = fxRO && fxDims.get(c);
-  if (!d) { d = [c.clientWidth, c.clientHeight]; if (fxRO) { fxDims.set(c, d); fxRO.observe(c); } }
+  if (!d) { if (fxRO) { if (!fxDims.has(c)) { fxDims.set(c, null); fxRO.observe(c); } return false; } d = [c.clientWidth, c.clientHeight]; }
   const w = d[0], h = d[1]; if (!w || !h) return false;
   const W = Math.round(w * dpr), H = Math.round(h * dpr);
   if (c.width !== W || c.height !== H) { c.width = W; c.height = H; }

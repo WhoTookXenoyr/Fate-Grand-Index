@@ -55,22 +55,35 @@ function setMotionFps(v, quiet) {
 /* ---------- anything scrolled out of sight stops animating until it comes back ---------- */
 const OFF_SEL = "#dossier > .d-sec, #dossier .skill, #dossier .npt-box, #dossier .scene, #list > .row, .wish-row, .hm-hero, .hm-block, .rank-row, .tier-row, .sm-sec";
 const offSeen = new WeakSet();
+// 0.24.0: the elements that went out of or came back into view are handled together, in one pass over the page's
+// animations (asking each element for its own animations costs as much as asking the page).
+const offGone = new Set(), offBack = new Set(); let offPassT = 0;
+function offPass() {
+  offPassT = 0;
+  const gone = Array.from(offGone), back = Array.from(offBack); offGone.clear(); offBack.clear();
+  gone.forEach((el) => el.setAttribute("data-off", "")); back.forEach((el) => el.removeAttribute("data-off"));
+  const role = new Map(); gone.forEach((el) => role.set(el, 0)); back.forEach((el) => role.set(el, 1));
+  // read every animation's state first, then pause and play: mixing the two made the browser redo styles per animation
+  const pause = [], play = [];
+  document.getAnimations().forEach((a) => {
+    if (!isCssAnim(a)) return;
+    let t = a.effect && a.effect.target, r;
+    while (t && t !== document.body) { r = role.get(t); if (r !== undefined) break; t = t.parentElement; }
+    if (r === 0) { if (a.playState === "running") pause.push(a); }
+    else if (r === 1) { if (a.playState === "paused" && !animOff(a) && (offPaused.has(a) || heldAnims.has(a))) play.push(a); }
+  });
+  pause.forEach((a) => { a.pause(); offPaused.add(a); });
+  // back in view: it runs again on the shared clock (the steps that cap the frame rate live on the animation itself)
+  play.forEach((a) => { a.play(); offPaused.delete(a); heldAnims.delete(a); });
+  if (play.length && typeof stepMany === "function") stepMany(play);
+}
 const offObs = "IntersectionObserver" in window ? new IntersectionObserver((entries) => {
   entries.forEach((en) => {
     const el = en.target;
-    if (!en.isIntersecting) {
-      if (el.hasAttribute("data-off")) return;
-      el.setAttribute("data-off", "");
-      el.getAnimations({subtree: true}).forEach((a) => { if (isCssAnim(a) && a.playState === "running") { a.pause(); offPaused.add(a); } });
-    } else if (el.hasAttribute("data-off")) {
-      el.removeAttribute("data-off");
-      el.getAnimations({subtree: true}).forEach((a) => {
-        if (!isCssAnim(a) || a.playState !== "paused" || animOff(a)) return;
-        // back in view: it runs again, at every frame rate (the steps that cap the frame rate live on the animation itself)
-        if (offPaused.has(a) || heldAnims.has(a)) { a.play(); offPaused.delete(a); heldAnims.delete(a); }
-      });
-    }
+    if (!en.isIntersecting) { offBack.delete(el); if (!el.hasAttribute("data-off")) offGone.add(el); }
+    else { offGone.delete(el); if (el.hasAttribute("data-off")) offBack.add(el); }
   });
+  if ((offGone.size || offBack.size) && !offPassT) offPassT = setTimeout(offPass, 0);
 }, {rootMargin: "120px 0px"}) : null;
 function watchOffscreen() { if (!offObs) return; document.querySelectorAll(OFF_SEL).forEach((el) => { if (!offSeen.has(el)) { offSeen.add(el); offObs.observe(el); } }); }
 let offT = 0;
@@ -111,7 +124,9 @@ function placeDsFrame() {
   if (!dsFrame.classList.contains(g)) dsFrame.className = "ds-frame " + g;
   const st = dsFrame.style, zi = getComputedStyle(d).zIndex;
   st.zIndex = zi === "auto" ? "" : zi;
-  st.left = r.left + "px"; st.top = r.top + "px"; st.width = r.width + "px"; st.height = r.height + "px"; st.borderRadius = getComputedStyle(d).borderTopLeftRadius;
+  // the frame sits in the zoomed page, so the panel's place on the screen is divided by the zoom (18-ui-scale.css)
+  const z = UI_Z || 1;
+  st.left = r.left / z + "px"; st.top = r.top / z + "px"; st.width = r.width / z + "px"; st.height = r.height / z + "px"; st.borderRadius = getComputedStyle(d).borderTopLeftRadius;
 }
 const queueDsFrame = () => { if (!dsRaf) dsRaf = requestAnimationFrame(placeDsFrame); };
 window.addEventListener("scroll", queueDsFrame, {passive: true});

@@ -26,6 +26,9 @@ const fmt = (n) => n == null ? "—" : Number(n).toLocaleString("en-US");
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const isWide = () => window.matchMedia("(min-width: 901px)").matches;
+// how much the interface is zoomed on a big screen (18-ui-scale.css; set in 27-stable-background.js): things placed from
+// measurements of the screen are divided by it, because a zoomed part zooms its own px too
+let UI_Z = 1;
 const cardCls = (c) => CARDS.includes(c) ? "c-" + c.toLowerCase() : "";
 
 function toast(msg) {
@@ -87,6 +90,8 @@ async function writeDoc(col, obj) {
   q.busy = true; let ok = true;
   while (q.next) { const data = q.next; q.next = null; ok = await putDoc(col, obj.id, data); }
   q.busy = false;
+  // the page hears about a save a moment later (notifySoon), but code right after a save may read the list: keep it current
+  if (ok && Array.isArray(S[col])) { const i = S[col].findIndex((x) => x.id === obj.id); if (i >= 0) S[col][i] = obj; else S[col].push(obj); }
   if (!timers[key]) delete dirty[key];
   return ok;
 }
@@ -102,7 +107,7 @@ function saveNow(col, obj) {
   return writeDoc(col, obj);
 }
 async function removeDoc(col, id) {
-  try { await S.db.collection(col).doc(id).delete(); return true; } catch (e) { writeFailed(e); return false; }
+  try { await S.db.collection(col).doc(id).delete(); if (Array.isArray(S[col])) S[col] = S[col].filter((x) => x.id !== id); return true; } catch (e) { writeFailed(e); return false; }
 }
 function slug(name, list) {
   let base = String(name || "entry").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "entry";
@@ -122,7 +127,7 @@ function listen(col) {
     if (col === "servants") fixLawOrder();
     if (col === "servants" || col === "guests") moveGuests();
     if (col === "servants" && S.selected && !S.servants.some((x) => x.id === S.selected) && S.editing !== "new") { S.selected = null; S.editing = null; }
-    renderAll();
+    renderAllSoon();
   }, (err) => {
     if (err && err.code === "revoked") S.dbState = "revoked";
     else toast("Lost the live connection to your roster. Reload the page to reconnect.");
@@ -167,14 +172,23 @@ function snapshotOf(col) {
   return {docs: docs, size: docs.length, empty: !docs.length, docChanges: () => [], metadata: {fromCache: false, hasPendingWrites: false}};
 }
 function notify(col) { listeners[col].forEach((fn) => { try { fn(snapshotOf(col)); } catch (e) {} }); }
+// 0.24.0: a change is saved at once, but the page hears about it once per burst. Filling in, importing or syncing many
+// servants used to redraw everything after each one (194 servants: 75 s); now it's one redraw at the end.
+const notifyQ = new Set(); let notifyT = 0;
+function notifySoon(col) {
+  notifyQ.add(col);
+  if (!notifyT) notifyT = setTimeout(() => { notifyT = 0; const cols = Array.from(notifyQ); notifyQ.clear(); cols.forEach(notify); }, 0);
+}
+let renderT = 0;
+function renderAllSoon() { if (!renderT) renderT = setTimeout(() => { renderT = 0; renderAll(); }, 0); }
 const localDb = {
   collection(col) {
     const q = {
       orderBy() { return q; },
       onSnapshot(next) { listeners[col].push(next); setTimeout(() => next(snapshotOf(col)), 0); return () => { listeners[col] = listeners[col].filter((f) => f !== next); }; },
       doc(id) { return {
-        set: async (body) => { const o = Object.assign({id: id}, JSON.parse(JSON.stringify(body))); const i = store[col].findIndex((x) => x.id === id); if (i >= 0) store[col][i] = o; else store[col].push(o); if (!persist()) throw {code: "quota_exceeded"}; notify(col); },
-        delete: async () => { store[col] = store[col].filter((x) => x.id !== id); persist(); notify(col); }
+        set: async (body) => { const o = Object.assign({id: id}, JSON.parse(JSON.stringify(body))); const i = store[col].findIndex((x) => x.id === id); if (i >= 0) store[col][i] = o; else store[col].push(o); if (!persist()) throw {code: "quota_exceeded"}; notifySoon(col); },
+        delete: async () => { store[col] = store[col].filter((x) => x.id !== id); persist(); notifySoon(col); }
       }; }
     };
     return q;
@@ -1067,20 +1081,20 @@ function openTierMenu(card) {
     ${manual ? `<button type="button" role="menuitem" class="btn ghost sm" data-action="tier-set" data-id="${esc(id)}" data-k="">Back to automatic (${tierName(auto)})</button>` : ""}
     <button type="button" role="menuitem" class="btn ghost sm" data-action="goto" data-id="${esc(id)}">Open ${esc(r.s.name)}</button>`;
   m.dataset.for = id; m.hidden = false;
-  const cr = card.getBoundingClientRect(), mw = m.offsetWidth, mh = m.offsetHeight;
+  const cr = card.getBoundingClientRect(), mr = m.getBoundingClientRect(), mw = mr.width, mh = mr.height;
   let x = clamp(cr.left, 8, innerWidth - mw - 8), y = cr.bottom + 6; if (y + mh > innerHeight - 8) y = Math.max(8, cr.top - mh - 6);
-  m.style.left = x + "px"; m.style.top = y + "px";
+  m.style.left = x / UI_Z + "px"; m.style.top = y / UI_Z + "px";
   const f = m.querySelector('[aria-checked="true"]') || m.querySelector("button"); if (f) f.focus();
 }
 function startTierDrag(st, x, y) {
   st.on = true; tierJustDragged = true; closeTierMenu();
   const r = st.card.getBoundingClientRect(); st.dx = x - r.left; st.dy = y - r.top;
-  const g = st.card.cloneNode(true); g.classList.add("tier-ghost"); g.removeAttribute("data-action"); g.setAttribute("aria-hidden", "true"); g.style.width = r.width + "px";
+  const g = st.card.cloneNode(true); g.classList.add("tier-ghost"); g.removeAttribute("data-action"); g.setAttribute("aria-hidden", "true"); g.style.width = r.width / UI_Z + "px";
   document.body.appendChild(g); st.ghost = g; st.card.classList.add("drag-src"); document.body.classList.add("tier-dragging");
   moveTierDrag(st, x, y);
 }
 function moveTierDrag(st, x, y) {
-  st.ghost.style.transform = "translate(" + (x - st.dx) + "px, " + (y - st.dy) + "px)";
+  st.ghost.style.transform = "translate(" + (x - st.dx) / UI_Z + "px, " + (y - st.dy) / UI_Z + "px)";
   const el = document.elementFromPoint(x, y), z = el && el.closest ? el.closest("[data-tier-drop]") : null;
   if (st.over !== z) { if (st.over) st.over.classList.remove("over"); st.over = z; if (z) z.classList.add("over"); }
   if (y < 56) window.scrollBy(0, -14); else if (y > innerHeight - 56) window.scrollBy(0, 14);
@@ -1600,9 +1614,9 @@ function hideTip() { const t = document.getElementById("vs-tip"); if (t && !t.hi
 function showTip(el) {
   const t = document.getElementById("vs-tip"); if (!t) return;
   t.textContent = el.dataset.tip; t.hidden = false;
-  const r = el.getBoundingClientRect(), tw = t.offsetWidth, th = t.offsetHeight;
+  const r = el.getBoundingClientRect(), tr = t.getBoundingClientRect(), tw = tr.width, th = tr.height;
   let y = r.top - th - 8; if (y < 8) y = r.bottom + 8;
-  t.style.left = clamp(r.left + r.width / 2 - tw / 2, 8, window.innerWidth - tw - 8) + "px"; t.style.top = y + "px";
+  t.style.left = clamp(r.left + r.width / 2 - tw / 2, 8, window.innerWidth - tw - 8) / UI_Z + "px"; t.style.top = y / UI_Z + "px";
 }
 document.addEventListener("mouseover", (e) => { const el = e.target.closest && e.target.closest("#versus [data-tip]"); if (el) showTip(el); else hideTip(); });
 document.addEventListener("focusin", (e) => { const el = e.target.closest && e.target.closest("#versus [data-tip]"); if (el) showTip(el); else hideTip(); });

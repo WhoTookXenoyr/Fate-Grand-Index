@@ -98,7 +98,9 @@ function drawIdleWords() {
   }
 }
 let idleWT = 0;
-window.addEventListener("resize", () => { clearTimeout(idleWT); idleWT = setTimeout(drawIdleWords, 200); });
+// the ring of words only depends on the width: a phone's address bar sliding in or out (height only) doesn't redraw it
+let idleWW = window.innerWidth;
+window.addEventListener("resize", () => { if (window.innerWidth === idleWW) return; idleWW = window.innerWidth; clearTimeout(idleWT); idleWT = setTimeout(drawIdleWords, 200); });
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => drawIdleWords());
 DARK_Q.addEventListener("change", () => setTimeout(drawIdleWords, 50));
 function setIdle(on) {

@@ -2781,6 +2781,23 @@ html.cep-open, html.cep-open body { overflow: hidden; }
   html.sheet-on .shell, html.sheet-on .aura, html.sheet-on .page-emblem, html.sheet-on .page-class, html.sheet-on .page-fx, html.sheet-on .idle-bg { visibility: hidden; }
   html.sheet-on #dossier, html.sheet-on .ds-frame { visibility: visible; }
 }
+/* 0.24.0: the background keeps its size while a phone's address bar slides in and out. Scrolling up brings the bar back,
+   which changes the window's height on every frame of the slide; the background layers were sized from that height
+   (inset: 0, vmax, vh), so the glows grew and shrank, the particle canvas was cleared and the drifting parts jumped,
+   over and over ("resets and jitters"). Now they're sized from --bg-h: the tallest the window has been at this width
+   (set in 27-stable-background.js; 100lvh before that), and only a new width (turning the phone) changes them. */
+:root { --bg-h: 100vh; --bg-h: 100lvh; --bvmax: max(1vw, calc(var(--bg-h) / 100)); --bvmin: min(1vw, calc(var(--bg-h) / 100)); }
+.page-bg, .aura, .page-class, .page-fx, .idle-bg { inset: auto; top: 0; left: 0; width: 100%; height: var(--bg-h); }
+.aura .a1 { width: calc(var(--bvmax) * 62); height: calc(var(--bvmax) * 62); top: calc(var(--bvmax) * -24); left: calc(var(--bvmax) * -18); }
+.aura .a2 { width: calc(var(--bvmax) * 58); height: calc(var(--bvmax) * 58); bottom: calc(var(--bvmax) * -28); right: calc(var(--bvmax) * -20); }
+.aura .a3 { width: calc(var(--bvmax) * 40); height: calc(var(--bvmax) * 40); }
+@keyframes drift1 { to { transform: translate(calc(var(--bvmax) * 20), calc(var(--bvmax) * 14)) scale(1.18); } }
+@keyframes drift2 { to { transform: translate(calc(var(--bvmax) * -16), calc(var(--bvmax) * -12)) scale(1.12); } }
+@keyframes drift3 { to { transform: translate(calc(var(--bvmax) * -14), calc(var(--bvmax) * 10)) scale(.82); } }
+.page-emblem { top: calc(var(--bg-h) / 2); right: calc(var(--bvmin) * -6); height: min(calc(var(--bvmin) * 116), 1320px); }
+.ib-circle { width: min(calc(var(--bvmin) * 124), 1240px); }
+@media (max-width: 900px) { .ib-circle { width: calc(var(--bvmin) * 150); } }
+@keyframes ibmote { 0% { opacity: 0; transform: translate(0, 0); } 10% { opacity: .9; } 85% { opacity: .5; } 100% { opacity: 0; transform: translate(var(--x), calc(var(--bg-h) * -1.05)); } }
 </style>
 </head>
 <body>
@@ -7049,7 +7066,9 @@ function drawIdleWords() {
   }
 }
 let idleWT = 0;
-window.addEventListener("resize", () => { clearTimeout(idleWT); idleWT = setTimeout(drawIdleWords, 200); });
+// the ring of words only depends on the width: a phone's address bar sliding in or out (height only) doesn't redraw it
+let idleWW = window.innerWidth;
+window.addEventListener("resize", () => { if (window.innerWidth === idleWW) return; idleWW = window.innerWidth; clearTimeout(idleWT); idleWT = setTimeout(drawIdleWords, 200); });
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => drawIdleWords());
 DARK_Q.addEventListener("change", () => setTimeout(drawIdleWords, 50));
 function setIdle(on) {
@@ -11751,6 +11770,26 @@ document.addEventListener("click", (e) => {
   Object.assign(SM, {f5: p.f5 === undefined ? SM.f5 : p.f5, f4: p.f4 === undefined ? SM.f4 : p.f4, f3: p.f3 === undefined ? SM.f3 : p.f3}, smBlank(), {batch: SM.batch}); smSave(); renderSummon();
   toastAction("Back to your own banner. The counts start from 0.", "Undo", () => { Object.keys(SM).forEach((k) => delete SM[k]); Object.assign(SM, before); smSave(); renderSummon(); });
 });
+/* ---------- the background's height ignores a phone's address bar (0.24.0) ----------
+   --bg-h is the tallest the window has been at its current width. A phone's address bar sliding in or out only changes
+   the height, so the background (17-stable-background.css) keeps its size; turning the phone changes the width and
+   starts over. The first value also counts the "large viewport" (100lvh), the height with the bar hidden. */
+const bgSize = {w: 0, h: 0};
+function bgLarge() {
+  try {
+    const p = document.createElement("div"); p.style.cssText = "position:fixed;top:0;left:0;width:1px;height:100vh;height:100lvh;visibility:hidden;pointer-events:none";
+    document.body.appendChild(p); const h = p.offsetHeight; p.remove(); return h || 0;
+  } catch (e) { return 0; }
+}
+function syncBgHeight() {
+  const w = window.innerWidth, h = window.innerHeight;
+  if (w !== bgSize.w) { bgSize.w = w; bgSize.h = Math.max(h, bgLarge()); }
+  else if (h > bgSize.h) bgSize.h = h;
+  else return;
+  document.documentElement.style.setProperty("--bg-h", bgSize.h + "px");
+}
+syncBgHeight();
+window.addEventListener("resize", syncBgHeight);
 // Where the page is scrolled when it opens (0.23.1):
 // - While the page builds itself, the browser's scroll anchoring followed the footer down as the views filled in, so a
 //   reload on a phone ended at the bottom. Anchoring is off until the page has settled.

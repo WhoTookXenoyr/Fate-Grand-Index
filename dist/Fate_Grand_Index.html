@@ -2806,8 +2806,9 @@ html.cep-open, html.cep-open body { overflow: hidden; }
 .shell, .pcd, .cep, dialog.dlg, .ic-pick, .tier-menu, .vs-tip, .tier-ghost, #toast { zoom: var(--ui-z, 1); }
 /* wider than 16:9 (an ultrawide screen) gets a wider page, up to 82% of the screen */
 .shell { max-width: max(1260px, min(calc(100vw / var(--ui-z, 1) * .82), 1720px)); }
-.dossier { max-height: calc(100dvh / var(--ui-z, 1) - 32px); }
 @media (min-width: 901px) {
+  /* (only beside the list: on a phone the servant page fills the screen, max-height: none) */
+  .dossier { max-height: calc(100dvh / var(--ui-z, 1) - 32px); }
   html[data-layout="compact"] .dossier { top: calc(3vh / var(--ui-z, 1)); bottom: calc(3vh / var(--ui-z, 1)); width: min(1180px, calc(100vw / var(--ui-z, 1) - 48px)); }
 }
 .cmp-x { top: calc(3vh / var(--ui-z, 1) - 15px); left: calc(50% + min(1180px, 100vw / var(--ui-z, 1) - 48px) / 2 - 25px); }
@@ -3231,6 +3232,97 @@ button.hb-u:hover { background: var(--sunken); }
   .hb-clist { grid-template-columns: minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) { .hb-ev, .hb-shine, .hb-dot, .hb-ev.up.soon .hb-badge { animation: none !important; } .hb-hit, .hb-art img { transition: none; } }
+/* ================= 0.24.0: Modern and Compact on a phone, and touch (34-phone-tablet.js) ================= */
+@media (max-width: 900px) {
+  /* ---------- Modern: the roster as picture tiles ---------- */
+  html:not([data-layout="compact"]) #list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  html:not([data-layout="compact"]) #list > :not(.row) { grid-column: 1 / -1; }
+  html:not([data-layout="compact"]) #list > .row { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto; gap: 0; padding: 0; overflow: hidden; align-items: stretch; border-radius: 16px; }
+  html:not([data-layout="compact"]) #list > .row > .avatar { width: 100%; height: auto; aspect-ratio: 1 / 1; border: 0; border-radius: 0; object-position: 50% 15%; }
+  html:not([data-layout="compact"]) #list > .row > .avatar.logo { object-fit: contain; padding: 22%; background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--gold) 26%, var(--sunken)), var(--sunken) 70%); }
+  html:not([data-layout="compact"]) #list > .row > .mono-tag { display: grid; place-items: center; width: 100%; aspect-ratio: 1 / 1; border-radius: 0; font-size: 22px; }
+  html:not([data-layout="compact"]) #list > .row .row-main { padding: 8px 10px 0; }
+  html:not([data-layout="compact"]) #list > .row .row-name { font-size: 14px; }
+  html:not([data-layout="compact"]) #list > .row .row-meta .stars { display: none; }
+  html:not([data-layout="compact"]) #list > .row .row-side { grid-column: 1; display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 4px; padding: 6px 10px 10px; }
+  html:not([data-layout="compact"]) #list > .row .row-lv em { display: none; }
+
+  /* ---------- Compact: dense one-line rows ---------- */
+  html[data-layout="compact"] #list { gap: 3px; }
+  html[data-layout="compact"] #list > .row { grid-template-columns: 30px minmax(0, 1fr) auto; gap: 8px; padding: 5px 8px; min-height: 44px; border-radius: 10px; }
+  html[data-layout="compact"] #list > .row > .avatar, html[data-layout="compact"] #list > .row > .mono-tag { width: 30px; height: 30px; border-radius: 8px; font-size: 10px; }
+  html[data-layout="compact"] #list > .row .row-name { font-size: 13.5px; }
+  html[data-layout="compact"] #list > .row .row-meta { font-size: 11.5px; }
+  html[data-layout="compact"] #list > .row .row-meta .stars { display: none; }
+  html[data-layout="compact"] #list > .row .row-side { grid-column: auto; gap: 6px; }
+  html[data-layout="compact"] #list > .row .row-lv { font-size: 12px; }
+  html[data-layout="compact"] #list > .row .row-lv em small { display: none; }
+  html[data-layout="compact"] #list > .row .pip { width: 17px; height: 17px; font-size: 10px; border-radius: 5px; }
+  html[data-layout="compact"] #list > .row .card-letter, html[data-layout="compact"] #list > .row .row-side > img { transform: scale(.82); }
+
+  /* ---------- Modern: a bar of section shortcuts on the servant page ---------- */
+  .ds-jump { flex: none; position: sticky; top: calc(-1 * (env(safe-area-inset-top, 0px) + 14px)); z-index: 6; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 8px 16px; background: var(--panel); border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+  .ds-jump::-webkit-scrollbar { display: none; }
+  .ds-jump button { flex: none; height: 32px; padding: 0 14px; border-radius: 16px; border: 1px solid var(--line); background: var(--sunken); color: var(--ink); font: 600 12.5px var(--f-body); cursor: pointer; }
+  .ds-jump button.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  #dossier [data-jump] { scroll-margin-top: 56px; }
+
+  /* ---------- Compact: the picture small beside the name, long sections folded ---------- */
+  html[data-layout="compact"] .dossier { gap: 14px; padding-left: 12px; padding-right: 12px; }
+  html[data-layout="compact"] .dossier .cmp-top { flex: none; display: grid; grid-template-columns: clamp(112px, 28vw, 240px) minmax(0, 1fr); gap: 12px; align-items: start; margin: 0; }
+  html[data-layout="compact"] .dossier .cmp-l, html[data-layout="compact"] .dossier .cmp-r { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  html[data-layout="compact"] .dossier .cmp-l .scene { padding: 4px; }
+  html[data-layout="compact"] .dossier .cmp-l .art-side, html[data-layout="compact"] .dossier .cmp-l .art-hint, html[data-layout="compact"] .dossier .cmp-l > .d-sec > h3, html[data-layout="compact"] .dossier .cmp-l .art-frame.drop .drop-msg > span { display: none; }
+  html[data-layout="compact"] .dossier .cmp-l .art-frame.drop .drop-msg strong { font-size: 12px; }
+  html:not([data-layout="compact"]) #list > .row .row-r, html[data-layout="compact"] #list > .row .row-r { display: none; }
+  html[data-layout="compact"] .dossier .cmp-r .d-head { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  html[data-layout="compact"] .dossier .cmp-r .d-head > .avatar { display: none; }
+  html[data-layout="compact"] .dossier .cmp-r .d-head h2 { font-size: 1.35rem; }
+  html[data-layout="compact"] .dossier .cmp-r .steps.three { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  html[data-layout="compact"] .dossier .cmp-r .step { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 6px 8px; gap: 4px 8px; }
+  html[data-layout="compact"] .dossier .d-sec { gap: 8px; }
+  html[data-layout="compact"] .dossier .d-sec.foldable > h3, html[data-layout="compact"] .dossier .d-sec.foldable > .sec-head > h3 { cursor: pointer; user-select: none; }
+  html[data-layout="compact"] .dossier .d-sec.foldable > h3::before, html[data-layout="compact"] .dossier .d-sec.foldable > .sec-head > h3::before { content: "▾"; display: inline-block; margin-right: 6px; transition: transform .18s ease; }
+  html[data-layout="compact"] .dossier .d-sec.foldable.fold > h3::before, html[data-layout="compact"] .dossier .d-sec.foldable.fold > .sec-head > h3::before { transform: rotate(-90deg); }
+  html[data-layout="compact"] .dossier .d-sec.fold > :not(h3):not(.sec-head) { display: none; }
+  html[data-layout="compact"] .dossier .d-sec.fold > .sec-head > :not(h3) { display: none; }
+  html[data-layout="compact"] .dossier .d-sec.fold { padding-bottom: 0; }
+
+  /* a swipe slides the next servant in */
+  .dossier.sw-l > * { animation: sw-l .3s ease-out both; }
+  .dossier.sw-r > * { animation: sw-r .3s ease-out both; }
+}
+@keyframes sw-l { from { opacity: 0; transform: translateX(28px); } }
+@keyframes sw-r { from { opacity: 0; transform: translateX(-28px); } }
+/* tablets in portrait: three tiles to a row, or two columns of rows */
+@media (min-width: 700px) and (max-width: 900px) {
+  html:not([data-layout="compact"]) #list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* ---------- touch screens: bigger targets, no hover-only movement ---------- */
+@media (pointer: coarse) {
+  .stepper button { flex: none; width: 40px; height: 40px; }
+  .stepper { gap: 3px; }
+  .btn.sm { min-height: 36px; }
+  .tab { min-height: 42px; }
+  .pl-sel, .npc-f select, .npc-in input, .pl-in, .ap-cin input { min-height: 40px; }
+  .st-sec, .st-bat, .st-arrow { min-height: 40px; }
+  .st-arrow { width: 40px; }
+  .hb-wl { padding: 6px 12px; }
+}
+@media (hover: none) {
+  .hb-hit:not(:disabled):hover, .st-ch:hover, .st-sv:hover, .row:hover { transform: none; }
+  .hb-hit:not(:disabled):hover .hb-art img { transform: none; }
+  .hb-hit:active, .st-ch:active, .st-sv:active, .row:active, .btn:active { transform: scale(.98); transition: transform .08s ease; }
+}
+@media (prefers-reduced-motion: reduce) { .dossier.sw-l > *, .dossier.sw-r > * { animation: none; } }
+/* narrow phones: each + / − row on a line of its own, so the bigger buttons fit */
+@media (max-width: 460px) {
+  .dossier .steps.three { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .dossier .step { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; padding: 6px 10px; }
+  .dossier .step > :not(.step-k):not(.stepper) { grid-column: 1 / -1; }
+  .dossier .step > .status { grid-column: 1; grid-row: 2; }
+}
 </style>
 </head>
 <body>
@@ -6018,7 +6110,7 @@ function rosterRowHTML(s, sel) {
   const pips = [0, 1, 2].map((i) => { const v = (s.skills || [])[i]; return typeof v === "number" ? `<span class="pip${v === 10 ? " max" : ""}${skTierOf(s, i) ? " t-" + skTierOf(s, i) : ""}" style="--sk-p:${v / 10}">${v}</span>` : `<span class="pip locked" title="Locked">–</span>`; }).join("");
   return `<button class="row${sel === s.id ? " is-sel" : ""}${S.justSummoned === s.id ? " fresh" : ""}${grTier(s)}" data-action="select" data-id="${esc(s.id)}" aria-pressed="${sel === s.id}">
       ${grTier(s) ? grFX : ""}${iconHTML(s, "")}
-      <span class="row-main"><span class="row-name">${esc(s.name)}</span><span class="row-meta">${esc(s.cls || "No class")} · <span class="stars" aria-label="${num(s.rarity) || 0} stars">${"★".repeat(clamp(num(s.rarity) || 0, 0, 5))}</span>${s.npLevel ? " · NP" + esc(s.npLevel) : ""}</span></span>
+      <span class="row-main"><span class="row-name">${esc(s.name)}</span><span class="row-meta">${esc(s.cls || "No class")}<span class="row-r"> · <span class="stars" aria-label="${num(s.rarity) || 0} stars">${"★".repeat(clamp(num(s.rarity) || 0, 0, 5))}</span></span>${s.npLevel ? " · NP" + esc(s.npLevel) : ""}</span></span>
       <span class="row-side"><span class="row-lv${st && st.kind === "grail" ? " has-gr" : ""}">Lv ${esc(s.level ?? "—")}${st && st.kind === "grail" ? `<em>+${num(s.level) - CAPS[s.rarity]}<small> · ${plural(st.grails || 0, "grail")}</small></em>` : ""}</span><span class="pips" aria-label="Skill levels">${pips}</span>${cardLetter(s.npCard)}</span>
     </button>`;
 }
@@ -13763,6 +13855,113 @@ document.addEventListener("click", (e) => {
   if (a === "live-on") setTimeout(() => hbLoad(true), 0);
   if (a === "hb-wiki") window.open(WIKI + "/wiki/" + encodeURIComponent(b.dataset.t.replace(/ /g, "_")), "_blank", "noopener");
 });
+/* ================= 0.24.0: Modern and Compact that differ on a phone, and touch that just works =================
+   On a phone (900 px and narrower) the two layouts now do different jobs:
+   - Modern: the roster as picture tiles, two (or three on a tablet) to a row, and the servant page with a bar of
+     section shortcuts that stays at the top while you scroll.
+   - Compact: the roster as dense one-line rows (twice as many on screen), and the servant page with the picture
+     small beside the name and its long sections folded; tap a heading to open or fold it (remembered here).
+   On anything touch (phones and tablets, in either layout): bigger tap targets, no hover-only movement, and a
+   sideways swipe on the servant's picture or name goes to the next or previous servant on your list. */
+const FOLD_KEY = "spirit-origin-list:v1:folds";
+const FOLD_DEFAULT = new Set(["deck", "traits &", "best supports", "passive skills", "team", "notes"]);
+let folds = (() => { try { const v = JSON.parse(lsGet(FOLD_KEY) || "{}"); return v && typeof v === "object" ? v : {}; } catch (e) { return {}; } })();
+const phoneish = () => !isWide();
+const secKey = (sec) => {
+  const h = sec.querySelector(":scope > h3, :scope > .sec-head > h3"); if (!h) return "";
+  const t = Array.from(h.childNodes).filter((n) => n.nodeType === 3).map((n) => n.textContent).join(" ").trim().toLowerCase();
+  return t.split(/\s+/).slice(0, 2).join(" ");
+};
+const isFolded = (k) => Object.prototype.hasOwnProperty.call(folds, k) ? !!folds[k] : FOLD_DEFAULT.has(k);
+const JUMPS = [["Progress", (d) => { const b = d.querySelector('[data-action="bump"][data-f="level"]'); return b && b.closest(".d-sec"); }], ["Planner", (d) => d.querySelector(".pl-sec")],
+  ["NP", (d) => d.querySelector(".np-sec")], ["Skills", (d) => { const s = d.querySelector(".skills"); return s && s.closest(".d-sec"); }], ["Appends", (d) => d.querySelector(".ap-sec")],
+  ["Traits", (d) => d.querySelector(".tr-sec")], ["Team", (d) => Array.from(d.querySelectorAll(".d-sec")).find((x) => secKey(x) === "team")]];
+function phoneDossier(d) {
+  if (!phoneish() || !d.classList.contains("open") || d.querySelector("#servant-form")) return;
+  if (pageLayout === "compact") {
+    d.querySelectorAll(".d-sec").forEach((sec) => {
+      if (sec.classList.contains("pl-sec") || sec.closest(".cmp-top")) return;
+      const k = secKey(sec); if (!k) return;
+      sec.classList.add("foldable"); sec.dataset.fold = k; sec.classList.toggle("fold", isFolded(k));
+      const h = sec.querySelector(":scope > h3, :scope > .sec-head > h3");
+      if (h && !h.hasAttribute("role")) { h.setAttribute("role", "button"); h.tabIndex = 0; }
+      if (h) h.setAttribute("aria-expanded", String(!isFolded(k)));
+    });
+  } else if (!d.querySelector(".ds-jump")) {
+    const items = JUMPS.map(([t, f]) => [t, f(d)]).filter((x) => x[1]);
+    if (items.length < 3) return;
+    items.forEach(([t, el]) => { el.dataset.jump = t; });
+    const nav = document.createElement("nav"); nav.className = "ds-jump"; nav.setAttribute("aria-label", "Jump to a section");
+    nav.innerHTML = items.map(([t]) => `<button type="button" data-action="ds-jump" data-k="${esc(t)}">${esc(t)}</button>`).join("");
+    const head = d.querySelector(":scope > .d-head") || d.querySelector(".cmp-top");
+    if (head) head.insertAdjacentElement("afterend", nav); else d.prepend(nav);
+  }
+}
+const renderDossier24t = renderDossier;
+renderDossier = function (force) {
+  const r = renderDossier24t(force);
+  const d = document.getElementById("dossier"); if (d && !S.editing) phoneDossier(d);
+  return r;
+};
+function foldToggle(sec) {
+  const k = sec.dataset.fold; if (!k) return;
+  const now = !sec.classList.contains("fold");
+  sec.classList.toggle("fold", now); folds[k] = now; lsSet(FOLD_KEY, JSON.stringify(folds));
+  const h = sec.querySelector(":scope > h3, :scope > .sec-head > h3"); if (h) h.setAttribute("aria-expanded", String(!now));
+}
+document.addEventListener("click", (e) => {
+  const j = e.target.closest && e.target.closest('[data-action="ds-jump"]');
+  if (j) {
+    const d = document.getElementById("dossier"), el = d && d.querySelector(`[data-jump="${CSS.escape(j.dataset.k)}"]`);
+    if (el) el.scrollIntoView({behavior: RM.matches ? "auto" : "smooth", block: "start"});
+    return;
+  }
+  const h = e.target.closest && e.target.closest("#dossier .d-sec.foldable > h3, #dossier .d-sec.foldable > .sec-head > h3");
+  if (h && !e.target.closest("button, a, input, select, label")) foldToggle(h.closest(".d-sec"));
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const h = e.target.closest && e.target.closest("#dossier .d-sec.foldable > h3, #dossier .d-sec.foldable > .sec-head > h3");
+  if (h && e.target === h) { e.preventDefault(); foldToggle(h.closest(".d-sec")); }
+});
+// the jump bar marks the section you're reading
+let jumpRaf = 0;
+document.addEventListener("scroll", (e) => {
+  const d = e.target; if (!d || d.id !== "dossier" || jumpRaf) return;
+  jumpRaf = requestAnimationFrame(() => {
+    jumpRaf = 0; const nav = d.querySelector(".ds-jump"); if (!nav) return;
+    const top = d.getBoundingClientRect().top + nav.offsetHeight + 24; let cur = "";
+    d.querySelectorAll("[data-jump]").forEach((el) => { if (el.getBoundingClientRect().top <= top) cur = el.dataset.jump; });
+    nav.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.k === cur));
+  });
+}, true);
+
+/* ---------- swipe to the next servant ---------- */
+let swipe = null;
+const SWIPE_ZONE = "#dossier .d-head, #dossier .scene, #dossier .cmp-l, #dossier .art";
+document.addEventListener("pointerdown", (e) => {
+  if (e.pointerType !== "touch" || isWide() && !matchMedia("(pointer: coarse)").matches) return;
+  const z = e.target.closest && e.target.closest(SWIPE_ZONE); if (!z || e.target.closest("input, select, textarea, [contenteditable], .npt-scroll")) { swipe = null; return; }
+  swipe = {x: e.clientX, y: e.clientY, t: Date.now()};
+}, {passive: true});
+document.addEventListener("pointerup", (e) => {
+  const s = swipe; swipe = null; if (!s || e.pointerType !== "touch") return;
+  const dx = e.clientX - s.x, dy = e.clientY - s.y;
+  if (Date.now() - s.t > 700 || Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 2) return;
+  swipeTo(dx < 0 ? 1 : -1);
+}, {passive: true});
+document.addEventListener("pointercancel", () => { swipe = null; }, {passive: true});
+function swipeTo(step) {
+  if (S.editing || !S.selected) return;
+  const cur = S.servants.find((x) => x.id === S.selected); if (!cur) return;
+  const list = cur.wish ? filtered(wished()) : filtered(); const i = list.findIndex((x) => x.id === S.selected);
+  if (i < 0 || !list[i + step]) { toast(step > 0 ? "That's the last servant on your list." : "That's the first servant on your list."); return; }
+  S.selected = list[i + step].id; S.lastSel = S.selected;
+  renderList(); renderDossier(true);
+  const d = document.getElementById("dossier");
+  if (d) { d.scrollTop = 0; d.classList.remove("sw-l", "sw-r"); void d.offsetWidth; d.classList.add(step > 0 ? "sw-l" : "sw-r"); setTimeout(() => d.classList.remove("sw-l", "sw-r"), 400); }
+  syncPageTheme();
+}
 // Where the page is scrolled when it opens (0.23.1):
 // - While the page builds itself, the browser's scroll anchoring followed the footer down as the views filled in, so a
 //   reload on a phone ended at the bottom. Anchoring is off until the page has settled.

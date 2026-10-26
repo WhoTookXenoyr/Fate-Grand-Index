@@ -6,8 +6,9 @@
 .shell, .pcd, .cep, dialog.dlg, .ic-pick, .tier-menu, .vs-tip, .tier-ghost, #toast { zoom: var(--ui-z, 1); }
 /* wider than 16:9 (an ultrawide screen) gets a wider page, up to 82% of the screen */
 .shell { max-width: max(1260px, min(calc(100vw / var(--ui-z, 1) * .82), 1720px)); }
-.dossier { max-height: calc(100dvh / var(--ui-z, 1) - 32px); }
 @media (min-width: 901px) {
+  /* (only beside the list: on a phone the servant page fills the screen, max-height: none) */
+  .dossier { max-height: calc(100dvh / var(--ui-z, 1) - 32px); }
   html[data-layout="compact"] .dossier { top: calc(3vh / var(--ui-z, 1)); bottom: calc(3vh / var(--ui-z, 1)); width: min(1180px, calc(100vw / var(--ui-z, 1) - 48px)); }
 }
 .cmp-x { top: calc(3vh / var(--ui-z, 1) - 15px); left: calc(50% + min(1180px, 100vw / var(--ui-z, 1) - 48px) / 2 - 25px); }

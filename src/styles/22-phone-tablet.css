@@ -1,0 +1,91 @@
+/* ================= 0.24.0: Modern and Compact on a phone, and touch (34-phone-tablet.js) ================= */
+@media (max-width: 900px) {
+  /* ---------- Modern: the roster as picture tiles ---------- */
+  html:not([data-layout="compact"]) #list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  html:not([data-layout="compact"]) #list > :not(.row) { grid-column: 1 / -1; }
+  html:not([data-layout="compact"]) #list > .row { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto; gap: 0; padding: 0; overflow: hidden; align-items: stretch; border-radius: 16px; }
+  html:not([data-layout="compact"]) #list > .row > .avatar { width: 100%; height: auto; aspect-ratio: 1 / 1; border: 0; border-radius: 0; object-position: 50% 15%; }
+  html:not([data-layout="compact"]) #list > .row > .avatar.logo { object-fit: contain; padding: 22%; background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--gold) 26%, var(--sunken)), var(--sunken) 70%); }
+  html:not([data-layout="compact"]) #list > .row > .mono-tag { display: grid; place-items: center; width: 100%; aspect-ratio: 1 / 1; border-radius: 0; font-size: 22px; }
+  html:not([data-layout="compact"]) #list > .row .row-main { padding: 8px 10px 0; }
+  html:not([data-layout="compact"]) #list > .row .row-name { font-size: 14px; }
+  html:not([data-layout="compact"]) #list > .row .row-meta .stars { display: none; }
+  html:not([data-layout="compact"]) #list > .row .row-side { grid-column: 1; display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 4px; padding: 6px 10px 10px; }
+  html:not([data-layout="compact"]) #list > .row .row-lv em { display: none; }
+
+  /* ---------- Compact: dense one-line rows ---------- */
+  html[data-layout="compact"] #list { gap: 3px; }
+  html[data-layout="compact"] #list > .row { grid-template-columns: 30px minmax(0, 1fr) auto; gap: 8px; padding: 5px 8px; min-height: 44px; border-radius: 10px; }
+  html[data-layout="compact"] #list > .row > .avatar, html[data-layout="compact"] #list > .row > .mono-tag { width: 30px; height: 30px; border-radius: 8px; font-size: 10px; }
+  html[data-layout="compact"] #list > .row .row-name { font-size: 13.5px; }
+  html[data-layout="compact"] #list > .row .row-meta { font-size: 11.5px; }
+  html[data-layout="compact"] #list > .row .row-meta .stars { display: none; }
+  html[data-layout="compact"] #list > .row .row-side { grid-column: auto; gap: 6px; }
+  html[data-layout="compact"] #list > .row .row-lv { font-size: 12px; }
+  html[data-layout="compact"] #list > .row .row-lv em small { display: none; }
+  html[data-layout="compact"] #list > .row .pip { width: 17px; height: 17px; font-size: 10px; border-radius: 5px; }
+  html[data-layout="compact"] #list > .row .card-letter, html[data-layout="compact"] #list > .row .row-side > img { transform: scale(.82); }
+
+  /* ---------- Modern: a bar of section shortcuts on the servant page ---------- */
+  .ds-jump { flex: none; position: sticky; top: calc(-1 * (env(safe-area-inset-top, 0px) + 14px)); z-index: 6; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 8px 16px; background: var(--panel); border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+  .ds-jump::-webkit-scrollbar { display: none; }
+  .ds-jump button { flex: none; height: 32px; padding: 0 14px; border-radius: 16px; border: 1px solid var(--line); background: var(--sunken); color: var(--ink); font: 600 12.5px var(--f-body); cursor: pointer; }
+  .ds-jump button.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  #dossier [data-jump] { scroll-margin-top: 56px; }
+
+  /* ---------- Compact: the picture small beside the name, long sections folded ---------- */
+  html[data-layout="compact"] .dossier { gap: 14px; padding-left: 12px; padding-right: 12px; }
+  html[data-layout="compact"] .dossier .cmp-top { flex: none; display: grid; grid-template-columns: clamp(112px, 28vw, 240px) minmax(0, 1fr); gap: 12px; align-items: start; margin: 0; }
+  html[data-layout="compact"] .dossier .cmp-l, html[data-layout="compact"] .dossier .cmp-r { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  html[data-layout="compact"] .dossier .cmp-l .scene { padding: 4px; }
+  html[data-layout="compact"] .dossier .cmp-l .art-side, html[data-layout="compact"] .dossier .cmp-l .art-hint, html[data-layout="compact"] .dossier .cmp-l > .d-sec > h3, html[data-layout="compact"] .dossier .cmp-l .art-frame.drop .drop-msg > span { display: none; }
+  html[data-layout="compact"] .dossier .cmp-l .art-frame.drop .drop-msg strong { font-size: 12px; }
+  html:not([data-layout="compact"]) #list > .row .row-r, html[data-layout="compact"] #list > .row .row-r { display: none; }
+  html[data-layout="compact"] .dossier .cmp-r .d-head { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  html[data-layout="compact"] .dossier .cmp-r .d-head > .avatar { display: none; }
+  html[data-layout="compact"] .dossier .cmp-r .d-head h2 { font-size: 1.35rem; }
+  html[data-layout="compact"] .dossier .cmp-r .steps.three { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  html[data-layout="compact"] .dossier .cmp-r .step { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 6px 8px; gap: 4px 8px; }
+  html[data-layout="compact"] .dossier .d-sec { gap: 8px; }
+  html[data-layout="compact"] .dossier .d-sec.foldable > h3, html[data-layout="compact"] .dossier .d-sec.foldable > .sec-head > h3 { cursor: pointer; user-select: none; }
+  html[data-layout="compact"] .dossier .d-sec.foldable > h3::before, html[data-layout="compact"] .dossier .d-sec.foldable > .sec-head > h3::before { content: "▾"; display: inline-block; margin-right: 6px; transition: transform .18s ease; }
+  html[data-layout="compact"] .dossier .d-sec.foldable.fold > h3::before, html[data-layout="compact"] .dossier .d-sec.foldable.fold > .sec-head > h3::before { transform: rotate(-90deg); }
+  html[data-layout="compact"] .dossier .d-sec.fold > :not(h3):not(.sec-head) { display: none; }
+  html[data-layout="compact"] .dossier .d-sec.fold > .sec-head > :not(h3) { display: none; }
+  html[data-layout="compact"] .dossier .d-sec.fold { padding-bottom: 0; }
+
+  /* a swipe slides the next servant in */
+  .dossier.sw-l > * { animation: sw-l .3s ease-out both; }
+  .dossier.sw-r > * { animation: sw-r .3s ease-out both; }
+}
+@keyframes sw-l { from { opacity: 0; transform: translateX(28px); } }
+@keyframes sw-r { from { opacity: 0; transform: translateX(-28px); } }
+/* tablets in portrait: three tiles to a row, or two columns of rows */
+@media (min-width: 700px) and (max-width: 900px) {
+  html:not([data-layout="compact"]) #list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* ---------- touch screens: bigger targets, no hover-only movement ---------- */
+@media (pointer: coarse) {
+  .stepper button { flex: none; width: 40px; height: 40px; }
+  .stepper { gap: 3px; }
+  .btn.sm { min-height: 36px; }
+  .tab { min-height: 42px; }
+  .pl-sel, .npc-f select, .npc-in input, .pl-in, .ap-cin input { min-height: 40px; }
+  .st-sec, .st-bat, .st-arrow { min-height: 40px; }
+  .st-arrow { width: 40px; }
+  .hb-wl { padding: 6px 12px; }
+}
+@media (hover: none) {
+  .hb-hit:not(:disabled):hover, .st-ch:hover, .st-sv:hover, .row:hover { transform: none; }
+  .hb-hit:not(:disabled):hover .hb-art img { transform: none; }
+  .hb-hit:active, .st-ch:active, .st-sv:active, .row:active, .btn:active { transform: scale(.98); transition: transform .08s ease; }
+}
+@media (prefers-reduced-motion: reduce) { .dossier.sw-l > *, .dossier.sw-r > * { animation: none; } }
+/* narrow phones: each + / − row on a line of its own, so the bigger buttons fit */
+@media (max-width: 460px) {
+  .dossier .steps.three { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .dossier .step { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; padding: 6px 10px; }
+  .dossier .step > :not(.step-k):not(.stepper) { grid-column: 1 / -1; }
+  .dossier .step > .status { grid-column: 1; grid-row: 2; }
+}

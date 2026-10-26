@@ -104,7 +104,7 @@ function rosterRowHTML(s, sel) {
   const pips = [0, 1, 2].map((i) => { const v = (s.skills || [])[i]; return typeof v === "number" ? `<span class="pip${v === 10 ? " max" : ""}${skTierOf(s, i) ? " t-" + skTierOf(s, i) : ""}" style="--sk-p:${v / 10}">${v}</span>` : `<span class="pip locked" title="Locked">–</span>`; }).join("");
   return `<button class="row${sel === s.id ? " is-sel" : ""}${S.justSummoned === s.id ? " fresh" : ""}${grTier(s)}" data-action="select" data-id="${esc(s.id)}" aria-pressed="${sel === s.id}">
       ${grTier(s) ? grFX : ""}${iconHTML(s, "")}
-      <span class="row-main"><span class="row-name">${esc(s.name)}</span><span class="row-meta">${esc(s.cls || "No class")} · <span class="stars" aria-label="${num(s.rarity) || 0} stars">${"★".repeat(clamp(num(s.rarity) || 0, 0, 5))}</span>${s.npLevel ? " · NP" + esc(s.npLevel) : ""}</span></span>
+      <span class="row-main"><span class="row-name">${esc(s.name)}</span><span class="row-meta">${esc(s.cls || "No class")}<span class="row-r"> · <span class="stars" aria-label="${num(s.rarity) || 0} stars">${"★".repeat(clamp(num(s.rarity) || 0, 0, 5))}</span></span>${s.npLevel ? " · NP" + esc(s.npLevel) : ""}</span></span>
       <span class="row-side"><span class="row-lv${st && st.kind === "grail" ? " has-gr" : ""}">Lv ${esc(s.level ?? "—")}${st && st.kind === "grail" ? `<em>+${num(s.level) - CAPS[s.rarity]}<small> · ${plural(st.grails || 0, "grail")}</small></em>` : ""}</span><span class="pips" aria-label="Skill levels">${pips}</span>${cardLetter(s.npCard)}</span>
     </button>`;
 }

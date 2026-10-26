@@ -1,6 +1,6 @@
 # Fate/Grand Index
 
-A Fate/Grand Order index of every NA servant and Craft Essence (Past Chaldea), plus your own Spirit Origin List: roster, Guests, parties, rankings, versus and a summoning simulator. It ships as one self-contained HTML file that saves everything in your own browser.
+A Fate/Grand Order index of every NA servant and Craft Essence (Past Chaldea), plus your own Spirit Origin List: roster, Guests, parties, rankings, versus, a summoning simulator, a materials planner, an NP damage calculator and a Story page. It ships as one self-contained HTML file that saves everything in your own browser.
 
 Status: **alpha** (`0.x`). Version 1.0.0 will be the full website and app.
 
@@ -63,6 +63,13 @@ Pressing an event in "On NA now" opens `#event/<id>` (or `#event/<id>/<tab>`), i
 - **Cache.** Events, wiki tabs and pages, item and servant names are kept in IndexedDB `fate-grand-index-cache` (separate from the pictures database); the 30 most recently opened events are kept.
 
 The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `atlas_data.js`, items in `ATLAS_MATS`). "Simulate" loads an NA banner into the summoning simulator (`src/app/26-banner-sim.js`). `tests/test_18_event_page.py` covers all of it against stand-ins; the wiki stand-in copies the markup of a real NA event page.
+
+## Story page, Home board and the servant page's planner (0.24.0)
+
+- **Story** (`src/app/32-story.js`, `#story`): main-story chapters (war ids 100–108, 201–204, 300–311, 400–404 in `STORY_CH`, each with a palette and a backdrop motif) are read at runtime from Atlas Academy's `/nice/NA/war/<id>` (main quests by `chapterSubId`) and `/nice/NA/quest/<id>/<phase>` (enemies by wave; `deck: "shift"` entries are break bars, joined to their enemy by `enemyScript.shift`), made small and kept in `fate-grand-index-cache`. Where you stand is `localStorage` `spirit-origin-list:v1:story`. The next fight's advice uses the NP damage calculator. Away from the SERVANTPAGE, `#story-bg` draws the chapter's backdrop with CSS transforms and opacity only. `tests/test_28_story.py` uses the stand-ins in `tests/fixtures/story/`.
+- **Home board** (`src/app/33-home-board.js`): with live updates on, the wiki's `Category:Current Event (US)` and `Category:Upcoming Event (US)` pages (their `{{EventHeaderNA}}`: image, dates and time zone, requirement, story, new servants), the App Store lookup for the NA (`1183802626`) and JP (`1015521325`) apps, and the wiki's `Template:GameUpdatesNA`; matched with NA's events and banners from "On NA now". Kept for 3 hours in `fate-grand-index-cache`.
+- **SERVANTPAGE** (`src/app/29-planner.js`, `30-np-calc.js`): append levels, Servant Coins and a plan live on the servant (`appends`, `coins`, `ascAt`, `plan`). Costs come from `atlas_data.js` (`ma`/`ms`/`mp` materials, `qa`/`qs`/`qp` QP, `ATLAS_GRAIL`, `ATLAS_EXP`, `pm` for the class passives' damage buffs). What you have is shared with the Event calculator (`spirit-origin-list:v1:event`) and goes into backups. The calculator's buffs are kept in `spirit-origin-list:v1:npcalc`.
+- **Phones and touch** (`src/app/34-phone-tablet.js`): Modern (tiles, section shortcuts) and Compact (one-line rows, folded sections, `spirit-origin-list:v1:folds`) on phones; bigger targets and swiping between servants on touch screens.
 
 ## Your data
 

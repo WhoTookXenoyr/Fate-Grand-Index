@@ -283,6 +283,9 @@ def mats(levels):
             row += [i["id"], it["amount"]]
         rows.append(row)
     return rows
+import collections as _co
+_eg = _co.Counter(json.dumps(x.get("expGrowth") or []) for x in S if x["type"] in ("normal", "heroine") and x["collectionNo"])
+EXPS = [json.loads(_eg.most_common(1)[0][0])]; EXP_IX = {_eg.most_common(1)[0][0]: 0}
 for x in S:
     if x["type"] not in ("normal", "heroine") or x["className"] not in CLS or not x["collectionNo"]: continue
     tr = all_traits(x)
@@ -358,6 +361,12 @@ for x in S:
     rec["ap"] = aps
     coin = x.get("coin") or {}
     if coin.get("item"): rec["cn"] = coin.get("summonNum", 0); rec["ci"] = p(coin["item"].get("icon", ""))
+    # EXP to reach each level (nearly everyone shares one table; the few others are kept once in ATLAS_EXP)
+    eg = x.get("expGrowth") or []
+    if eg:
+        key = json.dumps(eg)
+        if key not in EXP_IX: EXP_IX[key] = len(EXPS); EXPS.append(eg)
+        if EXP_IX[key]: rec["xg"] = EXP_IX[key]
     out.append(rec)
 out.sort(key=lambda r: r["no"])
 MAT_LIST = sorted(MATS.values(), key=lambda m: m[0]); MAT_IX = {m[0]: k for k, m in enumerate(MAT_LIST)}
@@ -400,6 +409,7 @@ js = "const ATLAS_CURVES = %s;\n" % json.dumps({str(k): v for k, v in CURVES.ite
 js += "const ATLAS_IMG = %s;\nconst ATLAS_S = %s;\nconst ATLAS_C = %s;\nconst ATLAS_ICONS = %s;\n" % (json.dumps(BASE), json.dumps(out, ensure_ascii=False, separators=(",", ":")), json.dumps(ces, ensure_ascii=False, separators=(",", ":")), json.dumps(icons, ensure_ascii=False, separators=(",", ":")))
 js += "const ATLAS_MATS = %s;\n" % json.dumps(MAT_LIST, ensure_ascii=False, separators=(",", ":"))
 js += "const ATLAS_APPENDS = %s;\n" % json.dumps(APPENDS, ensure_ascii=False, separators=(",", ":"))
+js += "const ATLAS_EXP = %s;\n" % json.dumps(EXPS, separators=(",", ":"))
 # QP per grail by rarity, and how far each grail raises the level cap ([qp, addLvMax] for grail 1, 2, ...), from Atlas
 # Academy's NiceSvtGrailCost (NA, Oct 2026); each grail past Lv 100 also costs 30 of the servant's coins
 GRAIL = {

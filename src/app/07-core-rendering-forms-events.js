@@ -933,7 +933,7 @@ async function exportBackup() {
   S.servants.forEach((s) => Object.values(s.art || {}).forEach((id) => { if (typeof id === "string") ids.add(id); }));
   const images = {};
   try { const all = await imgStore.all(); for (const id of ids) { const v = all[id]; if (v) images[id] = typeof v === "string" ? v : await blobToDataURL(v); } } catch (e) {}
-  const data = JSON.stringify({app: "spirit-origin-list", version: 1, exportedAt: new Date().toISOString(), servants: S.servants, parties: S.parties, guests: S.guests, images: images, settings: {fonts: fontPrefs(), affinity: affOverrides(), tiers: tierOverrides()}}, null, 1);
+  const data = JSON.stringify({app: "spirit-origin-list", version: 1, exportedAt: new Date().toISOString(), servants: S.servants, parties: S.parties, guests: S.guests, images: images, settings: {fonts: fontPrefs(), affinity: affOverrides(), tiers: tierOverrides(), have: evPref.have}}, null, 1);
   await localDownloads.save({filename: "spirit-origin-list-backup-" + new Date().toISOString().slice(0, 10) + ".json", data: data});
   try { localStorage.setItem(LS_KEY + ":lastBackup", new Date().toISOString()); } catch (e) {}
   renderBackupNote();
@@ -1012,6 +1012,11 @@ async function importBackup(d, snap) {
   }
   if (d.settings && d.settings.affinity && typeof d.settings.affinity === "object") { setAffOverrides(d.settings.affinity); renderVersus(); }
   if (d.settings && d.settings.tiers && typeof d.settings.tiers === "object") { setTierOverrides(Object.assign({}, tierOverrides(), d.settings.tiers)); renderRanking(); }
+  // 0.24.0: the materials you have (Event calculator and Planner); the backup's counts win for what it lists
+  if (d.settings && d.settings.have && typeof d.settings.have === "object") {
+    Object.keys(d.settings.have).forEach((k) => { const v = num(d.settings.have[k]); if (/^[\w]{1,24}$/.test(k) && v != null && v >= 0) evPref.have[k] = Math.min(Math.round(v), 9999999999); });
+    evPrefSave();
+  }
   importDone(snap, "Imported " + plural(n, "entry", "entries") + (imgs ? " and " + plural(imgs, "image") : "") + ".");
 }
 
@@ -1027,9 +1032,9 @@ function stableJSON(v) {
 function dayStr(t) { return new Date(t).toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "numeric"}); }
 function importSnap() {
   Object.keys(timers).forEach((k) => { if (timers[k]) { clearTimeout(timers[k]); timers[k] = null; const o = dirty[k]; if (o) writeDoc(k.split("/")[0], o); } });
-  let tiers = null, aff = null, fonts = null;
-  try { tiers = JSON.parse(JSON.stringify(tierOverrides())); aff = JSON.parse(JSON.stringify(affOverrides())); fonts = JSON.parse(JSON.stringify(fontPrefs())); } catch (e) {}
-  return {cols: JSON.parse(JSON.stringify({servants: store.servants, parties: store.parties, guests: store.guests})), imgs: new Set(Object.keys(S.urlCache)), tiers: tiers, aff: aff, fonts: fonts};
+  let tiers = null, aff = null, fonts = null, have = null;
+  try { tiers = JSON.parse(JSON.stringify(tierOverrides())); aff = JSON.parse(JSON.stringify(affOverrides())); fonts = JSON.parse(JSON.stringify(fontPrefs())); have = JSON.parse(JSON.stringify(evPref.have)); } catch (e) {}
+  return {cols: JSON.parse(JSON.stringify({servants: store.servants, parties: store.parties, guests: store.guests})), imgs: new Set(Object.keys(S.urlCache)), tiers: tiers, aff: aff, fonts: fonts, have: have};
 }
 function importDone(snap, msg) {
   S.importUndo = {snap: snap, msg: msg, later: false};
@@ -1049,6 +1054,7 @@ async function importUndo() {
   if (u.snap.tiers) { setTierOverrides(u.snap.tiers); }
   if (u.snap.aff) { setAffOverrides(u.snap.aff); }
   if (u.snap.fonts) { setFontPrefs(u.snap.fonts); initFonts(); }
+  if (u.snap.have) { evPref.have = u.snap.have; evPrefSave(); }
   renderAll();
   toast(ok ? "Import undone: your list is back the way it was." : "Import undone on screen, but this browser couldn't save it.");
 }

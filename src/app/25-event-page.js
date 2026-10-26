@@ -20,7 +20,7 @@ const EV = {id: 0, m: null, err: "", wiki: null, loading: new Set(), wikiBusy: 0
 let evPref = (() => { try { const v = JSON.parse(localStorage.getItem(EV_KEY)); return v && typeof v === "object" ? v : {}; } catch (e) { return {}; } })();
 if (!evPref.have || typeof evPref.have !== "object") evPref.have = {};
 if (!evPref.bonus || typeof evPref.bonus !== "object") evPref.bonus = {};
-if (evPref.to !== 9) evPref.to = 10;
+if (evPref.to !== 9 && evPref.to !== "plan") evPref.to = 10;
 function evPrefSave() { try { localStorage.setItem(EV_KEY, JSON.stringify(evPref)); } catch (e) {} }
 
 async function evJSON(url) {
@@ -461,6 +461,12 @@ async function wikiPrefetch(id, force) {
 // counted as still to do. Skills count up to Lv 10 (or 9). Append skills, costumes and Grails aren't counted.
 function evRosterNeeds(to) {
   const need = new Map(), who = new Map();
+  // 0.24.0: or what the plans on the servant pages need (appends included)
+  if (to === "plan") {
+    S.servants.forEach((s) => { if (!s.plan) return; const a = atlasOf(s); if (!a) return;
+      planCost(s, a, planOf(s, a)).items.forEach((n, id) => { need.set(id, (need.get(id) || 0) + n); const w = who.get(id) || new Map(); w.set(s.name, (w.get(s.name) || 0) + n); who.set(id, w); }); });
+    return {need: need, who: who};
+  }
   const add = (row, s) => { for (let j = 0; j + 1 < row.length; j += 2) { const m = ATLAS_MATS[row[j]]; if (!m) continue; const id = m[0], n = row[j + 1] | 0; need.set(id, (need.get(id) || 0) + n); const w = who.get(id) || new Map(); w.set(s.name, (w.get(s.name) || 0) + n); who.set(id, w); } };
   for (const s of owned()) {
     const a = atlasOf(s); if (!a || !a.ma || !a.ms) continue;
@@ -601,8 +607,8 @@ function evCalcHTML(m) {
       <p class="ev-run">${best ? `Best quest: <b>${esc(best.q.n)}</b> (${best.q.ap} AP) gives about ${best.per.toFixed(1)} a run with <label class="ev-bonus">+<input type="number" min="0" step="1" inputmode="numeric" data-ev-bonus="${k.c.id}" value="${esc(evPref.bonus[k.c.id] || "")}" placeholder="0" aria-label="Bonus per drop"> per drop</label> from your event Craft Essences and servants.${left ? ` About <b>${fmt(runs)} runs</b> (${fmt(runs * best.q.ap)} AP) for what your servants need.` : ""}`
         : EV.dropBusy ? "Working out the best quest from the drops…" : "No free quest drops this currency in Atlas Academy's data yet."}</p></div>`};
   });
-  return `<div class="ev-cctl"><label>Skills up to <select data-ev-to><option value="10"${evPref.to === 10 ? " selected" : ""}>Lv 10</option><option value="9"${evPref.to === 9 ? " selected" : ""}>Lv 9</option></select></label>
-      <p class="ev-note">Counts your ${plural(own, "servant")} (not Guests): ascensions still to do by level, and skills up to Lv ${evPref.to}. Append skills aren't counted. Fill in what you already have and the numbers follow.</p></div>`
+  return `<div class="ev-cctl"><label>Count <select data-ev-to><option value="10"${evPref.to === 10 ? " selected" : ""}>skills to Lv 10</option><option value="9"${evPref.to === 9 ? " selected" : ""}>skills to Lv 9</option><option value="plan"${evPref.to === "plan" ? " selected" : ""}>your plans</option></select></label>
+      <p class="ev-note">${evPref.to === "plan" ? `Counts what the plans on your servant pages need (${plural(S.servants.filter((x) => x.plan).length, "plan")}), append skills included.` : `Counts your ${plural(own, "servant")} (not Guests): ascensions still to do by level, and skills up to Lv ${evPref.to}. Append skills aren't counted; pick "your plans" to count them.`} Fill in what you already have and the numbers follow.</p></div>`
     + evSub("calc", parts);
 }
 const evMiRow = (x) => `<li class="ev-mi"><span class="ev-no">${x.no || ""}</span><span class="ev-mt">${esc(x.n)}</span><span class="ev-gs">${x.g.map((g) => evIt(g, false, true)).join("")}</span></li>`;
@@ -812,14 +818,14 @@ let evCalcT = 0;
 document.addEventListener("input", (e) => {
   const t = e.target; if (!t || !t.dataset) return;
   const h = t.dataset.evHave, bo = t.dataset.evBonus; if (h === undefined && bo === undefined) return;
-  const v = t.value.replace(/[^\d]/g, "").slice(0, 7);
+  const v = t.value.replace(/[^\d]/g, "").slice(0, 10);
   if (h !== undefined) { if (v) evPref.have[h] = Number(v); else delete evPref.have[h]; }
   else { if (v) evPref.bonus[bo] = Number(v); else delete evPref.bonus[bo]; }
   evPrefSave(); clearTimeout(evCalcT); evCalcT = setTimeout(evPaint, 250);
 });
 document.addEventListener("change", (e) => {
   const t = e.target; if (!t || !t.matches || !t.matches("[data-ev-to]")) return;
-  evPref.to = t.value === "9" ? 9 : 10; evPrefSave(); evPaint();
+  evPref.to = t.value === "9" ? 9 : t.value === "plan" ? "plan" : 10; evPrefSave(); evPaint();
 });
 // the countdown stays right while the page is open
 setInterval(() => { if (S.tab === "event" && !document.hidden && EV.m) { const p = document.querySelector("#event .ev-status"); if (p) { const now = Date.now() / 1000, m = EV.m; p.textContent = now < m.s ? "starts " + liveWhen(m.s) : now < m.e ? "ends in " + liveLeft(m.e) + " (" + liveWhen(m.e) + ")" : "ended " + liveWhen(m.e); } } }, 60000);

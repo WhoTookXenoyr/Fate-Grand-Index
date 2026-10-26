@@ -204,7 +204,7 @@ with sync_playwright() as p:
     link.click(); pg.wait_for_selector(f"{EVP} .ev-title", timeout=20000); pg.wait_for_selector(f"{PANE} .ewt", timeout=20000); pg.wait_for_timeout(1200)
     check(f"the Event page has its own address ({pg.evaluate('location.hash')})", pg.evaluate("location.hash").startswith(f"#event/{EID}") and pg.locator("#view-event").is_visible() and pg.locator("#view-home").is_hidden())
     check("opening an event moves focus to its page", pg.evaluate("document.activeElement && document.activeElement.id") in ("event", "evt-main-info"))
-    check("no tab of the site is selected, the tab bar still has seven", pg.locator('.tabs .tab[aria-selected="true"]').count() == 0 and pg.locator(".tabs .tab").count() == 7)
+    check("no tab of the site is selected, the tab bar still has eight (Story joined in 0.24.0)", pg.locator('.tabs .tab[aria-selected="true"]').count() == 0 and pg.locator(".tabs .tab").count() == 8)
     head = pg.locator(f"{EVP} .ev-head").inner_text()
     check("header: name, countdown, the event's banner and where the tabs come from", "Test Halloween Rising" in head and re.search(r"ends in \d+d \d+h", head) is not None and pg.locator(f"{EVP} .ev-bn").count() == 1 and WT_PAGE in head)
     names = tab_names(pg)

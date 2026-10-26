@@ -361,6 +361,21 @@ for x in S:
     rec["ap"] = aps
     coin = x.get("coin") or {}
     if coin.get("item"): rec["cn"] = coin.get("summonNum", 0); rec["ci"] = p(coin["item"].get("icon", ""))
+    # what the class passives add to damage for yourself, always on: Buster, Arts and Quick up (%), NP Strength up (%)
+    # and Damage Plus (flat), for the NP damage calculator
+    pm = [0, 0, 0, 0, 0]
+    for c in x["classPassive"]:
+        for fn in c.get("functions") or []:
+            if fn.get("funcTargetType") != "self" or not fn.get("buffs") or not fn.get("svals"): continue
+            b, v = fn["buffs"][0], fn["svals"][0].get("Value", 0)
+            if b.get("ckOpIndv"): continue
+            if b["type"] == "upCommandall":
+                for tr in b.get("ckSelfIndv") or []:
+                    k = {4002: 0, 4001: 1, 4003: 2}.get(tr["id"])
+                    if k is not None: pm[k] += v / 10
+            elif b["type"] == "upNpdamage" and not b.get("ckSelfIndv"): pm[3] += v / 10
+            elif b["type"] == "addDamage" and not b.get("ckSelfIndv"): pm[4] += v
+    if any(pm): rec["pm"] = [int(v) if float(v).is_integer() else v for v in pm]
     # EXP to reach each level (nearly everyone shares one table; the few others are kept once in ATLAS_EXP)
     eg = x.get("expGrowth") or []
     if eg:

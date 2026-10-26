@@ -29,7 +29,7 @@ with sync_playwright() as p:
 
     # ---- the tab and the page
     pg.click("#tab-past"); pg.wait_for_timeout(1200)
-    check("Past Chaldea tab opens", pg.evaluate("location.hash") == "#past" and pg.locator("#tab-past").get_attribute("aria-selected") == "true" and pg.locator(".tabs .tab").count() == 7)
+    check("Past Chaldea tab opens", pg.evaluate("location.hash") == "#past" and pg.locator("#tab-past").get_attribute("aria-selected") == "true" and pg.locator(".tabs .tab").count() == 8)
     n_srv = pg.locator('.pc-view [data-v="servants"] small').inner_text()
     check(f"418 NA servants minus the 27 on your list ({n_srv})", n_srv == "391")
     check("first 240 shown, the rest behind Show more", pg.locator(".pc-grid .pc-card").count() == 240 and pg.locator('[data-action="pc-more"]').count() == 1)

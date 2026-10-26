@@ -12,8 +12,11 @@
   html[data-layout="compact"] .dossier { top: calc(3vh / var(--ui-z, 1)); bottom: calc(3vh / var(--ui-z, 1)); width: min(1180px, calc(100vw / var(--ui-z, 1) - 48px)); }
 }
 .cmp-x { top: calc(3vh / var(--ui-z, 1) - 15px); left: calc(50% + min(1180px, 100vw / var(--ui-z, 1) - 48px) / 2 - 25px); }
-.cep { padding: calc(3vh / var(--ui-z, 1)) 16px; }
-.cep-panel { max-height: calc(94vh / var(--ui-z, 1)); }
+/* (the Craft Essence picker fills a phone's screen: 12-craft-essences.css, 600 px and narrower) */
+@media (min-width: 601px) {
+  .cep { padding: calc(3vh / var(--ui-z, 1)) 16px; }
+  .cep-panel { max-height: calc(94vh / var(--ui-z, 1)); }
+}
 .dlg { max-height: calc(100dvh / var(--ui-z, 1) - 48px); }
 .ic-pick { width: min(392px, calc(100vw / var(--ui-z, 1) - 16px)); max-height: min(480px, calc(100vh / var(--ui-z, 1) - 16px)); }
 .tier-menu { width: min(280px, calc(100vw / var(--ui-z, 1) - 16px)); }

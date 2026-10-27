@@ -4,27 +4,31 @@
 .own-bg.on { opacity: 1; }
 .own-bg i { position: absolute; display: block; }
 
-/* Sodom's Beast/Draco: flames rising from below */
-.own-bg .ob-flame { bottom: -6vh; left: var(--x); width: calc(15vw * var(--s)); height: calc(48vh * var(--s)); margin-left: calc(-7.5vw * var(--s)); border-radius: 50% 50% 44% 44% / 64% 64% 36% 36%;
-  background: radial-gradient(ellipse 50% 62% at 50% 100%, rgba(255, 238, 170, .7), rgba(255, 146, 40, .5) 30%, rgba(214, 40, 20, .3) 58%, rgba(120, 10, 10, 0) 76%); transform-origin: 50% 100%; opacity: .7; }
-.own-bg.on .ob-flame { animation: ob-flame var(--d) ease-in-out var(--dl) infinite alternate; }
-@keyframes ob-flame {
-  0% { transform: translate3d(-1.5vw, 0, 0) scale(1, .8) skewX(-4deg); opacity: .5; }
-  50% { transform: translate3d(1vw, 0, 0) scale(.92, 1.08) skewX(3deg); opacity: .8; }
-  100% { transform: translate3d(-.5vw, -1vh, 0) scale(1.05, .95) skewX(-2deg); opacity: .62; }
-}
-/* explosions: a flash and a shock ring now and then */
-.own-bg .ob-boom { left: var(--x); top: var(--y); width: calc(26vmin * var(--s)); height: calc(26vmin * var(--s)); margin: calc(-13vmin * var(--s)) 0 0 calc(-13vmin * var(--s)); border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 250, 222, .95) 0 8%, rgba(255, 192, 64, .85) 18%, rgba(255, 92, 30, .55) 38%, rgba(160, 20, 10, .22) 58%, rgba(120, 0, 0, 0) 70%); opacity: 0; transform: scale(.2); }
-.own-bg .ob-boom b { position: absolute; inset: -12%; border-radius: 50%; border: 2px solid rgba(255, 170, 90, .65); opacity: 0; transform: scale(.3); }
-.own-bg.on .ob-boom { animation: ob-boom var(--d) cubic-bezier(.2, .7, .3, 1) var(--dl) infinite; }
-.own-bg.on .ob-boom b { animation: ob-ring var(--d) ease-out var(--dl) infinite; }
-@keyframes ob-boom { 0%, 72% { opacity: 0; transform: scale(.2); } 74% { opacity: 1; transform: scale(.55); } 82% { opacity: .75; transform: scale(1); } 92%, 100% { opacity: 0; transform: scale(1.25); } }
-@keyframes ob-ring { 0%, 73% { opacity: 0; transform: scale(.3); } 76% { opacity: .9; } 94%, 100% { opacity: 0; transform: scale(1.7); } }
-/* red petals blowing through */
-.own-bg .ob-petal { top: -5%; left: var(--x); width: calc(16px * var(--s)); height: calc(10px * var(--s)); border-radius: 80% 0 80% 0; background: linear-gradient(135deg, #ff7a6a, #c8102e); opacity: 0; }
-.own-bg .ob-petal.k2 { background: linear-gradient(135deg, #ff4d5e, #8e0b1e); }
-.own-bg .ob-petal.k3 { background: linear-gradient(135deg, #ffb199, #e0302a); border-radius: 0 80% 0 80%; }
+/* Sodom's Beast/Draco, the Beast of Revelation: a crimson glow and a rose window turning behind her golden cup */
+.own-bg .ob-glow, .own-bg .ob-rose, .own-bg .ob-cup { left: 64%; top: 36%; border-radius: 50%; }
+.own-bg .ob-glow { width: 120vmin; height: 120vmin; margin: -60vmin 0 0 -60vmin; background: radial-gradient(circle, rgba(196, 18, 48, .42), rgba(120, 8, 30, .22) 42%, rgba(60, 0, 20, 0) 70%); opacity: .8; }
+.own-bg.on .ob-glow { animation: ob-glow 7s ease-in-out infinite alternate; }
+@keyframes ob-glow { from { opacity: .6; transform: scale(.94); } to { opacity: 1; transform: scale(1.04); } }
+.own-bg .ob-rose { width: 82vmin; height: 82vmin; margin: -41vmin 0 0 -41vmin; opacity: .5;
+  background: radial-gradient(circle, transparent 0 17%, rgba(232, 184, 74, .6) 17.4% 18.4%, transparent 18.8% 45.6%, rgba(232, 184, 74, .5) 46% 47%, transparent 47.4% 69%, rgba(232, 184, 74, .6) 69.4% 70.4%, transparent 70.8%),
+    repeating-conic-gradient(rgba(190, 16, 44, .34) 0 7deg, rgba(232, 184, 74, .2) 7deg 8.5deg, rgba(110, 6, 28, .24) 8.5deg 22.5deg);
+  -webkit-mask: radial-gradient(circle, #000 0 70.4%, transparent 70.8%); mask: radial-gradient(circle, #000 0 70.4%, transparent 70.8%); }
+.own-bg .ob-rose.r2 { width: 38vmin; height: 38vmin; margin: -19vmin 0 0 -19vmin; opacity: .55;
+  background: radial-gradient(circle, transparent 0 40%, rgba(232, 184, 74, .55) 41% 43%, transparent 44%), repeating-conic-gradient(from 11deg, rgba(232, 184, 74, .38) 0 3deg, rgba(170, 12, 40, .3) 3deg 30deg); }
+.own-bg.on .ob-rose { animation: ob-spin 160s linear infinite; }
+.own-bg.on .ob-rose.r2 { animation-duration: 90s; animation-direction: reverse; }
+@keyframes ob-spin { to { transform: rotate(360deg); } }
+.own-bg .ob-cup { width: 18vmin; height: 18vmin; margin: -9vmin 0 0 -9vmin; border-radius: 0; background: url("@@asset:grail.webp@@") center / contain no-repeat; opacity: .32; }
+.own-bg.on .ob-cup { animation: ob-cup 6s ease-in-out infinite alternate; }
+@keyframes ob-cup { from { transform: translate3d(0, -1vmin, 0); opacity: .24; } to { transform: translate3d(0, 1vmin, 0); opacity: .42; } }
+/* stars falling from heaven */
+.own-bg .ob-star { top: -14vh; left: var(--x); width: 2px; height: calc(120px * var(--s)); border-radius: 2px; background: linear-gradient(rgba(255, 236, 170, 0), rgba(255, 224, 140, .95)); opacity: 0; transform: rotate(18deg); }
+.own-bg.on .ob-star { animation: ob-star var(--d) linear var(--dl) infinite; }
+@keyframes ob-star { 0% { transform: translate3d(0, 0, 0) rotate(18deg); opacity: 0; } 6% { opacity: 1; } 70% { opacity: .85; } 100% { transform: translate3d(-38vh, calc(var(--bg-h, 100vh) * 1.2), 0) rotate(18deg); opacity: 0; } }
+/* Nero's rose petals drifting down */
+.own-bg .ob-petal { top: -5%; left: var(--x); width: calc(15px * var(--s)); height: calc(12px * var(--s)); border-radius: 60% 40% 70% 30% / 60% 50% 50% 40%; background: radial-gradient(circle at 35% 35%, #ff6b7d, #b4122e 70%); opacity: 0; }
+.own-bg .ob-petal.k2 { background: radial-gradient(circle at 35% 35%, #e8364f, #7d0a1d 70%); }
+.own-bg .ob-petal.k3 { background: radial-gradient(circle at 35% 35%, #ff8f8f, #c8102e 70%); border-radius: 40% 60% 30% 70% / 50% 60% 40% 50%; }
 .own-bg.on .ob-petal { animation: ob-petal var(--d) ease-in-out var(--dl) infinite; }
 @keyframes ob-petal {
   0% { transform: translate3d(0, 0, 0) rotate(var(--r)); opacity: 0; }
@@ -33,7 +37,8 @@
   90% { opacity: .75; }
   100% { transform: translate3d(var(--sw), calc(var(--bg-h, 100vh) * 1.08), 0) rotate(calc(var(--r) + 480deg)); opacity: 0; }
 }
-.own-bg.lt .ob-flame { opacity: .45; }
-.own-bg.lt .ob-boom { mix-blend-mode: normal; }
-@media (prefers-reduced-motion: reduce) { .own-bg.on i { animation: none !important; } .own-bg.on .ob-petal { opacity: .6; top: var(--x); } }
-@media (max-width: 900px) { html.sheet-on .own-bg { visibility: hidden; } }
+.own-bg.lt .ob-glow { opacity: .45; }
+.own-bg.lt .ob-rose { opacity: .35; }
+.own-bg.lt .ob-star { background: linear-gradient(rgba(190, 130, 20, 0), rgba(180, 120, 10, .85)); }
+@media (prefers-reduced-motion: reduce) { .own-bg.on i { animation: none !important; } .own-bg.on .ob-petal, .own-bg.on .ob-star { opacity: .55; top: var(--x); } }
+@media (max-width: 900px) { html.sheet-on .own-bg { visibility: hidden; } .own-bg .ob-glow, .own-bg .ob-rose, .own-bg .ob-cup { left: 50%; top: 30%; } }

@@ -1,6 +1,6 @@
 import os
 # 0.25.0: servant icons (the game's faces for the stage marked Icon, or a framed icon, portrait, formation, the stage
-# picture or fan art), five Craft Essences that suit a servant in Past Chaldea, and Sodom's Beast/Draco's own backdrop.
+# picture or fan art), five Craft Essences that suit a servant in Past Chaldea, and Sodom's Beast/Draco's own backdrop (the Beast of Revelation).
 # (The support picker is in test_26, the zoom in test_24, the board's servant names in test_29.)
 import sys, json, re
 from playwright.sync_api import sync_playwright
@@ -105,8 +105,9 @@ with sync_playwright() as p:
     data["servants"].insert(0, {"id": "draco", "name": "Sodom's Beast/Draco", "cls": "Beast", "rarity": 5, "level": 90, "npLevel": 1, "atlas": 377})
     pg.evaluate("(d) => localStorage.setItem('spirit-origin-list:v1', JSON.stringify(d))", data); pg.reload(); pg.wait_for_timeout(1500)
     pg.click('#list [data-id="draco"]'); pg.wait_for_timeout(1500)
-    bg = pg.evaluate("(() => { const e = document.getElementById('own-bg'); return e ? [e.classList.contains('on'), e.dataset.m, e.querySelectorAll('.ob-flame').length, e.querySelectorAll('.ob-boom').length, e.querySelectorAll('.ob-petal').length, getComputedStyle(e.querySelector('.ob-petal')).animationName, getComputedStyle(e).position] : null; })()")
-    check(f"Sodom's Beast/Draco has a backdrop of her own: fire, explosions and red petals ({bg})", bg and bg[0] and bg[1] == "inferno" and bg[2] >= 6 and bg[3] >= 4 and bg[4] >= 20 and bg[5] == "ob-petal" and bg[6] == "fixed")
+    bg = pg.evaluate("(() => { const e = document.getElementById('own-bg'); return e ? [e.classList.contains('on'), e.dataset.m, e.querySelectorAll('.ob-rose').length, e.querySelectorAll('.ob-cup').length, e.querySelectorAll('.ob-star').length, e.querySelectorAll('.ob-petal').length, getComputedStyle(e.querySelector('.ob-rose')).animationName, getComputedStyle(e.querySelector('.ob-petal')).animationName, getComputedStyle(e).position, getComputedStyle(e.querySelector('.ob-cup')).backgroundImage.slice(0, 15)] : null; })()")
+    check(f"Sodom's Beast/Draco has a backdrop of her own: a turning rose window, her golden cup, falling stars and rose petals ({bg})", bg and bg[0] and bg[1] == "revelation" and bg[2] == 2 and bg[3] == 1 and bg[4] >= 10 and bg[5] >= 14 and bg[6] == "ob-spin" and bg[7] == "ob-petal" and bg[8] == "fixed" and bg[9].startswith('url("data:'))
+    pg.screenshot(path=os.environ.get("SHOT_DIR", "/tmp") + "/draco-bg.png")
     pg.click('#list [data-id="space-ereshkigal"]'); pg.wait_for_timeout(1200)
     check("Space Ereshkigal keeps the Beast's rainbow waves", not pg.evaluate("(() => { const e = document.getElementById('own-bg'); return !!e && e.classList.contains('on'); })()"))
     pg.click('#list [data-id="draco"]'); pg.wait_for_timeout(1000)

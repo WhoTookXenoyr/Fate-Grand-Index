@@ -2,11 +2,13 @@
    Every servant's page wears their class's backdrop (Beast: the rainbow waves made for Space Ereshkigal). A servant
    listed in OWN_BG gets one of their own instead: the class canvas switches to another of its existing looks, and a
    layer of CSS (transforms and opacity only, so the graphics card stays calm) adds the rest on top.
-   - Sodom's Beast/Draco (No. 377): blazing fire from below with embers (the canvas), explosions bursting here and
-     there, and red petals blowing through.
+   - Sodom's Beast/Draco (No. 377), the Beast of Revelation: a great rose window in crimson and gold turning slowly
+     behind her golden cup, a crimson glow, stars falling from heaven, and Nero's rose petals drifting down. (A first
+     try with fire and explosions looked too much like the Avenger backdrop.) The canvas keeps only its quiet motes,
+     tinted gold, and the page itself takes a crimson tint (in place of the Beast's pink).
    - U-Olga Marie isn't on NA yet; when NA's data has her, her collection number and a look of her own go here. */
 const OWN_BG = {
-  377: {kind: "embers", acc: [255, 84, 36], m: "inferno", n: {flame: 9, boom: 6, petal: 26}}
+  377: {kind: "motes", acc: [232, 184, 74], page: [196, 22, 52], m: "revelation", n: {star: 14, petal: 18}}
 };
 function ownBg(s) { const a = s ? atlasOf(s) : null; return a ? OWN_BG[a.no] || null : null; }
 const fxParams25 = fxParams;
@@ -15,12 +17,15 @@ fxParams = function (s) {
   if (o) { p.kind = o.kind; p.beast = false; p.foreign = false; p.pret = false; p.extra = o.acc; p.own = o.m; }
   return p;
 };
+// the page's colours lean to the servant's own accent
+const extraAccOf25 = extraAccOf;
+extraAccOf = function (s, raw) { const o = ownBg(s); return o && o.page ? o.page : extraAccOf25(s, raw); };
 function ownBgHTML(o) {
   let seed = 9001; const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647, h = [];
   const v = (k, val) => "--" + k + ":" + val;
-  for (let i = 0; i < o.n.flame; i++) h.push(`<i class="ob-flame" style="${[v("x", ((i + 0.5) / o.n.flame * 100 + (r() - 0.5) * 6).toFixed(1) + "%"), v("s", (0.75 + r() * 0.7).toFixed(2)), v("d", (1.6 + r() * 1.4).toFixed(2) + "s"), v("dl", (-r() * 3).toFixed(2) + "s")].join(";")}"></i>`);
-  for (let i = 0; i < o.n.boom; i++) h.push(`<i class="ob-boom" style="${[v("x", (8 + r() * 84).toFixed(1) + "%"), v("y", (10 + r() * 62).toFixed(1) + "%"), v("s", (0.6 + r() * 0.9).toFixed(2)), v("d", (4.5 + r() * 4).toFixed(2) + "s"), v("dl", (-r() * 8).toFixed(2) + "s")].join(";")}"><b></b></i>`);
-  for (let i = 0; i < o.n.petal; i++) h.push(`<i class="ob-petal k${1 + (i % 3)}" style="${[v("x", (r() * 100).toFixed(1) + "%"), v("s", (0.6 + r() * 0.9).toFixed(2)), v("d", (8 + r() * 10).toFixed(2) + "s"), v("dl", (-r() * 18).toFixed(2) + "s"), v("r", Math.round(r() * 360) + "deg"), v("sw", ((r() - 0.5) * 30).toFixed(1) + "vw")].join(";")}"></i>`);
+  if (o.m === "revelation") h.push(`<i class="ob-glow"></i><i class="ob-rose"></i><i class="ob-rose r2"></i><i class="ob-cup"></i>`);
+  for (let i = 0; i < (o.n.star || 0); i++) h.push(`<i class="ob-star" style="${[v("x", (8 + r() * 104).toFixed(1) + "%"), v("s", (0.6 + r() * 0.9).toFixed(2)), v("d", (3.5 + r() * 4).toFixed(2) + "s"), v("dl", (-r() * 8).toFixed(2) + "s")].join(";")}"></i>`);
+  for (let i = 0; i < (o.n.petal || 0); i++) h.push(`<i class="ob-petal k${1 + (i % 3)}" style="${[v("x", (r() * 100).toFixed(1) + "%"), v("s", (0.6 + r() * 0.9).toFixed(2)), v("d", (9 + r() * 10).toFixed(2) + "s"), v("dl", (-r() * 19).toFixed(2) + "s"), v("r", Math.round(r() * 360) + "deg"), v("sw", ((r() - 0.5) * 26).toFixed(1) + "vw")].join(";")}"></i>`);
   return h.join("");
 }
 let ownBgKey = "";

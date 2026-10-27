@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.24.0";
+const APP_VER = "0.25.0";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -163,6 +163,13 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.25.0", d: "27 Oct 2026", t: "Servant icons, Craft Essence picks and an easier support picker", i: [
+    "<b>Servant icons</b>: the small picture next to a servant's name is now the game's own face for the stage you marked as Icon. On the SERVANTPAGE, under the stages, pick another kind: a framed servant icon with the class emblem, the portrait, the formation picture, the stage picture as before, or <b>fan art</b> of your own. On a phone, Modern's picture tiles keep a big picture.",
+    "<b>Craft Essences that suit a servant</b>: Past Chaldea shows five for every servant, worked out from what each Craft Essence always does at max limit break. A damage dealer gets the ones that make its first NP hit hardest and soonest, and a support gets NP at the start, NP Gain and NP each turn. A servant on your list can keep one as a favourite in one press.",
+    "<b>Picking a support</b> in the damage calculator opens a big window with pictures, a search that knows nicknames (Castoria, Skadi, Waver), class buttons, and your Guests, the supports most people borrow, your servants and every NA servant.",
+    "<b>Sodom's Beast/Draco</b> has a backdrop of her own: blazing fire, explosions and red petals. Space Ereshkigal keeps the rainbow waves.",
+    "<b>4K screens at 200%</b> (and 1080p screens) now get the same bigger page as a full-screen 1080p: the browser's own bars no longer keep it at its smallest.",
+    "<b>Home</b>: an upcoming event's new servants are no longer mistaken for the ones NA already has (Van Gogh (Miner) isn't Van Gogh, Abigail Williams (Santa) isn't the Foreigner). They show as placeholders until NA's data has them."]},
   {v: "0.24.0", d: "26 Oct 2026", t: "The Story page, a planner, and Home rebuilt", i: [
     "<b>Story</b>: a new tab for the main story, from Fuyuki to Archetype Inception (as far as NA has it). Each chapter is its own title plate to click. Its sections come in the game's order (a section in two parts is 4-1 and 4-2), each a row that opens to its battles; each battle lists its enemies by wave with class, attribute, HP, break bars and reinforcements, and an enemy without a picture of its own shows the servant's face or its class. Your next fight shows the classes that hit it hardest and the servants on your list (and your Guests) that take the most of it with one NP a wave. <b>Cleared it</b> moves you on, into the next chapter at the end.",
     "<b>Chapter looks</b>: away from the SERVANTPAGE, the page wears your chapter's colours and a moving backdrop of its own (Götterdämmerung is red and cyan, with fire and ice), with the chapter's title plate next to the logo. Turn it off on the Story page; an Event page has its own look.",

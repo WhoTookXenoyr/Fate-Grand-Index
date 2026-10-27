@@ -596,7 +596,7 @@ function evOverviewHTML(m, t) {
     ["Runs", `${esc(liveWhen(m.s))} – ${esc(liveWhen(m.e))}`],
     (w && w.req) || m.req ? ["To take part", esc(evReq((w && w.req) || m.req))] : null,
     m.story ? ["Story", "After " + esc(m.story)] : null,
-    m.pick && m.pick.length ? ["Servants", m.pick.map((p) => { const a = hbAtlas(p.n); return `<span class="ev-gf">${a ? liveFace({no: a.no, n: a.n, r: a.r, f: a.f, c: a.c}, true) : ""}<span class="ev-gn">${esc(a ? a.n : p.n)}</span><small>${p.k === "reward" ? "free" : "pickup"}</small></span>`; }).join("")] : null,
+    m.pick && m.pick.length ? ["Servants", m.pick.map((p) => { const a = hbAtlas(p.n, p.c); return `<span class="ev-gf">${a ? liveFace({no: a.no, n: a.n, r: a.r, f: a.f, c: a.c}, true) : ""}<span class="ev-gn">${esc(a ? a.n : p.n)}</span><small>${p.k === "reward" ? "free" : "pickup"}</small></span>`; }).join("")] : null,
     m.sv.length ? ["Joins your roster", m.sv.map((g) => evIt(g, false, true)).join("")] : null,
     curs.length ? ["Event currency", curs.map((c) => evIt({k: "i", n: c.n, ic: c.ic, q: 1})).join("")] : null,
     m.quests.length ? ["Quests", esc(["main", "free", "extra", "challenge"].map((g) => { const n = m.quests.filter((q) => q.g === g).length; return n ? n + " " + g : ""; }).filter(Boolean).join(" · "))] : null,

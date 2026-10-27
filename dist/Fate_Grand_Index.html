@@ -3415,6 +3415,139 @@ button.hb-u:hover { background: var(--sunken); }
   html:not([data-layout="compact"]) .dossier .stage-btn { padding: 4px; border-radius: 10px; }
   html:not([data-layout="compact"]) .dossier .stage-btn b, html:not([data-layout="compact"]) .dossier .stage-btn small { font-size: 10px; }
 }
+/* ================= 0.25.0: the damage calculator's support picker (35-support-picker.js) ================= */
+.npc .npc-sup { display: flex; flex: 1 1 auto; flex-direction: row; align-items: center; gap: 8px; min-width: 0; }
+.npc-sup-k { flex: none; font-size: 12px; font-weight: 600; color: var(--muted); }
+.npc-pick { flex: 0 1 420px; min-width: 0; display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px 12px 6px 6px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.npc-pick:hover { border-color: var(--muted); }
+.npc-pick:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.npc-pick > img, .npc-pick-none { width: 40px; height: 40px; border-radius: 9px; object-fit: cover; }
+.npc-pick-none { display: grid; place-items: center; border: 1px dashed var(--muted); font-style: normal; font-size: 20px; color: var(--muted); }
+.npc-pick > span { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.npc-pick b { font-size: 14px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.npc-pick small { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.npc-pick-c { font-style: normal; color: var(--muted); }
+.npc-unpick { flex: none; width: 30px; height: 30px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font-size: 17px; line-height: 1; cursor: pointer; }
+.npc-unpick:hover { border-color: var(--muted); }
+
+/* the window: the Craft Essence picker's (12-craft-essences.css, 18-ui-scale.css), under its own class */
+.spk { position: fixed; inset: 0; z-index: 72; display: grid; place-items: center; padding: 3vh 16px; zoom: var(--ui-z, 1); }
+.spk[hidden] { display: none; }
+@media (min-width: 601px) { .spk { padding: calc(3vh / var(--ui-z, 1)) 16px; } .spk .cep-panel { max-height: calc(94vh / var(--ui-z, 1)); } }
+@media (max-width: 600px) { .spk { padding: 0; } }
+.spk-panel { width: min(1100px, 100%); }
+.spk-cls { gap: 4px; }
+.spk-cls .chip { min-width: 34px; min-height: 34px; padding: 2px 8px; display: inline-grid; place-items: center; }
+.spk-cls .chip img { width: 22px; height: 22px; object-fit: contain; display: block; }
+.spk-g + .spk-g { margin-top: 18px; }
+.spk-g h3 { margin: 0 0 10px; font: 500 11px var(--f-data); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.spk-g h3 small { letter-spacing: 0; }
+.spk-grid { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); }
+.spk-grid .pc-n { font-size: 13px; }
+.spk .pc-card.is-on .pc-face { box-shadow: 0 0 0 3px var(--focus); }
+.spk-none { position: absolute; inset: 0; display: grid; place-items: center; font: 600 28px var(--f-display); font-style: normal; color: rgba(255, 255, 255, .7); }
+@media (max-width: 600px) {
+  .npc .npc-sup { flex-wrap: wrap; }
+  .npc-sup-k { flex-basis: 100%; }
+  .npc-pick { flex: 1 1 0; }
+  .spk-grid { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px 8px; }
+}
+.spk .cep-tools input[data-spk-q] { flex: 1 1 100%; }
+/* ================= 0.25.0: Craft Essences that suit a servant, in Past Chaldea (36-ce-suggest.js) ================= */
+.ces-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.ces-row { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; }
+.ces-row + .ces-row { border-top: 1px solid var(--line); }
+.ces-n { align-self: stretch; display: grid; place-items: center; background: var(--sunken); font-family: var(--f-data); font-weight: 600; color: var(--muted); border-right: 1px solid var(--line); }
+.ces-row:first-child .ces-n { color: var(--gold); }
+.ces-ce { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 12px; align-items: center; padding: 8px 12px; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; min-width: 0; }
+.ces-ce:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+.ces-ce:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.ces-ce img { width: 52px; height: 52px; border-radius: 10px; object-fit: cover; background: var(--sunken); box-shadow: inset 0 0 0 2px var(--metal, #b9b2a5); }
+.ces-ce.r5 img, .ces-ce.r4 img { box-shadow: 0 0 0 2px #e2b84f; }
+.ces-ce > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ces-ce b { font-size: 14.5px; font-weight: 650; }
+.ces-ce small { font-size: 12.5px; color: var(--muted); }
+.ces-fav { margin-right: 12px; }
+.ces-note { margin: 8px 0 0; font-size: 12px; color: var(--muted); }
+.pcd-back { margin: 0 0 -8px; }
+@media (max-width: 600px) {
+  .ces-row { grid-template-columns: 34px minmax(0, 1fr); }
+  .ces-fav { grid-column: 2; justify-self: start; margin: 0 0 10px 12px; }
+  .ces-ce { grid-template-columns: 44px minmax(0, 1fr); padding: 8px 10px; }
+  .ces-ce img { width: 44px; height: 44px; }
+}
+/* a toast with Undo from inside Past Chaldea's window (+ Favourite) has to be above it */
+html.pcd-on #toast { z-index: 80; }
+/* ================= 0.25.0: backdrops of a servant's own (37-servant-backdrops.js) =================
+   Over the class canvas, behind the page; transforms and opacity only. */
+.own-bg { position: fixed; top: 0; left: 0; width: 100%; height: var(--bg-h, 100lvh); z-index: 0; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity 1s ease; }
+.own-bg.on { opacity: 1; }
+.own-bg i { position: absolute; display: block; }
+
+/* Sodom's Beast/Draco: flames rising from below */
+.own-bg .ob-flame { bottom: -6vh; left: var(--x); width: calc(15vw * var(--s)); height: calc(48vh * var(--s)); margin-left: calc(-7.5vw * var(--s)); border-radius: 50% 50% 44% 44% / 64% 64% 36% 36%;
+  background: radial-gradient(ellipse 50% 62% at 50% 100%, rgba(255, 238, 170, .7), rgba(255, 146, 40, .5) 30%, rgba(214, 40, 20, .3) 58%, rgba(120, 10, 10, 0) 76%); transform-origin: 50% 100%; opacity: .7; }
+.own-bg.on .ob-flame { animation: ob-flame var(--d) ease-in-out var(--dl) infinite alternate; }
+@keyframes ob-flame {
+  0% { transform: translate3d(-1.5vw, 0, 0) scale(1, .8) skewX(-4deg); opacity: .5; }
+  50% { transform: translate3d(1vw, 0, 0) scale(.92, 1.08) skewX(3deg); opacity: .8; }
+  100% { transform: translate3d(-.5vw, -1vh, 0) scale(1.05, .95) skewX(-2deg); opacity: .62; }
+}
+/* explosions: a flash and a shock ring now and then */
+.own-bg .ob-boom { left: var(--x); top: var(--y); width: calc(26vmin * var(--s)); height: calc(26vmin * var(--s)); margin: calc(-13vmin * var(--s)) 0 0 calc(-13vmin * var(--s)); border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 250, 222, .95) 0 8%, rgba(255, 192, 64, .85) 18%, rgba(255, 92, 30, .55) 38%, rgba(160, 20, 10, .22) 58%, rgba(120, 0, 0, 0) 70%); opacity: 0; transform: scale(.2); }
+.own-bg .ob-boom b { position: absolute; inset: -12%; border-radius: 50%; border: 2px solid rgba(255, 170, 90, .65); opacity: 0; transform: scale(.3); }
+.own-bg.on .ob-boom { animation: ob-boom var(--d) cubic-bezier(.2, .7, .3, 1) var(--dl) infinite; }
+.own-bg.on .ob-boom b { animation: ob-ring var(--d) ease-out var(--dl) infinite; }
+@keyframes ob-boom { 0%, 72% { opacity: 0; transform: scale(.2); } 74% { opacity: 1; transform: scale(.55); } 82% { opacity: .75; transform: scale(1); } 92%, 100% { opacity: 0; transform: scale(1.25); } }
+@keyframes ob-ring { 0%, 73% { opacity: 0; transform: scale(.3); } 76% { opacity: .9; } 94%, 100% { opacity: 0; transform: scale(1.7); } }
+/* red petals blowing through */
+.own-bg .ob-petal { top: -5%; left: var(--x); width: calc(16px * var(--s)); height: calc(10px * var(--s)); border-radius: 80% 0 80% 0; background: linear-gradient(135deg, #ff7a6a, #c8102e); opacity: 0; }
+.own-bg .ob-petal.k2 { background: linear-gradient(135deg, #ff4d5e, #8e0b1e); }
+.own-bg .ob-petal.k3 { background: linear-gradient(135deg, #ffb199, #e0302a); border-radius: 0 80% 0 80%; }
+.own-bg.on .ob-petal { animation: ob-petal var(--d) ease-in-out var(--dl) infinite; }
+@keyframes ob-petal {
+  0% { transform: translate3d(0, 0, 0) rotate(var(--r)); opacity: 0; }
+  8% { opacity: .9; }
+  50% { transform: translate3d(calc(var(--sw) * -1), calc(var(--bg-h, 100vh) * .55), 0) rotate(calc(var(--r) + 240deg)); }
+  90% { opacity: .75; }
+  100% { transform: translate3d(var(--sw), calc(var(--bg-h, 100vh) * 1.08), 0) rotate(calc(var(--r) + 480deg)); opacity: 0; }
+}
+.own-bg.lt .ob-flame { opacity: .45; }
+.own-bg.lt .ob-boom { mix-blend-mode: normal; }
+@media (prefers-reduced-motion: reduce) { .own-bg.on i { animation: none !important; } .own-bg.on .ob-petal { opacity: .6; top: var(--x); } }
+@media (max-width: 900px) { html.sheet-on .own-bg { visibility: hidden; } }
+/* ================= 0.25.0: servant icons (38-servant-icons.js) ================= */
+.avatar.k-face { object-position: 50% 50%; }
+.avatar.k-portrait { object-position: 50% 28%; background: #f4f1ec; }
+.avatar.k-formation { object-position: 50% 6%; }
+.avatar.k-fan { object-position: 50% 30%; }
+.avatar.k-frame { position: relative; overflow: hidden; padding: 0; border: 2px solid #d4ab52; box-shadow: inset 0 0 0 1px rgba(255, 238, 190, .75); background: #2a2230; }
+.avatar.k-frame.r3 { border-color: #b9bec7; box-shadow: inset 0 0 0 1px rgba(240, 244, 250, .7); }
+.avatar.k-frame.r1, .avatar.k-frame.r2 { border-color: #b07a4a; box-shadow: inset 0 0 0 1px rgba(250, 214, 180, .6); }
+.avatar.k-frame > .avf-face { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.avatar.k-frame > .avf-cls { position: absolute; left: 0; top: 0; width: 36%; height: 36%; object-fit: contain; }
+.tile-art { display: none; }
+@media (max-width: 900px) {
+  html:not([data-layout="compact"]) #list > .row > .tile-art { display: block; width: 100%; height: auto; aspect-ratio: 1 / 1; object-fit: cover; object-position: 50% 15%; border: 0; }
+  html:not([data-layout="compact"]) #list > .row > .avatar:has(+ .tile-art) { display: none; }
+}
+/* the choice on the servant page */
+.ick-row { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px; }
+.ick-l { flex-basis: 100%; margin: 2px 0 0; font: 500 11px var(--f-data); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.ick { display: inline-flex; flex-direction: column; align-items: center; gap: 3px; width: 54px; padding: 4px 2px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: 600 10.5px/1.15 var(--f-body); cursor: pointer; text-align: center; }
+.ick:hover { border-color: var(--muted); }
+.ick:focus-visible, .ick:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; }
+.ick[aria-pressed="true"] { border-color: var(--ink); background: var(--sunken); }
+.ick img, .ick-plus { width: 38px; height: 38px; border-radius: 8px; object-fit: cover; }
+.ick img.ick-formation { object-position: 50% 6%; }
+.ick img.ick-portrait { background: #f4f1ec; }
+.ick.is-frame img { box-shadow: 0 0 0 2px #d4ab52; }
+.ick.is-frame.r3 img { box-shadow: 0 0 0 2px #b9bec7; }
+.ick-plus { display: grid; place-items: center; border: 1px dashed var(--muted); font-style: normal; font-size: 18px; color: var(--muted); }
+.ick input[type="file"], .ick-fan-acts input[type="file"] { display: none; }
+.ick-fan-acts { flex-basis: 100%; font-size: 12px; color: var(--muted); }
+.ick-fan-acts label { cursor: pointer; }
 </style>
 </head>
 <body>
@@ -9807,7 +9940,7 @@ renderAll = function () { renderAll13(); renderFillNote(); };
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.24.0";
+const APP_VER = "0.25.0";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -9969,6 +10102,13 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.25.0", d: "27 Oct 2026", t: "Servant icons, Craft Essence picks and an easier support picker", i: [
+    "<b>Servant icons</b>: the small picture next to a servant's name is now the game's own face for the stage you marked as Icon. On the SERVANTPAGE, under the stages, pick another kind: a framed servant icon with the class emblem, the portrait, the formation picture, the stage picture as before, or <b>fan art</b> of your own. On a phone, Modern's picture tiles keep a big picture.",
+    "<b>Craft Essences that suit a servant</b>: Past Chaldea shows five for every servant, worked out from what each Craft Essence always does at max limit break. A damage dealer gets the ones that make its first NP hit hardest and soonest, and a support gets NP at the start, NP Gain and NP each turn. A servant on your list can keep one as a favourite in one press.",
+    "<b>Picking a support</b> in the damage calculator opens a big window with pictures, a search that knows nicknames (Castoria, Skadi, Waver), class buttons, and your Guests, the supports most people borrow, your servants and every NA servant.",
+    "<b>Sodom's Beast/Draco</b> has a backdrop of her own: blazing fire, explosions and red petals. Space Ereshkigal keeps the rainbow waves.",
+    "<b>4K screens at 200%</b> (and 1080p screens) now get the same bigger page as a full-screen 1080p: the browser's own bars no longer keep it at its smallest.",
+    "<b>Home</b>: an upcoming event's new servants are no longer mistaken for the ones NA already has (Van Gogh (Miner) isn't Van Gogh, Abigail Williams (Santa) isn't the Foreigner). They show as placeholders until NA's data has them."]},
   {v: "0.24.0", d: "26 Oct 2026", t: "The Story page, a planner, and Home rebuilt", i: [
     "<b>Story</b>: a new tab for the main story, from Fuyuki to Archetype Inception (as far as NA has it). Each chapter is its own title plate to click. Its sections come in the game's order (a section in two parts is 4-1 and 4-2), each a row that opens to its battles; each battle lists its enemies by wave with class, attribute, HP, break bars and reinforcements, and an enemy without a picture of its own shows the servant's face or its class. Your next fight shows the classes that hit it hardest and the servants on your list (and your Guests) that take the most of it with one NP a wave. <b>Cleared it</b> moves you on, into the next chapter at the end.",
     "<b>Chapter looks</b>: away from the SERVANTPAGE, the page wears your chapter's colours and a moving backdrop of its own (Götterdämmerung is red and cyan, with fire and ice), with the chapter's title plate next to the logo. Turn it off on the Story page; an Event page has its own look.",
@@ -12114,7 +12254,7 @@ function evOverviewHTML(m, t) {
     ["Runs", `${esc(liveWhen(m.s))} – ${esc(liveWhen(m.e))}`],
     (w && w.req) || m.req ? ["To take part", esc(evReq((w && w.req) || m.req))] : null,
     m.story ? ["Story", "After " + esc(m.story)] : null,
-    m.pick && m.pick.length ? ["Servants", m.pick.map((p) => { const a = hbAtlas(p.n); return `<span class="ev-gf">${a ? liveFace({no: a.no, n: a.n, r: a.r, f: a.f, c: a.c}, true) : ""}<span class="ev-gn">${esc(a ? a.n : p.n)}</span><small>${p.k === "reward" ? "free" : "pickup"}</small></span>`; }).join("")] : null,
+    m.pick && m.pick.length ? ["Servants", m.pick.map((p) => { const a = hbAtlas(p.n, p.c); return `<span class="ev-gf">${a ? liveFace({no: a.no, n: a.n, r: a.r, f: a.f, c: a.c}, true) : ""}<span class="ev-gn">${esc(a ? a.n : p.n)}</span><small>${p.k === "reward" ? "free" : "pickup"}</small></span>`; }).join("")] : null,
     m.sv.length ? ["Joins your roster", m.sv.map((g) => evIt(g, false, true)).join("")] : null,
     curs.length ? ["Event currency", curs.map((c) => evIt({k: "i", n: c.n, ic: c.ic, q: 1})).join("")] : null,
     m.quests.length ? ["Quests", esc(["main", "free", "extra", "challenge"].map((g) => { const n = m.quests.filter((q) => q.g === g).length; return n ? n + " " + g : ""; }).filter(Boolean).join(" · "))] : null,
@@ -12543,11 +12683,14 @@ syncBgHeight();
 window.addEventListener("resize", syncBgHeight);
 
 /* ---------- big screens: the interface grows with the screen (0.24.0, 18-ui-scale.css) ----------
-   The page was made for about 1700x960; above that it's zoomed by the smaller of width/1700 and height/960 (so an
-   ultrawide screen is zoomed by its height), in steps of 1/40. Phones, tablets and anything up to 1700x960 stay at 1. */
+   The page was made for about 1700 wide; above that it's zoomed by width/1700, unless the window is short for its
+   width (an ultrawide screen): then by height/840, in steps of 1/40. Phones, tablets and anything up to 1700 wide stay
+   at 1. 0.25.0: the height counts from 840, not 960, because the browser's own bars and the taskbar take about 140 of
+   a screen's height: a 1080p screen (or a 4K one at 200%, which is the same size to a page) is zoomed 1.125, like the
+   full-screen 1080p it was made to look like, where it used to stay at 1. */
 function syncUiZoom() {
   const w = window.innerWidth, h = window.innerHeight;
-  const z = w <= 900 ? 1 : Math.round(clamp(Math.min(w / 1700, h / 960), 1, 2.5) * 40) / 40;
+  const z = w <= 900 ? 1 : Math.round(clamp(Math.min(w / 1700, h / 840), 1, 2.5) * 40) / 40;
   if (z === UI_Z && document.documentElement.style.getPropertyValue("--ui-z")) return;
   UI_Z = z; document.documentElement.style.setProperty("--ui-z", String(z));
   if (typeof queueDsFrame === "function") queueDsFrame();
@@ -14038,7 +14181,7 @@ function hbHeader(title, wt) {
   const pick = [], seen = new Set();
   s.replace(/\{\{(Saber|Archer|Lancer|Rider|Caster|Assassin|Berserker|Ruler|Avenger|Moon ?Cancer|Alter ?Ego|Foreigner|Pretender|Shielder|Beast)\}\}\s*\[\[([^\]|]+)(?:\|[^\]]*)?\]\]\s*(\{\{(LimitedS|EventR|Limited|StoryS)\}\})?/gi, (m, c, n, t, kind) => {
     n = n.trim(); if (seen.has(n)) return m; seen.add(n);
-    pick.push({n: n, c: c.replace(/(Moon|Alter)\s?(Cancer|Ego)/i, "$1 $2"), k: /event/i.test(kind || "") ? "reward" : "pickup"}); return m;
+    pick.push({n: n, c: c.replace(/(Moon|Alter)\s?(Cancer|Ego)/i, "$1 $2").replace(/\b[a-z]/g, (m) => m.toUpperCase()), k: /event/i.test(kind || "") ? "reward" : "pickup"}); return m;
   });
   const name = hbClean(h.name) || title.replace(/\s*\((US|NA)\)\s*$/i, "");
   return {t: title, n: name, img: (h.image || "").replace(/^(file|image):/i, "").trim(), s: hbTime(h.start, h.timezone), e: hbTime(h.end, h.timezone),
@@ -14136,19 +14279,32 @@ function hbCampaigns(evs) {
   // events the wiki has announced bring their pickups; shown when NA's data has no banner for them yet
   all.filter((x) => x.s > now && x.pick.some((p) => p.k === "pickup")).forEach((x) => {
     if (out.some((b) => b.ev === x.n)) return;
-    out.push({n: x.n + " Summoning Campaign", s: x.s, e: x.e, ft: x.pick.filter((p) => p.k === "pickup").map((p) => { const a = hbAtlas(p.n); return a ? {no: a.no, n: a.n, c: a.c, r: a.r, f: a.f} : {n: p.n, c: p.c}; }), ev: x.n, id: 0, src: "wiki"});
+    out.push({n: x.n + " Summoning Campaign", s: x.s, e: x.e, ft: x.pick.filter((p) => p.k === "pickup").map((p) => { const a = hbAtlas(p.n, p.c); return a ? {no: a.no, n: a.n, c: a.c, r: a.r, f: a.f} : {n: p.n, c: p.c}; }), ev: x.n, id: 0, src: "wiki"});
   });
   return out.sort((a, b) => (a.s > now) - (b.s > now) || (a.s > now ? a.s - b.s : a.e - b.e));
 }
 
 /* ---------- drawing it ---------- */
-// a wiki name to an NA servant: "Yagyū Munenori" is "Yagyu Tajima-no-kami Munenori" in the data
-const hbAtlas = (n) => ATLAS_S.find((y) => nname(y.n) === nname(n)) || (typeof autoMatch === "function" ? autoMatch({name: n, cls: "", rarity: 0}) : null);
+// a wiki name to an NA servant (this file's, or one NA's data added since): the same name, in the class the wiki gives.
+// A new version of a servant ("Van Gogh (Miner)", "Abigail Williams (Santa)") isn't the one NA already has, so it stays
+// a placeholder until NA's data has it (0.25.0). A name without brackets may be spelled differently: "Yagyū Munenori"
+// is "Yagyu Tajima-no-kami Munenori", and "Kishinami Hakuno" one of NA's two.
+function hbAtlas(n, cls) {
+  const k = nick(n); if (!k) return null;
+  const ok = (x) => !cls || x.c === cls, br = /\(/.test(n);
+  const extra = ((live.data && live.data.sv) || []).filter((x) => !ATLAS_BY_NO.has(x.no));
+  const all = ATLAS_S.concat(extra), full = (x) => NICK_N.get(x.no) || nick(x.n), base = (x) => NICK_B.get(x.no) || nick(x.n.replace(/\([^)]*\)/g, " "));
+  const hit = all.find((x) => ok(x) && full(x) === k); if (hit) return hit;
+  if (br) return null;
+  const same = all.filter((x) => ok(x) && base(x) === k); if (same.length) return same[0];
+  const a = typeof autoMatch === "function" ? autoMatch({name: n, cls: cls || "", rarity: 0}) : null;
+  return a && ok(a) && !/\(/.test(a.n) ? a : null;
+}
 const hbFace = (x) => { const a = x.no ? ATLAS_BY_NO.get(x.no) : null, f = (a && a.f) || x.f; return f ? `<img src="${esc(aimg(f))}" alt="${esc(x.n || "")}" title="${esc(x.n || "")}" loading="lazy" decoding="async">` : `<i class="hb-noface" title="${esc(x.n || "")}">${esc((x.n || "?").slice(0, 1))}</i>`; };
 function hbCard(x, up, i) {
   const now = Date.now() / 1000, span = Math.max(1, x.e - x.s), p = up ? 0 : clamp((now - x.s) / span, 0, 1);
   const soon = up ? x.s - now < 3 * 86400 : x.e - now < 86400;
-  const faces = x.pick.length ? `<span class="hb-faces">${x.pick.map((p) => { const a = hbAtlas(p.n); return `<span class="hb-pk ${p.k}">${hbFace(a ? {no: a.no, n: a.n} : {n: p.n})}<i>${p.k === "reward" ? "Free" : "Pickup"}</i></span>`; }).join("")}</span>` : "";
+  const faces = x.pick.length ? `<span class="hb-faces">${x.pick.map((p) => { const a = hbAtlas(p.n, p.c); return `<span class="hb-pk ${p.k}">${hbFace(a ? {no: a.no, n: a.n, f: a.f} : {n: p.n})}<i>${p.k === "reward" ? "Free" : "Pickup"}</i></span>`; }).join("")}</span>` : "";
   const open = x.id ? `data-action="ev-open" data-ev="${x.id}"` : "";
   return `<article class="hb-ev${up ? " up" : " now"}${soon ? " soon" : ""}${x.img ? "" : " noimg"}" style="--i:${i};--p:${p.toFixed(3)}">
     <button type="button" class="hb-hit" ${open} aria-label="${esc(x.n)}${x.id ? ": open the Event page" : ""}"${open ? "" : " disabled"}>
@@ -14202,7 +14358,7 @@ function hbVersionHTML() {
 function hbUpdatesHTML() {
   const u = HB.wiki && HB.wiki.upd; if (!liveOn()) return "";
   if (!u) return `<section class="hb-side-b hb-upd"><h3 class="hb-h">Latest NA update</h3><p class="tr-none">${HB.busy ? "Loading…" : "Not loaded yet."}</p></section>`;
-  const sv = (x) => { const a = hbAtlas(x.n); return `<li>${a ? `<button type="button" class="hb-u" data-action="pc-open" data-no="${a.no}">${hbFace({no: a.no, n: a.n})}<span>${esc(a.n)}</span>${x.k ? `<i>${esc(x.k)}</i>` : ""}</button>` : `<span class="hb-u">${hbFace({n: x.n})}<span>${esc(x.n)}</span>${x.k ? `<i>${esc(x.k)}</i>` : ""}</span>`}</li>`; };
+  const sv = (x) => { const a = hbAtlas(x.n); return `<li>${a && ATLAS_BY_NO.has(a.no) ? `<button type="button" class="hb-u" data-action="pc-open" data-no="${a.no}">${hbFace({no: a.no, n: a.n})}<span>${esc(a.n)}</span>${x.k ? `<i>${esc(x.k)}</i>` : ""}</button>` : `<span class="hb-u">${hbFace({n: x.n})}<span>${esc(x.n)}</span>${x.k ? `<i>${esc(x.k)}</i>` : ""}</span>`}</li>`; };
   const ce = (x) => { const c = CE_BY_NO.get(x.no); return `<li>${c ? `<button type="button" class="hb-u" data-action="ce-open" data-no="${c.no}"><img src="${esc(ceFace(c))}" alt="" loading="lazy"><span>${esc(c.n)}</span></button>` : `<span class="hb-u"><i class="hb-noface">CE</i><span>${esc(x.n)}</span></span>`}</li>`; };
   const part = (t, list, fn) => list.length ? `<h4>${t}</h4><ul class="hb-ul">${list.map(fn).join("")}</ul>` : "";
   return `<section class="hb-side-b hb-upd"><h3 class="hb-h">Latest NA update</h3>
@@ -14365,6 +14521,402 @@ function swipeTo(step) {
   if (d) { d.scrollTop = 0; d.classList.remove("sw-l", "sw-r"); void d.offsetWidth; d.classList.add(step > 0 ? "sw-l" : "sw-r"); setTimeout(() => d.classList.remove("sw-l", "sw-r"), 400); }
   syncPageTheme();
 }
+/* ================= 0.25.0: a big, searchable picker for the damage calculator's supports =================
+   The calculator's two "Support" boxes were plain dropdowns with 400-odd names, small and hard to search. Each is now a
+   button with the support's face; it opens a window the size of the Craft Essence picker with a search box (names and
+   nicknames: "castoria", "skadi", "waver"), class buttons, and pictures in four groups: your Guests, the supports most
+   people borrow, your own servants, and every NA servant. What it stores is the same as before (npcPrefs.sup). */
+const spk = document.createElement("div");
+spk.className = "spk"; spk.hidden = true; spk.setAttribute("role", "dialog"); spk.setAttribute("aria-modal", "true"); spk.setAttribute("aria-labelledby", "spk-t");
+document.body.appendChild(spk);
+const SPK = {q: "", c: "", n: 72, cb: null, back: null, title: "", cur: ""};
+const SPK_CLASSES = ["Saber", "Archer", "Lancer", "Rider", "Caster", "Assassin", "Berserker", "Ruler", "Avenger", "Moon Cancer", "Alter Ego", "Foreigner", "Pretender", "Shielder", "Beast"];
+// everyone that can be picked: [key, name, Atlas record or null, group]
+function spkAll() {
+  const out = [];
+  S.guests.forEach((g) => out.push({key: "g:" + g.id, n: g.name, a: atlasOf(g), g: "Your Guests"}));
+  NPC_POP.forEach((no) => { const a = ATLAS_BY_NO.get(no); if (a) out.push({key: "a:" + no, n: a.n, a: a, g: "Often borrowed"}); });
+  S.servants.filter((x) => !x.wish).slice().sort((a, b) => a.name.localeCompare(b.name)).forEach((s) => out.push({key: "r:" + s.id, n: s.name, a: atlasOf(s), s: s, g: "Your servants"}));
+  ATLAS_S.slice().sort((a, b) => a.n.localeCompare(b.n)).forEach((a) => out.push({key: "a:" + a.no, n: a.n, a: a, g: "Every NA servant"}));
+  return out;
+}
+function spkList() {
+  const q = nick(SPK.q), words = q.split(" ").filter(Boolean);
+  const hit = (x) => {
+    if (SPK.c && !(x.a && x.a.c === SPK.c)) return false;
+    if (!words.length) return true;
+    const hay = " " + nick(x.n) + " " + (x.a ? nick(x.a.n) + " " + nname(x.a.n) : "") + " ";
+    return words.every((w) => hay.includes(" " + w) || hay.includes(w));
+  };
+  return spkAll().filter(hit);
+}
+function spkCardHTML(x) {
+  const a = x.a, face = a && a.f ? aimg(a.f) : "", r = a ? a.r : num(x.s && x.s.rarity) || 0, cls = a ? a.c : (x.s && x.s.cls) || "";
+  const on = x.key === SPK.cur;
+  return `<li><button type="button" class="pc-card r${clamp(r || 1, 1, 5)}${on ? " is-on" : ""}" data-spk="${esc(x.key)}" aria-pressed="${on}" aria-label="${esc(x.n)}${cls ? ", " + esc(cls) : ""}">
+    <span class="pc-face">${face ? `<img src="${esc(face)}" alt="" loading="lazy" decoding="async">` : `<i class="spk-none">${esc((x.n || "?").slice(0, 1))}</i>`}${CLASS_LOGO[cls] ? `<img class="pc-cls" src="${CLASS_LOGO[cls]}" alt="">` : ""}${r ? `<span class="pc-st">${stars(r)}</span>` : ""}</span>
+    <span class="pc-n">${esc(x.n)}</span><span class="pc-m">${esc(cls || "not in NA's data")}${x.s ? " · your levels" : a ? "" : ""}</span></button></li>`;
+}
+function spkBody() {
+  const all = spkList(), searching = !!(SPK.q.trim() || SPK.c);
+  if (!all.length) return `<p class="tr-none">No servant matches. Try part of the name, or a nickname like "castoria".</p>`;
+  const groups = ["Your Guests", "Often borrowed", "Your servants", "Every NA servant"];
+  let shown = 0, html = "";
+  groups.forEach((gname) => {
+    let list = all.filter((x) => x.g === gname);
+    // while searching, a servant already shown in an earlier group isn't repeated under every NA servant
+    if (gname === "Every NA servant" && searching) { const seen = new Set(all.filter((x) => x.g !== gname && x.a).map((x) => x.a.no)); list = list.filter((x) => !seen.has(x.a.no)); }
+    if (!list.length) return;
+    const cut = gname === "Every NA servant" ? Math.max(0, SPK.n - shown) : list.length, part = list.slice(0, cut); shown += part.length;
+    html += `<section class="spk-g"><h3>${esc(gname)} <small>${list.length}</small></h3><ul class="pc-grid spk-grid">${part.map(spkCardHTML).join("")}</ul>
+      ${list.length > part.length ? `<p class="cep-more"><button type="button" class="btn ghost sm" data-spk-more>Show more (${fmt(list.length - part.length)} left)</button></p>` : ""}</section>`;
+  });
+  return html;
+}
+function spkRender(full) {
+  if (full) {
+    spk.innerHTML = `<div class="cep-veil" data-spk-close></div><div class="cep-panel spk-panel">
+      <header class="cep-head"><h2 id="spk-t">${esc(SPK.title)}</h2><button type="button" class="cep-x" data-spk-close aria-label="Close">×</button></header>
+      <div class="cep-tools"><input type="search" class="field-input" data-spk-q placeholder="Search: Castoria, Skadi, Waver…" value="${esc(SPK.q)}" aria-label="Search servants" autocomplete="off">
+        ${SPK.cur ? `<button type="button" class="btn ghost sm" data-spk="">No support</button>` : ""}
+        <div class="cep-rs spk-cls" role="group" aria-label="Class"><button type="button" class="chip" data-spk-c="" aria-pressed="${!SPK.c}">All</button>${SPK_CLASSES.map((c) => `<button type="button" class="chip spk-c" data-spk-c="${esc(c)}" aria-pressed="${SPK.c === c}" title="${esc(c)}">${CLASS_LOGO[c] ? `<img src="${CLASS_LOGO[c]}" alt="${esc(c)}">` : esc(c)}</button>`).join("")}</div></div>
+      <div class="cep-body spk-body">${spkBody()}</div></div>`;
+  } else {
+    const b = spk.querySelector(".spk-body"); if (b) { b.innerHTML = spkBody(); }
+    spk.querySelectorAll("[data-spk-c]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.spkC === SPK.c)));
+  }
+}
+function openSpk(title, cur, cb) {
+  SPK.title = title; SPK.cur = cur || ""; SPK.cb = cb; SPK.n = 72; SPK.q = ""; SPK.c = ""; SPK.back = document.activeElement;
+  spkRender(true); spk.hidden = false; document.documentElement.classList.add("cep-open");
+  const q = spk.querySelector("[data-spk-q]"); if (q) q.focus({preventScroll: true});
+}
+function closeSpk() {
+  if (spk.hidden) return;
+  spk.hidden = true; spk.innerHTML = ""; document.documentElement.classList.remove("cep-open"); SPK.cb = null;
+  const b = SPK.back; SPK.back = null; if (b && b.isConnected && b.focus) b.focus({preventScroll: true});
+}
+spk.addEventListener("click", (e) => {
+  const t = e.target;
+  if (t.closest("[data-spk-close]")) { closeSpk(); return; }
+  const c = t.closest("[data-spk-c]"); if (c) { SPK.c = c.dataset.spkC; SPK.n = 72; spkRender(false); return; }
+  if (t.closest("[data-spk-more]")) { SPK.n += 120; spkRender(false); return; }
+  const p = t.closest("[data-spk]");
+  if (p) { const cb = SPK.cb, key = p.dataset.spk; closeSpk(); if (cb) cb(key); }
+});
+let spkT = 0;
+spk.addEventListener("input", (e) => { if (!e.target.matches("[data-spk-q]")) return; SPK.q = e.target.value; clearTimeout(spkT); spkT = setTimeout(() => { SPK.n = 72; spkRender(false); }, 120); });
+spk.addEventListener("keydown", (e) => {
+  // Enter in the search box picks the first match
+  if (e.key === "Enter" && e.target.matches("[data-spk-q]")) { const f = spk.querySelector(".spk-body [data-spk]"); if (f) { e.preventDefault(); f.click(); } }
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !spk.hidden) { e.preventDefault(); e.stopPropagation(); closeSpk(); } }, true);
+
+// the calculator's support boxes: a button with the support's face instead of a dropdown
+npcSupSel = function (i, cur) {
+  const src = npcSrc(cur), a = src && src.a;
+  return `<span class="npc-sup"><span class="npc-sup-k">Support ${i + 1}</span>
+    <button type="button" class="npc-pick${src ? " on" : ""}" data-npc-pick="${i}" aria-label="Support ${i + 1}: ${esc(src ? src.n : "none")}. Change">
+      ${a && a.f ? `<img src="${esc(aimg(a.f))}" alt="" loading="lazy">` : `<i class="npc-pick-none" aria-hidden="true">+</i>`}
+      <span><b>${esc(src ? src.n : "Pick a support")}</b><small>${esc(src ? [a ? a.c : "", src.key[0] === "g" ? "Guest" : src.key[0] === "r" ? "yours" : "Lv 10 skills"].filter(Boolean).join(" · ") : "Castoria, Skadi, Oberon, a Guest…")}</small></span><i class="npc-pick-c" aria-hidden="true">▾</i></button>
+    ${src ? `<button type="button" class="npc-unpick" data-npc-unpick="${i}" aria-label="Remove support ${i + 1}">×</button>` : ""}</span>`;
+};
+// the support face in the row's heading is part of the button now
+const npcTeamHTML25 = npcTeamHTML;
+npcTeamHTML = function (s, np, I) { return npcTeamHTML25(s, np, I).replace(/<div class="npc-wh">(<img class="npc-face"[^>]*>)(<span class="npc-sup">)/g, '<div class="npc-wh">$2'); };
+function npcSetSup(box, i, key) {
+  const sup = (npcPrefs.sup || []).slice(0, 2); while (sup.length < 2) sup.push("");
+  sup[i] = key || ""; npcPrefs.sup = sup.filter(Boolean); npcSave(); npcPaint(box, true);
+  const b = box.querySelector(`[data-npc-pick="${Math.min(i, npcPrefs.sup.length)}"]`) || box.querySelector("[data-npc-pick]"); if (b) b.focus({preventScroll: true});
+}
+document.addEventListener("click", (e) => {
+  const p = e.target.closest && e.target.closest("[data-npc-pick], [data-npc-unpick]"); if (!p) return;
+  const box = p.closest(".npc"); if (!box) return;
+  if (p.dataset.npcUnpick != null) { npcSetSup(box, num(p.dataset.npcUnpick) || 0, ""); return; }
+  const i = num(p.dataset.npcPick) || 0, cur = (npcPrefs.sup || [])[i] || "";
+  openSpk("Support " + (i + 1) + " for the damage calculator", cur, (key) => { const b2 = document.querySelector(`.npc[data-npc-for="${CSS.escape(box.dataset.npcFor)}"]`) || box; npcSetSup(b2, i, key); });
+});
+/* ================= 0.25.0: five Craft Essences that suit a servant (Past Chaldea) =================
+   Nobody publishes which Craft Essences players put on which servant, so the page works it out itself from each Craft
+   Essence's effects at max limit break (only the parts that always work: nothing for events only, nothing on a
+   condition, no Bond, Valentine, EXP or drop-up Craft Essences):
+   - a servant whose NP does damage gets the Craft Essences that make its first NP hit hardest, soonest: NP Strength,
+     its NP card's effectiveness and ATK multiply like they do in the damage formula (with the CE's own ATK), and NP
+     charged at the start counts for a lot (100% means the NP is there on turn 1). AoE servants also value NP Gain
+     (the refund for the next wave); single-target ones critical damage and stars.
+   - a support servant (its NP doesn't do damage) gets NP at the start, NP Gain and NP each turn, so its skills and NP
+     come round more often. */
+const CE_OK_KIND = new Set(["N", "R", "E", "C"]);
+const CE_CARD = {Buster: "B", Arts: "A", Quick: "Q"};
+const ceFxCache = new Map();
+// what a Craft Essence always gives its holder, from its max limit break text
+function ceFx(c, cls) {
+  const key = c.no + "|" + (cls || ""); if (ceFxCache.has(key)) return ceFxCache.get(key);
+  const F = {start: 0, np: 0, card: {B: 0, A: 0, Q: 0}, atk: 0, gain: 0, turn: 0, crit: 0, stars: 0, sgen: 0, dp: 0};
+  (c.x && c.x.length ? c.x : c.e).forEach((line) => {
+    let l = String(line || "");
+    if (/\[Event Only\]|Friend Points|EXP|Bond gained|QP|drops?\b|only if|when equipped|equipped with this/i.test(l)) return;
+    const cm = /if equipped by \[([^\]]+)\] class(?: \[[^\]]*\])?/i.exec(l);
+    if (cm) { if (!cls || nname(cm[1]) !== nname(cls)) return; l = l.replace(cm[0], ""); }
+    l = l.replace(/\[(MAX|Demerit)\]/gi, "").replace(/for yourself|to yourself/gi, "").trim();
+    // "Increase Buster Card effectiveness & NP Strength by 10%": a value goes to every stat named since the last one
+    let pending = [];
+    l.split(/\s+(?:&|\+)\s+/).forEach((seg) => {
+      const v = /\b(?:by|at|of)\s+(\d+(?:\.\d+)?)%/i.exec(seg), n = /\b(?:gain|Plus)\s+(\d+(?:\.\d+)?)\b/i.exec(seg);
+      pending.push(seg);
+      if (!v && !n) return;
+      const val = Number((v || n)[1]), segs = pending; pending = [];
+      segs.forEach((s) => {
+        if (/\bwhen\b|\bwhile\b|\bif\b|chance|against|Special Attack|for \d+ turns? only/i.test(s)) return;
+        if (/begin (?:the )?battle with/i.test(s) && /NP/.test(s)) F.start += val;
+        else if (/NP gauge/i.test(s) && /each turn|every turn|per turn/i.test(s)) F.turn += val;
+        else if (/NP (?:Strength|damage)/i.test(s)) F.np += val;
+        else if (/NP Gain|NP generation/i.test(s)) F.gain += val;
+        else if (/Critical (?:Strength|damage)/i.test(s) && !/(?:Buster|Arts|Quick) Card Critical/i.test(s)) F.crit += val;
+        else if (/(?:Buster|Arts|Quick)(?: Card)? (?:effectiveness|performance)/i.test(s)) (s.match(/Buster|Arts|Quick/gi) || []).forEach((k) => { F.card[CE_CARD[k[0].toUpperCase() + k.slice(1).toLowerCase()]] += val; });
+        else if (/\bATK\b/.test(s) && !/Strength/i.test(s)) F.atk += val;
+        else if (/C\. Stars? each turn|Stars? (?:each|every|per) turn/i.test(s)) F.stars += val;
+        else if (/Star Drop Rate/i.test(s)) F.sgen += val;
+        else if (/Damage Plus/i.test(s)) F.dp += val;
+      });
+    });
+  });
+  ceFxCache.set(key, F); return F;
+}
+function ceWhy(F, card) {
+  const w = [];
+  if (F.start) w.push("NP " + Math.min(100, F.start) + "% at the start");
+  if (F.turn) w.push("NP +" + F.turn + "% each turn");
+  if (F.np) w.push("NP Strength +" + F.np + "%");
+  if (card && F.card[card]) w.push({B: "Buster", A: "Arts", Q: "Quick"}[card] + " +" + F.card[card] + "%");
+  if (F.atk) w.push("ATK +" + F.atk + "%");
+  if (F.gain) w.push("NP Gain +" + F.gain + "%");
+  if (F.crit) w.push("crits +" + F.crit + "%");
+  if (F.stars) w.push(F.stars + " stars a turn");
+  if (F.dp) w.push("Damage Plus " + fmt(F.dp));
+  return w;
+}
+const ceSuggestCache = new Map();
+function ceSuggest(a, n) {
+  n = n || 5; if (!a) return [];
+  if (ceSuggestCache.has(a.no)) return ceSuggestCache.get(a.no).slice(0, n);
+  const np = a.np || {}, card = np.cd || "", dmg = np.tg && np.tg !== "Support" && (np.r || []).some((r) => /^\s*damage/i.test(r[0]));
+  const aoe = np.tg === "AoE", svAtk = (a.atk && (a.atk[1] || a.atk[0])) || 10000;
+  const rows = [];
+  ATLAS_C.forEach((c) => {
+    if (!CE_OK_KIND.has(c.f)) return;
+    const F = ceFx(c, a.c), ceAtk = (c.atk && c.atk[1]) || 0, start = Math.min(100, F.start);
+    let sc;
+    if (dmg) {
+      const mult = (1 + F.card[card] / 100) * (1 + F.atk / 100) * (1 + F.np / 100) * (1 + ceAtk / svAtk);
+      const soon = 1 + start / 100 * 0.9 + Math.min(F.turn, 20) / 100 * 1.5;
+      sc = mult * soon + (aoe ? F.gain / 100 * 0.8 : F.crit / 100 * 0.35 + F.stars / 40) + F.dp / 4000;
+    } else {
+      sc = 1 + start / 100 * 1.2 + F.gain / 100 * 1.6 + F.turn / 100 * 4 + (F.card[card] || 0) / 400 + F.stars / 60 + ((c.hp && c.hp[1]) || 0) / 20000;
+    }
+    const why = ceWhy(F, card);
+    if (why.length) rows.push({c: c, sc: sc, why: why, sig: why.join("|")});
+  });
+  // the best first; Craft Essences that do exactly the same count once (the gacha one, else the newest)
+  const kindRank = {N: 0, R: 1, E: 2, C: 3};
+  rows.sort((x, y) => y.sc - x.sc || kindRank[x.c.f] - kindRank[y.c.f] || y.c.no - x.c.no);
+  const seen = new Set(), out = [];
+  for (const r of rows) { if (seen.has(r.sig)) continue; seen.add(r.sig); out.push(r); if (out.length >= 12) break; }
+  ceSuggestCache.set(a.no, out);
+  return out.slice(0, n);
+}
+function ceSuggestHTML(a, s) {
+  const list = ceSuggest(a, 5); if (!list.length) return "";
+  const np = a.np || {}, dmg = np.tg && np.tg !== "Support";
+  const add = s && !S.readOnly && favOf(s).some((v) => v == null);
+  return `<section class="d-sec ces-sec"><div class="sec-head"><h3>Craft Essences that suit ${esc(a.n)}</h3></div>
+    <ol class="ces-list">${list.map((r, i) => `<li class="ces-row"><span class="ces-n">${i + 1}</span>
+      <button type="button" class="ces-ce r${r.c.r}" data-action="ce-open" data-no="${r.c.no}" data-from="${a.no}" title="${esc((r.c.x && r.c.x.length ? r.c.x : r.c.e).join("\n"))}"><img src="${esc(ceFace(r.c))}" alt="" loading="lazy" decoding="async"><span><b>${esc(r.c.n)}</b><small>${r.why.map(esc).join(" · ")}</small></span></button>
+      ${add && !favOf(s).includes(r.c.no) ? `<button type="button" class="btn ghost sm ces-fav" data-action="ces-fav" data-id="${esc(s.id)}" data-no="${r.c.no}" title="Keep it in ${esc(s.name)}'s favourite Craft Essences">+ Favourite</button>` : ""}</li>`).join("")}</ol>
+    <p class="ces-note">Worked out by this page from what each Craft Essence always does at max limit break, for ${dmg ? (np.tg === "AoE" ? "an AoE" : "a single-target") + " " + esc({B: "Buster", A: "Arts", Q: "Quick"}[np.cd] || "") + " NP: its first NP's damage, and how soon it's ready" : "a support: NP at the start, NP Gain and NP each turn"}. Players' own picks aren't published anywhere, so this isn't a usage chart.</p></section>`;
+}
+// in Past Chaldea, under the skills; a Craft Essence opened from here has a way back to the servant
+const pcDetailHTML25 = pcDetailHTML;
+pcDetailHTML = function (x) {
+  const html = pcDetailHTML25(x), mine = mineMap().get(x.no), extra = ceSuggestHTML(x, mine && !mine.wish ? mine : null);
+  return extra ? html.replace(/(<section class="d-sec"><h3>Skills<\/h3>)/, extra + "$1") : html;
+};
+const ceDetailHTML25 = ceDetailHTML;
+ceDetailHTML = function (c) {
+  const html = ceDetailHTML25(c), from = pcOpen && pcOpen.from ? ATLAS_BY_NO.get(pcOpen.from) : null;
+  return from ? html.replace('<div class="pcd-top">', `<p class="pcd-back"><button type="button" class="btn ghost sm" data-action="pc-open" data-no="${from.no}">← ${esc(from.n)}</button></p><div class="pcd-top">`) : html;
+};
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest('[data-action="ce-open"][data-from], [data-action="ces-fav"]'); if (!b) return;
+  if (b.dataset.action === "ce-open") { setTimeout(() => { if (pcOpen && pcOpen.ce) { pcOpen.from = num(b.dataset.from); pcRenderDetail(); } }, 0); return; }
+  e.preventDefault(); e.stopPropagation();
+  const s = S.servants.find((x) => x.id === b.dataset.id), no = num(b.dataset.no); if (!s || S.readOnly || !CE_BY_NO.has(no)) return;
+  const fav = favOf(s), i = fav.findIndex((v) => v == null); if (i < 0) { toast(s.name + " already has five favourite Craft Essences."); return; }
+  fav[i] = no; s.favCe = fav; scheduleWrite("servants", s); pcRenderDetail(); renderDossier();
+  toastAction(CE_BY_NO.get(no).n + " is one of " + s.name + "'s favourite Craft Essences now.", "Undo", () => { const f2 = favOf(s); const j = f2.indexOf(no); if (j >= 0) { f2[j] = null; s.favCe = f2; scheduleWrite("servants", s); pcRenderDetail(); renderDossier(); } });
+}, true);
+/* ================= 0.25.0: a backdrop of a servant's own =================
+   Every servant's page wears their class's backdrop (Beast: the rainbow waves made for Space Ereshkigal). A servant
+   listed in OWN_BG gets one of their own instead: the class canvas switches to another of its existing looks, and a
+   layer of CSS (transforms and opacity only, so the graphics card stays calm) adds the rest on top.
+   - Sodom's Beast/Draco (No. 377): blazing fire from below with embers (the canvas), explosions bursting here and
+     there, and red petals blowing through.
+   - U-Olga Marie isn't on NA yet; when NA's data has her, her collection number and a look of her own go here. */
+const OWN_BG = {
+  377: {kind: "embers", acc: [255, 84, 36], m: "inferno", n: {flame: 9, boom: 6, petal: 26}}
+};
+function ownBg(s) { const a = s ? atlasOf(s) : null; return a ? OWN_BG[a.no] || null : null; }
+const fxParams25 = fxParams;
+fxParams = function (s) {
+  const p = fxParams25(s), o = ownBg(s);
+  if (o) { p.kind = o.kind; p.beast = false; p.foreign = false; p.pret = false; p.extra = o.acc; p.own = o.m; }
+  return p;
+};
+function ownBgHTML(o) {
+  let seed = 9001; const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647, h = [];
+  const v = (k, val) => "--" + k + ":" + val;
+  for (let i = 0; i < o.n.flame; i++) h.push(`<i class="ob-flame" style="${[v("x", ((i + 0.5) / o.n.flame * 100 + (r() - 0.5) * 6).toFixed(1) + "%"), v("s", (0.75 + r() * 0.7).toFixed(2)), v("d", (1.6 + r() * 1.4).toFixed(2) + "s"), v("dl", (-r() * 3).toFixed(2) + "s")].join(";")}"></i>`);
+  for (let i = 0; i < o.n.boom; i++) h.push(`<i class="ob-boom" style="${[v("x", (8 + r() * 84).toFixed(1) + "%"), v("y", (10 + r() * 62).toFixed(1) + "%"), v("s", (0.6 + r() * 0.9).toFixed(2)), v("d", (4.5 + r() * 4).toFixed(2) + "s"), v("dl", (-r() * 8).toFixed(2) + "s")].join(";")}"><b></b></i>`);
+  for (let i = 0; i < o.n.petal; i++) h.push(`<i class="ob-petal k${1 + (i % 3)}" style="${[v("x", (r() * 100).toFixed(1) + "%"), v("s", (0.6 + r() * 0.9).toFixed(2)), v("d", (8 + r() * 10).toFixed(2) + "s"), v("dl", (-r() * 18).toFixed(2) + "s"), v("r", Math.round(r() * 360) + "deg"), v("sw", ((r() - 0.5) * 30).toFixed(1) + "vw")].join(";")}"></i>`);
+  return h.join("");
+}
+let ownBgKey = "";
+function ownBgPaint() {
+  const s = S.servants.find((x) => x.id === shownId()) || null, o = ownBg(s);
+  const on = !!(o && PAGE.p && PAGE.p.own === o.m && !document.documentElement.classList.contains("story-on") && S.tab !== "event");
+  let el = document.getElementById("own-bg");
+  if (on && !el) { const pb = document.querySelector(".page-bg"); if (!pb) return; pb.insertAdjacentHTML("afterend", `<div id="own-bg" class="own-bg" aria-hidden="true"></div>`); el = document.getElementById("own-bg"); }
+  if (!el) return;
+  if (on && ownBgKey !== o.m) { ownBgKey = o.m; el.dataset.m = o.m; el.innerHTML = ownBgHTML(o); }
+  el.classList.toggle("on", on); el.classList.toggle("lt", !isDark());
+}
+const syncPageTheme25o = syncPageTheme;
+syncPageTheme = function () { const r = syncPageTheme25o.apply(this, arguments); ownBgPaint(); return r; };
+const renderChrome25o = renderChrome;
+renderChrome = function () { const r = renderChrome25o.apply(this, arguments); ownBgPaint(); return r; };
+DARK_Q.addEventListener("change", ownBgPaint);
+document.addEventListener("click", (e) => { if (e.target.closest && e.target.closest('[data-action="theme"]')) setTimeout(ownBgPaint, 0); });
+// the servant page attaches the class canvas itself when it draws
+const renderDossier25o = renderDossier;
+renderDossier = function () { const r = renderDossier25o.apply(this, arguments); ownBgPaint(); return r; };
+/* ================= 0.25.0: servant icons =================
+   The small picture next to a servant's name (the list, the servant page's heading, Parties, Ranking, Versus) used to
+   be a crop of the stage picture. For a servant in NA's data it's now the game's own face for the stage marked Icon
+   (Atlas Academy's frameless faces), and each servant can show another kind instead (`iconKind` on the servant):
+   - face: the frameless face (the default)
+   - frame: that face in a frame like the game's servant icons, with the class emblem
+   - portrait: the square portrait (stages 1–3; stage 4 uses the third)
+   - formation: the tall formation picture, its top half
+   - art: the stage picture, as before
+   - fan: a picture of your own (fan art), kept like the stage pictures (art.fan)
+   Costumes use the costume's face, portrait and formation. A picture that doesn't load falls back to the next one
+   (the stage picture, then the class emblem). On a phone, Modern's big picture tiles keep the stage picture. */
+const ICON_KINDS = [["face", "Face"], ["frame", "Servant icon"], ["portrait", "Portrait"], ["formation", "Formation"], ["art", "Stage art"], ["fan", "Fan art"]];
+const ATLAS_KIND = new Set(["face", "frame", "portrait", "formation"]);
+// which stage or costume the icon follows, as [ascension 1–4, costume id or 0]
+function iconStage(s, a) {
+  const k = iconSlot(s) || "1";
+  if (/^[1-4]$/.test(k)) return [Number(k), 0];
+  const m = /^c(\d*)$/.exec(k), j = m ? (m[1] ? Number(m[1]) - 1 : 0) : 0;
+  const cs = (a.cs || [])[j], id = cs && /CharaGraph\/(\d+)\//.exec(cs);
+  return id ? [4, Number(id[1]), j] : [4, 0];
+}
+function atlasIcon(a, kind, st) {
+  const [n, cid, j] = st, id = a.id;
+  if (kind === "portrait") return cid ? `Servants/Status/${id}/status_servant_${11 + (j || 0)}.png` : `Servants/Status/${id}/status_servant_${Math.min(3, n)}.png`;
+  if (kind === "formation") return cid ? `NarrowFigure/${cid}/${cid}@0.png` : n < 4 ? `NarrowFigure/${id}/${id}@${n - 1}.png` : `NarrowFigure/${id}/${id}_2@0.png`;
+  return cid ? `Faces/f_${cid}0.png` : `Faces/f_${id}${n - 1}.png`;
+}
+const iconKindOf = (s) => ICON_KINDS.some((k) => k[0] === s.iconKind) ? s.iconKind : "face";
+const iconHTML00 = iconHTML;
+iconHTML = function (s, size) {
+  if (!s) return iconHTML00(s, size);
+  const kind = iconKindOf(s), sz = size ? " " + size : "";
+  const k = iconSlot(s), stageArt = k ? artSrc(artOf(s, k)) : "";
+  const tail = [stageArt, CLASS_LOGO[s.cls] || ""].filter(Boolean);
+  if (kind === "fan" && artOf(s, "fan")) return `<img class="avatar k-fan${sz}" src="${esc(artSrc(artOf(s, "fan")))}" alt="" data-art="1" data-alt="${esc(tail.join("|"))}" loading="lazy">`;
+  const a = ATLAS_KIND.has(kind) || kind === "fan" ? atlasOf(s) : null;
+  if (!a || !a.id) return iconHTML00(s, size);
+  const st = iconStage(s, a), useKind = kind === "fan" ? "face" : kind, face = aimg(atlasIcon(a, "face", st));
+  const src = useKind === "frame" ? face : aimg(atlasIcon(a, useKind, st)), alts = (useKind === "face" || useKind === "frame" ? [] : [face]).concat(tail);
+  const img = `<img class="${useKind === "frame" ? "avf-face" : "avatar k-" + useKind + sz}" src="${esc(src)}" alt="" data-alt="${esc(alts.join("|"))}" loading="lazy" decoding="async">`;
+  if (useKind !== "frame") return img;
+  const r = clamp(num(s.rarity) || a.r || 1, 1, 5);
+  return `<span class="avatar k-frame r${r}${sz}" role="img" aria-label="${esc(s.name || a.n)}">${img}${CLASS_LOGO[a.c] ? `<img class="avf-cls" src="${CLASS_LOGO[a.c]}" alt="">` : ""}</span>`;
+};
+// a picture that doesn't load (offline, or not on NA's server yet): the next one
+document.addEventListener("error", (e) => {
+  const t = e.target; if (!t || t.tagName !== "IMG" || !t.dataset || !t.dataset.alt) return;
+  const [nx, ...rest] = t.dataset.alt.split("|"); t.dataset.alt = rest.join("|");
+  if (nx) { if (/^data:/.test(nx)) t.classList.add("logo"); t.src = nx; }
+}, true);
+
+// phone tiles (Modern): the big picture stays the stage picture (fan art when that's the icon; the 256-pixel
+// portrait when there's no stage picture, sharper than the face blown up)
+const rosterRowHTML25 = rosterRowHTML;
+rosterRowHTML = function (s, sel) {
+  const h = rosterRowHTML25(s, sel), k = iconSlot(s), kind = iconKindOf(s);
+  if (kind === "art") return h;
+  let src = kind === "fan" && artOf(s, "fan") ? artSrc(artOf(s, "fan")) : k ? artSrc(artOf(s, k)) : "";
+  let alt = "";
+  if (!src) { const a = atlasOf(s); if (a && a.id) { const st = iconStage(s, a); src = aimg(atlasIcon(a, "portrait", st)); alt = aimg(atlasIcon(a, "face", st)); } }
+  if (!src) return h;
+  const tile = `<img class="tile-art" src="${esc(src)}" alt=""${alt ? ` data-alt="${esc(alt)}"` : ` data-art="1"`} loading="lazy">`;
+  if (/<span class="avatar k-frame/.test(h)) return h.replace(/(<span class="avatar k-frame[^>]*>[\s\S]*?<\/span>)/, "$1" + tile);
+  return /<img class="avatar k-/.test(h) ? h.replace(/(<img class="avatar k-[^>]*>)/, "$1" + tile) : h;
+};
+
+/* ---------- the choice, on the servant page under the stages ---------- */
+function iconPickHTML(s) {
+  if (S.readOnly) return "";
+  const a = atlasOf(s), kind = iconKindOf(s), st = a && a.id ? iconStage(s, a) : null, k = iconSlot(s);
+  const opts = ICON_KINDS.filter(([key]) => ATLAS_KIND.has(key) ? !!st : key === "art" ? !!k : true);
+  if (opts.length < 2 && !S.assets) return "";
+  const prev = (key) => {
+    if (key === "fan") return artOf(s, "fan") ? `<img src="${esc(artSrc(artOf(s, "fan")))}" alt="">` : `<i class="ick-plus" aria-hidden="true">+</i>`;
+    if (key === "art") return `<img src="${esc(artSrc(artOf(s, k)))}" alt="">`;
+    return `<img class="ick-${key}" src="${esc(aimg(atlasIcon(a, key === "frame" ? "face" : key, st)))}" alt="">`;
+  };
+  const fanBtn = (key, t) => !artOf(s, "fan") && S.assets
+    ? `<label class="ick" title="Use a picture of your own (fan art) as ${esc(s.name)}'s icon">${prev(key)}<span>${t}</span><input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-icon-fan></label>`
+    : artOf(s, "fan") ? `<button type="button" class="ick" data-action="icon-kind" data-k="fan" aria-pressed="${kind === "fan"}">${prev(key)}<span>${t}</span></button>` : "";
+  return `<div class="ick-row" role="group" aria-label="Icon next to the name"><span class="ick-l">Icon</span>
+    ${opts.map(([key, t]) => key === "fan" ? fanBtn(key, t) : `<button type="button" class="ick${key === "frame" ? " is-frame r" + clamp(num(s.rarity) || 1, 1, 5) : ""}" data-action="icon-kind" data-k="${key}" aria-pressed="${kind === key || (kind === "fan" && !artOf(s, "fan") && key === "face")}">${prev(key)}<span>${t}</span></button>`).join("")}
+    ${artOf(s, "fan") && S.assets ? `<span class="ick-fan-acts"><label class="linkish">Change fan art<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-icon-fan></label> · <button type="button" class="linkish" data-action="icon-fan-del">Remove</button></span>` : ""}</div>`;
+}
+const artHTML25 = artHTML;
+artHTML = function (s) {
+  const h = artHTML25(s), pick = iconPickHTML(s);
+  return pick ? h.replace(/(<div class="stage-list"[^>]*>[\s\S]*?<\/div>)/, "$1" + pick) : h;
+};
+function iconRedraw(s) { renderList(); renderDossier(); renderParties(); if (typeof renderRanking === "function") renderRanking(); scheduleWrite("servants", s); }
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest('[data-action="icon-kind"], [data-action="icon-fan-del"]'); if (!b) return;
+  const s = S.servants.find((x) => x.id === shownId()); if (!s || S.readOnly) return;
+  if (b.dataset.action === "icon-kind") {
+    const k = b.dataset.k; if (k === "face") delete s.iconKind; else s.iconKind = k;
+    iconRedraw(s);
+    const nb = document.querySelector(`#dossier [data-action="icon-kind"][data-k="${k}"]`); if (nb) nb.focus({preventScroll: true});
+    return;
+  }
+  const old = artOf(s, "fan"); if (!old) return;
+  const art = Object.assign({}, s.art); delete art.fan; s.art = art; if (s.iconKind === "fan") delete s.iconKind;
+  iconRedraw(s); toast("Fan art removed; the face is the icon again.");
+  if (S.assets) { try { S.assets.delete(old); } catch (er) {} }
+});
+// fan art: kept like a stage picture (art.fan), and made the icon
+document.addEventListener("change", async (e) => {
+  const t = e.target; if (!t || !t.matches || !t.matches("input[data-icon-fan]")) return;
+  const f = t.files && t.files[0], id = shownId(); t.value = ""; if (!f || !id) return;
+  const s = S.servants.find((x) => x.id === id); if (!s) return;
+  const stage = s.artStage, view = S.viewStage[id];
+  await uploadArt(id, "fan", f);
+  const cur = S.servants.find((x) => x.id === id); if (!cur || !artOf(cur, "fan")) return;
+  // uploading puts the picture in front; the stage picture and the stage on show stay as they were
+  cur.artStage = stage && artOf(cur, stage) ? stage : (slotsOf(cur).find((x) => artOf(cur, x.k)) || {}).k || null;
+  if (view) S.viewStage[id] = view; else delete S.viewStage[id];
+  cur.iconKind = "fan"; iconRedraw(cur); toast("Fan art saved: it's " + cur.name + "'s icon now.");
+});
 // Where the page is scrolled when it opens (0.23.1):
 // - While the page builds itself, the browser's scroll anchoring followed the footer down as the views filled in, so a
 //   reload on a phone ended at the bottom. Anchoring is off until the page has settled.

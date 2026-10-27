@@ -14,7 +14,8 @@ INIT = "localStorage.setItem('spirit-origin-list:v1:intro','1');localStorage.set
 R = "(s) => { const e = document.querySelector(s); if (!e) return null; const r = e.getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom, r.width, r.height]; }"
 def rect(pg, sel): return pg.evaluate(R, sel)
 def inside(pg, r): return r and r[0] >= -1 and r[1] >= -1 and r[2] <= pg.evaluate("innerWidth") + 1 and r[3] <= pg.evaluate("innerHeight") + 1
-SIZES = [(1280, 720, 1), (1920, 1080, 1.125), (2560, 1440, 1.5), (3440, 1440, 1.5), (3840, 2160, 2.25)]
+# 0.25.0: (1920, 940) is a 1080p screen (or 4K at 200%) with the browser's bars, which used to stay at 1
+SIZES = [(1280, 720, 1), (1920, 1080, 1.125), (1920, 940, 1.125), (2560, 1440, 1.5), (3440, 1440, 1.725), (3840, 2160, 2.25)]
 with sync_playwright() as p:
     b = p.chromium.launch()
     for w, h, z in SIZES:

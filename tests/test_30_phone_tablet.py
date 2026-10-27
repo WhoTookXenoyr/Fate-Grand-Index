@@ -27,7 +27,8 @@ with sync_playwright() as p:
     # ---------- Modern ----------
     ctx, pg = page(b, "modern")
     check(f"Modern on a phone: the roster is tiles, two to a row ({pg.evaluate(COLS)})", pg.evaluate(COLS) == 2)
-    tile = pg.evaluate("(() => { const r = document.querySelector('#list > .row'), a = r.querySelector('.avatar, .mono-tag'); return [r.getBoundingClientRect().width, a.getBoundingClientRect().width]; })()")
+    # 0.25.0: the tile's picture is .tile-art when the small icon is the game's face
+    tile = pg.evaluate("(() => { const r = document.querySelector('#list > .row'), a = r.querySelector('.tile-art') || r.querySelector('.avatar, .mono-tag'); return [r.getBoundingClientRect().width, a.getBoundingClientRect().width]; })()")
     check(f"each tile is mostly its picture ({tile})", abs(tile[0] - tile[1]) < 4)
     n_modern = pg.evaluate(ON_SCREEN)
     pg.click('#list [data-id="oberon"]'); pg.wait_for_timeout(1000)

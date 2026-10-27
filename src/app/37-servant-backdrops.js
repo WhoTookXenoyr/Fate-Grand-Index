@@ -5,7 +5,8 @@
    - Sodom's Beast/Draco (No. 377), the Beast of Revelation: a great rose window in crimson and gold turning slowly
      behind her golden cup, a crimson glow, stars falling from heaven, and Nero's rose petals drifting down. (A first
      try with fire and explosions looked too much like the Avenger backdrop.) The canvas keeps only its quiet motes,
-     tinted gold, and the page itself takes a crimson tint (in place of the Beast's pink).
+     tinted gold, and the page itself takes a crimson tint (in place of the Beast's pink). Her art panel on the
+     SERVANTPAGE gets the golden cup too, in its empty corner, with a small rose window turning behind it.
    - U-Olga Marie isn't on NA yet; when NA's data has her, her collection number and a look of her own go here. */
 const OWN_BG = {
   377: {kind: "motes", acc: [232, 184, 74], page: [196, 22, 52], m: "revelation", n: {star: 14, petal: 18}}
@@ -28,6 +29,13 @@ function ownBgHTML(o) {
   for (let i = 0; i < (o.n.petal || 0); i++) h.push(`<i class="ob-petal k${1 + (i % 3)}" style="${[v("x", (r() * 100).toFixed(1) + "%"), v("s", (0.6 + r() * 0.9).toFixed(2)), v("d", (9 + r() * 10).toFixed(2) + "s"), v("dl", (-r() * 19).toFixed(2) + "s"), v("r", Math.round(r() * 360) + "deg"), v("sw", ((r() - 0.5) * 26).toFixed(1) + "vw")].join(";")}"></i>`);
   return h.join("");
 }
+// the servant page's art panel: a layer between its class canvas and the pictures
+const OWN_SCENE = {revelation: `<div class="os-at"><i class="os-glow"></i><i class="os-rose"></i><i class="os-cup"></i></div>`};
+const artHTML25o = artHTML;
+artHTML = function (s) {
+  const h = artHTML25o(s), o = ownBg(s), x = o && OWN_SCENE[o.m];
+  return x ? h.replace('<canvas class="scene-fx" id="scene-fx" aria-hidden="true"></canvas>', (c) => c + `<div class="own-scene" data-m="${o.m}" aria-hidden="true">${x}</div>`) : h;
+};
 let ownBgKey = "";
 function ownBgPaint() {
   const s = S.servants.find((x) => x.id === shownId()) || null, o = ownBg(s);

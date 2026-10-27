@@ -1,5 +1,6 @@
 /* ================= 0.25.0: backdrops of a servant's own (37-servant-backdrops.js) =================
    Over the class canvas, behind the page; transforms and opacity only. */
+:root { --ob-grail: url("@@asset:grail.webp@@"); }
 .own-bg { position: fixed; top: 0; left: 0; width: 100%; height: var(--bg-h, 100lvh); z-index: 0; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity 1s ease; }
 .own-bg.on { opacity: 1; }
 .own-bg i { position: absolute; display: block; }
@@ -18,7 +19,7 @@
 .own-bg.on .ob-rose { animation: ob-spin 160s linear infinite; }
 .own-bg.on .ob-rose.r2 { animation-duration: 90s; animation-direction: reverse; }
 @keyframes ob-spin { to { transform: rotate(360deg); } }
-.own-bg .ob-cup { width: 18vmin; height: 18vmin; margin: -9vmin 0 0 -9vmin; border-radius: 0; background: url("@@asset:grail.webp@@") center / contain no-repeat; opacity: .32; }
+.own-bg .ob-cup { width: 18vmin; height: 18vmin; margin: -9vmin 0 0 -9vmin; border-radius: 0; background: var(--ob-grail) center / contain no-repeat; opacity: .32; }
 .own-bg.on .ob-cup { animation: ob-cup 6s ease-in-out infinite alternate; }
 @keyframes ob-cup { from { transform: translate3d(0, -1vmin, 0); opacity: .24; } to { transform: translate3d(0, 1vmin, 0); opacity: .42; } }
 /* stars falling from heaven */
@@ -37,8 +38,22 @@
   90% { opacity: .75; }
   100% { transform: translate3d(var(--sw), calc(var(--bg-h, 100vh) * 1.08), 0) rotate(calc(var(--r) + 480deg)); opacity: 0; }
 }
+/* and on her art panel: the cup in the empty space right of the costume tiles, a small rose window turning behind it
+   (the bottom-right corner is the canvas's: the rarity stars, and the small grail above them once she's grailed) */
+.own-scene { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.own-scene .os-at { position: absolute; right: 15%; top: 36%; width: 0; height: 0; }
+.own-scene i { position: absolute; display: block; left: 0; top: 0; border-radius: 50%; }
+.own-scene .os-glow { width: 300px; height: 300px; margin: -150px; background: radial-gradient(circle, rgba(255, 222, 140, .5), rgba(196, 22, 52, .2) 45%, rgba(196, 22, 52, 0) 70%); animation: ob-glow 7s ease-in-out infinite alternate; }
+.own-scene .os-rose { width: 230px; height: 230px; margin: -115px; opacity: .6;
+  background: radial-gradient(circle, transparent 0 24%, rgba(232, 184, 74, .75) 24.6% 26%, transparent 26.6% 68.6%, rgba(232, 184, 74, .7) 69.2% 70.6%, transparent 71.2%),
+    repeating-conic-gradient(rgba(190, 16, 44, .4) 0 7deg, rgba(255, 214, 120, .35) 7deg 9deg, rgba(110, 6, 28, .28) 9deg 22.5deg);
+  -webkit-mask: radial-gradient(circle, #000 0 70.6%, transparent 71.2%); mask: radial-gradient(circle, #000 0 70.6%, transparent 71.2%); animation: ob-spin 120s linear infinite; }
+.own-scene .os-cup { width: 104px; height: 116px; margin: -64px 0 0 -52px; border-radius: 0; background: var(--ob-grail) center / contain no-repeat; opacity: .92; animation: os-cup 5s ease-in-out infinite alternate; }
+@keyframes os-cup { from { transform: translate3d(0, -5px, 0); } to { transform: translate3d(0, 5px, 0); } }
+/* on a phone the picture fills the top, so the cup goes right of the second row of tiles */
+@media (max-width: 600px) { .own-scene .os-at { right: 24%; top: 62%; transform: scale(.72); } .own-scene .os-cup { opacity: .85; } }
 .own-bg.lt .ob-glow { opacity: .45; }
 .own-bg.lt .ob-rose { opacity: .35; }
 .own-bg.lt .ob-star { background: linear-gradient(rgba(190, 130, 20, 0), rgba(180, 120, 10, .85)); }
-@media (prefers-reduced-motion: reduce) { .own-bg.on i { animation: none !important; } .own-bg.on .ob-petal, .own-bg.on .ob-star { opacity: .55; top: var(--x); } }
+@media (prefers-reduced-motion: reduce) { .own-bg.on i, .own-scene i { animation: none !important; } .own-bg.on .ob-petal, .own-bg.on .ob-star { opacity: .55; top: var(--x); } }
 @media (max-width: 900px) { html.sheet-on .own-bg { visibility: hidden; } .own-bg .ob-glow, .own-bg .ob-rose, .own-bg .ob-cup { left: 50%; top: 30%; } }

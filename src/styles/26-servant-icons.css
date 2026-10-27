@@ -26,6 +26,9 @@
 .ick.is-frame img { box-shadow: 0 0 0 2px #d4ab52; }
 .ick.is-frame.r3 img { box-shadow: 0 0 0 2px #b9bec7; }
 .ick-plus { display: grid; place-items: center; border: 1px dashed var(--muted); font-style: normal; font-size: 18px; color: var(--muted); }
-.ick input[type="file"], .ick-fan-acts input[type="file"] { display: none; }
-.ick-fan-acts { flex-basis: 100%; font-size: 12px; color: var(--muted); }
-.ick-fan-acts label { cursor: pointer; }
+.ick-note { flex-basis: 100%; margin: 2px 0 0; font-size: 12px; line-height: 1.4; color: var(--muted); }
+.ick-note .linkish { font-size: inherit; }
+/* which of NA's costumes a costume slot is: the faces with their NA names */
+.cpk-row { margin-top: 4px; }
+.ick.cpk { width: 76px; }
+.ick.cpk span { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }

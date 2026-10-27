@@ -38,7 +38,7 @@ with sync_playwright() as p:
     head = pg.evaluate("(() => { const a = document.querySelector('#dossier .d-head .avatar'); return a && a.getAttribute('src'); })()")
     check(f"and in the servant page's heading ({(head or '')[-24:]})", head and head.endswith(f"f_{CU['id']}0.png"))
     kinds = pg.evaluate("[...document.querySelectorAll('#dossier .ick-row .ick')].map(b => b.textContent.trim())")
-    check(f"the servant page offers the kinds of icon ({kinds})", kinds[:4] == ["Face", "Servant icon", "Portrait", "Formation"] and kinds[-1].endswith("Fan art"))
+    check(f"the servant page offers the kinds of icon ({kinds})", kinds[:4] == ["Face", "Servant icon", "Portrait", "Formation"] and not any("Fan art" in k for k in kinds))
     want = {"frame": ("avatar k-frame r5", f"Faces/f_{CU['id']}0.png"), "portrait": ("avatar k-portrait", f"Servants/Status/{CU['id']}/status_servant_1.png"), "formation": ("avatar k-formation", f"NarrowFigure/{CU['id']}/{CU['id']}@0.png")}
     for k, (cls, path) in want.items():
         pg.click(f'#dossier [data-action="icon-kind"][data-k="{k}"]'); pg.wait_for_timeout(500)
@@ -56,15 +56,68 @@ with sync_playwright() as p:
     pg.click('#dossier [data-action="icon-kind"][data-k="art"]'); pg.wait_for_timeout(500)
     av = pg.evaluate(AVA, "cu-chulainn-alter")
     check(f"Stage art shows the stage picture as before ({av})", av[1].endswith(CU["im"][2]) and "k-" not in av[0])
-    # fan art
-    pg.set_input_files('#dossier input[data-icon-fan]', os.path.join(sp, "ph_art.png")); pg.wait_for_timeout(1500)
+    # fan art: a tile of its own after the costumes
+    pg.click('#dossier [data-action="icon-kind"][data-k="face"]'); pg.wait_for_timeout(400)
+    order = pg.evaluate("[...document.querySelectorAll('#dossier .stage-list > .stage-btn')].map(b => b.dataset.slot || b.dataset.action)")
+    check(f"Fan art has a tile at the end of the stages and costumes ({order})", order[-1] == "fan" and "add-costume" in order and order.index("add-costume") < order.index("fan"))
+    pg.click('#dossier [data-action="stage"][data-slot="fan"]'); pg.wait_for_timeout(500)
+    check("its empty frame asks for a picture of your own", "Add fan art" in pg.locator("#dossier .art-frame").inner_text())
+    pg.set_input_files('#dossier input[data-art-file="fan"]', os.path.join(sp, "ph_art.png")); pg.wait_for_timeout(1500)
+    cu = next(x for x in pg.evaluate(LS)["servants"] if x["id"] == "cu-chulainn-alter")
+    check(f"fan art is saved like a stage picture, and the Icon stays where it was ({cu.get('artStage')})", "fan" in cu.get("art", {}) and cu.get("artStage") == "3")
+    pg.click('#dossier [data-action="stage"][data-slot="2"]'); pg.wait_for_timeout(300)
+    pg.click('#dossier [data-action="stage"][data-slot="fan"]'); pg.wait_for_timeout(700)
     cu = next(x for x in pg.evaluate(LS)["servants"] if x["id"] == "cu-chulainn-alter")
     av = pg.evaluate(AVA, "cu-chulainn-alter")
-    check(f"fan art is saved and becomes the icon ({av[0]}, {cu.get('iconKind')})", av[0].startswith("avatar k-fan") and cu.get("iconKind") == "fan" and "fan" in cu.get("art", {}))
-    check(f"the Icon stage stays as it was ({cu.get('artStage')})", cu.get("artStage") == "3")
-    pg.click('#dossier [data-action="icon-fan-del"]'); pg.wait_for_timeout(700)
+    check(f"clicking its tile makes it the icon ({av[0]}, {cu.get('artStage')})", av[0].startswith("avatar k-fan") and cu.get("artStage") == "fan" and pg.locator('#dossier .stage-btn[data-slot="fan"] .thumb.is-icon').count() == 1)
+    check("the icon row says the fan art is the icon", "fan art is the icon" in pg.locator("#dossier .ick-row").inner_text())
+    pg.click('#dossier [data-action="art-remove"][data-slot="fan"]'); pg.wait_for_timeout(300)
+    pg.click('#dossier [data-action="art-remove-go"]'); pg.wait_for_timeout(900)
     cu = next(x for x in pg.evaluate(LS)["servants"] if x["id"] == "cu-chulainn-alter")
-    check(f"Remove takes the fan art away and the face is back ({pg.evaluate(AVA, 'cu-chulainn-alter')[0]})", "fan" not in cu.get("art", {}) and "iconKind" not in cu and pg.evaluate(AVA, "cu-chulainn-alter")[0].startswith("avatar k-face"))
+    av = pg.evaluate(AVA, "cu-chulainn-alter")
+    check(f"Remove takes the fan art away and a stage's face is back ({av}, {cu.get('artStage')})", "fan" not in cu.get("art", {}) and cu.get("artStage") in ("1", "3") and av[0].startswith("avatar k-face"))
+    # fan art picked as the icon by the first 0.25.0 build (iconKind "fan") still shows, and lets go when a stage is clicked
+    pg.click('#dossier [data-action="stage"][data-slot="fan"]'); pg.wait_for_timeout(400)
+    pg.set_input_files('#dossier input[data-art-file="fan"]', os.path.join(sp, "ph_art.png")); pg.wait_for_timeout(1500)
+    data = pg.evaluate(LS); cu = next(x for x in data["servants"] if x["id"] == "cu-chulainn-alter"); cu["iconKind"] = "fan"; cu["artStage"] = "3"
+    pg.evaluate("(d) => localStorage.setItem('spirit-origin-list:v1', JSON.stringify(d))", data); pg.reload(); pg.wait_for_timeout(1500)
+    check("an older fan art icon still shows", pg.evaluate(AVA, "cu-chulainn-alter")[0].startswith("avatar k-fan"))
+    pg.click('#list [data-id="cu-chulainn-alter"]'); pg.wait_for_timeout(900)
+    pg.click('#dossier [data-action="stage"][data-slot="3"]'); pg.wait_for_timeout(700)
+    cu = next(x for x in pg.evaluate(LS)["servants"] if x["id"] == "cu-chulainn-alter")
+    check(f"and a click on a stage hands the icon back ({pg.evaluate(AVA, 'cu-chulainn-alter')})", "iconKind" not in cu and pg.evaluate(AVA, "cu-chulainn-alter")[1] == f"Faces/f_{CU['id']}2.png")
+
+    # ---------- costumes: the icon is the costume's own, found by its name ----------
+    A = "https://static.atlasacademy.io/NA/"
+    data = pg.evaluate(LS)
+    data["servants"].insert(0, {"id": "mash", "name": "Mash Kyrielight", "cls": "Shielder", "rarity": 4, "level": 90, "npLevel": 5, "atlas": 1, "costumeSlots": 5, "artStage": "c2",
+        "art": {"1": A + "CharaGraph/800100/800100a@1.png", "c": A + "Status/x/mash-c.png", "c2": A + "Status/x/mash-c2.png", "c3": A + "Status/x/mash-c3.png", "c4": A + "Status/x/mash-c4.png", "c5": A + "CharaGraph/800150/800150a.png"},
+        "artNames": {"c": "Swimsuit of Perpetual Summer", "c2": "Swimsuit of Perpetual Summer Ver.02", "c3": "Bright Voyager", "c4": "Swimsuit of Perpetual Summer Ver.03"}})
+    pg.evaluate("(d) => localStorage.setItem('spirit-origin-list:v1', JSON.stringify(d))", data); pg.reload(); pg.wait_for_timeout(1500)
+    av = pg.evaluate(AVA, "mash")
+    check(f"Mash with Swimsuit of Perpetual Summer Ver.02 as Icon: that swimsuit's face, NA's Ver. 02 (No. 800160) ({av})", av[1] == "Faces/f_8001600.png")
+    pg.click('#list [data-id="mash"]'); pg.wait_for_timeout(900)
+    got = {}
+    for k in ["c", "c3", "c4", "c5", "c2"]:
+        pg.click(f'#dossier [data-action="stage"][data-slot="{k}"]'); pg.wait_for_timeout(450); got[k] = pg.evaluate(AVA, "mash")
+    check(f"Swimsuit of Perpetual Summer is NA's Swimsuit of Everlasting Summer ({got['c'][1]})", got["c"][1] == "Faces/f_8001300.png")
+    check(f"Bright Voyager is Bright Voyager ({got['c3'][1]})", got["c3"][1] == "Faces/f_8001700.png")
+    check(f"a Ver.03 NA doesn't have uses its own picture ({got['c4']})", got["c4"][1].endswith("mash-c4.png") and "k-" not in got["c4"][0])
+    check(f"an unnamed slot with NA's picture is that costume (Ortinax (Refurbished)) ({got['c5'][1]})", got["c5"][1] == "Faces/f_8001500.png")
+    for k, path in {"portrait": "Servants/Status/800100/status_servant_14.png", "formation": "NarrowFigure/800160/800160@0.png"}.items():
+        pg.click(f'#dossier [data-action="icon-kind"][data-k="{k}"]'); pg.wait_for_timeout(450)
+        check(f"its {k} is the costume's too ({pg.evaluate(AVA, 'mash')[1]})", pg.evaluate(AVA, "mash")[1] == path)
+    pg.click('#dossier [data-action="icon-kind"][data-k="face"]'); pg.wait_for_timeout(400)
+    on = pg.evaluate("[...document.querySelectorAll('#dossier .cpk[aria-pressed=\"true\"]')].map(b => b.title || b.textContent.trim())")
+    check(f"under the costume's name, NA's costume it was matched to ({on})", on == ["Swimsuit of Everlasting Summer Ver. 02"])
+    pg.click('#dossier [data-action="stage"][data-slot="c4"]'); pg.wait_for_timeout(450)
+    check("the Ver.03 shows Not on NA", pg.evaluate("[...document.querySelectorAll('#dossier .cpk[aria-pressed=\"true\"] span')].map(s => s.textContent.trim())") == ["Not on NA"])
+    pg.click('#dossier [data-action="cos-pick"][data-cos="800140"]'); pg.wait_for_timeout(600)
+    m = next(x for x in pg.evaluate(LS)["servants"] if x["id"] == "mash")
+    check(f"picking one by hand is kept, and the icon follows ({m.get('artCos')}, {pg.evaluate(AVA, 'mash')[1]})", m.get("artCos") == {"c4": 800140} and pg.evaluate(AVA, "mash")[1] == "Faces/f_8001400.png")
+    pg.click("#toast .toast-btn"); pg.wait_for_timeout(600)
+    m = next(x for x in pg.evaluate(LS)["servants"] if x["id"] == "mash")
+    check(f"and Undo takes it back ({m.get('artCos')})", "artCos" not in m and pg.evaluate(AVA, "mash")[1].endswith("mash-c4.png"))
 
     # ---------- Craft Essences that suit a servant ----------
     pg.click("#tab-past"); pg.wait_for_timeout(700)

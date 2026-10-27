@@ -3,7 +3,10 @@
     python3 tools/gen_atlas.py
 
 Reads data/atlas/servants.json and data/atlas/ces.json (or the .json.gz copies kept in the repo):
-the Atlas Academy "nice" NA exports of servants and Craft Essences, in English.
+the Atlas Academy "nice" NA exports of servants and Craft Essences, in English. data/atlas/costumes.json has the
+costume names, which the export leaves out (they're in the lore): {servant id: [[battleCharaId, limitCount,
+costumeCollectionNo, name, shortName], ...]}, from https://api.atlasacademy.io/nice/NA/servant/<id>?lore=true
+(profile.costume) for every servant with a costume; fetch it again when NA adds costumes.
 Run python3 tools/build.py afterwards to put the new data into the page.
 """
 import gzip, json, os, re, sys
@@ -12,6 +15,7 @@ ATLAS = os.path.join(ROOT, "data", "atlas")
 _open = lambda p: open(p, encoding="utf-8") if os.path.exists(p) else gzip.open(p + ".gz", "rt", encoding="utf-8")
 S = json.load(_open(os.path.join(ATLAS, "servants.json")))
 C = json.load(_open(os.path.join(ATLAS, "ces.json")))
+COSTUMES = json.load(_open(os.path.join(ATLAS, "costumes.json")))
 BASE = "https://static.atlasacademy.io/NA/"
 def p(url): return url[len(BASE):] if url and url.startswith(BASE) else url
 
@@ -390,6 +394,12 @@ for x in S:
            "im": [p(asc[k]) for k in sorted(asc, key=int)], "cs": [p(cos[k]) for k in sorted(cos, key=int)],
            "f": p(face.get("1") or next(iter(face.values()), "")), "sa": x.get("starAbsorb"), "sg": x.get("starGen"), "dt": x.get("instantDeathChance"), "gc": x.get("growthCurve")}
     if x["type"] == "heroine": rec["h"] = 1
+    # 0.25.0: the costumes' NA names, in the order of "cs" (the servant icons match a costume slot to one by its name)
+    if cos:
+        lore = {str(c[0]): c for c in COSTUMES.get(str(x["id"]), [])}
+        missing = [k for k in cos if k not in lore]
+        if missing: print("no costume name for", x["collectionNo"], missing, "- fetch data/atlas/costumes.json again", file=sys.stderr)
+        rec["csn"] = [(lore[k][3] if k in lore else "").strip() for k in sorted(cos, key=int)]
     am, sm = x.get("ascensionMaterials") or {}, x.get("skillMaterials") or {}
     rec["ma"] = mats([am.get(str(k)) for k in range(4)]); rec["ms"] = mats([sm.get(str(k)) for k in range(1, 10)])
     # 0.24.0: QP per ascension and skill level, append skills (the same few for everyone, kept once in ATLAS_APPENDS), their

@@ -94,7 +94,7 @@ renderFoot = function () { const r = renderFoot26.apply(this, arguments); acctPa
 
 /* ---------- the window ---------- */
 const ACCT = {root: document.createElement("div"), view: "signin", busy: false, err: "", code: null, after: null, sessions: null, open: {}};
-ACCT.root.className = "cep acct"; ACCT.root.hidden = true; ACCT.root.setAttribute("role", "dialog"); ACCT.root.setAttribute("aria-modal", "true"); ACCT.root.setAttribute("aria-labelledby", "acct-t");
+ACCT.root.className = "acct"; ACCT.root.hidden = true; ACCT.root.setAttribute("role", "dialog"); ACCT.root.setAttribute("aria-modal", "true"); ACCT.root.setAttribute("aria-labelledby", "acct-t");
 document.body.appendChild(ACCT.root);
 function acctOpen(view) {
   if (!API.on) return;

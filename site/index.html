@@ -10099,7 +10099,7 @@ renderAll = function () { renderAll13(); renderFillNote(); };
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.25.0";
+const APP_VER = "0.26.0";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -10261,6 +10261,16 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.26.0", d: "28 Oct 2026", t: "Online: accounts, an app and friends", i: [
+    "<b>Fate/Grand Index is online</b>, and can be installed as an app: Install the app in Chrome and Edge, Share → Add to Home Screen on an iPhone. It opens without a connection, and says when a new version is ready.",
+    "<b>Accounts</b>: sign in with an email and password, Discord or Google. Your servants, parties, Guests, uploaded pictures and the things the page remembers (progress log, tiers, story progress…) sync to every device you sign in on. Everything is still saved in the browser first, so it works offline and syncs when it can.",
+    "No emails are sent: a new account gets a <b>recovery code</b>, shown once, for a forgotten password. Your password never leaves your browser; only a key made from it does.",
+    "The first time a browser with a roster of its own signs in, it asks what to do: use the account's roster, keep this browser's, or combine them, with a backup first if you like.",
+    "<b>Friends</b>: a friend code like the game's, friend requests by code or name, and your friends' rosters to look at (read-only). Who sees yours is up to you: only you, your friends, or anyone with your link.",
+    "<b>Supports</b>: lend up to 10 servants. Friends can borrow them in the damage calculator's support window, and put them next to their own in Versus.",
+    "<b>What your friends are up to</b>: who summoned, grailed, raised an NP, maxed skills or reached a Bond level, on the Friends tab. Yours can be turned off in your account.",
+    "The file you open from your computer works as before and keeps everything in that browser. To bring its roster online: Export → Full backup there, then Import on the site.",
+    "Start fresh while signed in empties your account too (the window says so), or your other devices would bring it all back."]},
   {v: "0.25.0", d: "27 Oct 2026", t: "Servant icons, Craft Essence picks and an easier support picker", i: [
     "<b>Servant icons</b>: the small picture next to a servant's name is now the game's own face for the stage or costume you marked as Icon. On the SERVANTPAGE, under the stages, pick another kind: a framed servant icon with the class emblem, the portrait, the formation picture, or the stage picture as before. On a phone, Modern's picture tiles keep a big picture.",
     "Costumes are matched to NA's by name, so the icon is that costume's own (Swimsuit of Perpetual Summer Ver.02 finds NA's Swimsuit of Everlasting Summer Ver. 02). Under a costume's name, <b>In the game</b> shows which one it found; pick another if it's wrong, or Not on NA for a costume NA doesn't have (its own picture is the icon then).",
@@ -15281,7 +15291,7 @@ renderFoot = function () { const r = renderFoot26.apply(this, arguments); acctPa
 
 /* ---------- the window ---------- */
 const ACCT = {root: document.createElement("div"), view: "signin", busy: false, err: "", code: null, after: null, sessions: null, open: {}};
-ACCT.root.className = "cep acct"; ACCT.root.hidden = true; ACCT.root.setAttribute("role", "dialog"); ACCT.root.setAttribute("aria-modal", "true"); ACCT.root.setAttribute("aria-labelledby", "acct-t");
+ACCT.root.className = "acct"; ACCT.root.hidden = true; ACCT.root.setAttribute("role", "dialog"); ACCT.root.setAttribute("aria-modal", "true"); ACCT.root.setAttribute("aria-labelledby", "acct-t");
 document.body.appendChild(ACCT.root);
 function acctOpen(view) {
   if (!API.on) return;
@@ -15871,8 +15881,9 @@ const FSV = new Map(); // "f:<friend id>:<servant id>" -> the servant, with .fr 
 let FSUP = []; // [{user, supports: [servant]}] for the calculator
 
 /* ---------- the tab ---------- */
-TABS.push("friends");
-(function () {
+// only on the hosted site: the file people open from their computer has no accounts, so no Friends tab
+if (HOSTED) TABS.push("friends");
+if (HOSTED) (function () {
   const nav = document.querySelector(".tabs"), past = document.getElementById("tab-past");
   const b = document.createElement("button");
   b.className = "tab"; b.setAttribute("role", "tab"); b.id = "tab-friends"; b.dataset.action = "tab"; b.dataset.tab = "friends"; b.setAttribute("aria-selected", "false"); b.textContent = "Friends"; b.hidden = true;
@@ -15895,7 +15906,7 @@ renderChrome = function () {
 };
 const acctPaint26f = acctPaint;
 acctPaint = function () { const r = acctPaint26f.apply(this, arguments); const b = document.getElementById("tab-friends"); if (b) b.hidden = !API.on; if (S.tab === "friends") renderFriends(); return r; };
-if (typeof FOOT_TABS !== "undefined") FOOT_TABS.push(["friends", "Friends"]);
+if (HOSTED && typeof FOOT_TABS !== "undefined") FOOT_TABS.push(["friends", "Friends"]);
 
 async function frLoad(quiet) {
   if (!API.user || API.offline || FR.busy) return;

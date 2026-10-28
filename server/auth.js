@@ -43,7 +43,10 @@ const rcHash = async (env, c) => b64url(await hmac(pepper(env), "rc|" + rcNorm(c
 
 // guessing passwords, codes or making many accounts gets slowed down: at most `limit` tries per window
 export async function throttle(env, key, limit, windowMs) {
-  const t = now(), row = await env.DB.prepare("SELECT n, until FROM throttle WHERE k = ?").bind(key).first();
+  const t = now();
+  // now and then, old counters and ended sessions are cleared away
+  if (Math.random() < 0.03) await env.DB.batch([env.DB.prepare("DELETE FROM throttle WHERE until < ?").bind(t), env.DB.prepare("DELETE FROM sessions WHERE expires < ?").bind(t)]);
+  const row = await env.DB.prepare("SELECT n, until FROM throttle WHERE k = ?").bind(key).first();
   if (row && row.until > t && row.n >= limit) fail(429, "slow_down", "Too many tries. Wait " + Math.ceil((row.until - t) / 60000) + " minutes and try again.", {retry: Math.ceil((row.until - t) / 1000)});
   if (!row || row.until <= t) await env.DB.prepare("INSERT OR REPLACE INTO throttle (k, n, until) VALUES (?, 1, ?)").bind(key, t + windowMs).run();
   else await env.DB.prepare("UPDATE throttle SET n = n + 1 WHERE k = ?").bind(key).run();

@@ -47,3 +47,39 @@ jobs:
           name: test-screenshots
           path: build/test-work/*.png
           retention-days: 7
+
+  hosted:
+    # 0.26.0: the hosted site's server (functions/, server/) in a local copy of Cloudflare, and the site in a browser
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Wrangler (Cloudflare's local copy) and Playwright
+        run: |
+          cd tools/dev && npm install --no-audit --no-fund && cd ../..
+          pip install -r tests/requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Build
+        run: python tools/build.py
+
+      - name: The server (R2 pictures, then pictures in D1)
+        env:
+          WRANGLER_SEND_METRICS: "false"
+        run: |
+          python tests/api/test_api.py
+          python tests/api/test_api.py --d1-pics
+
+      - name: The site in a browser
+        env:
+          WRANGLER_SEND_METRICS: "false"
+        run: python tests/api/test_hosted_ui.py

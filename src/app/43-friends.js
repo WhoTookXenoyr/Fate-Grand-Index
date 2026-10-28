@@ -15,8 +15,9 @@ const FSV = new Map(); // "f:<friend id>:<servant id>" -> the servant, with .fr 
 let FSUP = []; // [{user, supports: [servant]}] for the calculator
 
 /* ---------- the tab ---------- */
-TABS.push("friends");
-(function () {
+// only on the hosted site: the file people open from their computer has no accounts, so no Friends tab
+if (HOSTED) TABS.push("friends");
+if (HOSTED) (function () {
   const nav = document.querySelector(".tabs"), past = document.getElementById("tab-past");
   const b = document.createElement("button");
   b.className = "tab"; b.setAttribute("role", "tab"); b.id = "tab-friends"; b.dataset.action = "tab"; b.dataset.tab = "friends"; b.setAttribute("aria-selected", "false"); b.textContent = "Friends"; b.hidden = true;
@@ -39,7 +40,7 @@ renderChrome = function () {
 };
 const acctPaint26f = acctPaint;
 acctPaint = function () { const r = acctPaint26f.apply(this, arguments); const b = document.getElementById("tab-friends"); if (b) b.hidden = !API.on; if (S.tab === "friends") renderFriends(); return r; };
-if (typeof FOOT_TABS !== "undefined") FOOT_TABS.push(["friends", "Friends"]);
+if (HOSTED && typeof FOOT_TABS !== "undefined") FOOT_TABS.push(["friends", "Friends"]);
 
 async function frLoad(quiet) {
   if (!API.user || API.offline || FR.busy) return;

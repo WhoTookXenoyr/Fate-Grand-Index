@@ -2,7 +2,7 @@
    The page (one big file) and its icons are kept in a cache named after this build. Opening the app shows the kept copy
    at once, online or not; meanwhile the browser checks for a newer sw.js, and when one is there the page offers to
    reload into the new version (40-app.js). /api/ never comes from the cache: the roster syncs itself. */
-const V = "fgi-aa9105472249";
+const V = "fgi-9d326aee33f1";
 const SHELL = ["./", "manifest.webmanifest", "icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "icons/apple-touch-icon.png"];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(V).then((c) => c.addAll(SHELL.map((u) => new Request(u, {cache: "reload"})))));

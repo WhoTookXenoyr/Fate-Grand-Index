@@ -5,18 +5,14 @@ activity, shared links, Discord/Google sign-in and deleting an account.
     python3 tests/api/test_api.py            (needs tools/dev/node_modules, see tools/dev/serve.py; or WRANGLER=path)
     python3 tests/api/test_api.py --d1-pics  pictures in the database instead of R2
 """
-import base64, hashlib, http.cookiejar, json, os, shutil, socket, subprocess, sys, tempfile, time, urllib.error, urllib.parse, urllib.request
-HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(os.path.dirname(HERE))
-sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(ROOT, "tools", "dev"))
-import oauth_mock, serve
+import base64, hashlib, http.cookiejar, json, os, sys, urllib.error, urllib.parse, urllib.request
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import hosted
 
 fails = []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label, flush=True)
     if not ok: fails.append(label)
-
-def free_port():
-    s = socket.socket(); s.bind(("127.0.0.1", 0)); p = s.getsockname()[1]; s.close(); return p
 
 def key_of(email, password):
     # what the page sends: PBKDF2-SHA256, 600,000 rounds, salted with the email (41-account.js)
@@ -61,26 +57,9 @@ class Client:
 
 def main():
     d1_pics = "--d1-pics" in sys.argv
-    mport, port = free_port(), free_port()
-    oauth_mock.start(mport)
-    state = tempfile.mkdtemp(prefix="fgi-api-")
-    env = dict(os.environ, WRANGLER_SEND_METRICS="false", NO_PROXY="127.0.0.1,localhost", no_proxy="127.0.0.1,localhost")
-    cmd = serve.command(port=port, seeded=True, d1_pics=d1_pics, mock_oauth="http://127.0.0.1:%d" % mport, state=state)
-    log = open(os.path.join(state, "wrangler.log"), "w")
-    proc = subprocess.Popen(cmd, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT)
-    base = "http://127.0.0.1:%d" % port
-    try:
-        for _ in range(90):
-            try: urllib.request.urlopen(base + "/api/me", timeout=2); break
-            except urllib.error.HTTPError: break
-            except Exception: time.sleep(1)
+    with hosted.server(seeded=True, d1_pics=d1_pics) as (base, mport):
         run(base, mport, d1_pics)
-    finally:
-        proc.terminate()
-        try: proc.wait(10)
-        except Exception: proc.kill()
-        if fails: print(open(os.path.join(state, "wrangler.log")).read()[-3000:])
-        shutil.rmtree(state, ignore_errors=True)
+    if fails: print(hosted.server.log[-3000:])
     print("ALL PASSED" if not fails else "FAILED %d: %s" % (len(fails), fails))
     sys.exit(1 if fails else 0)
 

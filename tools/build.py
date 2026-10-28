@@ -96,7 +96,18 @@ def site_files(html):
     sw = read("site", "sw.js")
     if sw.count("@@version@@") != 1: raise SystemExit("src/site/sw.js must have exactly one @@version@@")
     out = {"index.html": index.encode(), "sw.js": sw.replace("@@version@@", version).encode()}
-    for name in ("manifest.webmanifest", "_headers", "icon.svg"): out[name] = read("site", name).encode()
+    for name in ("manifest.webmanifest", "icon.svg"): out[name] = read("site", name).encode()
+    # the page's two scripts are allowed by their hashes, and nothing else runs: a name or note from someone else's
+    # roster can't carry a script (friends' rosters and shared links show other people's data on this page)
+    hashes = " ".join("'sha256-%s'" % base64.b64encode(hashlib.sha256(s.encode()).digest()).decode()
+                      for s in re.findall(r"<script>(.*?)</script>", index, re.S))
+    csp = ("default-src 'self'; script-src %s; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+           "font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; "
+           "connect-src 'self' https:; worker-src 'self'; manifest-src 'self'; frame-src 'none'; object-src 'none'; "
+           "base-uri 'none'; form-action 'self'; frame-ancestors 'none'") % hashes
+    headers = read("site", "_headers").rstrip("\n") + "\n"
+    for path in ("/", "/index.html"): headers += "%s\n  Content-Security-Policy: %s\n" % (path, csp)
+    out["_headers"] = headers.encode()
     for name in sorted(os.listdir(os.path.join(SRC, "site", "icons"))):
         with open(os.path.join(SRC, "site", "icons", name), "rb") as f: out["icons/" + name] = f.read()
     return out

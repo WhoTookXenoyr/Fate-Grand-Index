@@ -2,7 +2,12 @@
 
     python3 tools/build.py            writes dist/Fate_Grand_Index.html (empty roster, the file people use)
                                       and build/seeded.html (sample roster from tests/fixtures, for tests)
-    python3 tools/build.py --check    builds in memory and fails if dist/ is not what src/ gives
+    python3 tools/build.py --check    builds in memory and fails if dist/ or site/ is not what src/ gives
+
+It also writes site/, the folder Cloudflare Pages serves (0.26.0): the same page as index.html with the app's manifest
+and icons linked (src/site/head.html), the service worker (src/site/sw.js, named after this build so a new build is
+noticed), the manifest, the icons and _headers. The /api/ part comes from functions/ and server/, which Pages deploys
+next to it. build/site-seeded/ is the same with the sample roster, for tests.
 
 How src/ fits together:
   src/page.html      the page; @@styles@@ and @@app@@ mark where the style sheets and the script go
@@ -19,6 +24,8 @@ import base64, json, os, re, shutil, subprocess, sys, tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "src")
 DIST = os.path.join(ROOT, "dist", "Fate_Grand_Index.html")
+SITE = os.path.join(ROOT, "site")
+SITE_SEEDED = os.path.join(ROOT, "build", "site-seeded")
 SEEDED = os.path.join(ROOT, "build", "seeded.html")
 SAMPLE = os.path.join(ROOT, "tests", "fixtures", "sample-roster.json")
 EMPTY = {"servants": [], "parties": [], "guests": []}
@@ -79,6 +86,29 @@ def write(path, text):
     with open(path, "w", encoding="utf-8", newline="") as f: f.write(text)
 
 
+def site_files(html):
+    """{relative path: bytes} for the hosted site built from one page"""
+    import hashlib
+    head = read("site", "head.html")
+    if html.count("</head>") != 1: raise SystemExit("src/page.html must have exactly one </head>")
+    index = html.replace("</head>", head + "</head>")
+    version = hashlib.sha256(index.encode()).hexdigest()[:12]
+    sw = read("site", "sw.js")
+    if sw.count("@@version@@") != 1: raise SystemExit("src/site/sw.js must have exactly one @@version@@")
+    out = {"index.html": index.encode(), "sw.js": sw.replace("@@version@@", version).encode()}
+    for name in ("manifest.webmanifest", "_headers", "icon.svg"): out[name] = read("site", name).encode()
+    for name in sorted(os.listdir(os.path.join(SRC, "site", "icons"))):
+        with open(os.path.join(SRC, "site", "icons", name), "rb") as f: out["icons/" + name] = f.read()
+    return out
+
+
+def write_site(folder, files):
+    if os.path.isdir(folder): shutil.rmtree(folder)
+    for rel, data in files.items():
+        path = os.path.join(folder, *rel.split("/")); os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "wb") as f: f.write(data)
+
+
 def main():
     check = "--check" in sys.argv[1:]
     html, app = page(EMPTY)
@@ -86,12 +116,18 @@ def main():
     if check:
         with open(DIST, encoding="utf-8", newline="") as f:
             if f.read() != html: raise SystemExit("dist/Fate_Grand_Index.html is out of date: run python3 tools/build.py and commit it")
-        print("dist/Fate_Grand_Index.html matches src/")
+        for rel, data in site_files(html).items():
+            path = os.path.join(SITE, *rel.split("/"))
+            if not os.path.exists(path) or open(path, "rb").read() != data: raise SystemExit("site/%s is out of date: run python3 tools/build.py and commit it" % rel)
+        print("dist/Fate_Grand_Index.html and site/ match src/")
         return
     write(DIST, html)
+    write_site(SITE, site_files(html))
     with open(SAMPLE, encoding="utf-8") as f: sample = json.load(f)
-    write(SEEDED, page(sample)[0])
-    print("built dist/Fate_Grand_Index.html (%s bytes) and build/seeded.html" % format(len(html.encode()), ","))
+    seeded = page(sample)[0]
+    write(SEEDED, seeded)
+    write_site(SITE_SEEDED, site_files(seeded))
+    print("built dist/Fate_Grand_Index.html (%s bytes), site/, build/seeded.html and build/site-seeded/" % format(len(html.encode()), ","))
 
 
 if __name__ == "__main__":

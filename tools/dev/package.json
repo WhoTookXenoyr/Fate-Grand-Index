@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "description": "Local copy of Cloudflare for trying the hosted site and its /api/ (see tools/dev/serve.py)",
+  "devDependencies": {"wrangler": "4.145.0"}
+}

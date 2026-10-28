@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "Fate/Grand Index",
+  "short_name": "F/GI",
+  "description": "A Fate/Grand Order index with your own Spirit Origin List: servants, parties, rankings, the story and NA's events.",
+  "start_url": "./?source=app",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#110d17",
+  "theme_color": "#1c1624",
+  "categories": ["games", "utilities"],
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
+    {"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
+  ]
+}

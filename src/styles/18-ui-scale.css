@@ -1,0 +1,23 @@
+/* 0.24.0: on big screens the interface grows with the screen, so 1440p and 4K look like a bigger 1080p instead of a
+   narrow strip with small text in the middle. --ui-z (27-stable-background.js) is about 1.13 at 1080p, 1.5 at 1440p and
+   3440x1440, 2.25 at 4K, and 1 on phones, tablets and 720p. The page and the dialogs, menus and tips on top of it are
+   zoomed by it; the background stays the size of the screen. Inside a zoomed part, viewport sizes (vw, vh) are zoomed
+   too, so the few rules that use them are divided back; places set from measurements are divided in the script. */
+.shell, .pcd, .cep, dialog.dlg, .ic-pick, .tier-menu, .vs-tip, .tier-ghost, #toast { zoom: var(--ui-z, 1); }
+/* wider than 16:9 (an ultrawide screen) gets a wider page, up to 82% of the screen */
+.shell { max-width: max(1260px, min(calc(100vw / var(--ui-z, 1) * .82), 1720px)); }
+@media (min-width: 901px) {
+  /* (only beside the list: on a phone the servant page fills the screen, max-height: none) */
+  .dossier { max-height: calc(100dvh / var(--ui-z, 1) - 32px); }
+  html[data-layout="compact"] .dossier { top: calc(3vh / var(--ui-z, 1)); bottom: calc(3vh / var(--ui-z, 1)); width: min(1180px, calc(100vw / var(--ui-z, 1) - 48px)); }
+}
+.cmp-x { top: calc(3vh / var(--ui-z, 1) - 15px); left: calc(50% + min(1180px, 100vw / var(--ui-z, 1) - 48px) / 2 - 25px); }
+/* (the Craft Essence picker fills a phone's screen: 12-craft-essences.css, 600 px and narrower) */
+@media (min-width: 601px) {
+  .cep { padding: calc(3vh / var(--ui-z, 1)) 16px; }
+  .cep-panel { max-height: calc(94vh / var(--ui-z, 1)); }
+}
+.dlg { max-height: calc(100dvh / var(--ui-z, 1) - 48px); }
+.ic-pick { width: min(392px, calc(100vw / var(--ui-z, 1) - 16px)); max-height: min(480px, calc(100vh / var(--ui-z, 1) - 16px)); }
+.tier-menu { width: min(280px, calc(100vw / var(--ui-z, 1) - 16px)); }
+.vs-tip { max-width: min(320px, calc(100vw / var(--ui-z, 1) - 16px)); }

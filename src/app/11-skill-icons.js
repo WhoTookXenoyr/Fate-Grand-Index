@@ -204,11 +204,17 @@ icQ.addEventListener("input", icFilter);
 function placePick(anchor) {
   if (window.matchMedia("(max-width: 640px)").matches) { icPick.classList.add("sheet"); icPick.style.left = icPick.style.top = ""; return; }
   icPick.classList.remove("sheet");
-  const r = anchor.getBoundingClientRect(), w = icPick.offsetWidth, h = icPick.offsetHeight;
-  let x = r.left - 8, y = r.bottom + 6;
-  x = clamp(x, 8, window.innerWidth - w - 8);
-  if (y + h > window.innerHeight - 8) y = Math.max(8, r.top - h - 6);
-  icPick.style.left = x + "px"; icPick.style.top = y + "px";
+  // under its button, or over it; when it fits neither way, on the side with more room, shortened to fit (0.24.0: it used
+  // to be pushed up to the top of the screen, over its own button)
+  icPick.style.maxHeight = "";
+  const r = anchor.getBoundingClientRect(), pr = icPick.getBoundingClientRect(), w = pr.width, h = pr.height;
+  const below = window.innerHeight - r.bottom - 14, above = r.top - 14;
+  let x = clamp(r.left - 8, 8, window.innerWidth - w - 8), y;
+  if (h <= below) y = r.bottom + 6;
+  else if (h <= above) y = r.top - h - 6;
+  else if (below >= above) { y = r.bottom + 6; icPick.style.maxHeight = Math.max(160, below) / UI_Z + "px"; }
+  else { const hh = Math.max(160, above); y = r.top - hh - 6; icPick.style.maxHeight = hh / UI_Z + "px"; }
+  icPick.style.left = x / UI_Z + "px"; icPick.style.top = y / UI_Z + "px";
 }
 function openPick(btn) {
   const s = S.servants.find((x) => x.id === btn.dataset.sid); if (!s) return;

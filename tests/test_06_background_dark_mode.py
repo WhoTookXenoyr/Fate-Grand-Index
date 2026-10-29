@@ -48,7 +48,7 @@ with sync_playwright() as p:
     check("and back to light", pg.evaluate("document.documentElement.dataset.theme") == "light")
 
     # ---- Guests: tab gone, wishlist renamed, old guests moved over
-    check("Guests tab removed", pg.locator('#tab-guests').count() == 0 and pg.locator(".tabs .tab").count() == 7)
+    check("Guests tab removed (eight tabs since Story joined in 0.24.0)", pg.locator('#tab-guests').count() == 0 and pg.locator(".tabs .tab").count() == 8)
     head = pg.locator(".wish-head h2").inner_text()
     check(f"wishlist is now 'Guests' ({head!r})", head.startswith("Guests") and pg.locator('[data-action="add-wish"]').inner_text().strip() == "+ Add guest")
     d = pg.evaluate(LS)

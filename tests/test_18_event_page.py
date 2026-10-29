@@ -197,14 +197,14 @@ visible_text = lambda pg: pg.locator(PANE).inner_text()
 
 with sync_playwright() as p:
     ctx, pg = page(p)
-    pg.goto(SEEDED + "#home"); pg.wait_for_selector("#home .hm-b-live .lv-cols", timeout=20000); pg.wait_for_timeout(500)
+    pg.goto(SEEDED + "#home"); pg.wait_for_selector("#home .hb-ev", timeout=20000); pg.wait_for_timeout(500)
     r0 = {k: v for k, v in json.loads(pg.evaluate("localStorage.getItem('spirit-origin-list:v1')")).items() if k != "savedAt"}
-    link = pg.locator('#home .hm-b-live [data-action="ev-open"]', has_text="Test Halloween Rising").first
-    check("On NA now: the event's name opens its page", link.count() == 1)
+    link = pg.locator('#home .hb-ev [data-action="ev-open"]', has_text="Test Halloween Rising").first
+    check("Home's board: the event's card opens its page", link.count() == 1)
     link.click(); pg.wait_for_selector(f"{EVP} .ev-title", timeout=20000); pg.wait_for_selector(f"{PANE} .ewt", timeout=20000); pg.wait_for_timeout(1200)
     check(f"the Event page has its own address ({pg.evaluate('location.hash')})", pg.evaluate("location.hash").startswith(f"#event/{EID}") and pg.locator("#view-event").is_visible() and pg.locator("#view-home").is_hidden())
     check("opening an event moves focus to its page", pg.evaluate("document.activeElement && document.activeElement.id") in ("event", "evt-main-info"))
-    check("no tab of the site is selected, the tab bar still has seven", pg.locator('.tabs .tab[aria-selected="true"]').count() == 0 and pg.locator(".tabs .tab").count() == 7)
+    check("no tab of the site is selected, the tab bar still has eight (Story joined in 0.24.0)", pg.locator('.tabs .tab[aria-selected="true"]').count() == 0 and pg.locator(".tabs .tab").count() == 8)
     head = pg.locator(f"{EVP} .ev-head").inner_text()
     check("header: name, countdown, the event's banner and where the tabs come from", "Test Halloween Rising" in head and re.search(r"ends in \d+d \d+h", head) is not None and pg.locator(f"{EVP} .ev-bn").count() == 1 and WT_PAGE in head)
     names = tab_names(pg)
@@ -345,7 +345,7 @@ with sync_playwright() as p:
 
     # ---- the guarantee for a featured ★5 who isn't on your list
     pg.click("#tab-home"); pg.wait_for_timeout(600)
-    pg.locator("#home .lv-ban", has_text="Fes. 2026").locator('[data-action="ev-sim"]').click(); pg.wait_for_timeout(900)
+    pg.locator("#home .hb-camp", has_text="Fes. 2026").locator('[data-action="ev-sim"]').click(); pg.wait_for_timeout(900)
     st = json.loads(pg.evaluate("localStorage.getItem('spirit-origin-list:v1:summon')")); st["n"] = 325; st["got"] = 0
     pg.evaluate("(v) => localStorage.setItem('spirit-origin-list:v1:summon', v)", json.dumps(st))
     pg.reload(); pg.wait_for_selector(".sm-ban", timeout=20000); pg.wait_for_timeout(500)
@@ -387,13 +387,13 @@ with sync_playwright() as p:
     # ================= two events, one after the other =================
     ctx, pg = page(p)
     hold["titles"] = WT_PAGE
-    pg.goto(SEEDED + "#home"); pg.wait_for_selector("#home .hm-b-live .lv-cols", timeout=20000); pg.wait_for_timeout(500)
-    pg.locator('#home .hm-b-live [data-action="ev-open"]', has_text="Test Halloween Rising").first.click(); pg.wait_for_selector(f"{EVP} .ev-title", timeout=20000)
+    pg.goto(SEEDED + "#home"); pg.wait_for_selector("#home .hb-ev", timeout=20000); pg.wait_for_timeout(500)
+    pg.locator('#home .hb-ev [data-action="ev-open"]', has_text="Test Halloween Rising").first.click(); pg.wait_for_selector(f"{EVP} .ev-title", timeout=20000)
     for _ in range(40):
         if hold["routes"]: break
         pg.wait_for_timeout(250)
     pg.click(f"{EVP} .ev-back"); pg.wait_for_timeout(400)
-    pg.locator('#home .hm-b-live [data-action="ev-open"]', has_text="Summer Splash").first.click()
+    pg.locator('#home .hb-ev [data-action="ev-open"]', has_text="Summer Splash").first.click()
     pg.wait_for_selector(f"{EVP} .ev-title:has-text('Summer Splash')", timeout=20000); pg.wait_for_timeout(800)
     held = len(hold["routes"]); hold["titles"] = None
     for rr in hold["routes"]: jfulfill(rr, {"query": {"pages": [{"title": WT_PAGE, "revisions": [{"slots": {"main": {"content": WIKITEXT[WT_PAGE]}}}]}]}})

@@ -1,5 +1,5 @@
 /* ================= 0.22.0: the Event page (rebuilt as tabs in 0.22.2) ================= */
-// Press an event in On NA now and it opens here (address #event/<id>, or #event/<id>/<tab>). The page has tabs, like the
+// Press an event on Home and it opens here (address #event/<id>, or #event/<id>/<tab>). The page has tabs, like the
 // Fate/Grand Order wiki's own event page: one section shows at a time, and big sections have tabs of their own.
 // - The tabs come from the wiki: its event page lists them (Main Info, Event Shop, Mission List, …) and names the page each
 //   one is on, so each tab is fetched from the wiki when it's needed. The right wiki page is the one whose event header
@@ -16,11 +16,15 @@ const EV_KEY = "spirit-origin-list:v1:event"; // calculator settings: skill targ
 const EV_MV = 2; // how an event is made from Atlas Academy's data; an older copy is made again
 const WIKI_V = 2; // how wiki text is filtered; an older copy is fetched again
 const EV_FRESH = 6 * 3600e3, EV_WIKI_FRESH = 12 * 3600e3;
+// events the wiki announces before NA's data has them (or that it names so differently they can't be matched) get a
+// page of their own too, made from the wiki: their ids are below zero, worked out from the wiki page's title (0.24.0)
+const EV_WIKI_EVS = new Map();
+const wikiEvId = (title) => { let h = 2166136261; for (const ch of String(title)) { h ^= ch.codePointAt(0); h = Math.imul(h, 16777619) >>> 0; } return -(h % 1e9 + 1); };
 const EV = {id: 0, m: null, err: "", wiki: null, loading: new Set(), wikiBusy: 0, dropBusy: false, tab: "", kind: "", want: "", sub: {}, more: new Set(), open: new Set(), pages: {}, pageBusy: new Set()};
 let evPref = (() => { try { const v = JSON.parse(localStorage.getItem(EV_KEY)); return v && typeof v === "object" ? v : {}; } catch (e) { return {}; } })();
 if (!evPref.have || typeof evPref.have !== "object") evPref.have = {};
 if (!evPref.bonus || typeof evPref.bonus !== "object") evPref.bonus = {};
-if (evPref.to !== 9) evPref.to = 10;
+if (evPref.to !== 9 && evPref.to !== "plan") evPref.to = 10;
 function evPrefSave() { try { localStorage.setItem(EV_KEY, JSON.stringify(evPref)); } catch (e) {} }
 
 async function evJSON(url) {
@@ -141,6 +145,7 @@ function evDrops(drops, items, names) {
 /* ---------- loading from Atlas Academy ---------- */
 async function evLoad(id, force) {
   if (!id || EV.loading.has(id)) return;
+  if (id < 0) return evWikiEvLoad(id, force);
   EV.loading.add(id); if (EV.id === id) { EV.err = ""; evPaint(); }
   let m = null;
   try {
@@ -168,6 +173,27 @@ async function evLoad(id, force) {
     if (EV.id === id) { EV.m = m; evPaint(); }
   }
   if (m && EV.id === id) { evDropsLoad(id); evWikiLoad(id, force); }
+}
+// a wiki page by its title (Home's board already knows which page an event is on)
+async function wikiByTitle(title) {
+  const r = await wikiJSON({action: "query", prop: "revisions", rvprop: "content", rvslots: "main", redirects: "1", titles: title});
+  const p = ((r && r.query && r.query.pages) || []).find((x) => x && x.revisions), v = p && p.revisions[0], wt = v && (v.slots ? v.slots.main && v.slots.main.content : v.content);
+  return wt ? {t: p.title || title, sc: 1, wt: wt, h: wikiHeader(wt) || {name: "", req: "", start: 0}} : null;
+}
+// an event only the wiki has: what Home's board read from its header, kept in this browser, and the wiki page itself
+async function evWikiEvLoad(id, force) {
+  EV.loading.add(id); if (EV.id === id) { EV.err = ""; evPaint(); }
+  let m = null;
+  try {
+    let w = EV_WIKI_EVS.get(id);
+    if (w) await kv.set("wev:" + id, w); else w = await kv.get("wev:" + id);
+    if (w) m = evNorm({id: id, n: w.n, t: "wiki", d: "", s: w.s | 0, e: w.e | 0, bn: w.img || "", w: [], wt: w.t, pick: w.pick || [], req: w.req || "", story: w.story || "", at: Date.now()});
+    else if (EV.id === id) EV.err = "This event isn't saved in this browser. Open it from Home.";
+  } finally {
+    EV.loading.delete(id);
+    if (EV.id === id) { EV.m = m; evPaint(); }
+  }
+  if (m && EV.id === id) evWikiLoad(id, force);
 }
 // the cache keeps the 30 events opened most recently, so it doesn't grow forever
 async function evKeep(id) {
@@ -405,7 +431,7 @@ async function evWikiLoad(id, force) {
   try {
     if (c && c.v === WIKI_V && !force && (Date.now() - c.at < EV_WIKI_FRESH || navigator.onLine === false)) w = c;
     else {
-      const f = await wikiFind(m);
+      const f = m.wt ? await wikiByTitle(m.wt) : await wikiFind(m);
       if (!f) w = {v: WIKI_V, at: Date.now(), none: 1};
       else {
         let tabs = wikiTabsOf(f.wt);
@@ -461,6 +487,12 @@ async function wikiPrefetch(id, force) {
 // counted as still to do. Skills count up to Lv 10 (or 9). Append skills, costumes and Grails aren't counted.
 function evRosterNeeds(to) {
   const need = new Map(), who = new Map();
+  // 0.24.0: or what the plans on the servant pages need (appends included)
+  if (to === "plan") {
+    S.servants.forEach((s) => { if (!s.plan) return; const a = atlasOf(s); if (!a) return;
+      planCost(s, a, planOf(s, a)).items.forEach((n, id) => { need.set(id, (need.get(id) || 0) + n); const w = who.get(id) || new Map(); w.set(s.name, (w.get(s.name) || 0) + n); who.set(id, w); }); });
+    return {need: need, who: who};
+  }
   const add = (row, s) => { for (let j = 0; j + 1 < row.length; j += 2) { const m = ATLAS_MATS[row[j]]; if (!m) continue; const id = m[0], n = row[j + 1] | 0; need.set(id, (need.get(id) || 0) + n); const w = who.get(id) || new Map(); w.set(s.name, (w.get(s.name) || 0) + n); who.set(id, w); } };
   for (const s of owned()) {
     const a = atlasOf(s); if (!a || !a.ma || !a.ms) continue;
@@ -562,7 +594,9 @@ function evOverviewHTML(m, t) {
   const curs = [...new Map(m.shop.map((x) => [x.cost.id, x.cost])).values()], w = EV.wiki;
   const facts = [
     ["Runs", `${esc(liveWhen(m.s))} – ${esc(liveWhen(m.e))}`],
-    w && w.req ? ["To take part", esc(evReq(w.req))] : null,
+    (w && w.req) || m.req ? ["To take part", esc(evReq((w && w.req) || m.req))] : null,
+    m.story ? ["Story", "After " + esc(m.story)] : null,
+    m.pick && m.pick.length ? ["Servants", m.pick.map((p) => { const a = hbAtlas(p.n); return `<span class="ev-gf">${a ? liveFace({no: a.no, n: a.n, r: a.r, f: a.f, c: a.c}, true) : ""}<span class="ev-gn">${esc(a ? a.n : p.n)}</span><small>${p.k === "reward" ? "free" : "pickup"}</small></span>`; }).join("")] : null,
     m.sv.length ? ["Joins your roster", m.sv.map((g) => evIt(g, false, true)).join("")] : null,
     curs.length ? ["Event currency", curs.map((c) => evIt({k: "i", n: c.n, ic: c.ic, q: 1})).join("")] : null,
     m.quests.length ? ["Quests", esc(["main", "free", "extra", "challenge"].map((g) => { const n = m.quests.filter((q) => q.g === g).length; return n ? n + " " + g : ""; }).filter(Boolean).join(" · "))] : null,
@@ -601,8 +635,8 @@ function evCalcHTML(m) {
       <p class="ev-run">${best ? `Best quest: <b>${esc(best.q.n)}</b> (${best.q.ap} AP) gives about ${best.per.toFixed(1)} a run with <label class="ev-bonus">+<input type="number" min="0" step="1" inputmode="numeric" data-ev-bonus="${k.c.id}" value="${esc(evPref.bonus[k.c.id] || "")}" placeholder="0" aria-label="Bonus per drop"> per drop</label> from your event Craft Essences and servants.${left ? ` About <b>${fmt(runs)} runs</b> (${fmt(runs * best.q.ap)} AP) for what your servants need.` : ""}`
         : EV.dropBusy ? "Working out the best quest from the drops…" : "No free quest drops this currency in Atlas Academy's data yet."}</p></div>`};
   });
-  return `<div class="ev-cctl"><label>Skills up to <select data-ev-to><option value="10"${evPref.to === 10 ? " selected" : ""}>Lv 10</option><option value="9"${evPref.to === 9 ? " selected" : ""}>Lv 9</option></select></label>
-      <p class="ev-note">Counts your ${plural(own, "servant")} (not Guests): ascensions still to do by level, and skills up to Lv ${evPref.to}. Append skills aren't counted. Fill in what you already have and the numbers follow.</p></div>`
+  return `<div class="ev-cctl"><label>Count <select data-ev-to><option value="10"${evPref.to === 10 ? " selected" : ""}>skills to Lv 10</option><option value="9"${evPref.to === 9 ? " selected" : ""}>skills to Lv 9</option><option value="plan"${evPref.to === "plan" ? " selected" : ""}>your plans</option></select></label>
+      <p class="ev-note">${evPref.to === "plan" ? `Counts what the plans on your servant pages need (${plural(S.servants.filter((x) => x.plan).length, "plan")}), append skills included.` : `Counts your ${plural(own, "servant")} (not Guests): ascensions still to do by level, and skills up to Lv ${evPref.to}. Append skills aren't counted; pick "your plans" to count them.`} Fill in what you already have and the numbers follow.</p></div>`
     + evSub("calc", parts);
 }
 const evMiRow = (x) => `<li class="ev-mi"><span class="ev-no">${x.no || ""}</span><span class="ev-mt">${esc(x.n)}</span><span class="ev-gs">${x.g.map((g) => evIt(g, false, true)).join("")}</span></li>`;
@@ -675,7 +709,7 @@ function evPaneHTML(m, t) {
 function evHTML() {
   const back = `<button type="button" class="btn ghost sm ev-back" data-action="tab" data-tab="home">← Home</button>`;
   const m = EV.m, busy = EV.loading.has(EV.id);
-  if (!m) return `<div class="ev-top">${back}</div><section class="ev-pane"><p class="tr-none">${busy ? "Getting this event from Atlas Academy…" : esc(EV.err || "This event isn't loaded yet.")}</p>${!busy ? `<button type="button" class="btn sm" data-action="ev-reload">Try again</button>` : `<div class="skeleton" style="height:220px"></div>`}</section>`;
+  if (!m) return `<div class="ev-top">${back}</div><section class="ev-pane"><p class="tr-none">${busy ? (EV.id < 0 ? "Getting this event…" : "Getting this event from Atlas Academy…") : esc(EV.err || "This event isn't loaded yet.")}</p>${!busy ? `<button type="button" class="btn sm" data-action="ev-reload">Try again</button>` : `<div class="skeleton" style="height:220px"></div>`}</section>`;
   const now = Date.now() / 1000, w = EV.wiki, tabs = evTabs(m);
   // the tab the address asked for may only exist once the wiki's tabs are in; until then it's kept in mind
   let t = null;
@@ -689,9 +723,10 @@ function evHTML() {
   const status = now < m.s ? "starts " + liveWhen(m.s) : now < m.e ? "ends in " + liveLeft(m.e) + " (" + liveWhen(m.e) + ")" : "ended " + liveWhen(m.e);
   const search = `<a href="${WIKI}/wiki/Special:Search?search=${encodeURIComponent(m.n)}" target="_blank" rel="noopener">Search the wiki ↗</a>`;
   const wikiNote = EV.wikiBusy === m.id && !w ? "Finding this event on the Fate/Grand Order wiki…" : !w ? "" : w.fail ? `Couldn't reach the Fate/Grand Order wiki. ${search}`
-    : w.none ? `The wiki doesn't seem to have a page for this one yet. ${search}` : `Tabs and text from the wiki page ${evWikiLink(w.title)}${w.stale ? " (an older copy; the wiki couldn't be reached)" : ""}.`;
-  return `<div class="ev-top">${back}<span class="ev-act"><a class="btn ghost sm" href="https://apps.atlasacademy.io/db/NA/event/${m.id}" target="_blank" rel="noopener">Atlas Academy ↗</a><button type="button" class="btn ghost sm" data-action="ev-reload"${busy ? " disabled" : ""}>Refresh</button></span></div>
-    <header class="ev-head">${m.bn ? `<img class="ev-bn" src="${esc(m.bn)}" alt="" loading="lazy">` : ""}<div class="ev-hb"><p class="ev-kick">NA event</p><h2 class="ev-title">${esc(m.n)}</h2>
+    : w.none ? `The wiki doesn't seem to have a page for this one yet. ${search}` : `Tabs and text from the wiki page ${evWikiLink(w.title)}${w.stale ? " (an older copy; the wiki couldn't be reached)" : ""}.${m.id < 0 ? " NA's game data doesn't have this event yet, so the shop, missions and calculator come once it does." : ""}`;
+  const src = m.id > 0 ? `<a class="btn ghost sm" href="https://apps.atlasacademy.io/db/NA/event/${m.id}" target="_blank" rel="noopener">Atlas Academy ↗</a>` : m.wt ? `<a class="btn ghost sm" href="${esc(wikiURL(m.wt))}" target="_blank" rel="noopener">Wiki ↗</a>` : "";
+  return `<div class="ev-top">${back}<span class="ev-act">${src}<button type="button" class="btn ghost sm" data-action="ev-reload"${busy ? " disabled" : ""}>Refresh</button></span></div>
+    <header class="ev-head">${m.bn ? `<img class="ev-bn" src="${esc(m.bn)}" alt="" loading="lazy">` : ""}<div class="ev-hb"><p class="ev-kick">${m.id > 0 ? "NA event" : "NA event · from the wiki"}</p><h2 class="ev-title">${esc(m.n)}</h2>
       <p class="ev-status${now >= m.s && now < m.e && m.e - now < 86400 ? " soon" : ""}">${esc(status)}</p><p class="ev-src">${wikiNote}</p>${EV.err ? `<p class="lv-warn">${esc(EV.err)}</p>` : ""}</div></header>
     <nav class="ev-tabs" aria-label="Event sections"><div class="ev-tl" role="tablist">${tabs.map((x) => `<button type="button" role="tab" class="ev-tab" id="evt-${esc(x.k)}" data-action="ev-tab" data-k="${esc(x.k)}" aria-selected="${x === t}" aria-controls="ev-pane" tabindex="${x === t ? 0 : -1}">${esc(x.h)}</button>`).join("")}</div></nav>
     <section class="ev-pane" id="ev-pane" role="tabpanel" aria-labelledby="evt-${esc(t.k)}" data-kind="${t.kind}"><h3 class="ev-ph">${esc(t.h)}</h3>${evPaneHTML(m, t)}</section>
@@ -730,8 +765,8 @@ function evSetTab(k, focus) {
 }
 
 /* ---------- getting there and back ---------- */
-const evIdOf = (h) => { const x = /^#?event\/(\d+)/.exec(h || ""); return x ? Number(x[1]) : 0; };
-const evTabOf = (h) => { const x = /^#?event\/\d+\/([a-z0-9-]+)/.exec(h || ""); return x ? x[1] : ""; };
+const evIdOf = (h) => { const x = /^#?event\/(-?\d+)/.exec(h || ""); return x ? Number(x[1]) : 0; };
+const evTabOf = (h) => { const x = /^#?event\/-?\d+\/([a-z0-9-]+)/.exec(h || ""); return x ? x[1] : ""; };
 function evOpen(id, push, tab) {
   id = Number(id) || 0; if (!id) return;
   if (EV.id !== id) { EV.id = id; EV.m = null; EV.wiki = null; EV.err = ""; EV.more.clear(); EV.open.clear(); EV.sub = {}; EV.pages = {}; EV.tab = ""; EV.kind = ""; EV.want = ""; }
@@ -812,14 +847,14 @@ let evCalcT = 0;
 document.addEventListener("input", (e) => {
   const t = e.target; if (!t || !t.dataset) return;
   const h = t.dataset.evHave, bo = t.dataset.evBonus; if (h === undefined && bo === undefined) return;
-  const v = t.value.replace(/[^\d]/g, "").slice(0, 7);
+  const v = t.value.replace(/[^\d]/g, "").slice(0, 10);
   if (h !== undefined) { if (v) evPref.have[h] = Number(v); else delete evPref.have[h]; }
   else { if (v) evPref.bonus[bo] = Number(v); else delete evPref.bonus[bo]; }
   evPrefSave(); clearTimeout(evCalcT); evCalcT = setTimeout(evPaint, 250);
 });
 document.addEventListener("change", (e) => {
   const t = e.target; if (!t || !t.matches || !t.matches("[data-ev-to]")) return;
-  evPref.to = t.value === "9" ? 9 : 10; evPrefSave(); evPaint();
+  evPref.to = t.value === "9" ? 9 : t.value === "plan" ? "plan" : 10; evPrefSave(); evPaint();
 });
 // the countdown stays right while the page is open
 setInterval(() => { if (S.tab === "event" && !document.hidden && EV.m) { const p = document.querySelector("#event .ev-status"); if (p) { const now = Date.now() / 1000, m = EV.m; p.textContent = now < m.s ? "starts " + liveWhen(m.s) : now < m.e ? "ends in " + liveLeft(m.e) + " (" + liveWhen(m.e) + ")" : "ended " + liveWhen(m.e); } } }, 60000);

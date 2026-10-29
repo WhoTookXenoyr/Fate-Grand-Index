@@ -1,6 +1,7 @@
 import os
 # 0.21.0: "On NA now" on Home — events, campaigns, login bonuses, summon banners and the newest servants and Craft
-# Essences, from Atlas Academy. Atlas Academy is replaced by a stand-in that serves files shaped like the real ones
+# Essences, from Atlas Academy. Since 0.24.0 the events and summon banners are on Home's event board above it (checked
+# here as they come from the same data), and On NA now keeps the login bonuses, campaigns and newest releases. Atlas Academy is replaced by a stand-in that serves files shaped like the real ones
 # (same names and fields), with dates set around the moment the test runs.
 import sys, tempfile, json, re, time
 from playwright.sync_api import sync_playwright
@@ -75,6 +76,7 @@ def page(p, init=INIT, w=1500, h=1000, mobile=False, ctx=None):
     pg.add_init_script(init)
     pg.route("https://fonts.googleapis.com/**", lambda r: r.abort()); pg.route("https://fonts.gstatic.com/**", lambda r: r.abort())
     pg.route("https://api.atlasacademy.io/**", api); pg.route("https://static.atlasacademy.io/**", pic)
+    pg.route("https://fategrandorder.fandom.com/**", lambda r: r.abort()); pg.route("https://itunes.apple.com/**", lambda r: r.abort())
     return ctx, pg
 LIVE = "#home .hm-b-live"
 # a row by its own title (event titles are buttons inside the <b> since 0.22.0)
@@ -82,6 +84,10 @@ row = lambda pg, name, cls="lv-ev": pg.locator(f"{LIVE} .{cls}").filter(has=pg.l
 lists = lambda: sum(hits.get(n, 0) for n in FILES)
 # the roster without its save time (the page saves on its own at start, e.g. HP and ATK following the level)
 roster = lambda pg: {k: v for k, v in json.loads(pg.evaluate("localStorage.getItem('spirit-origin-list:v1')") or "{}").items() if k != "savedAt"}
+# Home's event board: its cards, and its summoning campaigns
+board = lambda pg: pg.evaluate("[...document.querySelectorAll('#home .hb-ev .hb-n')].map(e => e.textContent)")
+card = lambda pg, name: pg.locator("#home .hb-ev").filter(has=pg.locator(f'xpath=.//b[contains(@class, "hb-n") and normalize-space(.)="{name}"]'))
+camp = lambda pg, name: pg.locator("#home .hb-camp").filter(has=pg.locator(f'xpath=./span/b[normalize-space(.)="{name}"]'))
 names = lambda pg, h4: pg.evaluate("""(h) => { const t = [...document.querySelectorAll('.hm-b-live h4')].find(x => x.firstChild.textContent.trim() === h); if (!t) return null;
   const ul = t.nextElementSibling; return ul && ul.matches('ul') ? [...ul.querySelectorAll('li > b')].map(b => b.textContent) : []; }""", h4)
 
@@ -96,24 +102,26 @@ with sync_playwright() as p:
     pg.click(LIVE + ' [data-action="live-on"]'); pg.wait_for_selector(LIVE + " .lv-cols", timeout=20000); pg.wait_for_timeout(300)
     check(f"turning it on fetches info.json and the four lists once ({hits})", hits.get("info.json") == 1 and all(hits.get(n) == 1 for n in FILES))
     check("saved as on", json.loads(pg.evaluate("localStorage.getItem('spirit-origin-list:v1:live')")).get("on") is True)
-    evs = names(pg, "Events"); camps = names(pg, "Campaigns"); logins = names(pg, "Login bonuses"); bans = names(pg, "Summon banners")
-    check(f"Events: the running one first, the announced one after ({evs})", evs == ["Test Halloween Rising", "Test Christmas Preview"])
+    pg.wait_for_selector("#home .hb-ev", timeout=20000); pg.wait_for_timeout(300)
+    evs = board(pg); camps = names(pg, "Campaigns"); logins = names(pg, "Login bonuses")
+    bans = pg.evaluate("[...document.querySelectorAll('#home .hb-camp .hb-cm > b')].map(e => e.textContent)")
+    check(f"On NA now no longer lists the events and summon banners: they're on the board above ({names(pg, 'Events')}, {names(pg, 'Summon banners')})", names(pg, "Events") is None and names(pg, "Summon banners") is None)
+    check(f"Events on the board: the running one first, the announced one after, the one not announced yet left out ({evs})", evs == ["Test Halloween Rising", "Test Christmas Preview"])
     check(f"Campaigns: game colour tags removed, duplicates shown once, permanent ones left out ({camps})", camps == ["Special Release Conditions!", "Daily Quests AP Cost 1/2", "Super & Great Success Rate x2!"])
     srow = row(pg, "Special Release Conditions!", "lv-ev")
     check(f"a campaign on an event's dates says which event it belongs to ({srow.locator('small').all_inner_texts()})", srow.locator("small").inner_text() == "with Test Halloween Rising")
     check("one that matches no event doesn't", row(pg, "Daily Quests AP Cost 1/2", "lv-ev").locator("small").count() == 0)
     check(f"Login bonuses ({logins})", logins == ["Test Halloween Login Bonus"])
-    check(f"Summon banners: Friend Points last; closed and story summons left out ({bans})", bans == ["Test Halloween Pickup Summon", "Test Ticket Summon", "Limited Time Test FP Pickup"])
-    check("a banner of a kind the page doesn't name gets no label", row(pg, "Test Ticket Summon", "lv-ban").locator("small").count() == 0)
+    check(f"Summoning campaigns on the board: Friend Points, closed and story summons left out ({bans})", bans == ["Test Halloween Pickup Summon", "Test Ticket Summon"])
     kh = [pg.locator(LIVE + f' .lv-rel [data-action="pc-open"][data-no="{x["no"]}"]').get_attribute("aria-label") or "" for x in ATL if x["n"].startswith("Kishinami Hakuno")]
     check(f"servants this file has use its names, so the two Kishinami Hakunos differ ({[k.split(',')[0] for k in kh]})", len(kh) == 2 and kh[0].split(",")[0] != kh[1].split(",")[0] and all("(Male)" in k or "(Female)" in k for k in kh))
-    t1 = row(pg, "Test Halloween Rising", "lv-ev").locator("time").inner_text()
+    t1 = card(pg, "Test Halloween Rising").locator(".hb-left").inner_text()
     check(f"a running event counts down to its end ({t1!r})", re.fullmatch(r"ends in 2d [23]h", t1) is not None)
-    t2 = row(pg, "Test Christmas Preview", "lv-ev").locator("time").inner_text()
-    check(f"an announced one shows when it starts ({t2!r})", t2.startswith("starts ") and row(pg, "Test Christmas Preview", "lv-ev.up").count() == 1)
+    t2 = card(pg, "Test Christmas Preview").locator(".hb-left").inner_text()
+    check(f"an announced one shows when it starts ({t2!r})", t2.startswith("starts in ") and pg.locator("#home .hb-ev.up").filter(has_text="Test Christmas Preview").count() == 1)
     check("one ending within a day stands out", row(pg, "Test Halloween Login Bonus", "lv-ev.soon").count() == 1)
-    ban = row(pg, "Test Halloween Pickup Summon", "lv-ban")
-    check("the banner shows its featured servants and Craft Essence, merged from both entries", ban.locator(".lv-face").count() == 3 and "Saint Quartz" in ban.inner_text())
+    ban = camp(pg, "Test Halloween Pickup Summon")
+    check(f"the banner shows its featured servants and Craft Essence, merged from both entries ({ban.locator('.lv-face').count()})", ban.locator(".lv-face").count() == 3)
     newest = pg.locator(LIVE + " .lv-rel .lv-grid").first.locator(".lv-face")
     first = newest.first
     check(f"Newest servants: newest first, the enemy-only one left out ({newest.count()})", newest.count() == 8 and "Test Arrival Beast" in first.inner_text())
@@ -124,7 +132,7 @@ with sync_playwright() as p:
     nce = pg.locator(LIVE + " .lv-rel .lv-grid").nth(1).locator(".lv-face").first
     check("Newest Craft Essences: the new one first, NEW, linking to Atlas Academy", "Test Fresh Memory" in nce.inner_text() and (nce.get_attribute("href") or "").endswith(f"/craft-essence/{ctop + 1}"))
     check("the anniversary Craft Essences (numbers in the 400,000s) don't crowd the newest list", not pg.locator(LIVE + " .lv-rel", has_text="Anniversary Celebration").count())
-    pg.locator(LIVE + f' .lv-ban [data-action="pc-open"][data-no="{ERESH["no"]}"]').click(); pg.wait_for_timeout(600)
+    ban.locator(f'[data-action="pc-open"][data-no="{ERESH["no"]}"]').click(); pg.wait_for_timeout(600)
     check("a featured servant this file has opens in Past Chaldea", pg.locator("#pc-dlg").is_visible() and "Ereshkigal" in pg.locator("#pc-dlg").inner_text())
     pg.keyboard.press("Escape"); pg.wait_for_timeout(300)
     check("your roster wasn't touched", roster(pg) == r0)
@@ -132,14 +140,15 @@ with sync_playwright() as p:
     # ---- cached: a reload within a few hours doesn't ask again, and still shows everything
     n_info, n_lists = hits.get("info.json", 0), lists()
     pg.reload(); pg.wait_for_timeout(1500)
-    check("after a reload it shows the same, without asking Atlas Academy again", names(pg, "Events") == evs and hits.get("info.json") == n_info and lists() == n_lists)
+    pg.wait_for_selector("#home .hb-ev", timeout=20000); pg.wait_for_timeout(300)
+    check("after a reload it shows the same, without asking Atlas Academy again", board(pg) == evs and hits.get("info.json") == n_info and lists() == n_lists)
     # ---- Check now: asks for info.json; the lists only come again when NA's data changed
     pg.click(LIVE + ' [data-action="live-check"]'); pg.wait_for_timeout(1200)
     check(f"Check now with nothing new on NA only asks for info.json ({hits})", hits.get("info.json") == n_info + 1 and lists() == n_lists)
     info["hash"] = "def456"; info["timestamp"] = NOW
     EVENTS.append(ev(11, "eventQuest", "Test Surprise Event", NOW - 3600, NOW + 7 * D))
     pg.click(LIVE + ' [data-action="live-check"]'); pg.wait_for_timeout(1500)
-    check(f"when NA's data changed, the lists come again and the new event shows ({names(pg, 'Events')})", lists() == n_lists + 4 and "Test Surprise Event" in names(pg, "Events"))
+    check(f"when NA's data changed, the lists come again and the new event shows ({board(pg)})", lists() == n_lists + 4 and "Test Surprise Event" in board(pg))
     # ---- Show all
     for i in range(6): EVENTS.append(ev(20 + i, "combineCampaign", f"Test Extra Campaign {i}", NOW - D, NOW + (10 + i) * D))
     info["timestamp"] = NOW + 1
@@ -152,7 +161,7 @@ with sync_playwright() as p:
     # ---- can't reach Atlas Academy: keeps showing what it had
     down["on"] = True
     pg.click(LIVE + ' [data-action="live-check"]'); pg.wait_for_timeout(1500)
-    check("when Atlas Academy can't be reached, it says so and keeps what it had", "Couldn't reach Atlas Academy" in pg.locator(LIVE).inner_text() and "Test Halloween Rising" in names(pg, "Events"))
+    check("when Atlas Academy can't be reached, it says so and keeps what it had", "Couldn't reach Atlas Academy" in pg.locator(LIVE).inner_text() and "Test Halloween Rising" in board(pg))
     down["on"] = False
     # ---- turning it off
     pg.click(LIVE + ' [data-action="live-off"]'); pg.wait_for_timeout(500)

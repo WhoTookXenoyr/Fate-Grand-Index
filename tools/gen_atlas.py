@@ -166,6 +166,51 @@ def skill_vals(k):
         seen.add(sig)
         rows.append([lab, num(a, div), num(b, div), unit])
     return rows[:6]
+# 0.24.0: what a skill does to NP damage, for the damage calculator's supports: [kind, target, cards, 10 values, (whose
+# traits it needs)]. Kinds: a ATK, c card, n NP Strength, p special attack, d enemy DEF down, r enemy card resistance
+# down, f Damage Plus. Targets: s self, o one ally, a all allies, x allies but the user, e the enemy. Cards: "" (all) or
+# some of "QAB". The trait it needs: "@Sky" an attribute, "#Saber" a class, "%Female" a gender, "&Evil" an alignment, else the trait's name;
+# "+" in front: the attacker needs it (who the skill picks among your allies), "-": the enemy does; "?hp", "?pick",
+# "?field", "?stack", "?cond": it only works some of the time (low HP, a choice, some quests, stacking, a condition).
+BUFF_K = {"upAtk": "a", "upCommandall": "c", "upNpdamage": "n", "upDamage": "p", "upDamageIndividuality": "p", "downDefence": "d", "downDefencecommandall": "r", "addDamage": "f"}
+TGT_K = {"self": "s", "ptOne": "o", "ptAll": "a", "ptFull": "a", "ptOther": "x", "ptOtherFull": "x", "ptOneOther": "x", "enemy": "e", "enemyAll": "e", "enemyFull": "e"}
+CARD_T = {"cardQuick": "Q", "cardArts": "A", "cardBuster": "B"}
+CLS_T = {"class" + k[:1].upper() + k[1:]: v for k, v in CLS.items()}
+def trait_key(name):
+    if name.startswith("attribute"): return "@" + ATTR.get(name[9:].lower(), name[9:])
+    if name in CLS_T: return "#" + CLS_T[name]
+    if name.startswith("gender"): return "%" + name[6:]
+    if name in ORD or name in MOR: return "&" + (ORD.get(name) or MOR.get(name))
+    return TRAIT.get(name) or re.sub(r"([a-z])([A-Z])", r"\1 \2", name).capitalize()
+def skill_buffs(k):
+    out = []
+    for f in k["functions"]:
+        if not f.get("buffs"): continue
+        b, g = f["buffs"][0], TGT_K.get(f["funcTargetType"])
+        kk = BUFF_K.get(b["type"])
+        if not kk or not g: continue
+        # DEF down on your own side is a drawback, and buffs only count on your side
+        if (kk in "dr") != (g == "e"): continue
+        sv = f.get("svals") or []
+        if len(sv) < 10: continue
+        vals = [num(s.get("Value") or 0, 1 if kk == "f" else 10) for s in sv[:10]]
+        if not any(vals): continue
+        ind = [t["name"] for t in (b.get("ckSelfIndv") or []) + (b.get("ckOpIndv") or [])]
+        cards = "".join(c for c in "QAB" if any(CARD_T.get(t) == c for t in ind))
+        row = [kk, g, cards, vals]
+        need = [("+" + trait_key(t["name"])) for t in (f.get("functvals") or []) if t.get("name") and t["name"] not in CARD_T]
+        need += [("-" + trait_key(t["name"])) for t in (b.get("ckOpIndv") or []) if t.get("name") and t["name"] not in CARD_T]
+        # parts that only work some of the time ("?"): with low HP, one of a choice, on some quests, stacking, or a
+        # condition on the holder; the calculator doesn't count these on its own
+        sc, s0 = b.get("script") or {}, sv[0]
+        if "HP_LOWER" in sc or "HP_HIGHER" in sc or any(k.startswith("RatioHP") for k in s0): need = ["?hp"]
+        elif "ActSelectIndex" in s0 or "ActSet" in s0: need = ["?pick"]
+        elif f.get("funcquestTvals"): need = ["?field"]
+        elif any(k.startswith("ParamAdd") for k in s0): need = ["?stack"]
+        elif "INDIVIDUALITIE" in sc or "checkIndvType" in sc: need = ["?cond"]
+        if need: row.append(need[0])
+        out.append(row)
+    return out
 def pick(items, key="num"):
     best = {}
     for k in items:
@@ -272,6 +317,7 @@ out = []
 # ascension and skill materials (0.22.0, for the event shop calculator): items get a number in ATLAS_MATS, and each
 # servant lists, per ascension (4) and per skill level-up (9), the flat pairs [material number, amount, ...]
 MATS = {}
+APPENDS, APPEND_IX = [], {}
 def mats(levels):
     rows = []
     for lv in levels:
@@ -282,6 +328,9 @@ def mats(levels):
             row += [i["id"], it["amount"]]
         rows.append(row)
     return rows
+import collections as _co
+_eg = _co.Counter(json.dumps(x.get("expGrowth") or []) for x in S if x["type"] in ("normal", "heroine") and x["collectionNo"])
+EXPS = [json.loads(_eg.most_common(1)[0][0])]; EXP_IX = {_eg.most_common(1)[0][0]: 0}
 for x in S:
     if x["type"] not in ("normal", "heroine") or x["className"] not in CLS or not x["collectionNo"]: continue
     tr = all_traits(x)
@@ -299,6 +348,8 @@ for x in S:
     slots = [k for k in x["skills"] if k["num"] in (1, 2, 3)]
     for k in pick(slots):
         o = one(k); o["up"] = 1 if k.get("strengthStatus") == 99 else 0
+        bf = skill_buffs(k)
+        if bf: o["b"] = bf
         # skills a Rank Up quest, an interlude or the story upgrades: every version, oldest first ("u" holds the ones before this)
         same = [c for c in slots if c["num"] == k["num"]]
         chain = sorted(same, key=lambda c: c.get("priority", 0)) if any(c.get("strengthStatus") in (1, 2, 99) or c.get("condQuestId") for c in same) else []
@@ -341,11 +392,48 @@ for x in S:
     if x["type"] == "heroine": rec["h"] = 1
     am, sm = x.get("ascensionMaterials") or {}, x.get("skillMaterials") or {}
     rec["ma"] = mats([am.get(str(k)) for k in range(4)]); rec["ms"] = mats([sm.get(str(k)) for k in range(1, 10)])
+    # 0.24.0: QP per ascension and skill level, append skills (the same few for everyone, kept once in ATLAS_APPENDS), their
+    # materials and QP, and the servant's coins (how many a summon gives, and the coin's picture)
+    pm = x.get("appendSkillMaterials") or {}
+    rec["mp"] = mats([pm.get(str(k)) for k in range(1, 10)])
+    rec["qa"] = [(am.get(str(k)) or {}).get("qp", 0) for k in range(4)]
+    rec["qs"] = [(sm.get(str(k)) or {}).get("qp", 0) for k in range(1, 10)]
+    rec["qp"] = [(pm.get(str(k)) or {}).get("qp", 0) for k in range(1, 10)]
+    aps = []
+    for a in sorted(x.get("appendPassive") or [], key=lambda a: a.get("num", 0)):
+        o = one(a["skill"]); o.pop("cd", None)
+        key = json.dumps(o, sort_keys=True, ensure_ascii=False)
+        if key not in APPEND_IX: APPEND_IX[key] = len(APPENDS); APPENDS.append(o)
+        aps.append(APPEND_IX[key])
+    rec["ap"] = aps
+    coin = x.get("coin") or {}
+    if coin.get("item"): rec["cn"] = coin.get("summonNum", 0); rec["ci"] = p(coin["item"].get("icon", ""))
+    # what the class passives add to damage for yourself, always on: Buster, Arts and Quick up (%), NP Strength up (%)
+    # and Damage Plus (flat), for the NP damage calculator
+    pm = [0, 0, 0, 0, 0]
+    for c in x["classPassive"]:
+        for fn in c.get("functions") or []:
+            if fn.get("funcTargetType") != "self" or not fn.get("buffs") or not fn.get("svals"): continue
+            b, v = fn["buffs"][0], fn["svals"][0].get("Value", 0)
+            if b.get("ckOpIndv"): continue
+            if b["type"] == "upCommandall":
+                for tr in b.get("ckSelfIndv") or []:
+                    k = {4002: 0, 4001: 1, 4003: 2}.get(tr["id"])
+                    if k is not None: pm[k] += v / 10
+            elif b["type"] == "upNpdamage" and not b.get("ckSelfIndv"): pm[3] += v / 10
+            elif b["type"] == "addDamage" and not b.get("ckSelfIndv"): pm[4] += v
+    if any(pm): rec["pm"] = [int(v) if float(v).is_integer() else v for v in pm]
+    # EXP to reach each level (nearly everyone shares one table; the few others are kept once in ATLAS_EXP)
+    eg = x.get("expGrowth") or []
+    if eg:
+        key = json.dumps(eg)
+        if key not in EXP_IX: EXP_IX[key] = len(EXPS); EXPS.append(eg)
+        if EXP_IX[key]: rec["xg"] = EXP_IX[key]
     out.append(rec)
 out.sort(key=lambda r: r["no"])
 MAT_LIST = sorted(MATS.values(), key=lambda m: m[0]); MAT_IX = {m[0]: k for k, m in enumerate(MAT_LIST)}
 for r in out:
-    for key in ("ma", "ms"): r[key] = [[MAT_IX[v] if k % 2 == 0 else v for k, v in enumerate(row)] for row in r[key]]
+    for key in ("ma", "ms", "mp"): r[key] = [[MAT_IX[v] if k % 2 == 0 else v for k, v in enumerate(row)] for row in r[key]]
 
 FLAG = {"normal": "N", "svtEquipEvent": "E", "svtEquipEventReward": "R", "svtEquipFriendShip": "B", "svtEquipChocolate": "V", "svtEquipCampaign": "C", "svtEquipExp": "X", "svtEquipManaExchange": "M", "unknown": "U"}
 id2no = {x["id"]: x["collectionNo"] for x in S}
@@ -382,5 +470,17 @@ for x in S:
 js = "const ATLAS_CURVES = %s;\n" % json.dumps({str(k): v for k, v in CURVES.items()}, separators=(",", ":"))
 js += "const ATLAS_IMG = %s;\nconst ATLAS_S = %s;\nconst ATLAS_C = %s;\nconst ATLAS_ICONS = %s;\n" % (json.dumps(BASE), json.dumps(out, ensure_ascii=False, separators=(",", ":")), json.dumps(ces, ensure_ascii=False, separators=(",", ":")), json.dumps(icons, ensure_ascii=False, separators=(",", ":")))
 js += "const ATLAS_MATS = %s;\n" % json.dumps(MAT_LIST, ensure_ascii=False, separators=(",", ":"))
+js += "const ATLAS_APPENDS = %s;\n" % json.dumps(APPENDS, ensure_ascii=False, separators=(",", ":"))
+js += "const ATLAS_EXP = %s;\n" % json.dumps(EXPS, separators=(",", ":"))
+# QP per grail by rarity, and how far each grail raises the level cap ([qp, addLvMax] for grail 1, 2, ...), from Atlas
+# Academy's NiceSvtGrailCost (NA, Oct 2026); each grail past Lv 100 also costs 30 of the servant's coins
+GRAIL = {
+  0: [(600000, 5), (800000, 10), (1000000, 15), (2000000, 20), (3000000, 25)] + [(q, 25 + 2 * i) for i, q in enumerate([4000000, 5000000, 6000000, 7000000, 8000000] + [9000000] * 10, 1)],
+  1: [(400000, 10), (600000, 15), (800000, 20), (1000000, 25), (2000000, 30)] + [(q, 30 + 2 * i) for i, q in enumerate([3000000, 4000000, 5000000, 6000000, 7000000] + [8000000] * 10, 1)],
+  2: [(600000, 5), (800000, 10), (1000000, 15), (2000000, 20), (3000000, 25)] + [(q, 25 + 2 * i) for i, q in enumerate([4000000, 5000000, 6000000, 7000000, 8000000] + [9000000] * 10, 1)],
+  3: [(1000000, 5), (2000000, 10), (3000000, 15), (4000000, 20)] + [(q, 20 + 2 * i) for i, q in enumerate([5000000, 6000000, 7000000, 8000000, 9000000] + [10000000] * 10, 1)],
+  4: [(4000000, 5), (5000000, 10)] + [(q, 10 + 2 * i) for i, q in enumerate([6000000, 7000000, 8000000, 9000000, 10000000] + [12000000] * 10, 1)],
+  5: [(q, 2 * i) for i, q in enumerate([9000000, 10000000, 11000000, 12000000, 13000000] + [15000000] * 10, 1)]}
+js += "const ATLAS_GRAIL = %s;\n" % json.dumps({str(k): [list(t) for t in v] for k, v in GRAIL.items()}, separators=(",", ":"))
 with open(os.path.join(ROOT, "src", "data", "atlas_data.js"), "w", encoding="utf-8") as f: f.write(js.strip() + "\n")
 print("servants", len(out), "ces", len(ces), "icons", len(icons), "bytes", len(js.encode()))

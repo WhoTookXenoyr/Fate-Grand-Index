@@ -125,7 +125,7 @@ smSetupHTML = function () {
   </section>`;
 };
 function banSimulate(id) {
-  const b = live.data && (live.data.ba || []).find((x) => x.id === Number(id)); if (!b) { toast("That banner isn't in On NA now any more."); return; }
+  const b = live.data && (live.data.ba || []).find((x) => x.id === Number(id)); if (!b) { toast("That banner isn't in NA's data any more."); return; }
   const before = JSON.parse(JSON.stringify(SM));
   if (!SM.ban) SM.banPrev = {f5: SM.f5, f4: SM.f4, f3: SM.f3};
   SM.ban = {id: b.id, n: liveText(b.n), s: b.s, e: b.e, ft: b.ft.map((x) => Object.assign({}, x))};

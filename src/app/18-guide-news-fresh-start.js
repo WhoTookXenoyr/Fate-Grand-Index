@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.23.2";
+const APP_VER = "0.24.0";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -163,6 +163,16 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.24.0", d: "26 Oct 2026", t: "The Story page, a planner, and Home rebuilt", i: [
+    "<b>Story</b>: a new tab for the main story, from Fuyuki to Archetype Inception (as far as NA has it). Each chapter is its own title plate to click. Its sections come in the game's order (a section in two parts is 4-1 and 4-2), each a row that opens to its battles; each battle lists its enemies by wave with class, attribute, HP, break bars and reinforcements, and an enemy without a picture of its own shows the servant's face or its class. Your next fight shows the classes that hit it hardest and the servants on your list (and your Guests) that take the most of it with one NP a wave. <b>Cleared it</b> moves you on, into the next chapter at the end.",
+    "<b>Chapter looks</b>: away from the SERVANTPAGE, the page wears your chapter's colours and a moving backdrop of its own (Götterdämmerung is red and cyan, with fire and ice), with the chapter's title plate next to the logo. Turn it off on the Story page; an Event page has its own look.",
+    "<b>Home</b>: NA's current and upcoming events as big banner cards with countdowns, requirements and new servants (from the wiki and NA's data), summoning campaigns now and coming (an event's campaign or another kind), and a sidebar with NA, JP and your own time, the game's version for NA and JP, and NA's latest update. Every event opens a page here, made from the wiki when NA's data doesn't have the event yet. <b>On NA now</b> keeps the login bonuses, campaigns and newest servants and Craft Essences.",
+    "<b>On the SERVANTPAGE</b>: Append skills with their effects and + / −, <b>Servant Coins</b> that follow your + and − (a copy and a Bond level add coins, a Grail past Lv 100 and an append unlock take them), and a <b>Planner</b>: pick a target level, skills and appends and see the ascension, skill and append materials, QP, Grails, coins and EXP (as Gold Embers) it takes, against what you have. All plans add up, Done moves the servant to the plan (with Undo), and the Event calculator can count your plans.",
+    "<b>NP damage calculator</b> under the NP table: NP level, Overcharge, the enemy's class, attribute and HP, buffs, Special damage, class passives and your equipped Craft Essence. It shows the damage range, the chance to kill, and the damage against every class. Pick up to two <b>supports</b> (Castoria, Skadi, Oberon, your Guests or any NA servant) and tick which of their skills and the servant's own are up: their buffs are added for you.",
+    "<b>Share a party as a picture</b>: Share image on a party makes a PNG (light or dark) to save, copy or send.",
+    "<b>Phones</b>: Modern shows the roster as picture tiles and the SERVANTPAGE with section shortcuts; Compact shows one-line rows and folds the long sections. On touch screens the buttons are bigger, and a swipe on a servant's picture or name goes to the next one.",
+    "<b>Big screens</b>: 1080p, 1440p and 4K show a bigger page instead of a narrow strip, and Modern gives the servant's picture more room next to smaller stage cards. <b>Speed</b>: with 200 servants a + press is about ten times faster, Parties opens in a moment instead of seconds, and Fill in finishes in seconds.",
+    "<b>Fixes</b>: on a phone the background no longer jumps when the address bar moves, and the SERVANTPAGE reaches the bottom of the screen."]},
   {v: "0.23.2", d: "24 Oct 2026", t: "Servant pages on phones scroll cleanly", i: [
     "On a phone, a servant's page covers the whole screen, and now it's solid: the moving background and the tab bar no longer show through or smear while you scroll it.",
     "Scrolling past the end of a servant's page no longer scrolls the list behind it, and nothing behind it is drawn while it's open, so phones do less work. Closing it brings you back to the same place in the list."]},

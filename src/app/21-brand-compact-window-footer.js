@@ -34,7 +34,7 @@ renderChrome = function () { const r = renderChrome18.apply(this, arguments); sy
 window.addEventListener("resize", () => { clearTimeout(syncCmpModal._t); syncCmpModal._t = setTimeout(syncCmpModal, 120); });
 
 /* ---------- the footer ---------- */
-const FOOT_TABS = [["home", "Home"], ["servants", "Servants"], ["summon", "Summoning"], ["parties", "Parties"], ["ranking", "Ranking"], ["versus", "Versus"], ["past", "Past Chaldea"]];
+const FOOT_TABS = [["home", "Home"], ["servants", "Servants"], ["story", "Story"], ["summon", "Summoning"], ["parties", "Parties"], ["ranking", "Ranking"], ["versus", "Versus"], ["past", "Past Chaldea"]];
 function footHTML() {
   const logo = (document.querySelector(".brand-logo") || {}).src || "";
   return `<div class="sf-grid">

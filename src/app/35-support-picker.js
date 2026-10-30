@@ -6,10 +6,11 @@
 const spk = document.createElement("div");
 spk.className = "spk"; spk.hidden = true; spk.setAttribute("role", "dialog"); spk.setAttribute("aria-modal", "true"); spk.setAttribute("aria-labelledby", "spk-t");
 document.body.appendChild(spk);
-const SPK = {q: "", c: "", n: 72, cb: null, back: null, title: "", cur: ""};
+const SPK = {q: "", c: "", n: 72, cb: null, back: null, title: "", cur: "", list: null};
 const SPK_CLASSES = ["Saber", "Archer", "Lancer", "Rider", "Caster", "Assassin", "Berserker", "Ruler", "Avenger", "Moon Cancer", "Alter Ego", "Foreigner", "Pretender", "Shielder", "Beast"];
 // everyone that can be picked: [key, name, Atlas record or null, group]
 function spkAll() {
+  if (SPK.list) return SPK.list; // 0.26.0: a list of its own (your supports, friends' servants for Versus)
   const out = [];
   S.guests.forEach((g) => out.push({key: "g:" + g.id, n: g.name, a: atlasOf(g), g: "Your Guests"}));
   NPC_POP.forEach((no) => { const a = ATLAS_BY_NO.get(no); if (a) out.push({key: "a:" + no, n: a.n, a: a, g: "Often borrowed"}); });
@@ -32,12 +33,12 @@ function spkCardHTML(x) {
   const on = x.key === SPK.cur;
   return `<li><button type="button" class="pc-card r${clamp(r || 1, 1, 5)}${on ? " is-on" : ""}" data-spk="${esc(x.key)}" aria-pressed="${on}" aria-label="${esc(x.n)}${cls ? ", " + esc(cls) : ""}">
     <span class="pc-face">${face ? `<img src="${esc(face)}" alt="" loading="lazy" decoding="async">` : `<i class="spk-none">${esc((x.n || "?").slice(0, 1))}</i>`}${CLASS_LOGO[cls] ? `<img class="pc-cls" src="${CLASS_LOGO[cls]}" alt="">` : ""}${r ? `<span class="pc-st">${stars(r)}</span>` : ""}</span>
-    <span class="pc-n">${esc(x.n)}</span><span class="pc-m">${esc(cls || "not in NA's data")}${x.s ? " · your levels" : a ? "" : ""}</span></button></li>`;
+    <span class="pc-n">${esc(x.n)}</span><span class="pc-m">${esc(cls || "not in NA's data")}${x.m ? " · " + esc(x.m) : x.s ? " · your levels" : ""}</span></button></li>`;
 }
 function spkBody() {
   const all = spkList(), searching = !!(SPK.q.trim() || SPK.c);
   if (!all.length) return `<p class="tr-none">No servant matches. Try part of the name, or a nickname like "castoria".</p>`;
-  const groups = ["Your Guests", "Often borrowed", "Your servants", "Every NA servant"];
+  const groups = SPK.list ? Array.from(new Set(all.map((x) => x.g))) : ["Your Guests", "Often borrowed", "Your servants", "Every NA servant"];
   let shown = 0, html = "";
   groups.forEach((gname) => {
     let list = all.filter((x) => x.g === gname);
@@ -63,14 +64,14 @@ function spkRender(full) {
     spk.querySelectorAll("[data-spk-c]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.spkC === SPK.c)));
   }
 }
-function openSpk(title, cur, cb) {
-  SPK.title = title; SPK.cur = cur || ""; SPK.cb = cb; SPK.n = 72; SPK.q = ""; SPK.c = ""; SPK.back = document.activeElement;
+function openSpk(title, cur, cb, list) {
+  SPK.title = title; SPK.cur = cur || ""; SPK.cb = cb; SPK.n = 72; SPK.q = ""; SPK.c = ""; SPK.back = document.activeElement; SPK.list = list || null;
   spkRender(true); spk.hidden = false; document.documentElement.classList.add("cep-open");
   const q = spk.querySelector("[data-spk-q]"); if (q) q.focus({preventScroll: true});
 }
 function closeSpk() {
   if (spk.hidden) return;
-  spk.hidden = true; spk.innerHTML = ""; document.documentElement.classList.remove("cep-open"); SPK.cb = null;
+  spk.hidden = true; spk.innerHTML = ""; document.documentElement.classList.remove("cep-open"); SPK.cb = null; SPK.list = null;
   const b = SPK.back; SPK.back = null; if (b && b.isConnected && b.focus) b.focus({preventScroll: true});
 }
 spk.addEventListener("click", (e) => {

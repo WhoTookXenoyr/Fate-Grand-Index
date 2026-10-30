@@ -37,7 +37,7 @@ def pst(ts): d = datetime.fromtimestamp(ts, timezone(timedelta(hours=-8))); retu
 WIKI = {
   "GUDAGUDA Test Escape 2023 Revival (US)": f"{{{{EventHeaderNA\n|pagename=GUDAGUDA Test Escape (US)\n|image=GudaTestUS.png\n|start={pst(NOW - 10 * D)}\n|end={pst(NOW + 10 * D)}\n|timezone=PST\n|name=Revival: Showa Kishin Project: GUDAGUDA Test Escape - Lite\n|requirement=[[Fuyuki]]\n}}}}\nrest",
   "25M Downloads Campaign (US)": f"{{{{EventHeaderNA\n|start={pst(NOW - 3 * D)}\n|end={pst(NOW + 11 * D)}\n|timezone=PST\n|name=25M Downloads Campaign\n|requirement=None\n}}}}\nrest",
-  "Mystery House Testers (US)": f"{{{{EventHeaderNA\n|pagename = Mystery House Testers (US)\n|image = MysteryTestUS.png\n|start = {pst(NOW + 17 * D)}\n|end = {pst(NOW + 36 * D)}\n|timezone = PST\n|name = Smash! Mystery House Testers\n|requirement = Olympus\n|story = Imaginary Scramble\n}}}}\n== New Servants ==\n|{{{{Star}}}} {{{{Lancer}}}} [[Van Gogh (Miner)]] {{{{EventR}}}}\n|{{{{Star}}}} {{{{Archer}}}} [[{TUT['n']}]] {{{{LimitedS}}}}\n",
+  "Mystery House Testers (US)": f"{{{{EventHeaderNA\n|pagename = Mystery House Testers (US)\n|image = MysteryTestUS.png\n|start = {pst(NOW + 17 * D)}\n|end = {pst(NOW + 36 * D)}\n|timezone = PST\n|name = Smash! Mystery House Testers\n|requirement = Olympus\n|story = Imaginary Scramble\n}}}}\n== New Servants ==\n|{{{{Star}}}} {{{{Lancer}}}} [[Van Gogh (Miner)]] {{{{EventR}}}}\n|{{{{Star}}}} {{{{Lancer}}}} [[{TUT['n']}]] {{{{LimitedS}}}}\n",
   "Template:GameUpdatesNA": "{{Data Updates\n|squest1= {{Inum|{{Yagyū Munenori|stage=2|68px|link=x}}|STR{{Mini NP Icon}}}}\n|newserv1={{Inum|{{Ereshkigal|stage=3|68px}}|{{LimitedS}}}}\n|newce1= {{Craft Essence Icon|Formal Craft|31|68px}}\n|newcc1={{Command Code Icon|Fairy King's Crown|177|68px}}\n|newitem1= {{Moonlight Nucleus}}\n}}"}
 wiki_hits = []
 def wiki(r):
@@ -107,6 +107,8 @@ with sync_playwright() as p:
     check(f"the upcoming one: starts in 17 days, needs Olympus, story after Imaginary Scramble ({' '.join(up.inner_text().split())[:200]!r})", "starts in 16d" in up.inner_text() or "starts in 17d" in up.inner_text())
     check("its requirement and story", "Olympus" in up.inner_text() and "Imaginary Scramble" in up.inner_text())
     check("and its new servants, pickup and free", up.locator(".hb-pk.pickup").count() == 1 and up.locator(".hb-pk.reward").count() == 1)
+    pk = pg.evaluate("[...document.querySelectorAll('#home .hb-ev.up .hb-pk')].map(e => [e.classList.contains('reward') ? 'free' : 'pickup', !!e.querySelector('img'), (e.querySelector('[title]') || {}).title])")
+    check(f"a new version of a servant isn't the one NA has: Van Gogh (Miner) stays a placeholder (NA's Van Gogh is a Foreigner), Ereshkigal has her face ({pk})", pk == [["free", False, "Van Gogh (Miner)"], ["pickup", True, "Ereshkigal"]])
     wid = up.locator('[data-action="ev-open"]').get_attribute("data-ev") or ""
     check(f"an event NA's data doesn't have yet still opens a page here ({wid}), with the wiki link beside it", wid.startswith("-") and up.locator(".hb-wl").get_attribute("href").endswith("Mystery_House_Testers_(US)"))
     camps = pg.evaluate("[...document.querySelectorAll('#home .hb-camp')].map(c => [c.querySelector('.hb-cm > b').textContent, c.querySelector('.hb-ctag').textContent, c.classList.contains('up')])")

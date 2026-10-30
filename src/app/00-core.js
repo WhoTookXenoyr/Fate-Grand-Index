@@ -286,7 +286,10 @@ function slotsOf(s) {
   for (let i = 1; i <= n; i++) { const k = i === 1 ? "c" : "c" + i, def = n > 1 ? "Costume " + i : "Costume"; out.push({k: k, t: costumeName(s, k) || def, def: def}); }
   return out;
 }
-const slotLabel = (s, k) => { const f = slotsOf(s).find((x) => x.k === k); return f ? f.t : "Image"; };
+// 0.25.0: a picture of your own (fan art) has a tile after the costumes; it isn't a stage or costume anywhere else
+const FAN_SLOT = {k: "fan", t: "Fan art"};
+const artSlots = (s) => slotsOf(s).concat([FAN_SLOT]);
+const slotLabel = (s, k) => { const f = artSlots(s).find((x) => x.k === k); return f ? f.t : "Image"; };
 const artOf = (s, k) => (s && s.art && typeof s.art[k] === "string" && s.art[k] && S.urlCache[s.art[k]]) ? s.art[k] : null;
 const artSrc = (id) => S.urlCache[id] || "";
 function iconSlot(s) {
@@ -364,7 +367,7 @@ async function removeArt(id, slot) {
 }
 
 function artHTML(s) {
-  const slots = slotsOf(s);
+  const slots = artSlots(s);
   let slot = viewSlot(s); if (!slots.some((x) => x.k === slot)) slot = "1";
   const id = artOf(s, slot);
   const label = slotLabel(s, slot);
@@ -373,16 +376,18 @@ function artHTML(s) {
   let frame;
   if (busy) frame = `<div class="art-frame drop"><div class="drop-msg"><strong>Uploading ${esc(label)}…</strong></div></div>`;
   else if (id) frame = `<div class="art-frame" data-drop="${esc(slot)}"><img src="${esc(artSrc(id))}" alt="${esc(s.name)}, ${esc(label)}" data-art="1" data-action="art-next" title="Click for the next stage"></div>`;
-  else if (canEdit) frame = `<div class="art-frame drop" data-drop="${esc(slot)}"><div class="drop-msg"><strong>Add ${esc(label)} art</strong><span>Copy the image on the wiki and press Ctrl+V here, drop a file, or</span><label class="btn sm file-btn">Choose image<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-art-file="${esc(slot)}"></label></div></div>`;
+  else if (canEdit) frame = `<div class="art-frame drop" data-drop="${esc(slot)}"><div class="drop-msg"><strong>${slot === "fan" ? "Add fan art" : "Add " + esc(label) + " art"}</strong><span>${slot === "fan" ? "A picture of your own, to show here or as the icon. Paste it here (Ctrl+V), drop a file, or" : "Copy the image on the wiki and press Ctrl+V here, drop a file, or"}</span><label class="btn sm file-btn">Choose image<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-art-file="${esc(slot)}"></label></div></div>`;
   else frame = `<div class="art-frame"><div class="drop-msg">No ${esc(label)} image yet.</div></div>`;
   const icon = iconSlot(s);
   const n = costumeCount(s);
-  let tabs = slots.map((x) => {
+  const tab = (x) => {
     const a = artOf(s, x.k);
     const isIcon = a && x.k === icon;
     return `<button class="stage-btn" data-action="stage" data-slot="${x.k}" aria-pressed="${x.k === slot}" title="${esc(x.t)}" aria-label="${esc(x.t)}${isIcon ? ", shown as icon" : (a ? "" : ", empty")}">${a ? `<img class="thumb${isIcon ? " is-icon" : ""}" src="${esc(artSrc(a))}" alt="" data-art="1" loading="lazy">` : `<i class="thumb"></i>`}<span><b>${esc(x.t)}</b><small class="${isIcon ? "on" : ""}">${isIcon ? "Icon" : (a ? "&nbsp;" : "Empty")}</small></span></button>`;
-  }).join("");
+  };
+  let tabs = slotsOf(s).map(tab).join("");
   if (canEdit && n < MAX_COSTUMES) tabs += `<button class="stage-btn add" data-action="add-costume" title="${n === 1 ? "Add second costume" : "Add another costume"}" aria-label="${n === 1 ? "Add second costume" : "Add another costume"}"><span class="plus">+</span><span><b>${n === 1 ? "2nd" : "Add"}</b><small>costume</small></span></button>`;
+  if (canEdit || artOf(s, "fan")) tabs += tab(FAN_SLOT).replace('class="stage-btn"', 'class="stage-btn fan"');
   let actions = "";
   if (canEdit && id && !busy) {
     actions = S.artConfirm === slot

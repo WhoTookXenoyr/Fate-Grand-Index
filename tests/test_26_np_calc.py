@@ -30,6 +30,11 @@ def formula(atk, mult, card, cls, ecls, attr, eattr, cardup=0, atkup=0, defdown=
     return atk * 0.23 * mult / 100 * cv * (1 + cardup / 100) * cm * AFF.get((cls, ecls), 1) * at * (1 + (atkup + defdown) / 100) * (1 + pow_ / 100 + np / 100) * se + dp
 def big(pg): return int(pg.locator("#dossier .npc-big b").inner_text().replace(",", ""))
 def setnum(pg, k, v): pg.locator(f'#dossier input[data-npc="{k}"]').fill(str(v)); pg.wait_for_timeout(200)
+SUP = "JSON.parse(localStorage.getItem('spirit-origin-list:v1:npcalc') || '{}').sup || []"
+def pick_sup(pg, i, key, search=None):
+    pg.click(f'#dossier [data-npc-pick="{i}"]'); pg.wait_for_selector(".spk:not([hidden]) [data-spk]", timeout=5000)
+    if search: pg.fill(".spk [data-spk-q]", search); pg.wait_for_timeout(400)
+    pg.locator(f'.spk [data-spk="{key}"]').first.click(); pg.wait_for_timeout(400)
 def untick(pg):
     pg.evaluate("document.querySelectorAll('#dossier input[data-npc-sk]').forEach(c => { if (c.checked) c.click(); })"); pg.wait_for_timeout(300)
 def open_calc(pg):
@@ -131,8 +136,20 @@ with sync_playwright() as p:
     sk = a2["sk"]; ch, dc_c, dc_n = sk[0]["b"][0][3][lv[0] - 1], sk[1]["b"][0][3][lv[1] - 1], sk[1]["b"][1][3][lv[1] - 1]
     want = formula(a_atk, 300, "Buster", "Saber", "Lancer", a2["a"], "Earth", cardup=base["cardup"] + dc_c, atkup=ch, np=80 + dc_n)
     check(f"ticked, they're added: Charisma ATK +{ch}%, Dragon's Core Buster +{dc_c}% and NP +{dc_n}%: {big(pg):,} (formula {want:,.0f})", abs(big(pg) - want) < 1.5)
-    pg.select_option('#dossier select[data-npc-sup="0"]', "a:284"); pg.wait_for_timeout(400)
-    pg.select_option('#dossier select[data-npc-sup="1"]', "a:316"); pg.wait_for_timeout(400)
+    # 0.25.0: the support boxes open a big picker with pictures and a search
+    pg.click('#dossier [data-npc-pick="0"]'); pg.wait_for_selector(".spk:not([hidden]) [data-spk]", timeout=5000)
+    box = pg.evaluate("(() => { const p = document.querySelector('.spk .cep-panel').getBoundingClientRect(); return [Math.round(p.width), Math.round(p.height), document.activeElement && document.activeElement.matches('[data-spk-q]')]; })()")
+    groups = pg.evaluate("[...document.querySelectorAll('.spk .spk-g h3')].map(h => h.firstChild.textContent.trim())")
+    check(f"the support picker is a big window with the search box ready ({box}) and groups ({groups})", box[0] >= 800 and box[1] >= 500 and box[2] and groups[:2] == ["Your Guests", "Often borrowed"] and groups[-1] == "Every NA servant")
+    pg.fill(".spk [data-spk-q]", "castoria"); pg.wait_for_timeout(400)
+    found = pg.evaluate("[...document.querySelectorAll('.spk [data-spk]')].map(b => b.dataset.spk)")
+    check(f"a nickname finds her: 'castoria' ({found[:4]})", "a:284" in found)
+    pg.click('.spk [data-spk-c="Caster"]'); pg.wait_for_timeout(300)
+    cls = pg.evaluate("[...document.querySelectorAll('.spk [data-spk] .pc-m')].map(m => m.textContent.split(' · ')[0])")
+    check(f"the class buttons narrow it down ({set(cls)})", cls and set(cls) == {"Caster"})
+    pg.locator('.spk [data-spk="a:284"]').first.click(); pg.wait_for_timeout(400)
+    check("picking closes it and fills Support 1", pg.locator(".spk").is_hidden() and pg.evaluate(SUP) == ["a:284"] and "Altria Caster" in pg.locator('#dossier [data-npc-pick="0"]').inner_text())
+    pick_sup(pg, 1, "a:316", "oberon")
     sups = pg.evaluate("[...document.querySelectorAll('#dossier .npc-who.sup')].map(w => [...w.querySelectorAll('.npc-sk')].map(l => [l.querySelector('b').textContent, [...l.querySelectorAll('.npc-fx')].map(f => [f.textContent, f.className])]))")
     check(f"Castoria and Oberon as supports, with their skills at Lv 10 ({[[s[0] for s in w] for w in sups]})", [s[0] for s in sups[0]] == ["Charisma of Hope B", "Sword of Selection EX"] and [s[0] for s in sups[1]] == ["Evening Shroud EX", "Ending of Dreams EX"])
     arts = sups[0][1][1]
@@ -145,18 +162,18 @@ with sync_playwright() as p:
     want_u = formula(a_atk, 300, "Buster", "Saber", "Lancer", a2["a"], "Earth", cardup=base["cardup"] + dc_c, atkup=ch + 20, np=80 + dc_n + 30)
     check(f"unticking Oberon's Buster up takes it out: {big(pg):,} (formula {want_u:,.0f})", abs(big(pg) - want_u) < 1.5)
     pg.reload(); pg.wait_for_timeout(1500); pg.click('#list [data-id="artoria"]'); pg.wait_for_timeout(800); open_calc(pg)
-    kept = pg.evaluate("[[...document.querySelectorAll('#dossier select[data-npc-sup]')].map(s => s.value), [...document.querySelectorAll('#dossier .npc-who.sup input[data-npc-sk]')].map(c => c.checked)]")
+    kept = pg.evaluate("[JSON.parse(localStorage.getItem('spirit-origin-list:v1:npcalc') || '{}').sup || [], [...document.querySelectorAll('#dossier .npc-who.sup input[data-npc-sk]')].map(c => c.checked)]")
     check(f"the supports and what's ticked are remembered ({kept})", kept[0] == ["a:284", "a:316"] and kept[1] == [True, True, True, False] and abs(big(pg) - want_u) < 1.5)
     # Koyanskaya of Light: special attack against Man counts once the enemy is Man
-    pg.select_option('#dossier select[data-npc-sup="0"]', "a:314"); pg.wait_for_timeout(400)
+    pick_sup(pg, 0, "a:314", "koyanskaya of light")
     k_earth = big(pg)
     want_k = formula(a_atk, 300, "Buster", "Saber", "Lancer", a2["a"], "Earth", cardup=base["cardup"] + dc_c + 50, atkup=ch, np=80 + dc_n + 30)
     check(f"Koyanskaya of Light instead of Castoria: her Buster up counts, her damage against Man doesn't against an Earth enemy: {k_earth:,} (formula {want_k:,.0f})", abs(k_earth - want_k) < 1.5)
     pg.select_option('#dossier select[data-npc="eattr"]', "Man"); pg.wait_for_timeout(400)
     want_m = formula(a_atk, 300, "Buster", "Saber", "Lancer", a2["a"], "Man", cardup=base["cardup"] + dc_c + 50, atkup=ch, np=80 + dc_n + 30, pow_=50)
     check(f"against a Man enemy it does (special attack +50%): {big(pg):,} (formula {want_m:,.0f})", abs(big(pg) - want_m) < 1.5)
-    pg.select_option('#dossier select[data-npc-sup="0"]', ""); pg.select_option('#dossier select[data-npc-sup="0"]', ""); pg.wait_for_timeout(300)
-    check("a support set to None is gone", pg.evaluate("[...document.querySelectorAll('#dossier select[data-npc-sup]')].map(s => s.value)") == ["", ""])
+    pg.click('#dossier [data-npc-unpick="0"]'); pg.wait_for_timeout(300); pg.click('#dossier [data-npc-unpick="0"]'); pg.wait_for_timeout(300)
+    check(f"× takes a support away ({pg.evaluate(SUP)})", pg.evaluate(SUP) == [] and pg.locator("#dossier [data-npc-unpick]").count() == 0)
 
     # a phone: no sideways scroll
     ctx.close()

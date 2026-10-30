@@ -33,7 +33,7 @@ function hbHeader(title, wt) {
   const pick = [], seen = new Set();
   s.replace(/\{\{(Saber|Archer|Lancer|Rider|Caster|Assassin|Berserker|Ruler|Avenger|Moon ?Cancer|Alter ?Ego|Foreigner|Pretender|Shielder|Beast)\}\}\s*\[\[([^\]|]+)(?:\|[^\]]*)?\]\]\s*(\{\{(LimitedS|EventR|Limited|StoryS)\}\})?/gi, (m, c, n, t, kind) => {
     n = n.trim(); if (seen.has(n)) return m; seen.add(n);
-    pick.push({n: n, c: c.replace(/(Moon|Alter)\s?(Cancer|Ego)/i, "$1 $2"), k: /event/i.test(kind || "") ? "reward" : "pickup"}); return m;
+    pick.push({n: n, c: c.replace(/(Moon|Alter)\s?(Cancer|Ego)/i, "$1 $2").replace(/\b[a-z]/g, (m) => m.toUpperCase()), k: /event/i.test(kind || "") ? "reward" : "pickup"}); return m;
   });
   const name = hbClean(h.name) || title.replace(/\s*\((US|NA)\)\s*$/i, "");
   return {t: title, n: name, img: (h.image || "").replace(/^(file|image):/i, "").trim(), s: hbTime(h.start, h.timezone), e: hbTime(h.end, h.timezone),
@@ -131,19 +131,32 @@ function hbCampaigns(evs) {
   // events the wiki has announced bring their pickups; shown when NA's data has no banner for them yet
   all.filter((x) => x.s > now && x.pick.some((p) => p.k === "pickup")).forEach((x) => {
     if (out.some((b) => b.ev === x.n)) return;
-    out.push({n: x.n + " Summoning Campaign", s: x.s, e: x.e, ft: x.pick.filter((p) => p.k === "pickup").map((p) => { const a = hbAtlas(p.n); return a ? {no: a.no, n: a.n, c: a.c, r: a.r, f: a.f} : {n: p.n, c: p.c}; }), ev: x.n, id: 0, src: "wiki"});
+    out.push({n: x.n + " Summoning Campaign", s: x.s, e: x.e, ft: x.pick.filter((p) => p.k === "pickup").map((p) => { const a = hbAtlas(p.n, p.c); return a ? {no: a.no, n: a.n, c: a.c, r: a.r, f: a.f} : {n: p.n, c: p.c}; }), ev: x.n, id: 0, src: "wiki"});
   });
   return out.sort((a, b) => (a.s > now) - (b.s > now) || (a.s > now ? a.s - b.s : a.e - b.e));
 }
 
 /* ---------- drawing it ---------- */
-// a wiki name to an NA servant: "Yagyū Munenori" is "Yagyu Tajima-no-kami Munenori" in the data
-const hbAtlas = (n) => ATLAS_S.find((y) => nname(y.n) === nname(n)) || (typeof autoMatch === "function" ? autoMatch({name: n, cls: "", rarity: 0}) : null);
+// a wiki name to an NA servant (this file's, or one NA's data added since): the same name, in the class the wiki gives.
+// A new version of a servant ("Van Gogh (Miner)", "Abigail Williams (Santa)") isn't the one NA already has, so it stays
+// a placeholder until NA's data has it (0.25.0). A name without brackets may be spelled differently: "Yagyū Munenori"
+// is "Yagyu Tajima-no-kami Munenori", and "Kishinami Hakuno" one of NA's two.
+function hbAtlas(n, cls) {
+  const k = nick(n); if (!k) return null;
+  const ok = (x) => !cls || x.c === cls, br = /\(/.test(n);
+  const extra = ((live.data && live.data.sv) || []).filter((x) => !ATLAS_BY_NO.has(x.no));
+  const all = ATLAS_S.concat(extra), full = (x) => NICK_N.get(x.no) || nick(x.n), base = (x) => NICK_B.get(x.no) || nick(x.n.replace(/\([^)]*\)/g, " "));
+  const hit = all.find((x) => ok(x) && full(x) === k); if (hit) return hit;
+  if (br) return null;
+  const same = all.filter((x) => ok(x) && base(x) === k); if (same.length) return same[0];
+  const a = typeof autoMatch === "function" ? autoMatch({name: n, cls: cls || "", rarity: 0}) : null;
+  return a && ok(a) && !/\(/.test(a.n) ? a : null;
+}
 const hbFace = (x) => { const a = x.no ? ATLAS_BY_NO.get(x.no) : null, f = (a && a.f) || x.f; return f ? `<img src="${esc(aimg(f))}" alt="${esc(x.n || "")}" title="${esc(x.n || "")}" loading="lazy" decoding="async">` : `<i class="hb-noface" title="${esc(x.n || "")}">${esc((x.n || "?").slice(0, 1))}</i>`; };
 function hbCard(x, up, i) {
   const now = Date.now() / 1000, span = Math.max(1, x.e - x.s), p = up ? 0 : clamp((now - x.s) / span, 0, 1);
   const soon = up ? x.s - now < 3 * 86400 : x.e - now < 86400;
-  const faces = x.pick.length ? `<span class="hb-faces">${x.pick.map((p) => { const a = hbAtlas(p.n); return `<span class="hb-pk ${p.k}">${hbFace(a ? {no: a.no, n: a.n} : {n: p.n})}<i>${p.k === "reward" ? "Free" : "Pickup"}</i></span>`; }).join("")}</span>` : "";
+  const faces = x.pick.length ? `<span class="hb-faces">${x.pick.map((p) => { const a = hbAtlas(p.n, p.c); return `<span class="hb-pk ${p.k}">${hbFace(a ? {no: a.no, n: a.n, f: a.f} : {n: p.n})}<i>${p.k === "reward" ? "Free" : "Pickup"}</i></span>`; }).join("")}</span>` : "";
   const open = x.id ? `data-action="ev-open" data-ev="${x.id}"` : "";
   return `<article class="hb-ev${up ? " up" : " now"}${soon ? " soon" : ""}${x.img ? "" : " noimg"}" style="--i:${i};--p:${p.toFixed(3)}">
     <button type="button" class="hb-hit" ${open} aria-label="${esc(x.n)}${x.id ? ": open the Event page" : ""}"${open ? "" : " disabled"}>
@@ -197,7 +210,7 @@ function hbVersionHTML() {
 function hbUpdatesHTML() {
   const u = HB.wiki && HB.wiki.upd; if (!liveOn()) return "";
   if (!u) return `<section class="hb-side-b hb-upd"><h3 class="hb-h">Latest NA update</h3><p class="tr-none">${HB.busy ? "Loading…" : "Not loaded yet."}</p></section>`;
-  const sv = (x) => { const a = hbAtlas(x.n); return `<li>${a ? `<button type="button" class="hb-u" data-action="pc-open" data-no="${a.no}">${hbFace({no: a.no, n: a.n})}<span>${esc(a.n)}</span>${x.k ? `<i>${esc(x.k)}</i>` : ""}</button>` : `<span class="hb-u">${hbFace({n: x.n})}<span>${esc(x.n)}</span>${x.k ? `<i>${esc(x.k)}</i>` : ""}</span>`}</li>`; };
+  const sv = (x) => { const a = hbAtlas(x.n); return `<li>${a && ATLAS_BY_NO.has(a.no) ? `<button type="button" class="hb-u" data-action="pc-open" data-no="${a.no}">${hbFace({no: a.no, n: a.n})}<span>${esc(a.n)}</span>${x.k ? `<i>${esc(x.k)}</i>` : ""}</button>` : `<span class="hb-u">${hbFace({n: x.n})}<span>${esc(x.n)}</span>${x.k ? `<i>${esc(x.k)}</i>` : ""}</span>`}</li>`; };
   const ce = (x) => { const c = CE_BY_NO.get(x.no); return `<li>${c ? `<button type="button" class="hb-u" data-action="ce-open" data-no="${c.no}"><img src="${esc(ceFace(c))}" alt="" loading="lazy"><span>${esc(c.n)}</span></button>` : `<span class="hb-u"><i class="hb-noface">CE</i><span>${esc(x.n)}</span></span>`}</li>`; };
   const part = (t, list, fn) => list.length ? `<h4>${t}</h4><ul class="hb-ul">${list.map(fn).join("")}</ul>` : "";
   return `<section class="hb-side-b hb-upd"><h3 class="hb-h">Latest NA update</h3>

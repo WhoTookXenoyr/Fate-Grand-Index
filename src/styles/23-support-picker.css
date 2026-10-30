@@ -1,0 +1,38 @@
+/* ================= 0.25.0: the damage calculator's support picker (35-support-picker.js) ================= */
+.npc .npc-sup { display: flex; flex: 1 1 auto; flex-direction: row; align-items: center; gap: 8px; min-width: 0; }
+.npc-sup-k { flex: none; font-size: 12px; font-weight: 600; color: var(--muted); }
+.npc-pick { flex: 0 1 420px; min-width: 0; display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px 12px 6px 6px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.npc-pick:hover { border-color: var(--muted); }
+.npc-pick:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.npc-pick > img, .npc-pick-none { width: 40px; height: 40px; border-radius: 9px; object-fit: cover; }
+.npc-pick-none { display: grid; place-items: center; border: 1px dashed var(--muted); font-style: normal; font-size: 20px; color: var(--muted); }
+.npc-pick > span { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.npc-pick b { font-size: 14px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.npc-pick small { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.npc-pick-c { font-style: normal; color: var(--muted); }
+.npc-unpick { flex: none; width: 30px; height: 30px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font-size: 17px; line-height: 1; cursor: pointer; }
+.npc-unpick:hover { border-color: var(--muted); }
+
+/* the window: the Craft Essence picker's (12-craft-essences.css, 18-ui-scale.css), under its own class */
+.spk { position: fixed; inset: 0; z-index: 72; display: grid; place-items: center; padding: 3vh 16px; zoom: var(--ui-z, 1); }
+.spk[hidden] { display: none; }
+@media (min-width: 601px) { .spk { padding: calc(3vh / var(--ui-z, 1)) 16px; } .spk .cep-panel { max-height: calc(94vh / var(--ui-z, 1)); } }
+@media (max-width: 600px) { .spk { padding: 0; } }
+.spk-panel { width: min(1100px, 100%); }
+.spk-cls { gap: 4px; }
+.spk-cls .chip { min-width: 34px; min-height: 34px; padding: 2px 8px; display: inline-grid; place-items: center; }
+.spk-cls .chip img { width: 22px; height: 22px; object-fit: contain; display: block; }
+.spk-g + .spk-g { margin-top: 18px; }
+.spk-g h3 { margin: 0 0 10px; font: 500 11px var(--f-data); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.spk-g h3 small { letter-spacing: 0; }
+.spk-grid { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); }
+.spk-grid .pc-n { font-size: 13px; }
+.spk .pc-card.is-on .pc-face { box-shadow: 0 0 0 3px var(--focus); }
+.spk-none { position: absolute; inset: 0; display: grid; place-items: center; font: 600 28px var(--f-display); font-style: normal; color: rgba(255, 255, 255, .7); }
+@media (max-width: 600px) {
+  .npc .npc-sup { flex-wrap: wrap; }
+  .npc-sup-k { flex-basis: 100%; }
+  .npc-pick { flex: 1 1 0; }
+  .spk-grid { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px 8px; }
+}
+.spk .cep-tools input[data-spk-q] { flex: 1 1 100%; }

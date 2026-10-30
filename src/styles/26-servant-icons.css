@@ -1,0 +1,34 @@
+/* ================= 0.25.0: servant icons (38-servant-icons.js) ================= */
+.avatar.k-face { object-position: 50% 50%; }
+.avatar.k-portrait { object-position: 50% 28%; background: #f4f1ec; }
+.avatar.k-formation { object-position: 50% 6%; }
+.avatar.k-fan { object-position: 50% 30%; }
+.avatar.k-frame { position: relative; overflow: hidden; padding: 0; border: 2px solid #d4ab52; box-shadow: inset 0 0 0 1px rgba(255, 238, 190, .75); background: #2a2230; }
+.avatar.k-frame.r3 { border-color: #b9bec7; box-shadow: inset 0 0 0 1px rgba(240, 244, 250, .7); }
+.avatar.k-frame.r1, .avatar.k-frame.r2 { border-color: #b07a4a; box-shadow: inset 0 0 0 1px rgba(250, 214, 180, .6); }
+.avatar.k-frame > .avf-face { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.avatar.k-frame > .avf-cls { position: absolute; left: 0; top: 0; width: 36%; height: 36%; object-fit: contain; }
+.tile-art { display: none; }
+@media (max-width: 900px) {
+  html:not([data-layout="compact"]) #list > .row > .tile-art { display: block; width: 100%; height: auto; aspect-ratio: 1 / 1; object-fit: cover; object-position: 50% 15%; border: 0; }
+  html:not([data-layout="compact"]) #list > .row > .avatar:has(+ .tile-art) { display: none; }
+}
+/* the choice on the servant page */
+.ick-row { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px; }
+.ick-l { flex-basis: 100%; margin: 2px 0 0; font: 500 11px var(--f-data); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.ick { display: inline-flex; flex-direction: column; align-items: center; gap: 3px; width: 54px; padding: 4px 2px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: 600 10.5px/1.15 var(--f-body); cursor: pointer; text-align: center; }
+.ick:hover { border-color: var(--muted); }
+.ick:focus-visible, .ick:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; }
+.ick[aria-pressed="true"] { border-color: var(--ink); background: var(--sunken); }
+.ick img, .ick-plus { width: 38px; height: 38px; border-radius: 8px; object-fit: cover; }
+.ick img.ick-formation { object-position: 50% 6%; }
+.ick img.ick-portrait { background: #f4f1ec; }
+.ick.is-frame img { box-shadow: 0 0 0 2px #d4ab52; }
+.ick.is-frame.r3 img { box-shadow: 0 0 0 2px #b9bec7; }
+.ick-plus { display: grid; place-items: center; border: 1px dashed var(--muted); font-style: normal; font-size: 18px; color: var(--muted); }
+.ick-note { flex-basis: 100%; margin: 2px 0 0; font-size: 12px; line-height: 1.4; color: var(--muted); }
+.ick-note .linkish { font-size: inherit; }
+/* which of NA's costumes a costume slot is: the faces with their NA names */
+.cpk-row { margin-top: 4px; }
+.ick.cpk { width: 76px; }
+.ick.cpk span { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }

@@ -1108,7 +1108,7 @@ document.addEventListener("click", async (e) => {
   }
   if (a === "art-next") {
     const s = S.servants.find((x) => x.id === shownId()); if (!s) return;
-    const filled = slotsOf(s).filter((x) => artOf(s, x.k)).map((x) => x.k); if (filled.length < 2) return;
+    const filled = artSlots(s).filter((x) => artOf(s, x.k)).map((x) => x.k); if (filled.length < 2) return;
     const k = filled[(filled.indexOf(viewSlot(s)) + 1) % filled.length]; setView(s, k);
     if (!S.readOnly && S.db) { s.artStage = k; renderList(); renderParties(); scheduleWrite("servants", s); }
     renderDossier(); return;

@@ -52,7 +52,7 @@ function footHTML() {
           <li><button type="button" data-action="export-csv">Export as a spreadsheet</button></li>
           ${S.readOnly ? "" : `<li><button type="button" data-action="sf-open" class="sf-danger">Start fresh…</button></li>`}
         </ul>
-        <p class="sf-acct"><span class="sf-pill">Local save</span> Accounts and signing in are on the way.</p>
+        <p class="sf-acct"><span class="sf-pill">Local save</span> <span>Accounts, sync and friends are on <a href="https://fategrandindex.com" target="_blank" rel="noopener">fategrandindex.com</a>: Export a full backup here, then Import it there.</span></p>
       </div>
       <div class="sf-col"><h2>Help</h2><ul>
         <li><button type="button" data-action="tour">Guide</button></li>

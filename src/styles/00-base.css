@@ -20,7 +20,7 @@ html, body { margin: 0; }
   --sunken: #e1d8c9;
   --line: #d2c6b2;
   --ink: #2a231c;
-  --muted: #74685a;
+  --muted: #665a4d;
   --accent: #3a2f26;
   --on-accent: #f7f3ec;
   --gold: #9e7a2c;
@@ -134,6 +134,7 @@ img.broken { visibility: hidden; }
 .art-frame.dragging { border-color: var(--ink); background: color-mix(in srgb, var(--gold) 12%, var(--sunken)); }
 .drop-msg { padding: 18px; text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center; color: var(--muted); font-size: 13.5px; }
 .drop-msg strong { color: var(--ink); font-size: 14px; }
+.drop-btns { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .art-side { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
 .stage-list { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
 .stage-btn { display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 5px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; text-align: center; min-width: 0; }
@@ -197,8 +198,8 @@ img.broken { visibility: hidden; }
 .stepper button:hover { border-color: var(--muted); }
 .stepper output { min-width: 3.4ch; text-align: center; font-family: var(--f-data); font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .status { font-size: 12px; font-weight: 600; color: var(--muted); }
-.status.grail { color: var(--gold); }
-.status.cap { color: var(--quick); }
+.status.grail { color: color-mix(in srgb, var(--gold) 62%, var(--ink)); }
+.status.cap { color: color-mix(in srgb, var(--quick) 70%, var(--ink)); }
 
 .stat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .stat { padding: 14px; border: 1px solid var(--line); border-radius: 14px; display: flex; flex-direction: column; gap: 2px; }
@@ -238,7 +239,7 @@ img.broken { visibility: hidden; }
 .npt td.npt-cardcell { background: color-mix(in srgb, var(--c, var(--muted)) 13%, var(--panel)); }
 .npt tr.oc > td { background: color-mix(in srgb, var(--c, var(--muted)) 9%, var(--panel)); }
 .npt tr.oc > th { background: color-mix(in srgb, var(--c, var(--muted)) 17%, var(--sunken)); }
-.npt th.you { color: var(--gold); }
+.npt th.you { color: color-mix(in srgb, var(--gold) 62%, var(--ink)); }
 .npt th.you small { display: block; font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .npt td.you { font-weight: 700; box-shadow: inset 0 -3px 0 var(--gold); }
 .np-emblem { width: 62px; height: 62px; margin: 0 auto 8px; border-radius: 14px; display: grid; place-items: center; transform: rotate(-4deg);
@@ -304,7 +305,7 @@ img.broken { visibility: hidden; }
 .lv-table th.lab { text-align: left; padding-left: 8px; white-space: nowrap; }
 .lv-table th.lab small { font-weight: 500; color: var(--muted); }
 .lv-table .you { background: color-mix(in srgb, var(--gold) 16%, var(--panel)); color: var(--ink); font-weight: 700; }
-.lv-table th.you { color: var(--gold); background: color-mix(in srgb, var(--gold) 16%, var(--sunken)); }
+.lv-table th.you { color: color-mix(in srgb, var(--gold) 62%, var(--ink)); background: color-mix(in srgb, var(--gold) 16%, var(--sunken)); }
 .sc-rows { display: flex; flex-direction: column; gap: 8px; }
 .sc-row { display: grid; grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)) auto; gap: 8px; align-items: end; padding: 8px; border-radius: 10px; background: var(--panel); }
 .sc-row label { display: flex; flex-direction: column; gap: 4px; }
@@ -553,7 +554,7 @@ button.fc:hover { transform: translateY(-3px); box-shadow: 0 18px 26px -14px rgb
 .rk { font-family: var(--f-data); font-weight: 600; font-size: 16px; text-align: right; font-variant-numeric: tabular-nums; }
 .rank-row.top .rk { color: var(--gold); }
 .mv { font-family: var(--f-data); font-size: 11.5px; color: var(--muted); white-space: nowrap; }
-.mv.up { color: var(--quick); } .mv.down { color: var(--buster); }
+.mv.up { color: color-mix(in srgb, var(--quick) 80%, var(--ink)); } .mv.down { color: color-mix(in srgb, var(--buster) 82%, var(--ink)); }
 .rk-main { min-width: 0; display: flex; flex-direction: column; }
 .rk-name { all: unset; cursor: pointer; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rk-name:hover { text-decoration: underline; text-underline-offset: 3px; }
@@ -679,6 +680,8 @@ button.fc:hover { transform: translateY(-3px); box-shadow: 0 18px 26px -14px rgb
 .wish-banner { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: 14px;
   border: 1px dashed color-mix(in srgb, var(--gold) 60%, var(--line)); background: color-mix(in srgb, var(--gold) 9%, var(--panel)); }
 .wish-banner p { margin: 0; font-size: 14px; }
+.wish-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.wish-confirm { flex-basis: 100%; } .wish-confirm:empty { display: none; }
 .form .chk { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer; }
 .form input[type="checkbox"] { width: 18px; height: 18px; min-height: 0; padding: 0; margin: 0; accent-color: var(--gold); flex: none; }
 .d-head-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }

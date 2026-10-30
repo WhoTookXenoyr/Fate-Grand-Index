@@ -52,8 +52,10 @@ img.ic { object-fit: contain; background: none; }
 /* ---------- tabs: six of them fit on a phone as two rows ---------- */
 @media (max-width: 560px) {
   .tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-self: stretch; border-radius: 18px; overflow: visible; }
-  .tab { padding: 8px 4px; text-align: center; }
+  .tab { padding: 8px 4px; text-align: center; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
+/* 0.26.1: a narrow phone, or a font that runs wider than the page's own (it hasn't loaded yet), still fits every tab */
+@media (max-width: 400px) { .tab { padding-inline: 2px; font-size: 13px; letter-spacing: -.005em; } }
 
 /* ---------- Summoning page ---------- */
 .smp { display: flex; flex-direction: column; gap: 22px; }
@@ -267,9 +269,9 @@ img.ic { object-fit: contain; background: none; }
 .hv-lead { margin: 0; font-size: 13.5px; }
 .hv-list, .hl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
 .hv-x { min-width: 40px; padding: 3px 8px; border-radius: 8px; font-family: var(--f-data); font-size: 13px; font-weight: 700; text-align: center; background: var(--sunken); color: var(--muted); }
-.hv-x.a2 { background: color-mix(in srgb, var(--quick) 22%, transparent); color: var(--quick); }
-.hv-x.a15 { background: color-mix(in srgb, var(--gold) 18%, transparent); color: var(--gold); }
-.hv-x.a05 { background: color-mix(in srgb, var(--buster) 18%, transparent); color: var(--buster); }
+.hv-x.a2 { background: color-mix(in srgb, var(--quick) 22%, transparent); color: color-mix(in srgb, var(--quick) 62%, var(--ink)); }
+.hv-x.a15 { background: color-mix(in srgb, var(--gold) 18%, transparent); color: color-mix(in srgb, var(--gold) 62%, var(--ink)); }
+.hv-x.a05 { background: color-mix(in srgb, var(--buster) 18%, transparent); color: color-mix(in srgb, var(--buster) 70%, var(--ink)); }
 .hl-t { font-size: 12px; color: var(--muted); white-space: nowrap; }
 .hl-summon .hm-main small { color: var(--gold); font-weight: 600; }
 span.hm-row { cursor: default; }
@@ -291,7 +293,7 @@ span.hm-row { cursor: default; }
 .rec.done .rec-m .ic { filter: none; opacity: 1; }
 .rec b { font-size: 13px; font-weight: 650; line-height: 1.2; }
 .rec small { font-size: 11.5px; color: var(--muted); line-height: 1.25; }
-.rec.done small { color: var(--gold); font-weight: 600; }
+.rec.done small { color: color-mix(in srgb, var(--gold) 66%, var(--ink)); font-weight: 600; }
 @media (max-width: 900px) { .rec-list { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (max-width: 420px) { .rec-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } .rec-m { width: 56px; height: 56px; } .rec-m .ic { width: 30px; height: 30px; } .hv-c { width: 32px; height: 32px; } }
 .ic-pick > * { flex-shrink: 0; }

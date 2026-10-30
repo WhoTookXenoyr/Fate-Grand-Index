@@ -1,5 +1,6 @@
 # Cloudflare Pages: headers for the static files (the /api/ answers set their own)
 /*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
@@ -15,3 +16,5 @@
   Cache-Control: no-cache
 /icons/*
   Cache-Control: public, max-age=604800
+/robots.txt
+  Cache-Control: public, max-age=86400

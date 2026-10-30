@@ -5,6 +5,9 @@
 NICK.push([/\belizabeth\b/g, "elisabeth"], [/\batalanta\b/g, "atalante"], [/\bbeserker\b/g, "berserker"], [/\bberzerker\b/g, "berserker"]);
 amCache.clear(); mineCache = null;
 const hasArt = (s) => slotsOf(s).some((x) => artOf(s, x.k));
+// 0.26.1: a stage picture that's gone (removed by mistake, or never added) comes back from NA's data on its own, even
+// when the servant has other pictures; costumes still only come along when there are no pictures at all
+const missingStages = (s, a) => !hasArt(s) ? [] : ["1", "2", "3", "4"].filter((k, i) => !artOf(s, k) && (a.im || [])[i]);
 const skillBlank = (k) => !k || typeof k !== "object" || !(String(k.name || "").trim() || String(k.effect || "").trim());
 const blankVal = (v) => v == null || (typeof v === "string" && !v.trim());
 // HP or ATK at any level: base + (max - base) × the servant's growth curve
@@ -17,7 +20,7 @@ function missingOf(s) {
   const a = atlasOf(s); if (!a) return null;
   const np = a.np || {}, ti = traitInfo(s), lv = num(s.level);
   const m = {
-    art: !hasArt(s) && (a.im.length + a.cs.length) > 0,
+    art: !hasArt(s) && (a.im.length + a.cs.length) > 0, stages: missingStages(s, a),
     sk: [0, 1, 2].filter((i) => skillBlank((s.skillInfo || [])[i]) && a.sk[i]),
     ps: !passivesOf(s).length && a.ps.length > 0,
     deck: deckOf(s).every((c) => !c) && !!a.d,
@@ -30,12 +33,12 @@ function missingOf(s) {
   m.np = m.npName || m.npCard || m.npTarget || m.npTable;
   m.tr = m.attr || m.order || m.moral || m.traits;
   // the wiki link alone isn't worth a reminder, it just comes along with the rest
-  if (!(m.art || m.sk.length || m.ps || m.deck || m.np || m.tr || m.cls || m.rarity || m.hp || m.atk)) return null;
+  if (!(m.art || m.stages.length || m.sk.length || m.ps || m.deck || m.np || m.tr || m.cls || m.rarity || m.hp || m.atk)) return null;
   m.all = m.art && m.sk.length === Math.min(3, a.sk.length) && (m.ps || !a.ps.length);
   return {s: s, a: a, m: m};
 }
 function missingText(m, a) {
-  const parts = [m.art ? "pictures" : "", m.sk.length ? (m.sk.length === 3 ? "skills" : "skill " + m.sk.map((i) => i + 1).join(" & ")) : "", m.ps ? "passive skills" : "",
+  const parts = [m.art ? "pictures" : m.stages && m.stages.length ? (m.stages.length === 1 ? "the Stage " + m.stages[0] + " picture" : "stage pictures") : "", m.sk.length ? (m.sk.length === 3 ? "skills" : "skill " + m.sk.map((i) => i + 1).join(" & ")) : "", m.ps ? "passive skills" : "",
     m.deck ? "deck" : "", m.np ? "NP" : "", m.tr ? "traits" : "", m.cls ? "class" : "", m.rarity ? "rarity" : "", m.hp || m.atk ? "HP and ATK" : ""].filter(Boolean);
   return parts.join(", ").replace(/, ([^,]*)$/, " and $1");
 }
@@ -47,6 +50,9 @@ function fillServant(s, a, m) {
     // a servant whose costume slot was removed gets the stage pictures only
     if (s.costumeSlots === 0) { const a = Object.assign({}, g.art); Object.keys(a).forEach((k) => { if (/^c\d*$/.test(k)) delete a[k]; }); s.art = a; }
     else { s.art = g.art; if (g.costumeSlots) s.costumeSlots = g.costumeSlots; else delete s.costumeSlots; }
+  } else if (m.stages && m.stages.length) {
+    const art = Object.assign({}, s.art || {}); m.stages.forEach((k) => { if (g.art[k]) art[k] = g.art[k]; }); s.art = art;
+    if (!artOf(s, s.artStage)) s.artStage = m.stages[0];
   }
   if (m.sk.length) { const info = [0, 1, 2].map((i) => (s.skillInfo || [])[i] || {}); m.sk.forEach((i) => { info[i] = g.skillInfo[i]; }); s.skillInfo = info; }
   if (m.ps) s.passives = g.passives;

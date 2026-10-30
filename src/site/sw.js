@@ -14,7 +14,8 @@ self.addEventListener("message", (e) => { if (e.data === "skip") self.skipWaitin
 self.addEventListener("fetch", (e) => {
   const r = e.request; if (r.method !== "GET") return;
   const u = new URL(r.url); if (u.origin !== self.location.origin || u.pathname.startsWith("/api/")) return;
-  const page = r.mode === "navigate" || u.pathname === "/" || u.pathname.endsWith("/index.html");
+  // the page for any address in the app; a real file (robots.txt, a picture) is fetched as it is
+  const page = u.pathname === "/" || u.pathname.endsWith("/index.html") || (r.mode === "navigate" && !/\.[a-z0-9]{2,5}$/i.test(u.pathname));
   e.respondWith((async () => {
     const c = await caches.open(V);
     const hit = page ? await c.match("./", {ignoreSearch: true}) : await c.match(r, {ignoreSearch: true});

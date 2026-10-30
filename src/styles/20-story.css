@@ -56,7 +56,25 @@
 .st-row-h:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 14px; }
 .st-row-k { font: 650 13px var(--f-data); color: color-mix(in srgb, var(--c1, var(--accent)) 70%, var(--ink)); overflow-wrap: anywhere; }
 .st-row.done .st-row-k { color: var(--muted); }
-.st-row.done .st-row-k::after { content: " ✓"; }
+/* 0.26.1: what's cleared gets a green check: chapters, parts, sections, battles */
+:root { --st-ok: #1f9d55; --st-ok-ink: #146f40; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --st-ok: #2fbf6f; --st-ok-ink: #5fe39a; } }
+:root[data-theme="dark"] { --st-ok: #2fbf6f; --st-ok-ink: #5fe39a; }
+.st-ok { display: inline-grid; place-items: center; flex: none; width: 1.2em; height: 1.2em; margin-right: .4em; border-radius: 50%; background: var(--st-ok); vertical-align: -.22em; box-shadow: 0 0 0 2px color-mix(in srgb, var(--st-ok) 22%, transparent); }
+.st-ok::before { content: ""; width: .3em; height: .56em; margin-top: -.12em; border: solid #fff; border-width: 0 .14em .14em 0; transform: rotate(45deg); }
+.st-ch.done > b { color: var(--ink); }
+.st-ch.done .st-plate { box-shadow: 0 0 0 2px color-mix(in srgb, var(--st-ok) 55%, transparent); border-radius: 8px; }
+.st-parts .done { color: var(--st-ok-ink); }
+.st-parts [aria-selected="true"].done { color: inherit; }
+.st-cleared { display: inline-flex; align-items: center; color: var(--st-ok-ink); font-weight: 650; white-space: nowrap; }
+.st-row-done { display: inline-flex; align-items: center; font-size: 11.5px; font-weight: 700; color: var(--st-ok-ink); white-space: nowrap; }
+.st-row-h > .st-row-done + .st-row-ch { grid-column: 5; }
+.st-row.done { border-color: color-mix(in srgb, var(--st-ok) 30%, var(--line)); }
+.st-sec.done { position: relative; }
+.st-sec.done::after { content: ""; position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--st-ok); }
+.st-sec.done.on::after { box-shadow: 0 0 0 1.5px #fff; }
+.st-bat.done:not(.on) { border-color: color-mix(in srgb, var(--st-ok) 45%, var(--line)); }
+.st-bat .st-ok { width: 1.05em; height: 1.05em; }
 .st-row-n { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .st-row-n b { font-weight: 650; font-size: 15px; line-height: 1.25; }
 .st-row-n small { font-size: 12px; color: var(--muted); }
@@ -212,8 +230,8 @@
   .st-row-k:empty { display: none; }
   .st-row-n { grid-column: 1; }
   .st-row-m { grid-column: 1; justify-self: start; }
-  .st-row-tag { grid-column: 2; grid-row: 1; justify-self: end; }
-  .st-row-h > .st-row-ch, .st-row-h > .st-row-tag + .st-row-ch, .st-row-h > .st-row-m + .st-row-ch { grid-column: 3; grid-row: 1 / span 3; }
+  .st-row-tag, .st-row-done { grid-column: 2; grid-row: 1; justify-self: end; }
+  .st-row-h > .st-row-ch, .st-row-h > .st-row-tag + .st-row-ch, .st-row-h > .st-row-done + .st-row-ch, .st-row-h > .st-row-m + .st-row-ch { grid-column: 3; grid-row: 1 / span 3; }
   .st-row-b { padding: 4px 10px 12px; }
   .st-en { grid-template-columns: 36px 22px minmax(0, 1fr); }
   .st-fwrap { width: 36px; height: 36px; }
@@ -223,3 +241,58 @@
   .story-plate { height: 38px; max-width: 150px; }
   .st-next { padding: 12px; }
 }
+
+/* ================= 0.26.1: livelier chapter backdrops ================= */
+/* the summoning circle stays behind the chapter, in its colours */
+.idle-bg.st-tint { --idle-ink: color-mix(in srgb, color-mix(in srgb, var(--c1) 60%, var(--ink)) 32%, transparent); --idle-gold: color-mix(in srgb, var(--c3) 66%, transparent); --idle-glow: color-mix(in srgb, var(--c3) 48%, transparent); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .idle-bg.st-tint { --idle-ink: color-mix(in srgb, color-mix(in srgb, var(--c3) 50%, var(--ink)) 22%, transparent); --idle-gold: color-mix(in srgb, var(--c3) 50%, transparent); --idle-glow: color-mix(in srgb, var(--c3) 40%, transparent); } }
+:root[data-theme="dark"] .idle-bg.st-tint { --idle-ink: color-mix(in srgb, color-mix(in srgb, var(--c3) 50%, var(--ink)) 22%, transparent); --idle-gold: color-mix(in srgb, var(--c3) 50%, transparent); --idle-glow: color-mix(in srgb, var(--c3) 40%, transparent); }
+.story-bg .sb-parts { position: absolute; inset: 0; }
+.story-bg b { position: absolute; display: block; pointer-events: none; opacity: 0; }
+/* slow glows in the chapter's colours */
+.sb-glow { width: 52vmax; aspect-ratio: 1; border-radius: 50%; }
+.sb-glow.g1 { left: -14vmax; top: -18vmax; background: radial-gradient(closest-side, color-mix(in srgb, var(--c1) 60%, transparent), transparent); }
+.sb-glow.g2 { right: -16vmax; bottom: -20vmax; background: radial-gradient(closest-side, color-mix(in srgb, var(--c2) 55%, transparent), transparent); }
+.sb-glow.g3 { left: 62%; top: 50%; width: 40vmin; margin: -20vmin 0 0 -20vmin; background: radial-gradient(closest-side, color-mix(in srgb, var(--c3) 55%, transparent), transparent); }
+.story-bg.on .sb-glow { opacity: .8; animation: sb-drift 36s ease-in-out infinite alternate; }
+.story-bg.on .sb-glow.g2 { animation-duration: 44s; animation-delay: -14s; }
+.story-bg.on .sb-glow.g3 { animation: sb-breathe 12s ease-in-out infinite; }
+@keyframes sb-drift { 0% { transform: translate3d(0, 0, 0) scale(1); } 100% { transform: translate3d(9vmax, 7vmax, 0) scale(1.2); } }
+@keyframes sb-breathe { 0%, 100% { transform: scale(.8); opacity: .4; } 50% { transform: scale(1.25); opacity: .95; } }
+/* light turning around the circle */
+.sb-rays { left: 62%; top: 50%; width: 124vmin; aspect-ratio: 1; margin: -62vmin 0 0 -62vmin; border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--c3) 22%, transparent) 0deg 3deg, transparent 3deg 12deg);
+  -webkit-mask: radial-gradient(closest-side, #000 10%, transparent 72%); mask: radial-gradient(closest-side, #000 10%, transparent 72%); }
+.story-bg.on .sb-rays { opacity: .6; animation: sb-spin 200s linear infinite; }
+.story-bg.lt .sb-rays { background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--c1) 18%, transparent) 0deg 3deg, transparent 3deg 12deg); }
+/* each kind's own touch */
+.sb-heat { left: 0; right: 0; bottom: 0; height: 42%; background: linear-gradient(to top, color-mix(in srgb, var(--c1) 46%, transparent), color-mix(in srgb, var(--c3) 14%, transparent) 45%, transparent); transform-origin: bottom; }
+.story-bg.on .sb-heat { animation: sb-flicker 3.4s ease-in-out infinite; }
+.sb-heat.dusk { background: linear-gradient(to top, color-mix(in srgb, var(--c1) 34%, transparent), transparent 70%); }
+@keyframes sb-flicker { 0%, 100% { opacity: .55; transform: scaleY(1); } 30% { opacity: .85; transform: scaleY(1.06); } 55% { opacity: .62; transform: scaleY(.97); } 75% { opacity: .9; transform: scaleY(1.03); } }
+.sb-flash { inset: 0; background: radial-gradient(ellipse at 30% 0, color-mix(in srgb, var(--c3) 45%, #fff), transparent 70%); }
+.story-bg.on .sb-flash { animation: sb-flash 11s linear infinite; }
+@keyframes sb-flash { 0%, 89%, 100% { opacity: 0; } 90% { opacity: .55; } 91% { opacity: .1; } 92.5% { opacity: .45; } 95% { opacity: 0; } }
+.sb-mist { left: -20%; width: 140%; bottom: 4%; height: 34%; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--c3) 32%, transparent), transparent); }
+.sb-mist.m2 { bottom: auto; top: 6%; height: 26%; background: radial-gradient(closest-side, color-mix(in srgb, var(--c1) 26%, transparent), transparent); }
+.story-bg.on .sb-mist { opacity: .7; animation: sb-mist 26s ease-in-out infinite alternate; }
+.story-bg.on .sb-mist.m2 { animation-duration: 34s; animation-direction: alternate-reverse; }
+@keyframes sb-mist { 0% { transform: translate3d(-6%, 0, 0) scaleX(1); } 100% { transform: translate3d(6%, -2%, 0) scaleX(1.12); } }
+.sb-shoot { top: 14%; left: -18%; width: 18vw; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--c3) 70%, #fff)); transform: rotate(16deg); }
+.sb-shoot.s2 { top: 36%; transform: rotate(22deg); }
+.story-bg.on .sb-shoot { animation: sb-shoot 13s ease-in 3s infinite; } .story-bg.on .sb-shoot.s2 { animation-duration: 19s; animation-delay: 9s; }
+@keyframes sb-shoot { 0% { opacity: 0; translate: 0 0; } 2% { opacity: 1; } 9% { opacity: 0; translate: 80vw 26vw; } 100% { opacity: 0; translate: 80vw 26vw; } }
+.sb-pulse { left: 62%; top: 50%; width: 60vmin; aspect-ratio: 1; margin: -30vmin 0 0 -30vmin; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--c3) 55%, transparent); }
+.story-bg.on .sb-pulse { animation: sb-pulse 7s ease-out infinite; } .story-bg.on .sb-pulse.p2 { animation-delay: -3.5s; }
+@keyframes sb-pulse { 0% { opacity: .7; transform: scale(.2); } 100% { opacity: 0; transform: scale(2.1); } }
+.sb-shine { left: -30%; width: 160%; top: 62%; height: 3px; border-radius: 3px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--c3) 75%, #fff), transparent); }
+.sb-shine.s2 { top: 76%; }
+.sb-shine.petal { top: 0; bottom: 0; height: auto; width: 34%; left: 0; background: linear-gradient(100deg, transparent, color-mix(in srgb, var(--c3) 20%, transparent), transparent); }
+.story-bg.on .sb-shine { animation: sb-shine 9s ease-in-out infinite; } .story-bg.on .sb-shine.s2 { animation-delay: -4.5s; }
+.story-bg.on .sb-shine.petal { animation: sb-sweep 16s ease-in-out infinite; }
+@keyframes sb-shine { 0%, 100% { opacity: 0; transform: translate3d(-12%, 0, 0); } 50% { opacity: .75; transform: translate3d(12%, -1.5vh, 0); } }
+@keyframes sb-sweep { 0% { opacity: 0; transform: translate3d(-40vw, 0, 0); } 30% { opacity: .9; } 70% { opacity: .9; } 100% { opacity: 0; transform: translate3d(240vw, 0, 0); } }
+/* a little more of each particle */
+.story-bg.on[data-m="stars"] i { box-shadow: 0 0 calc(9px * var(--s)) var(--c); }
+@media (max-width: 900px) { .sb-rays, .sb-glow.g3, .sb-pulse { left: 50%; } .sb-rays { width: 150vmin; margin: -75vmin 0 0 -75vmin; } }
+@media (prefers-reduced-motion: reduce) { .story-bg.on b { animation: none !important; } .story-bg.on .sb-flash, .story-bg.on .sb-shoot, .story-bg.on .sb-pulse { opacity: 0; } }

@@ -359,11 +359,30 @@ async function removeArt(id, slot) {
   const s = S.servants.find((x) => x.id === id); const old = artOf(s, slot);
   S.artConfirm = null;
   if (!s || !old) { renderDossier(); return; }
+  const label = slotLabel(s, slot), wasStage = s.artStage;
   const art = Object.assign({}, s.art); delete art[slot]; s.art = art;
   if (s.artStage === slot) { const f = slotsOf(s).find((x) => artOf(s, x.k)); s.artStage = f ? f.k : null; }
   const ok = await writeDoc("servants", s);
   renderList(); renderDossier(); renderParties();
-  if (ok && S.assets) { try { await S.assets.delete(old); } catch (e) {} }
+  if (!ok) return;
+  // 0.26.1: a picture removed by mistake comes back with Undo; an uploaded one is only thrown away once that's gone
+  let undone = false;
+  toastAction(label + " picture removed.", "Undo", async () => {
+    undone = true;
+    const cur = S.servants.find((x) => x.id === id); if (!cur || artOf(cur, slot)) return;
+    cur.art = Object.assign({}, cur.art || {}, {[slot]: old}); if (wasStage === slot || !artOf(cur, cur.artStage)) cur.artStage = slot;
+    if (await saveNow("servants", cur)) { renderList(); renderDossier(); renderParties(); toast(label + " picture is back."); }
+  });
+  if (S.assets && /^img_/.test(old)) setTimeout(() => { if (!undone) S.assets.delete(old).catch(() => {}); }, 20000);
+}
+// 0.26.1: an empty stage of a servant NA's data knows can take NA's picture back with one press
+const naStageArt = (s, slot) => { const a = /^[1-4]$/.test(slot) ? atlasOf(s) : null, p = a && (a.im || [])[Number(slot) - 1]; return p ? aimg(p) : null; };
+async function useNaArt(id, slot) {
+  const s = S.servants.find((x) => x.id === id), u = s && naStageArt(s, slot);
+  if (!s || !u || artOf(s, slot) || S.readOnly) return;
+  s.art = Object.assign({}, s.art || {}, {[slot]: u}); if (!artOf(s, s.artStage)) s.artStage = slot;
+  S.viewStage[id] = slot;
+  if (await saveNow("servants", s)) { renderList(); renderDossier(); renderParties(); toast(slotLabel(s, slot) + " picture is back from NA's data."); }
 }
 
 function artHTML(s) {
@@ -376,7 +395,7 @@ function artHTML(s) {
   let frame;
   if (busy) frame = `<div class="art-frame drop"><div class="drop-msg"><strong>Uploading ${esc(label)}…</strong></div></div>`;
   else if (id) frame = `<div class="art-frame" data-drop="${esc(slot)}"><img src="${esc(artSrc(id))}" alt="${esc(s.name)}, ${esc(label)}" data-art="1" data-action="art-next" title="Click for the next stage"></div>`;
-  else if (canEdit) frame = `<div class="art-frame drop" data-drop="${esc(slot)}"><div class="drop-msg"><strong>${slot === "fan" ? "Add fan art" : "Add " + esc(label) + " art"}</strong><span>${slot === "fan" ? "A picture of your own, to show here or as the icon. Paste it here (Ctrl+V), drop a file, or" : "Copy the image on the wiki and press Ctrl+V here, drop a file, or"}</span><label class="btn sm file-btn">Choose image<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-art-file="${esc(slot)}"></label></div></div>`;
+  else if (canEdit) { const na = naStageArt(s, slot); frame = `<div class="art-frame drop" data-drop="${esc(slot)}"><div class="drop-msg"><strong>${slot === "fan" ? "Add fan art" : "Add " + esc(label) + " art"}</strong><span>${slot === "fan" ? "A picture of your own, to show here or as the icon. Paste it here (Ctrl+V), drop a file, or" : "Copy the image on the wiki and press Ctrl+V here, drop a file, or"}</span><div class="drop-btns"><label class="btn sm file-btn">Choose image<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-art-file="${esc(slot)}"></label>${na ? `<button type="button" class="btn sm primary" data-action="art-na" data-slot="${esc(slot)}">Use NA's picture</button>` : ""}</div></div></div>`; }
   else frame = `<div class="art-frame"><div class="drop-msg">No ${esc(label)} image yet.</div></div>`;
   const icon = iconSlot(s);
   const n = costumeCount(s);
@@ -391,8 +410,8 @@ function artHTML(s) {
   let actions = "";
   if (canEdit && id && !busy) {
     actions = S.artConfirm === slot
-      ? `<div class="confirm"><p>Remove the ${esc(label)} image?</p><button class="btn danger solid sm" data-action="art-remove-go" data-slot="${slot}">Remove</button><button class="btn ghost sm" data-action="art-keep">Keep it</button></div>`
-      : `<div class="art-actions"><label class="btn sm file-btn">Replace image<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-art-file="${esc(slot)}"></label><button class="btn danger sm" data-action="art-remove" data-slot="${slot}">Remove</button></div>`;
+      ? `<div class="confirm"><p>Remove the ${esc(label)} picture? ${esc(s.name)} stays${s.wish ? " in your Guests" : " on your list"}.</p><button class="btn danger solid sm" data-action="art-remove-go" data-slot="${slot}">Remove picture</button><button class="btn ghost sm" data-action="art-keep">Keep it</button></div>`
+      : `<div class="art-actions"><label class="btn sm file-btn">Replace picture<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-art-file="${esc(slot)}"></label><button class="btn danger sm" data-action="art-remove" data-slot="${slot}" aria-label="Remove the ${esc(label)} picture">Remove picture</button></div>`;
   } else if (canEdit && !id && !busy && n > 1 && slot === "c" + n) {
     actions = `<div class="art-actions"><button class="btn ghost sm" data-action="remove-costume-slot">Remove this costume slot</button></div>`;
   }
@@ -1481,6 +1500,8 @@ function vsPicks() {
   for (const id of rankRows().map((r) => r.s.id).concat(S.servants.map((s) => s.id))) { if (ids.length >= 2) break; if (!ids.includes(id)) ids.push(id); }
   return ids;
 }
+// 0.26.1: who can stand in Versus (43-friends.js adds friends' servants: picking one from the list did nothing before)
+let vsKnown = (id) => S.servants.some((s) => s.id === id);
 function setVsPicks(ids) { vsMem = ids.slice(0, 3); try { localStorage.setItem(VS_KEY, JSON.stringify(vsMem)); } catch (e) {} }
 const vsKey = (i) => `<span class="vs-key k${i + 1}">${VS_K[i]}</span>`;
 const statMax = (m) => Math.max(2000, Math.ceil(m / 2000) * 2000);

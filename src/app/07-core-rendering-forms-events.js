@@ -390,7 +390,7 @@ function renderDossier(force) {
         <p class="d-meta"><span>${esc(s.cls || "No class")}</span><span class="stars">${"★".repeat(clamp(num(s.rarity) || 0, 0, 5))}</span>${s.role ? `<span class="tag">${esc(s.role)}</span>` : ""}${rk ? `<button class="tag rank-chip" data-action="tab" data-tab="ranking" title="Open the ranking">Rank #${rk.rank} of ${rk.of} · ${rk.sc.total.toFixed(1)}</button>` : ""}</p></div>
       <div class="d-head-actions"><button class="btn sm" data-action="vs-add" data-id="${esc(s.id)}" title="Compare in the Versus tab">Compare</button>${S.readOnly ? "" : `<button class="btn sm" data-action="edit">Edit details</button>`}</div>
     </header>
-    ${s.wish ? `<div class="wish-banner"><p><b>Guest.</b> Not summoned yet. Add their stage pictures under Ascension art, and summon them on the Summoning page when they join you.</p>${S.readOnly ? "" : `<button class="btn sm summon-btn" data-action="to-summon" data-id="${esc(s.id)}">Go to Summoning</button>`}</div>` : ""}
+    ${s.wish ? `<div class="wish-banner"><p><b>Guest.</b> Not summoned yet. Add their stage pictures under Ascension art, and summon them on the Summoning page when they join you.</p>${S.readOnly ? "" : `<span class="wish-acts"><button class="btn sm summon-btn" data-action="to-summon" data-id="${esc(s.id)}">Go to Summoning</button><button class="btn ghost sm" data-action="wish-remove" data-id="${esc(s.id)}">Remove from Guests</button></span><div id="wish-confirm" class="wish-confirm"></div>`}</div>` : ""}
 
     ${artHTML(s)}
 
@@ -1090,6 +1090,21 @@ document.addEventListener("click", async (e) => {
     return;
   }
   if (a === "keep") { const c = b.closest(".confirm"); if (c) c.parentElement.innerHTML = ""; return; }
+  // 0.26.1: a Guest leaves the list from its own page (before, only from the bottom of Edit details), with Undo
+  if (a === "wish-remove") { const g = S.servants.find((x) => x.id === b.dataset.id && x.wish); if (g) { $("#wish-confirm").innerHTML = `<div class="confirm"><p>Remove ${esc(g.name)} from your Guests? Their pictures and notes go too. You can undo it right after.</p><button class="btn danger solid sm" type="button" data-action="wish-remove-go" data-id="${esc(g.id)}">Remove</button><button class="btn ghost sm" type="button" data-action="keep">Keep</button></div>`; } return; }
+  if (a === "wish-remove-go") {
+    const id = b.dataset.id, g = S.servants.find((x) => x.id === id); if (!g) return;
+    const copy = JSON.parse(JSON.stringify(g));
+    if (!(await removeDoc("servants", id))) return;
+    S.servants = S.servants.filter((x) => x.id !== id);
+    if (S.selected === id) S.selected = null; if (S.editing === id) { dropFormArt(); S.editing = null; }
+    mineCache = null; renderAll();
+    toastAction(copy.name + " removed from your Guests.", "Undo", async () => {
+      if (S.servants.some((x) => x.id === copy.id)) return;
+      if (await saveNow("servants", copy)) { mineCache = null; goServant(copy.id); toast(copy.name + " is back in your Guests."); }
+    });
+    return;
+  }
   if (a === "add-party") { S.tab = "parties"; S.partyEdit = "new"; renderChrome(); renderParties(); const f = document.getElementById("pt-name"); if (f) f.focus(); return; }
   if (a === "edit-party") { S.partyEdit = b.dataset.id; renderParties(); return; }
   if (a === "cancel-party") { S.partyEdit = null; renderParties(); return; }
@@ -1116,6 +1131,7 @@ document.addEventListener("click", async (e) => {
   if (a === "art-remove") { S.artConfirm = b.dataset.slot; renderDossier(); return; }
   if (a === "art-keep") { S.artConfirm = null; renderDossier(); return; }
   if (a === "art-remove-go") { removeArt(shownId(), b.dataset.slot); return; }
+  if (a === "art-na") { useNaArt(shownId(), b.dataset.slot); return; }
   if (a === "add-costume") {
     const s = S.servants.find((x) => x.id === shownId()); if (!s || S.readOnly) return;
     const n = costumeCount(s); if (n >= MAX_COSTUMES) return;
@@ -1392,7 +1408,7 @@ document.addEventListener("change", (e) => {
   if (t && (t.id === "sv-attr" || (t.dataset && t.dataset.buffTag != null))) { refreshTraitLive(); return; }
   if (t && t.dataset && t.dataset.vsPick != null) {
     const ids = vsPicks(), i = Number(t.dataset.vsPick), v = t.value, j = ids.indexOf(v);
-    if (!(i >= 0 && i < ids.length) || !S.servants.some((x) => x.id === v)) return;
+    if (!(i >= 0 && i < ids.length) || !vsKnown(v)) return;
     if (j >= 0 && j !== i) ids[j] = ids[i];
     ids[i] = v; setVsPicks(ids); renderVersus();
     const ns = document.querySelector('[data-vs-pick="' + i + '"]'); if (ns) ns.focus({preventScroll: true}); return;

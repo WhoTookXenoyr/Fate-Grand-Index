@@ -1,0 +1,4 @@
+# Fate/Grand Index: everyone may read the page; /api/ is people's accounts and rosters
+User-agent: *
+Allow: /
+Disallow: /api/

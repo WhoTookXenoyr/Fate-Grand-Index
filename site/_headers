@@ -1,5 +1,6 @@
 # Cloudflare Pages: headers for the static files (the /api/ answers set their own)
 /*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
@@ -15,7 +16,9 @@
   Cache-Control: no-cache
 /icons/*
   Cache-Control: public, max-age=604800
+/robots.txt
+  Cache-Control: public, max-age=86400
 /
-  Content-Security-Policy: default-src 'self'; script-src 'sha256-M8hY6rqqY2bjNkvE3W03MovwcqJ+iAm8MidCzulQd5g=' 'sha256-aYCyI2aDm9neJZbVWLIk0rUMTT3bAPWzpynP2AbUDcQ='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https:; worker-src 'self'; manifest-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'sha256-M8hY6rqqY2bjNkvE3W03MovwcqJ+iAm8MidCzulQd5g=' 'sha256-n6gKO8wW3EaHQP1/FMFSk3wOzmrr8Az8xIFxZ6BsJvY='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https:; worker-src 'self'; manifest-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
 /index.html
-  Content-Security-Policy: default-src 'self'; script-src 'sha256-M8hY6rqqY2bjNkvE3W03MovwcqJ+iAm8MidCzulQd5g=' 'sha256-aYCyI2aDm9neJZbVWLIk0rUMTT3bAPWzpynP2AbUDcQ='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https:; worker-src 'self'; manifest-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'sha256-M8hY6rqqY2bjNkvE3W03MovwcqJ+iAm8MidCzulQd5g=' 'sha256-n6gKO8wW3EaHQP1/FMFSk3wOzmrr8Az8xIFxZ6BsJvY='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https:; worker-src 'self'; manifest-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'

@@ -42,7 +42,13 @@ const ROUTES = [
   ["GET", /^share\/([A-Za-z0-9_-]{8,60})$/, (c, m) => fr.shared(c, m[1])]
 ];
 
-export async function handle(ctx) {
+// 0.26.1: every answer says "https only from now on" (HSTS) and "don't guess content types", like the static files do
+function secure(res) {
+  const set = (r) => { r.headers.set("strict-transport-security", "max-age=31536000; includeSubDomains"); r.headers.set("x-content-type-options", "nosniff"); return r; };
+  try { return set(res); } catch (e) { return set(new Response(res.body, res)); }
+}
+export async function handle(ctx) { return secure(await route(ctx)); }
+async function route(ctx) {
   const req = ctx.request, url = new URL(req.url), path = url.pathname.replace(/^\/api\/?/, "").replace(/\/$/, "");
   try {
     if (!ctx.env.DB) fail(503, "no_db", "This server has no database bound yet (D1 binding DB).");

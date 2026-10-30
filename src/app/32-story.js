@@ -62,7 +62,15 @@ const ST = (() => {
   return {pos: pos, theme: v.theme !== false, part: v.part || (pos ? STORY_BY.get(pos.w).part : "1"), view: pos ? {w: pos.w, q: pos.q, ph: pos.ph} : null, shut: false,
     wars: {}, phases: {}, busy: new Set(), err: {}};
 })();
-const storySave = () => lsSet(STORY_KEY, JSON.stringify({pos: ST.pos, theme: ST.theme, part: ST.part}));
+const storySave = () => { if (!ST.other) lsSet(STORY_KEY, JSON.stringify({pos: ST.pos, theme: ST.theme, part: ST.part})); };
+// 0.26.1: looking at a friend's roster, the Story page shows where they are (ST.other = {name, pos}, set by
+// 43-friends.js); your own place (ST.pos) and the chapter look stay yours, and nothing is saved meanwhile
+const stPos = () => ST.other ? ST.other.pos : ST.pos;
+const stWho = (you, them) => ST.other ? them.replace("{n}", esc(ST.other.name)) : you;
+// cleared: every chapter before the one you're on, in the game's order
+const chIdx = (w) => STORY_CH.findIndex((c) => c.id === w);
+const chDone = (w) => { const p = stPos(); return !!p && chIdx(w) >= 0 && chIdx(w) < chIdx(p.w); };
+const OK_MARK = `<i class="st-ok" aria-hidden="true"></i>`;
 
 /* ---------- Atlas Academy's data, made small and kept ---------- */
 const ATTR_N = {human: "Man", earth: "Earth", sky: "Sky", star: "Star", beast: "Beast"};
@@ -209,24 +217,35 @@ function waveHTML(w, ph) {
         ${e.tr.length ? `<span class="st-tr">${e.tr.slice(0, 6).map((t) => `<i>${esc(t)}</i>`).join("")}</span>` : ""}</div>
       <div class="st-hp"><b>${fmt(e.hp)}</b>${e.bars.length ? `<span>${e.bars.map((h) => "+ " + fmt(h)).join(" ")}</span>` : ""}<small>HP${e.bars.length ? " · " + (e.bars.length + 1) + " bars" : ""}</small></div></li>`).join("")}</ul></div>`;
 }
+// 0.26.1: worth borrowing for this fight: your Guests of the right classes (the Guests on the Servants page, not only
+// the old Guests tab's list), and, signed in, your friends' supports (storyBorrowFriends, from 43-friends.js)
+let storyBorrowFriends = () => [];
+function storyBorrow(topCls) {
+  const seen = new Set(), out = [];
+  const add = (name, cls, who) => { const k = normName(name) + "|" + (who || ""); if (!name || !topCls.has(cls) || seen.has(k)) return; seen.add(k); out.push({name: name, cls: cls, who: who}); };
+  S.servants.filter((s) => s.wish).forEach((s) => add(s.name, s.cls));
+  (S.guests || []).forEach((g) => { if (g && !g.movedTo) add(g.name, g.cls); });
+  storyBorrowFriends().forEach((f) => add(f.name, f.cls, f.who));
+  return out.slice(0, 6);
+}
 function adviceHTML(ph, q, p, war) {
   if (!ph) return "";
   const cls = classAdvice(ph).slice(0, 4), sv = servantAdvice(ph), mine = new Set(sv.map((x) => x.s.id));
   const topCls = new Set(cls.slice(0, 3).map((x) => x.c));
-  const borrow = S.guests.filter((g) => topCls.has(g.cls)).slice(0, 4);
+  const borrow = storyBorrow(topCls);
   const pct = (v) => Math.round(v * 100) + "%";
-  return `<section class="st-next" aria-labelledby="st-next-h"><header><p class="st-k">Your next fight</p><h3 id="st-next-h">${esc(secLabel(q))} · ${esc(q.n)} <small>battle ${q.pe.indexOf(p) + 1} of ${q.pe.length}</small></h3></header>
+  return `<section class="st-next" aria-labelledby="st-next-h"><header><p class="st-k">${stWho("Your next fight", "{n}'s next fight")}</p><h3 id="st-next-h">${esc(secLabel(q))} · ${esc(q.n)} <small>battle ${q.pe.indexOf(p) + 1} of ${q.pe.length}</small></h3></header>
     <div class="st-cls-row">${cls.map((x) => `<div class="st-ccard${x.off > 1.2 ? " good" : ""}">${clsChip(x.c)}<div><b>${esc(x.c)}</b><span>${x.strong ? `strong against ${pct(x.strong)} of the HP` : "no advantage"}; takes ${x.inc > 1.2 ? "<em>more</em>" : x.inc < 0.9 ? "less" : "normal"} damage</span></div></div>`).join("")}</div>
-    ${sv.length ? `<h4 class="st-sub">Best from your list</h4><ol class="st-best">${sv.map((x, i) => `<li><button type="button" class="st-sv" data-action="goto" data-id="${esc(x.s.id)}">${iconHTML(x.s, "sm")}
+    ${sv.length ? `<h4 class="st-sub">${stWho("Best from your list", "Best from {n}'s list")}</h4><ol class="st-best">${sv.map((x, i) => `<li><button type="button" class="st-sv" data-action="goto" data-id="${esc(x.s.id)}">${iconHTML(x.s, "sm")}
         <span class="st-sv-m"><b>${esc(x.s.name)}</b>${x.s.wish ? `<i class="tag">Guest</i>` : ""}<span>${esc(x.s.cls || "")} · ${x.aoe ? "AoE" : "single target"} NP${num(x.s.npLevel) || 1}</span></span>
         <span class="st-sv-n"><b>${pct(Math.min(1, x.frac))}</b><small>of the fight's HP with one NP a wave</small>${x.boss ? `<small>≈ ${fmt(Math.round(x.boss.dmg))} on ${esc(x.boss.e.n)} (${fmt(x.boss.e.tot)} HP)</small>` : ""}</span></button></li>`).join("")}</ol>`
-      : `<p class="tr-none">No servant on your list has ATK and an NP Damage row filled in yet, so there's nothing to compare. Fill in from NA on the servant page.</p>`}
-    ${borrow.length ? `<p class="st-borrow">Worth borrowing: ${borrow.map((g) => `<b>${esc(g.name)}</b> <small>(${esc(g.cls)})</small>`).join(", ")}</p>` : ""}
+      : `<p class="tr-none">${stWho("No servant on your list has ATK and an NP Damage row filled in yet, so there's nothing to compare. Fill in from NA on the servant page.", "No servant on {n}'s list has ATK and an NP Damage row filled in yet, so there's nothing to compare.")}</p>`}
+    ${borrow.length ? `<p class="st-borrow">Worth borrowing: ${borrow.map((g) => `<b>${esc(g.name)}</b> <small>(${esc(g.cls)}${g.who ? ", " + esc(g.who) + "'s support" : ""})</small>`).join(", ")}</p>` : ""}
     <p class="st-note">One NP a wave with no buffs, against each enemy's class and attribute, with class passives and your equipped Craft Essence. Buffs and the order you fire NPs in change it.</p></section>`;
 }
 function chipHTML(c) {
-  const on = !!(ST.view && ST.view.w === c.id), here = !!(ST.pos && ST.pos.w === c.id);
-  return `<button type="button" class="st-ch${on ? " on" : ""}${here ? " here" : ""}" data-action="st-ch" data-w="${c.id}" aria-pressed="${on}" style="${palVars(c)}">${plateHTML(c)}<b>${esc(c.n)}</b>${here ? `<small>You're here</small>` : ""}</button>`;
+  const p = stPos(), on = !!(ST.view && ST.view.w === c.id), here = !!(p && p.w === c.id), done = chDone(c.id);
+  return `<button type="button" class="st-ch${on ? " on" : ""}${here ? " here" : ""}${done ? " done" : ""}" data-action="st-ch" data-w="${c.id}" aria-pressed="${on}" style="${palVars(c)}">${plateHTML(c)}<b>${done ? OK_MARK : ""}${esc(c.n)}${done ? `<span class="sr"> (cleared)</span>` : ""}</b>${here ? `<small>${stWho("You're here", "{n}'s here")}</small>` : ""}</button>`;
 }
 // one section: a row you click open; the open one shows its battles and their enemies
 function secRowHTML(war, q, i, ctx) {
@@ -234,29 +253,33 @@ function secRowHTML(war, q, i, ctx) {
   const head = `<button type="button" class="st-row-h" data-action="st-q" data-q="${q.id}" aria-expanded="${open}">
       <span class="st-row-k">${secLabel(q) === q.n ? "" : esc(secLabel(q))}</span><span class="st-row-n"><b>${esc(q.n)}</b>${q.sp ? `<small>${esc(q.sp)}</small>` : ""}</span>
       <span class="st-row-m">${q.pe.length ? plural(q.pe.length, "battle") : "Story only"}${q.lv && q.lv !== "0" ? ` · Lv ${esc(q.lv)}` : ""}</span>
-      ${isPos ? `<span class="st-row-tag">You're here</span>` : ""}<span class="st-row-ch" aria-hidden="true"></span></button>`;
+      ${isPos ? `<span class="st-row-tag">${stWho("You're here", "{n}'s here")}</span>` : done ? `<span class="st-row-done">${OK_MARK}Cleared</span>` : ""}<span class="st-row-ch" aria-hidden="true"></span></button>`;
   const cls = `st-row${done ? " done" : ""}${isPos ? " here" : ""}${open ? " open" : ""}`;
   if (!open) return `<article class="${cls}" data-q="${q.id}">${head}</article>`;
   const v = ST.view, pIdx = Math.max(0, q.pe.indexOf(v.ph));
   const ph = q.pe.length ? ST.phases[q.id + "-" + q.pe[pIdx]] : null, pk = "story:phase:" + q.id + "-" + q.pe[pIdx];
-  const battles = q.pe.length > 1 ? `<div class="st-bats" role="tablist" aria-label="Battles">${q.pe.map((p, j) => `<button type="button" role="tab" class="st-bat${j === pIdx ? " on" : ""}${ctx.here && ST.pos.q === q.id && p === ST.pos.ph ? " here" : ""}" data-action="st-ph" data-ph="${p}" aria-selected="${j === pIdx}">Battle ${j + 1}</button>`).join("")}</div>` : "";
-  const isHere = ctx.here && ST.pos.q === q.id && q.pe[pIdx] === ST.pos.ph;
+  const sp = stPos(), atQ = ctx.here && sp.q === q.id, pj = atQ ? q.pe.indexOf(sp.ph) : -1;
+  const battles = q.pe.length > 1 ? `<div class="st-bats" role="tablist" aria-label="Battles">${q.pe.map((p, j) => { const bd = done || (atQ && j < pj); return `<button type="button" role="tab" class="st-bat${j === pIdx ? " on" : ""}${atQ && p === sp.ph ? " here" : ""}${bd ? " done" : ""}" data-action="st-ph" data-ph="${p}" aria-selected="${j === pIdx}">${bd ? OK_MARK : ""}Battle ${j + 1}</button>`; }).join("")}</div>` : "";
+  const isHere = atQ && q.pe[pIdx] === sp.ph;
   const fight = !q.pe.length ? `<p class="tr-none">Story only: no battles in this section.</p>`
     : ph ? `${ph.fld.length ? `<p class="st-fld">Field: ${ph.fld.map(esc).join(", ")}</p>` : ""}${ph.st.map((w) => waveHTML(w, ph)).join("") || `<p class="tr-none">No enemies listed for this battle.</p>`}`
     : ST.err[pk] ? `<div class="st-msg"><p>Couldn't load this battle's enemies.</p><button type="button" class="btn sm" data-action="st-retry">Try again</button></div>` : `<div class="skeleton" style="height:180px"></div>`;
   return `<article class="${cls}" data-q="${q.id}">${head}
     <div class="st-row-b">
       <div class="st-row-top"><dl class="st-qm">${q.lv && q.lv !== "0" ? `<div><dt>Rec. Lv</dt><dd>${esc(q.lv)}</dd></div>` : ""}${q.ap ? `<div><dt>AP</dt><dd>${q.ap}</dd></div>` : ""}<div><dt>Battles</dt><dd>${q.pe.length}</dd></div></dl>
-        ${q.pe.length ? `<div class="st-here-row">${isHere ? `<span class="st-here-tag">You're here</span><button type="button" class="btn sm primary" data-action="st-next">Cleared it: next fight</button>` : `<button type="button" class="btn sm" data-action="st-here">I'm here</button>`}</div>` : ""}</div>
+        ${q.pe.length ? `<div class="st-here-row">${ST.other ? (isHere ? `<span class="st-here-tag">${stWho("", "{n}'s here")}</span>` : "") : isHere ? `<span class="st-here-tag">You're here</span><button type="button" class="btn sm primary" data-action="st-next">Cleared it: next fight</button>` : `<button type="button" class="btn sm" data-action="st-here">I'm here</button>`}</div>` : ""}</div>
       ${battles}
       <div class="st-fight">${fight}</div></div></article>`;
 }
 function storyHTML() {
-  const parts = `<div class="seg st-parts" role="tablist" aria-label="Story parts">${STORY_PARTS.map(([k, t]) => `<button type="button" role="tab" data-action="st-part" data-k="${k}" aria-selected="${ST.part === k}">${t}</button>`).join("")}</div>`;
+  const partDone = (k) => STORY_CH.filter((c) => c.part === k).every((c) => chDone(c.id));
+  const parts = `<div class="seg st-parts" role="tablist" aria-label="Story parts">${STORY_PARTS.map(([k, t]) => `<button type="button" role="tab" data-action="st-part" data-k="${k}" aria-selected="${ST.part === k}"${partDone(k) ? ` class="done"` : ""}>${partDone(k) ? OK_MARK : ""}${t}${partDone(k) ? `<span class="sr"> (cleared)</span>` : ""}</button>`).join("")}</div>`;
   const chips = STORY_CH.filter((c) => c.part === ST.part).map(chipHTML).join("");
-  const posLine = ST.pos ? (() => { const c = STORY_BY.get(ST.pos.w), w = ST.wars[ST.pos.w], q = w && w.q.find((x) => x.id === ST.pos.q); return `You're at <b>${esc(c.n)}</b>${q ? ` · ${esc(secLabel(q))}, battle ${Math.max(1, q.pe.indexOf(ST.pos.ph) + 1)}` : ""}.`; })() : "Pick the chapter you're on, then the section and battle you've reached.";
+  const P = stPos(), nDone = P ? STORY_CH.filter((c) => chDone(c.id)).length : 0;
+  const posLine = P ? (() => { const c = STORY_BY.get(P.w), w = ST.wars[P.w], q = w && w.q.find((x) => x.id === P.q); return `${stWho("You're at", "<b>{n}</b> is at")} <b>${esc(c.n)}</b>${q ? ` · ${esc(secLabel(q))}, battle ${Math.max(1, q.pe.indexOf(P.ph) + 1)}` : ""}.${nDone ? ` <span class="st-cleared">${OK_MARK}${plural(nDone, "chapter")} cleared</span>` : ""}`; })()
+    : ST.other ? `<b>${esc(ST.other.name)}</b> hasn't set a story position yet.` : "Pick the chapter you're on, then the section and battle you've reached.";
   const head = `<header class="st-head"><div><h2>Story</h2><p class="st-pos">${posLine}</p></div>
-    <label class="st-theme"><input type="checkbox" data-st-theme${ST.theme ? " checked" : ""}> Chapter look on the other pages</label></header>`;
+    ${ST.other ? "" : `<label class="st-theme"><input type="checkbox" data-st-theme${ST.theme ? " checked" : ""}> Chapter look on the other pages</label>`}</header>`;
   let body = "";
   const v = ST.view;
   if (v) {
@@ -264,23 +287,23 @@ function storyHTML() {
     if (!war) body = ST.err[k] ? `<div class="st-msg"><p>${ST.err[k] === "offline" ? "You're offline, and this chapter isn't saved in this browser yet." : "Atlas Academy didn't answer for this chapter."}</p><button type="button" class="btn sm" data-action="st-retry">Try again</button></div>` : `<div class="skeleton" style="height:260px"></div>`;
     else if (!war.q.length) body = `<p class="tr-none">${esc(c.n)} has no story sections in NA's data yet.</p>`;
     else {
-      const qi = Math.max(0, war.q.findIndex((x) => x.id === v.q)), q = war.q[qi], here = !!(ST.pos && ST.pos.w === v.w);
-      const posQi = here ? war.q.findIndex((x) => x.id === ST.pos.q) : -1;
+      const qi = Math.max(0, war.q.findIndex((x) => x.id === v.q)), q = war.q[qi], here = !!(P && P.w === v.w);
+      const posQi = here ? war.q.findIndex((x) => x.id === P.q) : chDone(v.w) ? war.q.length : -1;
       const strip = `<div class="st-strip"><button type="button" class="st-arrow" data-action="st-sec" data-d="-1" aria-label="Previous section"${qi ? "" : " disabled"}>‹</button>
-        <div class="st-secs" role="tablist" aria-label="Sections">${war.q.map((x, i) => `<button type="button" role="tab" class="st-sec${i === qi ? " on" : ""}${i < posQi ? " done" : ""}${i === posQi ? " here" : ""}" data-action="st-go" data-q="${x.id}" aria-selected="${i === qi}" title="${esc(secLabel(x) + ": " + x.n)}">${esc(nodeLabel(x))}</button>`).join("")}</div>
+        <div class="st-secs" role="tablist" aria-label="Sections">${war.q.map((x, i) => `<button type="button" role="tab" class="st-sec${i === qi ? " on" : ""}${i < posQi ? " done" : ""}${i === posQi ? " here" : ""}" data-action="st-go" data-q="${x.id}" aria-selected="${i === qi}" title="${esc(secLabel(x) + ": " + x.n + (i < posQi ? " (cleared)" : ""))}">${esc(nodeLabel(x))}</button>`).join("")}</div>
         <button type="button" class="st-arrow" data-action="st-sec" data-d="1" aria-label="Next section"${qi < war.q.length - 1 ? "" : " disabled"}>›</button></div>`;
       const ctx = {q: q, here: here, posQi: posQi};
       body = `<div class="st-chapter" style="${palVars(c)}">
-        <div class="st-title">${plateHTML(c, true)}<div><h3>${esc(war.n || c.ln)}</h3><p>${plural(war.q.length, "section")} · ${plural(fightsOf(war).length, "battle")}</p></div></div>
+        <div class="st-title">${plateHTML(c, true)}<div><h3>${esc(war.n || c.ln)}</h3><p>${plural(war.q.length, "section")} · ${plural(fightsOf(war).length, "battle")}${chDone(v.w) ? ` · <span class="st-cleared">${OK_MARK}Cleared</span>` : ""}</p></div></div>
         ${strip}
         <div class="st-list">${war.q.map((x, i) => secRowHTML(war, x, i, ctx)).join("")}</div></div>`;
     }
   }
   // the next fight, wherever you're browsing
   let next = "";
-  if (ST.pos) {
-    const war = ST.wars[ST.pos.w], q = war && war.q.find((x) => x.id === ST.pos.q), ph = q ? ST.phases[q.id + "-" + ST.pos.ph] : null;
-    if (q && ph) next = adviceHTML(ph, q, ST.pos.ph, war);
+  if (P) {
+    const war = ST.wars[P.w], q = war && war.q.find((x) => x.id === P.q), ph = q ? ST.phases[q.id + "-" + P.ph] : null;
+    if (q && ph) next = adviceHTML(ph, q, P.ph, war);
   }
   return head + next + `<nav class="st-nav" aria-label="Chapters">${parts}<div class="st-chips">${chips}</div></nav>` + body;
 }
@@ -304,8 +327,9 @@ async function storyNeed() {
   let changed = false;
   try {
     const want = [];
+    const P = stPos();
     if (ST.view) want.push(ST.view);
-    if (ST.pos && (!ST.view || ST.pos.w !== ST.view.w || ST.pos.q !== ST.view.q || ST.pos.ph !== ST.view.ph)) want.push(ST.pos);
+    if (P && (!ST.view || P.w !== ST.view.w || P.q !== ST.view.q || P.ph !== ST.view.ph)) want.push(P);
     for (const v of want) {
       const had = !!ST.wars[v.w], hadErr = !!ST.err["story:war:" + v.w], war = await storyWar(v.w); if (!had && war) changed = true;
       if (!war) { if (!hadErr && ST.err["story:war:" + v.w]) changed = true; continue; }
@@ -328,7 +352,7 @@ document.addEventListener("click", (e) => {
   const a = b.dataset.action; if (!/^st-/.test(a)) return;
   const v = ST.view, war = v ? ST.wars[v.w] : null;
   if (a === "st-part") { ST.part = b.dataset.k; storySave(); renderStory(); return; }
-  if (a === "st-ch") { const w = num(b.dataset.w); ST.shut = false; ST.view = ST.pos && ST.pos.w === w ? {w: w, q: ST.pos.q, ph: ST.pos.ph} : {w: w, q: 0, ph: 0}; renderStory(); return; }
+  if (a === "st-ch") { const w = num(b.dataset.w), P = stPos(); ST.shut = false; ST.view = P && P.w === w ? {w: w, q: P.q, ph: P.ph} : {w: w, q: 0, ph: 0}; renderStory(); return; }
   if (a === "st-retry") { Object.keys(ST.err).forEach((k) => delete ST.err[k]); renderStory(); return; }
   if (!v || !war) return;
   const qi = Math.max(0, war.q.findIndex((x) => x.id === v.q));
@@ -349,6 +373,7 @@ document.addEventListener("click", (e) => {
     return;
   }
   if (a === "st-ph") { ST.view = {w: v.w, q: v.q, ph: num(b.dataset.ph)}; renderStory(); return; }
+  if (ST.other && (a === "st-here" || a === "st-next")) return;
   if (a === "st-here") { storySetPos(v.w, v.q, v.ph); renderStory(); toast("Story position set: " + STORY_BY.get(v.w).n + "."); return; }
   if (a === "st-next") {
     const all = fightsOf(war), i = all.findIndex(([q, p]) => q.id === ST.pos.q && p === ST.pos.ph);
@@ -386,16 +411,22 @@ renderAll = function () { const r = renderAll24s.apply(this, arguments); renderS
 
 /* ---------- the chapter's look on the rest of the page ---------- */
 const storyOn = () => !!(ST.theme && ST.pos && STORY_BY.has(ST.pos.w)) && !pageActive() && S.tab !== "event";
+// 0.26.1: livelier: more of the chapter's own particles, slow glows in its colours, light turning around the summoning
+// circle (which stays, tinted), and one touch of its own per kind (heat, lightning, shooting stars, mist, pulses)
+const SB_EXTRA = {embers: '<b class="sb-heat"></b>', icefire: '<b class="sb-heat"></b><b class="sb-mist"></b>', rain: '<b class="sb-flash"></b><b class="sb-mist"></b>',
+  stars: '<b class="sb-shoot"></b><b class="sb-shoot s2"></b>', rings: '<b class="sb-shoot"></b><b class="sb-pulse"></b>', beams: '<b class="sb-shoot s2"></b><b class="sb-pulse"></b>',
+  snow: '<b class="sb-mist"></b><b class="sb-mist m2"></b>', fog: '<b class="sb-mist"></b><b class="sb-mist m2"></b>', waves: '<b class="sb-shine"></b><b class="sb-shine s2"></b>',
+  grid: '<b class="sb-pulse"></b><b class="sb-pulse p2"></b>', motes: '<b class="sb-pulse"></b>', dust: '<b class="sb-heat dusk"></b>', petals: '<b class="sb-shine petal"></b>', leaves: '<b class="sb-mist"></b>'};
 function storyBgHTML(c) {
   let seed = c.id * 7919 + 17; const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const n = {embers: 22, snow: 26, icefire: 28, petals: 18, leaves: 18, stars: 36, motes: 20, dust: 26, rain: 30, fog: 6, waves: 4, beams: 7, rings: 4, grid: 3}[c.m] || 18;
+  const n = Math.round(({embers: 22, snow: 26, icefire: 28, petals: 18, leaves: 18, stars: 36, motes: 20, dust: 26, rain: 30, fog: 6, waves: 4, beams: 7, rings: 4, grid: 3}[c.m] || 18) * (["fog", "waves", "beams", "rings", "grid"].includes(c.m) ? 1 : 1.6));
   let h = "";
   for (let i = 0; i < n; i++) {
     const x = (r() * 100).toFixed(1), y = (r() * 100).toFixed(1), s = (0.55 + r() * 0.9).toFixed(2), d = (c.m === "rain" ? 0.9 + r() * 0.8 : c.m === "stars" ? 2.5 + r() * 4 : 9 + r() * 14).toFixed(1);
     const dl = (-r() * 20).toFixed(1), k = c.m === "icefire" ? (i % 2 ? 2 : 1) : 1 + (i % 3), rz = Math.round(r() * 360), sw = ((r() - 0.5) * 12).toFixed(1);
     h += `<i class="k${k}" style="--x:${x}%;--y:${y}%;--s:${s};--d:${d}s;--dl:${dl}s;--r:${rz}deg;--sw:${sw}vw;--i:${i}"></i>`;
   }
-  return h;
+  return `<b class="sb-glow g1"></b><b class="sb-glow g2"></b><b class="sb-glow g3"></b><b class="sb-rays"></b>${SB_EXTRA[c.m] || ""}<div class="sb-parts">${h}</div>`;
 }
 let storyBgKey = "";
 function storyPaint() {
@@ -420,12 +451,16 @@ function storyPaint() {
   // the page's colours
   if (c) {
     const key = c.id + "|" + isDark();
-    if (curPal !== c.pal || storyPalKey !== key) { storyPalKey = key; curPal = c.pal; curExtra = null; PAGE.pal = c.pal.map(hexToRgb); paintPage(); }
-    const idle = document.getElementById("idle-bg"); if (idle) idle.classList.remove("on");
+    // 0.26.1: the chapter's main colour runs through the page a little stronger (like the brighter classes do)
+    if (curPal !== c.pal || storyPalKey !== key) { storyPalKey = key; curPal = c.pal; curExtra = hexToRgb(c.pal[0]); PAGE.pal = c.pal.map(hexToRgb); paintPage(); }
+    // and the summoning circle stays, in the chapter's colours (it used to be put away)
+    setIdle(true);
+    const idle = document.getElementById("idle-bg"); if (idle && idle.dataset.st !== String(c.id)) { idle.dataset.st = String(c.id); idle.classList.add("st-tint"); idle.style.cssText = palVars(c); }
   } else if (storyPalKey) {
     // it was on (an Event page opened, or the look was turned off): the page's own colours come back
     storyPalKey = ""; themeKey9 = ""; syncPageTheme();
   }
+  if (!c) { const idle = document.getElementById("idle-bg"); if (idle && idle.dataset.st) { delete idle.dataset.st; idle.classList.remove("st-tint"); idle.style.cssText = ""; } }
 }
 let storyPalKey = "";
 // turning the look on or off, or a new chapter: the page's own theme is worked out again first

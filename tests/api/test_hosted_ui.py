@@ -1,11 +1,13 @@
 """The hosted site in a browser, against a local copy of Cloudflare (tests/api/hosted.py): the app (manifest, service
 worker, offline), creating an account with its recovery code, a second device getting the roster, changes and pictures
 syncing both ways, combining a browser's roster with the account's, friends (requests, their roster read-only, their
-supports in the damage calculator and Versus, activity), a shared link while signed out, and signing out.
+supports in the damage calculator and Versus, activity), a shared link while signed out, and signing out. 0.26.1: a
+friend's story position (card, bar, Story page), a friend's servant into your own Guests, Versus picks from the list,
+and friends' supports as Worth borrowing on the Story page.
 
     python3 tests/api/test_hosted_ui.py
 """
-import base64, io, json, os, sys, tempfile
+import base64, io, json, os, re, sys, tempfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import hosted
 from test_api import Client, key_of
@@ -30,6 +32,14 @@ def browser_ctx(b, w=1440, h=900, mobile=False, dark=False, roster=None):
     pg.route("https://fonts.**", lambda r: r.abort()); pg.route("https://static.atlasacademy.io/**", lambda r: r.abort())
     return ctx, pg
 def rows(pg): return pg.locator("#list .row").count()
+FX = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "fixtures", "story")
+def story_fx(route):
+    u = route.request.url
+    m = re.search(r"/nice/NA/war/(\d+)", u); f = f"{FX}/war-{m.group(1)}.json" if m else ""
+    if not m:
+        m = re.search(r"/nice/NA/quest/(\d+)/(\d+)", u); f = f"{FX}/quest-{m.group(1)}-{m.group(2)}.json" if m else ""
+    if f and os.path.exists(f): route.fulfill(path=f, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"})
+    else: route.fulfill(status=404, body="{}", headers={"Access-Control-Allow-Origin": "*"})
 def sign_in(pg, email, pw):
     pg.click("#acct-btn"); pg.wait_for_selector("#acct-email")
     pg.fill("#acct-email", email); pg.fill("#acct-pw", pw); pg.click('.acct-form button[type="submit"]')
@@ -135,6 +145,34 @@ def run(base):
         check(f"the damage calculator can borrow friends' supports ({groups[:3]})", "Friends' supports" in groups)
         a.locator('.spk [data-spk^="f:"]').first.click(); a.wait_for_timeout(600)
         check("picked: the support is the friend's servant", "Bazett" in a.locator('#dossier [data-npc-pick="0"]').inner_text())
+        # ---------- 0.26.1: a friend's story, their servants into your Guests, Versus from the list ----------
+        B.post("/api/sync", {"changes": [{"col": "extras", "id": "story", "data": {"v": json.dumps({"pos": {"w": 101, "q": 0, "ph": 0}, "theme": True, "part": "1"})}}]})
+        a.click("#tab-friends"); a.wait_for_timeout(400); a.click('[data-action="fr-reload"]'); a.wait_for_timeout(1500)
+        card = a.locator(".fr-card").first.inner_text().replace("\n", " ")
+        check(f"a friend's card says where they are in the story ({card[:90]})", "Story: Orleans" in card)
+        a.click('[data-action="fv-open"]'); a.wait_for_timeout(1500)
+        check("so does the bar while you look at their roster", "Story: Orleans" in a.locator("#fv-bar").inner_text())
+        a.click('#fv-bar [data-tab="story"]'); a.wait_for_timeout(1500)
+        check("and the Story page shows their place, read-only", "Bazett is at Orleans" in a.locator("#story .st-pos").inner_text() and a.locator('#story [data-action="st-here"]').count() == 0)
+        a.click("#tab-servants"); a.wait_for_timeout(500); a.click('#list [data-id="melusine"]'); a.wait_for_timeout(800)
+        check("a friend's servant can go into your own Guests", "Add to my Guests" in a.locator("#dossier .fv-guest").inner_text())
+        a.click('#dossier .fv-guest [data-action="fr-guest"]'); a.wait_for_timeout(1200)
+        mel = [x for x in a.evaluate(LS)["servants"] if x.get("atlas") == 312]
+        check(f"with their levels, into your list while you keep looking at theirs ({[(x['name'], x.get('wish'), x.get('level'), x.get('notes')) for x in mel]}, {rows(a)} shown)",
+              len(mel) == 1 and mel[0]["wish"] and mel[0]["level"] == 90 and "Bazett's support" in mel[0]["notes"] and rows(a) == 3 and "In your Guests" in a.locator("#dossier .fv-guest").inner_text())
+        a.click('#fv-bar [data-action="fv-close"]'); a.wait_for_timeout(1500)
+        check("back to yours: the new Guest is there, and your own story wasn't touched", a.locator('#list .wish-pick').filter(has_text="Mélusine").count() == 1 and a.evaluate("localStorage.getItem('spirit-origin-list:v1:story')") is None)
+        a.click("#tab-versus"); a.wait_for_timeout(1000)
+        fopt = a.evaluate("(() => { const cur = [...document.querySelectorAll('.vs-sel')].map(s => s.value); const o = [...document.querySelectorAll('[data-vs-pick=\"0\"] option[value^=\"f:\"]')].find(o => !cur.includes(o.value)); return o ? o.value : null; })()")
+        a.select_option('[data-vs-pick="0"]', fopt); a.wait_for_timeout(800)
+        check(f"Versus: a friend's servant picked from the list at the top is taken ({fopt})", fopt and a.locator(".vs-hero .fr-tag").count() == 2 and a.evaluate("document.querySelector('[data-vs-pick=\"0\"]').value") == fopt)
+        a.route("https://api.atlasacademy.io/**", story_fx)
+        a.evaluate("localStorage.setItem('spirit-origin-list:v1:story', JSON.stringify({pos: {w: 100, q: 1000010, ph: 1}, theme: true, part: '1'}))")
+        a.reload(); a.wait_for_timeout(3000); a.click("#tab-story"); a.wait_for_timeout(2500)
+        borrow = a.locator("#story .st-borrow").inner_text() if a.locator("#story .st-borrow").count() else ""
+        check(f"the Story page's Worth borrowing counts friends' supports ({borrow[:110]})", "Bazett's support" in borrow and "Scathach-Skadi" in borrow)
+        a.click("#tab-versus"); a.wait_for_timeout(2500)
+        check("and a friend's servant picked in Versus is still there after a reload", a.locator(".vs-hero .fr-tag").count() >= 1)
         B.post("/api/sync", {"changes": [{"col": "servants", "id": "melusine", "data": sv("Melusine", 312, "Lancer", level=100)}]})
         a.click("#tab-friends"); a.wait_for_timeout(400); a.click('[data-action="fr-reload"]'); a.wait_for_timeout(1500)
         check("what friends are up to: Bazett grailed Melusine", "Bazett grailed Melusine to Lv 100" in a.locator(".fr-feed").inner_text())
@@ -146,10 +184,10 @@ def run(base):
         # ---------- offline, and signing out ----------
         a.click("#tab-servants"); a.wait_for_timeout(500)
         c1.set_offline(True); a.reload(); a.wait_for_timeout(3000)
-        check(f"offline, the app still opens with the roster ({rows(a)})", a.title() == "Fate/Grand Index" and rows(a) == n0 + 1)
+        check(f"offline, the app still opens with the roster ({rows(a)})", a.title() == "Fate/Grand Index" and rows(a) == n0 + 2)
         c1.set_offline(False); a.reload(); a.wait_for_timeout(3000)
         a.click("#acct-btn"); a.wait_for_selector('[data-action="acct-signout"]'); a.click('[data-action="acct-signout"]'); a.wait_for_timeout(1500)
-        check("signed out: the roster stays in the browser", rows(a) == n0 + 1 and a.locator("#acct-btn").inner_text().strip() == "Sign in")
+        check("signed out: the roster stays in the browser", rows(a) == n0 + 2 and a.locator("#acct-btn").inner_text().strip() == "Sign in")
         check(f"no errors on any page ({errs[:2]})", not errs)
         b.close()
 

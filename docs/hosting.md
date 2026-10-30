@@ -25,7 +25,8 @@ To try it before merging, skip ahead. Cloudflare also builds every branch as a *
 ## 1. Create the Pages project
 
 1. Go to <https://dash.cloudflare.com> and sign up or sign in.
-2. In the left menu, open **Workers & Pages**. Click **Create**, choose **Pages**, then **Connect to Git** (or "Import an existing Git repository").
+2. In the left menu, open **Workers & Pages** and click **Create**. Pick **Pages**, not a Worker: in the newer layout it's the small line at the bottom, "Looking to deploy Pages? **Get started**". Then **Connect to Git** (or "Import an existing Git repository").
+   - If the address you get ends in `.workers.dev`, or **Settings → Bindings** says "Bindings cannot be added to a Worker that only has static assets", it made a Worker. A Worker ignores the `functions/` folder, so accounts can't work there. Delete it (its Settings, at the bottom) and start again with Pages.
 3. Connect your GitHub account when it asks. Pick **WhoTookXenoyr/Fate-Grand-Index**.
 4. **Project name:** this becomes the address, so something like `fate-grand-index` gives `fate-grand-index.pages.dev`.
 5. **Production branch:** `main`.
@@ -105,6 +106,20 @@ Then:
 
 - Add bindings and secrets for **Preview** too, but give previews a database of their own (create `fgi-preview` and bind it as `DB` for Preview). That way trying something out never touches your friends' accounts.
 - Discord and Google only send people back to addresses you've listed in step 5 or 6, so on a preview use email + password, or add the preview's callback addresses as well.
+
+## Your own domain (optional)
+
+The site can have an address of its own, like `fategrandindex.com`. Nothing in the code needs to change: the server works out its address from each request.
+
+1. **Get the domain.** Cloudflare sells them at cost (**Domain Registration → Register**, a card is needed). Bought elsewhere: for the bare domain, switch its nameservers to Cloudflare's; for a subdomain only, a CNAME to `<your-project>.pages.dev` at the seller is enough.
+2. In the Pages project: **Custom domains → Set up a domain**. Do this before touching DNS by hand, or the domain answers with error 522.
+3. **SSL/TLS → Edge Certificates → Always Use HTTPS**: on. The certificate itself is Cloudflare's and renews on its own.
+4. **www**: add a DNS record `CNAME www → <your domain>`, proxied (orange cloud), then **Rules → Redirect Rules** with the template "Redirect from WWW to root", status 301, **Preserve query string** ticked (shared roster links are `/?roster=…`). Don't make www a second address of the site: browsers keep rosters per address, so people would end up with two.
+5. **Discord and Google**: add `https://<your domain>/api/auth/discord/callback` and `/api/auth/google/callback` next to the `.pages.dev` ones.
+6. Optionally send the `.pages.dev` address to the domain with **Bulk Redirects** (301, subpath matching, preserve path and query). Leave **Include subdomains** off, so the preview addresses keep working.
+7. Leave AAAA, CAA and HTTPS records alone: a proxied record answers on IPv6 by itself, Cloudflare makes the HTTPS record, and a CAA record that leaves out Cloudflare's certificate companies stops the certificate from renewing.
+
+Switch before friends start using the site: everything a browser kept on the old address stays on the old address (signing in on the new one brings back whatever synced), and the app has to be installed again from the new one.
 
 ## Things to know
 

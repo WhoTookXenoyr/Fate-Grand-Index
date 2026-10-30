@@ -2,6 +2,8 @@
 
 A Fate/Grand Order index of every NA servant and Craft Essence (Past Chaldea), plus your own Spirit Origin List: roster, Guests, parties, rankings, versus, a summoning simulator, a materials planner, an NP damage calculator and a Story page. It ships as one self-contained HTML file that saves everything in your own browser, and (0.26.0) as a hosted site and installable app with accounts, sync and friends.
 
+**Online: [fategrandindex.com](https://fategrandindex.com)** (the site and the installable app, with accounts and friends).
+
 Status: **alpha** (`0.x`). Version 1.0.0 will be the full website and app.
 
 ## Layout
@@ -48,6 +50,7 @@ python3 tools/build.py
 pip install -r tests/requirements.txt && python3 -m playwright install chromium
 python3 tests/run.py             # builds, then runs every suite (-j 2 runs two at a time)
 python3 tests/run.py craft       # only suites whose name contains "craft"
+python3 tests/run.py --ci-fonts  # with the fallback fonts GitHub's machines have (catches text that runs too wide)
 ```
 
 The tests don't need the internet: most suites swap the pictures that would come from Atlas Academy for placeholders, and the sample roster in `tests/fixtures/sample-roster.json` is built into `build/seeded.html`. Screenshots go to `build/test-work/`.
@@ -94,7 +97,9 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
 - **Accounts** (`41-account.js`, `server/auth.js`): the password is turned into a key in the browser (PBKDF2-SHA256, 600,000 rounds, salted with the email) and only the key is sent; the server keeps an HMAC of it with `PEPPER` (the free Workers plan's 10 ms of CPU can't hash passwords itself). No emails: recovery codes. Discord and Google with PKCE. Sessions in an HttpOnly, SameSite=Lax cookie; every change needs the `X-FGI` header.
 - **Sync** (`42-sync.js`, `server/sync.js`): local-first. Saves through `localDb` and the remembered keys (`EXTRA_KEYS`) are noted in `spirit-origin-list:v1:sync` and sent; the server numbers every change, so pulling is "since N". Last save wins per entry; a change waiting to go out is never overwritten. Uploaded pictures go up once; other devices show them from `/api/pics/<owner>/<id>` and copy them into IndexedDB.
 - **Friends** (`43-friends.js`, `server/friends.js`): friend codes, requests, roster visibility (`private`, `friends`, `link`), up to 10 supports per account, activity worked out by the server from what changed. A friend's roster or a shared link (`?roster=<token>`) replaces the lists on screen read-only (`FV`) until Back to yours. Friends' servants are `f:<friend>:<servant>` in the damage calculator and Versus.
-- **Security**: `site/_headers` sets a Content-Security-Policy that runs only the page's two scripts (by their hashes, written by `tools/build.py`), since other people's names and notes now show on the page.
+- **Security**: `site/_headers` sets a Content-Security-Policy that runs only the page's two scripts (by their hashes, written by `tools/build.py`), since other people's names and notes now show on the page. Every answer, static or `/api/`, also says HTTPS only (HSTS, 0.26.1).
+- **Crawlers and missing pages** (0.26.1): `site/robots.txt` lets search engines read the page but not `/api/`; an address that doesn't exist gets `site/404.html` (a real 404) instead of the page.
+- **Friends' story and Guests** (0.26.1): a friend's roster comes with where they are in the story (`extras/story`, only the position), shown on their card, in the bar while you look, and on the Story page; any friend's servant can go into your own Guests with their levels; friends' supports count as "worth borrowing" on the Story page.
 
 ## Your data
 

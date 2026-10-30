@@ -25,7 +25,7 @@
 .ql-b:disabled { opacity: .5; cursor: default; }
 /* trait check */
 .tr-diff { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 3px; font-size: 12.5px; }
-.tr-diff i, .tr-one .tr-l i { font-style: normal; font-weight: 650; color: var(--gold); margin-right: 2px; }
+.tr-diff i, .tr-one .tr-l i { font-style: normal; font-weight: 650; color: color-mix(in srgb, var(--gold) 66%, var(--ink)); margin-right: 2px; }
 .tr-one { margin: 10px 0 2px; }
 .tr-one .tr-l { display: inline-block; margin-right: 10px; }
 .tr-sec .tr-one p { line-height: 1.5; }

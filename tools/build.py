@@ -6,7 +6,7 @@
 
 It also writes site/, the folder Cloudflare Pages serves (0.26.0): the same page as index.html with the app's manifest
 and icons linked (src/site/head.html), the service worker (src/site/sw.js, named after this build so a new build is
-noticed), the manifest, the icons and _headers. The /api/ part comes from functions/ and server/, which Pages deploys
+noticed), the manifest, the icons, robots.txt, the 404 page and _headers. The /api/ part comes from functions/ and server/, which Pages deploys
 next to it. build/site-seeded/ is the same with the sample roster, for tests.
 
 How src/ fits together:
@@ -96,7 +96,7 @@ def site_files(html):
     sw = read("site", "sw.js")
     if sw.count("@@version@@") != 1: raise SystemExit("src/site/sw.js must have exactly one @@version@@")
     out = {"index.html": index.encode(), "sw.js": sw.replace("@@version@@", version).encode()}
-    for name in ("manifest.webmanifest", "icon.svg"): out[name] = read("site", name).encode()
+    for name in ("manifest.webmanifest", "icon.svg", "robots.txt", "404.html"): out[name] = read("site", name).encode()
     # the page's two scripts are allowed by their hashes, and nothing else runs: a name or note from someone else's
     # roster can't carry a script (friends' rosters and shared links show other people's data on this page)
     hashes = " ".join("'sha256-%s'" % base64.b64encode(hashlib.sha256(s.encode()).digest()).decode()

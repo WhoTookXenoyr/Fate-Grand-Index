@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.26.0";
+const APP_VER = "0.26.1";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -163,6 +163,16 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.26.1", d: "30 Oct 2026", t: "Friends' story progress, friends' servants as Guests, and livelier chapters", i: [
+    "<b>Guests</b>: a Guest's page has <b>Remove from Guests</b> (before, it was at the bottom of Edit details), with Undo. Your Guests are now the ones in the damage calculator's support window too; it used to show only the old Guests tab's list.",
+    "A stage picture you removed comes back: an empty stage has <b>Use NA's picture</b>, and Fill in puts back any stage picture that's missing, not only when a servant has none. The Remove button under a picture now says Remove picture, and Undo brings it back.",
+    "<b>Friends' servants in Versus</b> can be picked from the list at the top as well; before, only Compare with a friend's servant worked. A friend's servant you picked comes back after a reload.",
+    "<b>Add to my Guests</b>: on a friend's servant (their roster, their supports, Versus), one press puts them in your Guests with their levels.",
+    "<b>Where your friends are in the story</b>: on their card on the Friends tab, in the bar while you look at their roster, and on the Story page, which shows their place, their next fight and what fits it. Yours stays as it is. Friends with a private roster don't show it.",
+    "The Story page's <b>Worth borrowing</b> counts your Guests and your friends' supports.",
+    "<b>Green checks</b> on the Story page for what you've cleared: chapters, whole parts, sections and battles, and how many chapters you're through.",
+    "<b>Chapter looks</b>: livelier, in stronger colours, with the summoning circle back behind every chapter in its colours, slow glows, light turning around the circle, and a touch of each chapter's own (heat, lightning, shooting stars, mist).",
+    "The site: HTTPS only from the first visit on (HSTS), a robots.txt, and a proper page for addresses that don't exist. The tab bar fits narrow phones even before the page's fonts load. Some light-theme text is a bit darker so it's easier to read."]},
   {v: "0.26.0", d: "28 Oct 2026", t: "Online: accounts, an app and friends", i: [
     "<b>Fate/Grand Index is online</b>, and can be installed as an app: Install the app in Chrome and Edge, Share → Add to Home Screen on an iPhone. It opens without a connection, and says when a new version is ready.",
     "<b>Accounts</b>: sign in with an email and password, Discord or Google. Your servants, parties, Guests, uploaded pictures and the things the page remembers (progress log, tiers, story progress…) sync to every device you sign in on. Everything is still saved in the browser first, so it works offline and syncs when it can.",

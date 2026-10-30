@@ -31,7 +31,7 @@ html, body { margin: 0; }
   --sunken: #e1d8c9;
   --line: #d2c6b2;
   --ink: #2a231c;
-  --muted: #74685a;
+  --muted: #665a4d;
   --accent: #3a2f26;
   --on-accent: #f7f3ec;
   --gold: #9e7a2c;
@@ -145,6 +145,7 @@ img.broken { visibility: hidden; }
 .art-frame.dragging { border-color: var(--ink); background: color-mix(in srgb, var(--gold) 12%, var(--sunken)); }
 .drop-msg { padding: 18px; text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center; color: var(--muted); font-size: 13.5px; }
 .drop-msg strong { color: var(--ink); font-size: 14px; }
+.drop-btns { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .art-side { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
 .stage-list { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
 .stage-btn { display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 5px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; text-align: center; min-width: 0; }
@@ -208,8 +209,8 @@ img.broken { visibility: hidden; }
 .stepper button:hover { border-color: var(--muted); }
 .stepper output { min-width: 3.4ch; text-align: center; font-family: var(--f-data); font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .status { font-size: 12px; font-weight: 600; color: var(--muted); }
-.status.grail { color: var(--gold); }
-.status.cap { color: var(--quick); }
+.status.grail { color: color-mix(in srgb, var(--gold) 62%, var(--ink)); }
+.status.cap { color: color-mix(in srgb, var(--quick) 70%, var(--ink)); }
 
 .stat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .stat { padding: 14px; border: 1px solid var(--line); border-radius: 14px; display: flex; flex-direction: column; gap: 2px; }
@@ -249,7 +250,7 @@ img.broken { visibility: hidden; }
 .npt td.npt-cardcell { background: color-mix(in srgb, var(--c, var(--muted)) 13%, var(--panel)); }
 .npt tr.oc > td { background: color-mix(in srgb, var(--c, var(--muted)) 9%, var(--panel)); }
 .npt tr.oc > th { background: color-mix(in srgb, var(--c, var(--muted)) 17%, var(--sunken)); }
-.npt th.you { color: var(--gold); }
+.npt th.you { color: color-mix(in srgb, var(--gold) 62%, var(--ink)); }
 .npt th.you small { display: block; font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .npt td.you { font-weight: 700; box-shadow: inset 0 -3px 0 var(--gold); }
 .np-emblem { width: 62px; height: 62px; margin: 0 auto 8px; border-radius: 14px; display: grid; place-items: center; transform: rotate(-4deg);
@@ -315,7 +316,7 @@ img.broken { visibility: hidden; }
 .lv-table th.lab { text-align: left; padding-left: 8px; white-space: nowrap; }
 .lv-table th.lab small { font-weight: 500; color: var(--muted); }
 .lv-table .you { background: color-mix(in srgb, var(--gold) 16%, var(--panel)); color: var(--ink); font-weight: 700; }
-.lv-table th.you { color: var(--gold); background: color-mix(in srgb, var(--gold) 16%, var(--sunken)); }
+.lv-table th.you { color: color-mix(in srgb, var(--gold) 62%, var(--ink)); background: color-mix(in srgb, var(--gold) 16%, var(--sunken)); }
 .sc-rows { display: flex; flex-direction: column; gap: 8px; }
 .sc-row { display: grid; grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)) auto; gap: 8px; align-items: end; padding: 8px; border-radius: 10px; background: var(--panel); }
 .sc-row label { display: flex; flex-direction: column; gap: 4px; }
@@ -564,7 +565,7 @@ button.fc:hover { transform: translateY(-3px); box-shadow: 0 18px 26px -14px rgb
 .rk { font-family: var(--f-data); font-weight: 600; font-size: 16px; text-align: right; font-variant-numeric: tabular-nums; }
 .rank-row.top .rk { color: var(--gold); }
 .mv { font-family: var(--f-data); font-size: 11.5px; color: var(--muted); white-space: nowrap; }
-.mv.up { color: var(--quick); } .mv.down { color: var(--buster); }
+.mv.up { color: color-mix(in srgb, var(--quick) 80%, var(--ink)); } .mv.down { color: color-mix(in srgb, var(--buster) 82%, var(--ink)); }
 .rk-main { min-width: 0; display: flex; flex-direction: column; }
 .rk-name { all: unset; cursor: pointer; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rk-name:hover { text-decoration: underline; text-underline-offset: 3px; }
@@ -690,6 +691,8 @@ button.fc:hover { transform: translateY(-3px); box-shadow: 0 18px 26px -14px rgb
 .wish-banner { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: 14px;
   border: 1px dashed color-mix(in srgb, var(--gold) 60%, var(--line)); background: color-mix(in srgb, var(--gold) 9%, var(--panel)); }
 .wish-banner p { margin: 0; font-size: 14px; }
+.wish-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.wish-confirm { flex-basis: 100%; } .wish-confirm:empty { display: none; }
 .form .chk { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer; }
 .form input[type="checkbox"] { width: 18px; height: 18px; min-height: 0; padding: 0; margin: 0; accent-color: var(--gold); flex: none; }
 .d-head-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
@@ -1533,7 +1536,7 @@ html[data-tab="home"] #summary { display: none; }
 .hm-main { display: flex; flex-direction: column; min-width: 0; }
 .hm-main b { font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hm-main small { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hm-gain { font-family: var(--f-data); font-weight: 600; color: var(--gold); font-variant-numeric: tabular-nums; }
+.hm-gain { font-family: var(--f-data); font-weight: 600; color: color-mix(in srgb, var(--gold) 66%, var(--ink)); font-variant-numeric: tabular-nums; }
 .hm-clsgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 6px; }
 .hm-cls { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px 5px; border: 1px solid var(--line); border-radius: 10px; background: color-mix(in srgb, var(--panel) 70%, transparent); color: var(--ink); cursor: pointer; font: inherit; }
 .hm-cls img { width: 30px; height: 30px; object-fit: contain; }
@@ -1707,8 +1710,10 @@ img.ic { object-fit: contain; background: none; }
 /* ---------- tabs: six of them fit on a phone as two rows ---------- */
 @media (max-width: 560px) {
   .tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-self: stretch; border-radius: 18px; overflow: visible; }
-  .tab { padding: 8px 4px; text-align: center; }
+  .tab { padding: 8px 4px; text-align: center; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
+/* 0.26.1: a narrow phone, or a font that runs wider than the page's own (it hasn't loaded yet), still fits every tab */
+@media (max-width: 400px) { .tab { padding-inline: 2px; font-size: 13px; letter-spacing: -.005em; } }
 
 /* ---------- Summoning page ---------- */
 .smp { display: flex; flex-direction: column; gap: 22px; }
@@ -1922,9 +1927,9 @@ img.ic { object-fit: contain; background: none; }
 .hv-lead { margin: 0; font-size: 13.5px; }
 .hv-list, .hl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
 .hv-x { min-width: 40px; padding: 3px 8px; border-radius: 8px; font-family: var(--f-data); font-size: 13px; font-weight: 700; text-align: center; background: var(--sunken); color: var(--muted); }
-.hv-x.a2 { background: color-mix(in srgb, var(--quick) 22%, transparent); color: var(--quick); }
-.hv-x.a15 { background: color-mix(in srgb, var(--gold) 18%, transparent); color: var(--gold); }
-.hv-x.a05 { background: color-mix(in srgb, var(--buster) 18%, transparent); color: var(--buster); }
+.hv-x.a2 { background: color-mix(in srgb, var(--quick) 22%, transparent); color: color-mix(in srgb, var(--quick) 62%, var(--ink)); }
+.hv-x.a15 { background: color-mix(in srgb, var(--gold) 18%, transparent); color: color-mix(in srgb, var(--gold) 62%, var(--ink)); }
+.hv-x.a05 { background: color-mix(in srgb, var(--buster) 18%, transparent); color: color-mix(in srgb, var(--buster) 70%, var(--ink)); }
 .hl-t { font-size: 12px; color: var(--muted); white-space: nowrap; }
 .hl-summon .hm-main small { color: var(--gold); font-weight: 600; }
 span.hm-row { cursor: default; }
@@ -1946,7 +1951,7 @@ span.hm-row { cursor: default; }
 .rec.done .rec-m .ic { filter: none; opacity: 1; }
 .rec b { font-size: 13px; font-weight: 650; line-height: 1.2; }
 .rec small { font-size: 11.5px; color: var(--muted); line-height: 1.25; }
-.rec.done small { color: var(--gold); font-weight: 600; }
+.rec.done small { color: color-mix(in srgb, var(--gold) 66%, var(--ink)); font-weight: 600; }
 @media (max-width: 900px) { .rec-list { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (max-width: 420px) { .rec-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } .rec-m { width: 56px; height: 56px; } .rec-m .ic { width: 30px; height: 30px; } .hv-c { width: 32px; height: 32px; } }
 .ic-pick > * { flex-shrink: 0; }
@@ -1963,7 +1968,7 @@ span.hm-row { cursor: default; }
 .pc-intro { display: flex; flex-direction: column; gap: 4px; max-width: 640px; }
 .pc-intro h2 { margin: 0; font-family: var(--f-display); font-size: clamp(1.6rem, 3vw, 2.2rem); line-height: 1.05; }
 .pc-intro p { margin: 0; color: var(--page-muted); font-size: 14.5px; line-height: 1.45; }
-.pc-view small { margin-left: 4px; font-family: var(--f-data); font-size: 11.5px; opacity: .75; }
+.pc-view small { margin-left: 4px; font-family: var(--f-data); font-size: 11.5px; }
 .pc-note { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 13.5px; color: var(--page-muted); }
 .pc-note b { color: var(--ink); font-weight: 650; }
 .pc-tools { flex-wrap: wrap; }
@@ -2161,7 +2166,7 @@ html.pcd-on, html.pcd-on body { overflow: hidden; }
 .ql-b:disabled { opacity: .5; cursor: default; }
 /* trait check */
 .tr-diff { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 3px; font-size: 12.5px; }
-.tr-diff i, .tr-one .tr-l i { font-style: normal; font-weight: 650; color: var(--gold); margin-right: 2px; }
+.tr-diff i, .tr-one .tr-l i { font-style: normal; font-weight: 650; color: color-mix(in srgb, var(--gold) 66%, var(--ink)); margin-right: 2px; }
 .tr-one { margin: 10px 0 2px; }
 .tr-one .tr-l { display: inline-block; margin-right: 10px; }
 .tr-sec .tr-one p { line-height: 1.5; }
@@ -2424,7 +2429,7 @@ html:not([data-theme="dark"]) .brand-logo, html:not([data-theme="dark"]) .sf-log
 .sf-col button, .sf-bottom a, .sf-top { all: unset; cursor: pointer; color: var(--page-ink, var(--ink)); border-radius: 4px; }
 .sf-col button:hover, .sf-bottom a:hover, .sf-top:hover { text-decoration: underline; text-underline-offset: 3px; }
 .sf-col button:focus-visible, .sf-bottom a:focus-visible, .sf-top:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-.sf-col .sf-danger { color: var(--buster); }
+.sf-col .sf-danger { color: color-mix(in srgb, var(--buster) 80%, var(--ink)); }
 .sf-save { margin: 0 0 10px; line-height: 1.5; }
 .sf-acct { margin: 12px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; line-height: 1.4; }
 .sf-pill { display: inline-block; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; font-size: 11px; font-weight: 600; letter-spacing: .04em; }
@@ -3044,7 +3049,25 @@ html.cep-open, html.cep-open body { overflow: hidden; }
 .st-row-h:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 14px; }
 .st-row-k { font: 650 13px var(--f-data); color: color-mix(in srgb, var(--c1, var(--accent)) 70%, var(--ink)); overflow-wrap: anywhere; }
 .st-row.done .st-row-k { color: var(--muted); }
-.st-row.done .st-row-k::after { content: " ✓"; }
+/* 0.26.1: what's cleared gets a green check: chapters, parts, sections, battles */
+:root { --st-ok: #1f9d55; --st-ok-ink: #146f40; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --st-ok: #2fbf6f; --st-ok-ink: #5fe39a; } }
+:root[data-theme="dark"] { --st-ok: #2fbf6f; --st-ok-ink: #5fe39a; }
+.st-ok { display: inline-grid; place-items: center; flex: none; width: 1.2em; height: 1.2em; margin-right: .4em; border-radius: 50%; background: var(--st-ok); vertical-align: -.22em; box-shadow: 0 0 0 2px color-mix(in srgb, var(--st-ok) 22%, transparent); }
+.st-ok::before { content: ""; width: .3em; height: .56em; margin-top: -.12em; border: solid #fff; border-width: 0 .14em .14em 0; transform: rotate(45deg); }
+.st-ch.done > b { color: var(--ink); }
+.st-ch.done .st-plate { box-shadow: 0 0 0 2px color-mix(in srgb, var(--st-ok) 55%, transparent); border-radius: 8px; }
+.st-parts .done { color: var(--st-ok-ink); }
+.st-parts [aria-selected="true"].done { color: inherit; }
+.st-cleared { display: inline-flex; align-items: center; color: var(--st-ok-ink); font-weight: 650; white-space: nowrap; }
+.st-row-done { display: inline-flex; align-items: center; font-size: 11.5px; font-weight: 700; color: var(--st-ok-ink); white-space: nowrap; }
+.st-row-h > .st-row-done + .st-row-ch { grid-column: 5; }
+.st-row.done { border-color: color-mix(in srgb, var(--st-ok) 30%, var(--line)); }
+.st-sec.done { position: relative; }
+.st-sec.done::after { content: ""; position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--st-ok); }
+.st-sec.done.on::after { box-shadow: 0 0 0 1.5px #fff; }
+.st-bat.done:not(.on) { border-color: color-mix(in srgb, var(--st-ok) 45%, var(--line)); }
+.st-bat .st-ok { width: 1.05em; height: 1.05em; }
 .st-row-n { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .st-row-n b { font-weight: 650; font-size: 15px; line-height: 1.25; }
 .st-row-n small { font-size: 12px; color: var(--muted); }
@@ -3200,8 +3223,8 @@ html.cep-open, html.cep-open body { overflow: hidden; }
   .st-row-k:empty { display: none; }
   .st-row-n { grid-column: 1; }
   .st-row-m { grid-column: 1; justify-self: start; }
-  .st-row-tag { grid-column: 2; grid-row: 1; justify-self: end; }
-  .st-row-h > .st-row-ch, .st-row-h > .st-row-tag + .st-row-ch, .st-row-h > .st-row-m + .st-row-ch { grid-column: 3; grid-row: 1 / span 3; }
+  .st-row-tag, .st-row-done { grid-column: 2; grid-row: 1; justify-self: end; }
+  .st-row-h > .st-row-ch, .st-row-h > .st-row-tag + .st-row-ch, .st-row-h > .st-row-done + .st-row-ch, .st-row-h > .st-row-m + .st-row-ch { grid-column: 3; grid-row: 1 / span 3; }
   .st-row-b { padding: 4px 10px 12px; }
   .st-en { grid-template-columns: 36px 22px minmax(0, 1fr); }
   .st-fwrap { width: 36px; height: 36px; }
@@ -3211,6 +3234,61 @@ html.cep-open, html.cep-open body { overflow: hidden; }
   .story-plate { height: 38px; max-width: 150px; }
   .st-next { padding: 12px; }
 }
+
+/* ================= 0.26.1: livelier chapter backdrops ================= */
+/* the summoning circle stays behind the chapter, in its colours */
+.idle-bg.st-tint { --idle-ink: color-mix(in srgb, color-mix(in srgb, var(--c1) 60%, var(--ink)) 32%, transparent); --idle-gold: color-mix(in srgb, var(--c3) 66%, transparent); --idle-glow: color-mix(in srgb, var(--c3) 48%, transparent); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .idle-bg.st-tint { --idle-ink: color-mix(in srgb, color-mix(in srgb, var(--c3) 50%, var(--ink)) 22%, transparent); --idle-gold: color-mix(in srgb, var(--c3) 50%, transparent); --idle-glow: color-mix(in srgb, var(--c3) 40%, transparent); } }
+:root[data-theme="dark"] .idle-bg.st-tint { --idle-ink: color-mix(in srgb, color-mix(in srgb, var(--c3) 50%, var(--ink)) 22%, transparent); --idle-gold: color-mix(in srgb, var(--c3) 50%, transparent); --idle-glow: color-mix(in srgb, var(--c3) 40%, transparent); }
+.story-bg .sb-parts { position: absolute; inset: 0; }
+.story-bg b { position: absolute; display: block; pointer-events: none; opacity: 0; }
+/* slow glows in the chapter's colours */
+.sb-glow { width: 52vmax; aspect-ratio: 1; border-radius: 50%; }
+.sb-glow.g1 { left: -14vmax; top: -18vmax; background: radial-gradient(closest-side, color-mix(in srgb, var(--c1) 60%, transparent), transparent); }
+.sb-glow.g2 { right: -16vmax; bottom: -20vmax; background: radial-gradient(closest-side, color-mix(in srgb, var(--c2) 55%, transparent), transparent); }
+.sb-glow.g3 { left: 62%; top: 50%; width: 40vmin; margin: -20vmin 0 0 -20vmin; background: radial-gradient(closest-side, color-mix(in srgb, var(--c3) 55%, transparent), transparent); }
+.story-bg.on .sb-glow { opacity: .8; animation: sb-drift 36s ease-in-out infinite alternate; }
+.story-bg.on .sb-glow.g2 { animation-duration: 44s; animation-delay: -14s; }
+.story-bg.on .sb-glow.g3 { animation: sb-breathe 12s ease-in-out infinite; }
+@keyframes sb-drift { 0% { transform: translate3d(0, 0, 0) scale(1); } 100% { transform: translate3d(9vmax, 7vmax, 0) scale(1.2); } }
+@keyframes sb-breathe { 0%, 100% { transform: scale(.8); opacity: .4; } 50% { transform: scale(1.25); opacity: .95; } }
+/* light turning around the circle */
+.sb-rays { left: 62%; top: 50%; width: 124vmin; aspect-ratio: 1; margin: -62vmin 0 0 -62vmin; border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--c3) 22%, transparent) 0deg 3deg, transparent 3deg 12deg);
+  -webkit-mask: radial-gradient(closest-side, #000 10%, transparent 72%); mask: radial-gradient(closest-side, #000 10%, transparent 72%); }
+.story-bg.on .sb-rays { opacity: .6; animation: sb-spin 200s linear infinite; }
+.story-bg.lt .sb-rays { background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--c1) 18%, transparent) 0deg 3deg, transparent 3deg 12deg); }
+/* each kind's own touch */
+.sb-heat { left: 0; right: 0; bottom: 0; height: 42%; background: linear-gradient(to top, color-mix(in srgb, var(--c1) 46%, transparent), color-mix(in srgb, var(--c3) 14%, transparent) 45%, transparent); transform-origin: bottom; }
+.story-bg.on .sb-heat { animation: sb-flicker 3.4s ease-in-out infinite; }
+.sb-heat.dusk { background: linear-gradient(to top, color-mix(in srgb, var(--c1) 34%, transparent), transparent 70%); }
+@keyframes sb-flicker { 0%, 100% { opacity: .55; transform: scaleY(1); } 30% { opacity: .85; transform: scaleY(1.06); } 55% { opacity: .62; transform: scaleY(.97); } 75% { opacity: .9; transform: scaleY(1.03); } }
+.sb-flash { inset: 0; background: radial-gradient(ellipse at 30% 0, color-mix(in srgb, var(--c3) 45%, #fff), transparent 70%); }
+.story-bg.on .sb-flash { animation: sb-flash 11s linear infinite; }
+@keyframes sb-flash { 0%, 89%, 100% { opacity: 0; } 90% { opacity: .55; } 91% { opacity: .1; } 92.5% { opacity: .45; } 95% { opacity: 0; } }
+.sb-mist { left: -20%; width: 140%; bottom: 4%; height: 34%; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--c3) 32%, transparent), transparent); }
+.sb-mist.m2 { bottom: auto; top: 6%; height: 26%; background: radial-gradient(closest-side, color-mix(in srgb, var(--c1) 26%, transparent), transparent); }
+.story-bg.on .sb-mist { opacity: .7; animation: sb-mist 26s ease-in-out infinite alternate; }
+.story-bg.on .sb-mist.m2 { animation-duration: 34s; animation-direction: alternate-reverse; }
+@keyframes sb-mist { 0% { transform: translate3d(-6%, 0, 0) scaleX(1); } 100% { transform: translate3d(6%, -2%, 0) scaleX(1.12); } }
+.sb-shoot { top: 14%; left: -18%; width: 18vw; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--c3) 70%, #fff)); transform: rotate(16deg); }
+.sb-shoot.s2 { top: 36%; transform: rotate(22deg); }
+.story-bg.on .sb-shoot { animation: sb-shoot 13s ease-in 3s infinite; } .story-bg.on .sb-shoot.s2 { animation-duration: 19s; animation-delay: 9s; }
+@keyframes sb-shoot { 0% { opacity: 0; translate: 0 0; } 2% { opacity: 1; } 9% { opacity: 0; translate: 80vw 26vw; } 100% { opacity: 0; translate: 80vw 26vw; } }
+.sb-pulse { left: 62%; top: 50%; width: 60vmin; aspect-ratio: 1; margin: -30vmin 0 0 -30vmin; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--c3) 55%, transparent); }
+.story-bg.on .sb-pulse { animation: sb-pulse 7s ease-out infinite; } .story-bg.on .sb-pulse.p2 { animation-delay: -3.5s; }
+@keyframes sb-pulse { 0% { opacity: .7; transform: scale(.2); } 100% { opacity: 0; transform: scale(2.1); } }
+.sb-shine { left: -30%; width: 160%; top: 62%; height: 3px; border-radius: 3px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--c3) 75%, #fff), transparent); }
+.sb-shine.s2 { top: 76%; }
+.sb-shine.petal { top: 0; bottom: 0; height: auto; width: 34%; left: 0; background: linear-gradient(100deg, transparent, color-mix(in srgb, var(--c3) 20%, transparent), transparent); }
+.story-bg.on .sb-shine { animation: sb-shine 9s ease-in-out infinite; } .story-bg.on .sb-shine.s2 { animation-delay: -4.5s; }
+.story-bg.on .sb-shine.petal { animation: sb-sweep 16s ease-in-out infinite; }
+@keyframes sb-shine { 0%, 100% { opacity: 0; transform: translate3d(-12%, 0, 0); } 50% { opacity: .75; transform: translate3d(12%, -1.5vh, 0); } }
+@keyframes sb-sweep { 0% { opacity: 0; transform: translate3d(-40vw, 0, 0); } 30% { opacity: .9; } 70% { opacity: .9; } 100% { opacity: 0; transform: translate3d(240vw, 0, 0); } }
+/* a little more of each particle */
+.story-bg.on[data-m="stars"] i { box-shadow: 0 0 calc(9px * var(--s)) var(--c); }
+@media (max-width: 900px) { .sb-rays, .sb-glow.g3, .sb-pulse { left: 50%; } .sb-rays { width: 150vmin; margin: -75vmin 0 0 -75vmin; } }
+@media (prefers-reduced-motion: reduce) { .story-bg.on b { animation: none !important; } .story-bg.on .sb-flash, .story-bg.on .sb-shoot, .story-bg.on .sb-pulse { opacity: 0; } }
 /* ================= 0.24.0: Home's event board and sidebar (33-home-board.js) ================= */
 .hb { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; align-items: start; margin: 4px 0 18px; }
 .hb-main { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
@@ -3695,6 +3773,17 @@ i.fr-face.none { display: grid; place-items: center; font-style: normal; font-we
 .fv-bar { position: sticky; top: 8px; z-index: 30; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0 14px; padding: 10px 14px 10px 18px; border-radius: 16px; background: var(--accent); color: var(--on-accent); box-shadow: var(--shadow); }
 .fv-bar p { margin: 0; font-size: 14px; }
 .fv-bar .btn.primary { background: var(--on-accent); color: var(--accent); border-color: var(--on-accent); }
+
+/* 0.26.1: where friends are in the story, and their servants into your Guests */
+.fr-who .fr-story { display: block; font-family: var(--f-body); color: var(--muted); }
+.fr-who .fr-story::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px; vertical-align: 1px; border-radius: 2px; transform: rotate(45deg); background: linear-gradient(135deg, var(--c1), var(--c3)); }
+.fr-who .fr-story b { color: var(--ink); font-weight: 600; }
+.fr-sv-b { display: inline-flex !important; flex-direction: row !important; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.fv-story { margin-left: 6px; padding-left: 10px; border-left: 1px solid color-mix(in srgb, var(--on-accent) 40%, transparent); white-space: nowrap; }
+.fv-bar .linkish { color: inherit; text-decoration: underline; }
+.fv-guest { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; margin: 0 0 12px; padding: 10px 14px; border-radius: 14px; border: 1px dashed color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 7%, var(--panel)); }
+.fv-guest p { margin: 0; font-size: 14px; }
+.fr-gbtn { margin-left: 8px; font-size: 12.5px; }
 </style>
 </head>
 <body>
@@ -4190,11 +4279,30 @@ async function removeArt(id, slot) {
   const s = S.servants.find((x) => x.id === id); const old = artOf(s, slot);
   S.artConfirm = null;
   if (!s || !old) { renderDossier(); return; }
+  const label = slotLabel(s, slot), wasStage = s.artStage;
   const art = Object.assign({}, s.art); delete art[slot]; s.art = art;
   if (s.artStage === slot) { const f = slotsOf(s).find((x) => artOf(s, x.k)); s.artStage = f ? f.k : null; }
   const ok = await writeDoc("servants", s);
   renderList(); renderDossier(); renderParties();
-  if (ok && S.assets) { try { await S.assets.delete(old); } catch (e) {} }
+  if (!ok) return;
+  // 0.26.1: a picture removed by mistake comes back with Undo; an uploaded one is only thrown away once that's gone
+  let undone = false;
+  toastAction(label + " picture removed.", "Undo", async () => {
+    undone = true;
+    const cur = S.servants.find((x) => x.id === id); if (!cur || artOf(cur, slot)) return;
+    cur.art = Object.assign({}, cur.art || {}, {[slot]: old}); if (wasStage === slot || !artOf(cur, cur.artStage)) cur.artStage = slot;
+    if (await saveNow("servants", cur)) { renderList(); renderDossier(); renderParties(); toast(label + " picture is back."); }
+  });
+  if (S.assets && /^img_/.test(old)) setTimeout(() => { if (!undone) S.assets.delete(old).catch(() => {}); }, 20000);
+}
+// 0.26.1: an empty stage of a servant NA's data knows can take NA's picture back with one press
+const naStageArt = (s, slot) => { const a = /^[1-4]$/.test(slot) ? atlasOf(s) : null, p = a && (a.im || [])[Number(slot) - 1]; return p ? aimg(p) : null; };
+async function useNaArt(id, slot) {
+  const s = S.servants.find((x) => x.id === id), u = s && naStageArt(s, slot);
+  if (!s || !u || artOf(s, slot) || S.readOnly) return;
+  s.art = Object.assign({}, s.art || {}, {[slot]: u}); if (!artOf(s, s.artStage)) s.artStage = slot;
+  S.viewStage[id] = slot;
+  if (await saveNow("servants", s)) { renderList(); renderDossier(); renderParties(); toast(slotLabel(s, slot) + " picture is back from NA's data."); }
 }
 
 function artHTML(s) {
@@ -4207,7 +4315,7 @@ function artHTML(s) {
   let frame;
   if (busy) frame = `<div class="art-frame drop"><div class="drop-msg"><strong>Uploading ${esc(label)}…</strong></div></div>`;
   else if (id) frame = `<div class="art-frame" data-drop="${esc(slot)}"><img src="${esc(artSrc(id))}" alt="${esc(s.name)}, ${esc(label)}" data-art="1" data-action="art-next" title="Click for the next stage"></div>`;
-  else if (canEdit) frame = `<div class="art-frame drop" data-drop="${esc(slot)}"><div class="drop-msg"><strong>${slot === "fan" ? "Add fan art" : "Add " + esc(label) + " art"}</strong><span>${slot === "fan" ? "A picture of your own, to show here or as the icon. Paste it here (Ctrl+V), drop a file, or" : "Copy the image on the wiki and press Ctrl+V here, drop a file, or"}</span><label class="btn sm file-btn">Choose image<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-art-file="${esc(slot)}"></label></div></div>`;
+  else if (canEdit) { const na = naStageArt(s, slot); frame = `<div class="art-frame drop" data-drop="${esc(slot)}"><div class="drop-msg"><strong>${slot === "fan" ? "Add fan art" : "Add " + esc(label) + " art"}</strong><span>${slot === "fan" ? "A picture of your own, to show here or as the icon. Paste it here (Ctrl+V), drop a file, or" : "Copy the image on the wiki and press Ctrl+V here, drop a file, or"}</span><div class="drop-btns"><label class="btn sm file-btn">Choose image<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-art-file="${esc(slot)}"></label>${na ? `<button type="button" class="btn sm primary" data-action="art-na" data-slot="${esc(slot)}">Use NA's picture</button>` : ""}</div></div></div>`; }
   else frame = `<div class="art-frame"><div class="drop-msg">No ${esc(label)} image yet.</div></div>`;
   const icon = iconSlot(s);
   const n = costumeCount(s);
@@ -4222,8 +4330,8 @@ function artHTML(s) {
   let actions = "";
   if (canEdit && id && !busy) {
     actions = S.artConfirm === slot
-      ? `<div class="confirm"><p>Remove the ${esc(label)} image?</p><button class="btn danger solid sm" data-action="art-remove-go" data-slot="${slot}">Remove</button><button class="btn ghost sm" data-action="art-keep">Keep it</button></div>`
-      : `<div class="art-actions"><label class="btn sm file-btn">Replace image<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-art-file="${esc(slot)}"></label><button class="btn danger sm" data-action="art-remove" data-slot="${slot}">Remove</button></div>`;
+      ? `<div class="confirm"><p>Remove the ${esc(label)} picture? ${esc(s.name)} stays${s.wish ? " in your Guests" : " on your list"}.</p><button class="btn danger solid sm" data-action="art-remove-go" data-slot="${slot}">Remove picture</button><button class="btn ghost sm" data-action="art-keep">Keep it</button></div>`
+      : `<div class="art-actions"><label class="btn sm file-btn">Replace picture<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-art-file="${esc(slot)}"></label><button class="btn danger sm" data-action="art-remove" data-slot="${slot}" aria-label="Remove the ${esc(label)} picture">Remove picture</button></div>`;
   } else if (canEdit && !id && !busy && n > 1 && slot === "c" + n) {
     actions = `<div class="art-actions"><button class="btn ghost sm" data-action="remove-costume-slot">Remove this costume slot</button></div>`;
   }
@@ -5312,6 +5420,8 @@ function vsPicks() {
   for (const id of rankRows().map((r) => r.s.id).concat(S.servants.map((s) => s.id))) { if (ids.length >= 2) break; if (!ids.includes(id)) ids.push(id); }
   return ids;
 }
+// 0.26.1: who can stand in Versus (43-friends.js adds friends' servants: picking one from the list did nothing before)
+let vsKnown = (id) => S.servants.some((s) => s.id === id);
 function setVsPicks(ids) { vsMem = ids.slice(0, 3); try { localStorage.setItem(VS_KEY, JSON.stringify(vsMem)); } catch (e) {} }
 const vsKey = (i) => `<span class="vs-key k${i + 1}">${VS_K[i]}</span>`;
 const statMax = (m) => Math.max(2000, Math.ceil(m / 2000) * 2000);
@@ -6773,7 +6883,7 @@ function renderDossier(force) {
         <p class="d-meta"><span>${esc(s.cls || "No class")}</span><span class="stars">${"★".repeat(clamp(num(s.rarity) || 0, 0, 5))}</span>${s.role ? `<span class="tag">${esc(s.role)}</span>` : ""}${rk ? `<button class="tag rank-chip" data-action="tab" data-tab="ranking" title="Open the ranking">Rank #${rk.rank} of ${rk.of} · ${rk.sc.total.toFixed(1)}</button>` : ""}</p></div>
       <div class="d-head-actions"><button class="btn sm" data-action="vs-add" data-id="${esc(s.id)}" title="Compare in the Versus tab">Compare</button>${S.readOnly ? "" : `<button class="btn sm" data-action="edit">Edit details</button>`}</div>
     </header>
-    ${s.wish ? `<div class="wish-banner"><p><b>Guest.</b> Not summoned yet. Add their stage pictures under Ascension art, and summon them on the Summoning page when they join you.</p>${S.readOnly ? "" : `<button class="btn sm summon-btn" data-action="to-summon" data-id="${esc(s.id)}">Go to Summoning</button>`}</div>` : ""}
+    ${s.wish ? `<div class="wish-banner"><p><b>Guest.</b> Not summoned yet. Add their stage pictures under Ascension art, and summon them on the Summoning page when they join you.</p>${S.readOnly ? "" : `<span class="wish-acts"><button class="btn sm summon-btn" data-action="to-summon" data-id="${esc(s.id)}">Go to Summoning</button><button class="btn ghost sm" data-action="wish-remove" data-id="${esc(s.id)}">Remove from Guests</button></span><div id="wish-confirm" class="wish-confirm"></div>`}</div>` : ""}
 
     ${artHTML(s)}
 
@@ -7473,6 +7583,21 @@ document.addEventListener("click", async (e) => {
     return;
   }
   if (a === "keep") { const c = b.closest(".confirm"); if (c) c.parentElement.innerHTML = ""; return; }
+  // 0.26.1: a Guest leaves the list from its own page (before, only from the bottom of Edit details), with Undo
+  if (a === "wish-remove") { const g = S.servants.find((x) => x.id === b.dataset.id && x.wish); if (g) { $("#wish-confirm").innerHTML = `<div class="confirm"><p>Remove ${esc(g.name)} from your Guests? Their pictures and notes go too. You can undo it right after.</p><button class="btn danger solid sm" type="button" data-action="wish-remove-go" data-id="${esc(g.id)}">Remove</button><button class="btn ghost sm" type="button" data-action="keep">Keep</button></div>`; } return; }
+  if (a === "wish-remove-go") {
+    const id = b.dataset.id, g = S.servants.find((x) => x.id === id); if (!g) return;
+    const copy = JSON.parse(JSON.stringify(g));
+    if (!(await removeDoc("servants", id))) return;
+    S.servants = S.servants.filter((x) => x.id !== id);
+    if (S.selected === id) S.selected = null; if (S.editing === id) { dropFormArt(); S.editing = null; }
+    mineCache = null; renderAll();
+    toastAction(copy.name + " removed from your Guests.", "Undo", async () => {
+      if (S.servants.some((x) => x.id === copy.id)) return;
+      if (await saveNow("servants", copy)) { mineCache = null; goServant(copy.id); toast(copy.name + " is back in your Guests."); }
+    });
+    return;
+  }
   if (a === "add-party") { S.tab = "parties"; S.partyEdit = "new"; renderChrome(); renderParties(); const f = document.getElementById("pt-name"); if (f) f.focus(); return; }
   if (a === "edit-party") { S.partyEdit = b.dataset.id; renderParties(); return; }
   if (a === "cancel-party") { S.partyEdit = null; renderParties(); return; }
@@ -7499,6 +7624,7 @@ document.addEventListener("click", async (e) => {
   if (a === "art-remove") { S.artConfirm = b.dataset.slot; renderDossier(); return; }
   if (a === "art-keep") { S.artConfirm = null; renderDossier(); return; }
   if (a === "art-remove-go") { removeArt(shownId(), b.dataset.slot); return; }
+  if (a === "art-na") { useNaArt(shownId(), b.dataset.slot); return; }
   if (a === "add-costume") {
     const s = S.servants.find((x) => x.id === shownId()); if (!s || S.readOnly) return;
     const n = costumeCount(s); if (n >= MAX_COSTUMES) return;
@@ -7775,7 +7901,7 @@ document.addEventListener("change", (e) => {
   if (t && (t.id === "sv-attr" || (t.dataset && t.dataset.buffTag != null))) { refreshTraitLive(); return; }
   if (t && t.dataset && t.dataset.vsPick != null) {
     const ids = vsPicks(), i = Number(t.dataset.vsPick), v = t.value, j = ids.indexOf(v);
-    if (!(i >= 0 && i < ids.length) || !S.servants.some((x) => x.id === v)) return;
+    if (!(i >= 0 && i < ids.length) || !vsKnown(v)) return;
     if (j >= 0 && j !== i) ids[j] = ids[i];
     ids[i] = v; setVsPicks(ids); renderVersus();
     const ns = document.querySelector('[data-vs-pick="' + i + '"]'); if (ns) ns.focus({preventScroll: true}); return;
@@ -9923,6 +10049,9 @@ renderHome = function () {
 NICK.push([/\belizabeth\b/g, "elisabeth"], [/\batalanta\b/g, "atalante"], [/\bbeserker\b/g, "berserker"], [/\bberzerker\b/g, "berserker"]);
 amCache.clear(); mineCache = null;
 const hasArt = (s) => slotsOf(s).some((x) => artOf(s, x.k));
+// 0.26.1: a stage picture that's gone (removed by mistake, or never added) comes back from NA's data on its own, even
+// when the servant has other pictures; costumes still only come along when there are no pictures at all
+const missingStages = (s, a) => !hasArt(s) ? [] : ["1", "2", "3", "4"].filter((k, i) => !artOf(s, k) && (a.im || [])[i]);
 const skillBlank = (k) => !k || typeof k !== "object" || !(String(k.name || "").trim() || String(k.effect || "").trim());
 const blankVal = (v) => v == null || (typeof v === "string" && !v.trim());
 // HP or ATK at any level: base + (max - base) × the servant's growth curve
@@ -9935,7 +10064,7 @@ function missingOf(s) {
   const a = atlasOf(s); if (!a) return null;
   const np = a.np || {}, ti = traitInfo(s), lv = num(s.level);
   const m = {
-    art: !hasArt(s) && (a.im.length + a.cs.length) > 0,
+    art: !hasArt(s) && (a.im.length + a.cs.length) > 0, stages: missingStages(s, a),
     sk: [0, 1, 2].filter((i) => skillBlank((s.skillInfo || [])[i]) && a.sk[i]),
     ps: !passivesOf(s).length && a.ps.length > 0,
     deck: deckOf(s).every((c) => !c) && !!a.d,
@@ -9948,12 +10077,12 @@ function missingOf(s) {
   m.np = m.npName || m.npCard || m.npTarget || m.npTable;
   m.tr = m.attr || m.order || m.moral || m.traits;
   // the wiki link alone isn't worth a reminder, it just comes along with the rest
-  if (!(m.art || m.sk.length || m.ps || m.deck || m.np || m.tr || m.cls || m.rarity || m.hp || m.atk)) return null;
+  if (!(m.art || m.stages.length || m.sk.length || m.ps || m.deck || m.np || m.tr || m.cls || m.rarity || m.hp || m.atk)) return null;
   m.all = m.art && m.sk.length === Math.min(3, a.sk.length) && (m.ps || !a.ps.length);
   return {s: s, a: a, m: m};
 }
 function missingText(m, a) {
-  const parts = [m.art ? "pictures" : "", m.sk.length ? (m.sk.length === 3 ? "skills" : "skill " + m.sk.map((i) => i + 1).join(" & ")) : "", m.ps ? "passive skills" : "",
+  const parts = [m.art ? "pictures" : m.stages && m.stages.length ? (m.stages.length === 1 ? "the Stage " + m.stages[0] + " picture" : "stage pictures") : "", m.sk.length ? (m.sk.length === 3 ? "skills" : "skill " + m.sk.map((i) => i + 1).join(" & ")) : "", m.ps ? "passive skills" : "",
     m.deck ? "deck" : "", m.np ? "NP" : "", m.tr ? "traits" : "", m.cls ? "class" : "", m.rarity ? "rarity" : "", m.hp || m.atk ? "HP and ATK" : ""].filter(Boolean);
   return parts.join(", ").replace(/, ([^,]*)$/, " and $1");
 }
@@ -9965,6 +10094,9 @@ function fillServant(s, a, m) {
     // a servant whose costume slot was removed gets the stage pictures only
     if (s.costumeSlots === 0) { const a = Object.assign({}, g.art); Object.keys(a).forEach((k) => { if (/^c\d*$/.test(k)) delete a[k]; }); s.art = a; }
     else { s.art = g.art; if (g.costumeSlots) s.costumeSlots = g.costumeSlots; else delete s.costumeSlots; }
+  } else if (m.stages && m.stages.length) {
+    const art = Object.assign({}, s.art || {}); m.stages.forEach((k) => { if (g.art[k]) art[k] = g.art[k]; }); s.art = art;
+    if (!artOf(s, s.artStage)) s.artStage = m.stages[0];
   }
   if (m.sk.length) { const info = [0, 1, 2].map((i) => (s.skillInfo || [])[i] || {}); m.sk.forEach((i) => { info[i] = g.skillInfo[i]; }); s.skillInfo = info; }
   if (m.ps) s.passives = g.passives;
@@ -10092,7 +10224,7 @@ renderAll = function () { renderAll13(); renderFillNote(); };
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.26.0";
+const APP_VER = "0.26.1";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -10254,6 +10386,16 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.26.1", d: "30 Oct 2026", t: "Friends' story progress, friends' servants as Guests, and livelier chapters", i: [
+    "<b>Guests</b>: a Guest's page has <b>Remove from Guests</b> (before, it was at the bottom of Edit details), with Undo. Your Guests are now the ones in the damage calculator's support window too; it used to show only the old Guests tab's list.",
+    "A stage picture you removed comes back: an empty stage has <b>Use NA's picture</b>, and Fill in puts back any stage picture that's missing, not only when a servant has none. The Remove button under a picture now says Remove picture, and Undo brings it back.",
+    "<b>Friends' servants in Versus</b> can be picked from the list at the top as well; before, only Compare with a friend's servant worked. A friend's servant you picked comes back after a reload.",
+    "<b>Add to my Guests</b>: on a friend's servant (their roster, their supports, Versus), one press puts them in your Guests with their levels.",
+    "<b>Where your friends are in the story</b>: on their card on the Friends tab, in the bar while you look at their roster, and on the Story page, which shows their place, their next fight and what fits it. Yours stays as it is. Friends with a private roster don't show it.",
+    "The Story page's <b>Worth borrowing</b> counts your Guests and your friends' supports.",
+    "<b>Green checks</b> on the Story page for what you've cleared: chapters, whole parts, sections and battles, and how many chapters you're through.",
+    "<b>Chapter looks</b>: livelier, in stronger colours, with the summoning circle back behind every chapter in its colours, slow glows, light turning around the circle, and a touch of each chapter's own (heat, lightning, shooting stars, mist).",
+    "The site: HTTPS only from the first visit on (HSTS), a robots.txt, and a proper page for addresses that don't exist. The tab bar fits narrow phones even before the page's fonts load. Some light-theme text is a bit darker so it's easier to read."]},
   {v: "0.26.0", d: "28 Oct 2026", t: "Online: accounts, an app and friends", i: [
     "<b>Fate/Grand Index is online</b>, and can be installed as an app: Install the app in Chrome and Edge, Share → Add to Home Screen on an iPhone. It opens without a connection, and says when a new version is ready.",
     "<b>Accounts</b>: sign in with an email and password, Discord or Google. Your servants, parties, Guests, uploaded pictures and the things the page remembers (progress log, tiers, story progress…) sync to every device you sign in on. Everything is still saved in the browser first, so it works offline and syncs when it can.",
@@ -11116,7 +11258,7 @@ function footHTML() {
           <li><button type="button" data-action="export-csv">Export as a spreadsheet</button></li>
           ${S.readOnly ? "" : `<li><button type="button" data-action="sf-open" class="sf-danger">Start fresh…</button></li>`}
         </ul>
-        <p class="sf-acct"><span class="sf-pill">Local save</span> Accounts and signing in are on the way.</p>
+        <p class="sf-acct"><span class="sf-pill">Local save</span> <span>Accounts, sync and friends are on <a href="https://fategrandindex.com" target="_blank" rel="noopener">fategrandindex.com</a>: Export a full backup here, then Import it there.</span></p>
       </div>
       <div class="sf-col"><h2>Help</h2><ul>
         <li><button type="button" data-action="tour">Guide</button></li>
@@ -13431,10 +13573,21 @@ function npcAuto(s) {
 // the supports most people borrow, first in the list
 const NPC_POP = [284, 215, 316, 314, 37, 150, 62, 241, 373, 385, 357];
 const NPC_FIELD = {a: "atk", c: "card", n: "np", p: "pow", d: "def", r: "card", f: "dp"};
+// 0.26.1: "Your Guests" are the Guests on the Servants page (servants not summoned yet, kept as "r:<id>"), plus any entry
+// of the old Guests tab that never moved over; before, it was only that old list, so Guests added since never showed up
+function guestsForSup() {
+  const out = S.servants.filter((x) => x.wish).map((s) => ({key: "r:" + s.id, n: s.name, cls: s.cls, s: s}));
+  (S.guests || []).forEach((g) => { if (g && g.name && !g.movedTo && !out.some((x) => normName(x.n) === normName(g.name))) out.push({key: "g:" + g.id, n: g.name, cls: g.cls, g: g}); });
+  return out;
+}
 // who a support is: one of your Guests, a servant on your list, or any NA servant (by its number)
 function npcSrc(key) {
   const k = String(key || ""), t = k.slice(0, 2), v = k.slice(2);
-  if (t === "g:") { const g = S.guests.find((x) => x.id === v); return g ? {key: k, n: g.name, a: atlasOf(g), lv: skLevels(g)} : null; }
+  if (t === "g:") {
+    const g = S.guests.find((x) => x.id === v), m = g && g.movedTo ? S.servants.find((x) => x.id === g.movedTo) : null;
+    if (m) return {key: k, n: m.name, a: atlasOf(m), lv: skLevels(m)};
+    return g ? {key: k, n: g.name, a: atlasOf(g), lv: skLevels(g)} : null;
+  }
   if (t === "r:") { const s = S.servants.find((x) => x.id === v); return s ? {key: k, n: s.name, a: atlasOf(s), lv: skLevels(s)} : null; }
   if (t === "a:") { const a = ATLAS_BY_NO.get(num(v)); return a ? {key: k, n: a.n, a: a, lv: [0, 0, 0]} : null; }
   return null;
@@ -13498,7 +13651,7 @@ function npcSupSel(i, cur) {
   const o = (v, t) => { const on = !picked && v === (cur || ""); if (on) picked = true; return `<option value="${esc(v)}"${on ? " selected" : ""}>${esc(t)}</option>`; };
   const pop = NPC_POP.map((no) => ATLAS_BY_NO.get(no)).filter(Boolean), mine = S.servants.filter((x) => !x.wish).slice().sort((a, b) => a.name.localeCompare(b.name));
   return `<label class="npc-f npc-sup"><span>Support ${i + 1}</span><select data-npc-sup="${i}">${o("", "None")}
-    ${S.guests.length ? `<optgroup label="Your Guests">${S.guests.map((g) => o("g:" + g.id, g.name + (g.cls ? " · " + g.cls : ""))).join("")}</optgroup>` : ""}
+    ${guestsForSup().length ? `<optgroup label="Your Guests">${guestsForSup().map((g) => o(g.key, g.n + (g.cls ? " · " + g.cls : ""))).join("")}</optgroup>` : ""}
     <optgroup label="Often borrowed">${pop.map((a) => o("a:" + a.no, a.n + " · " + a.c)).join("")}</optgroup>
     ${mine.length ? `<optgroup label="Your servants">${mine.map((x) => o("r:" + x.id, x.name)).join("")}</optgroup>` : ""}
     <optgroup label="Every NA servant">${ATLAS_S.slice().sort((a, b) => a.n.localeCompare(b.n)).map((a) => o("a:" + a.no, a.n + " · " + a.c)).join("")}</optgroup></select></label>`;
@@ -13935,7 +14088,15 @@ const ST = (() => {
   return {pos: pos, theme: v.theme !== false, part: v.part || (pos ? STORY_BY.get(pos.w).part : "1"), view: pos ? {w: pos.w, q: pos.q, ph: pos.ph} : null, shut: false,
     wars: {}, phases: {}, busy: new Set(), err: {}};
 })();
-const storySave = () => lsSet(STORY_KEY, JSON.stringify({pos: ST.pos, theme: ST.theme, part: ST.part}));
+const storySave = () => { if (!ST.other) lsSet(STORY_KEY, JSON.stringify({pos: ST.pos, theme: ST.theme, part: ST.part})); };
+// 0.26.1: looking at a friend's roster, the Story page shows where they are (ST.other = {name, pos}, set by
+// 43-friends.js); your own place (ST.pos) and the chapter look stay yours, and nothing is saved meanwhile
+const stPos = () => ST.other ? ST.other.pos : ST.pos;
+const stWho = (you, them) => ST.other ? them.replace("{n}", esc(ST.other.name)) : you;
+// cleared: every chapter before the one you're on, in the game's order
+const chIdx = (w) => STORY_CH.findIndex((c) => c.id === w);
+const chDone = (w) => { const p = stPos(); return !!p && chIdx(w) >= 0 && chIdx(w) < chIdx(p.w); };
+const OK_MARK = `<i class="st-ok" aria-hidden="true"></i>`;
 
 /* ---------- Atlas Academy's data, made small and kept ---------- */
 const ATTR_N = {human: "Man", earth: "Earth", sky: "Sky", star: "Star", beast: "Beast"};
@@ -14082,24 +14243,35 @@ function waveHTML(w, ph) {
         ${e.tr.length ? `<span class="st-tr">${e.tr.slice(0, 6).map((t) => `<i>${esc(t)}</i>`).join("")}</span>` : ""}</div>
       <div class="st-hp"><b>${fmt(e.hp)}</b>${e.bars.length ? `<span>${e.bars.map((h) => "+ " + fmt(h)).join(" ")}</span>` : ""}<small>HP${e.bars.length ? " · " + (e.bars.length + 1) + " bars" : ""}</small></div></li>`).join("")}</ul></div>`;
 }
+// 0.26.1: worth borrowing for this fight: your Guests of the right classes (the Guests on the Servants page, not only
+// the old Guests tab's list), and, signed in, your friends' supports (storyBorrowFriends, from 43-friends.js)
+let storyBorrowFriends = () => [];
+function storyBorrow(topCls) {
+  const seen = new Set(), out = [];
+  const add = (name, cls, who) => { const k = normName(name) + "|" + (who || ""); if (!name || !topCls.has(cls) || seen.has(k)) return; seen.add(k); out.push({name: name, cls: cls, who: who}); };
+  S.servants.filter((s) => s.wish).forEach((s) => add(s.name, s.cls));
+  (S.guests || []).forEach((g) => { if (g && !g.movedTo) add(g.name, g.cls); });
+  storyBorrowFriends().forEach((f) => add(f.name, f.cls, f.who));
+  return out.slice(0, 6);
+}
 function adviceHTML(ph, q, p, war) {
   if (!ph) return "";
   const cls = classAdvice(ph).slice(0, 4), sv = servantAdvice(ph), mine = new Set(sv.map((x) => x.s.id));
   const topCls = new Set(cls.slice(0, 3).map((x) => x.c));
-  const borrow = S.guests.filter((g) => topCls.has(g.cls)).slice(0, 4);
+  const borrow = storyBorrow(topCls);
   const pct = (v) => Math.round(v * 100) + "%";
-  return `<section class="st-next" aria-labelledby="st-next-h"><header><p class="st-k">Your next fight</p><h3 id="st-next-h">${esc(secLabel(q))} · ${esc(q.n)} <small>battle ${q.pe.indexOf(p) + 1} of ${q.pe.length}</small></h3></header>
+  return `<section class="st-next" aria-labelledby="st-next-h"><header><p class="st-k">${stWho("Your next fight", "{n}'s next fight")}</p><h3 id="st-next-h">${esc(secLabel(q))} · ${esc(q.n)} <small>battle ${q.pe.indexOf(p) + 1} of ${q.pe.length}</small></h3></header>
     <div class="st-cls-row">${cls.map((x) => `<div class="st-ccard${x.off > 1.2 ? " good" : ""}">${clsChip(x.c)}<div><b>${esc(x.c)}</b><span>${x.strong ? `strong against ${pct(x.strong)} of the HP` : "no advantage"}; takes ${x.inc > 1.2 ? "<em>more</em>" : x.inc < 0.9 ? "less" : "normal"} damage</span></div></div>`).join("")}</div>
-    ${sv.length ? `<h4 class="st-sub">Best from your list</h4><ol class="st-best">${sv.map((x, i) => `<li><button type="button" class="st-sv" data-action="goto" data-id="${esc(x.s.id)}">${iconHTML(x.s, "sm")}
+    ${sv.length ? `<h4 class="st-sub">${stWho("Best from your list", "Best from {n}'s list")}</h4><ol class="st-best">${sv.map((x, i) => `<li><button type="button" class="st-sv" data-action="goto" data-id="${esc(x.s.id)}">${iconHTML(x.s, "sm")}
         <span class="st-sv-m"><b>${esc(x.s.name)}</b>${x.s.wish ? `<i class="tag">Guest</i>` : ""}<span>${esc(x.s.cls || "")} · ${x.aoe ? "AoE" : "single target"} NP${num(x.s.npLevel) || 1}</span></span>
         <span class="st-sv-n"><b>${pct(Math.min(1, x.frac))}</b><small>of the fight's HP with one NP a wave</small>${x.boss ? `<small>≈ ${fmt(Math.round(x.boss.dmg))} on ${esc(x.boss.e.n)} (${fmt(x.boss.e.tot)} HP)</small>` : ""}</span></button></li>`).join("")}</ol>`
-      : `<p class="tr-none">No servant on your list has ATK and an NP Damage row filled in yet, so there's nothing to compare. Fill in from NA on the servant page.</p>`}
-    ${borrow.length ? `<p class="st-borrow">Worth borrowing: ${borrow.map((g) => `<b>${esc(g.name)}</b> <small>(${esc(g.cls)})</small>`).join(", ")}</p>` : ""}
+      : `<p class="tr-none">${stWho("No servant on your list has ATK and an NP Damage row filled in yet, so there's nothing to compare. Fill in from NA on the servant page.", "No servant on {n}'s list has ATK and an NP Damage row filled in yet, so there's nothing to compare.")}</p>`}
+    ${borrow.length ? `<p class="st-borrow">Worth borrowing: ${borrow.map((g) => `<b>${esc(g.name)}</b> <small>(${esc(g.cls)}${g.who ? ", " + esc(g.who) + "'s support" : ""})</small>`).join(", ")}</p>` : ""}
     <p class="st-note">One NP a wave with no buffs, against each enemy's class and attribute, with class passives and your equipped Craft Essence. Buffs and the order you fire NPs in change it.</p></section>`;
 }
 function chipHTML(c) {
-  const on = !!(ST.view && ST.view.w === c.id), here = !!(ST.pos && ST.pos.w === c.id);
-  return `<button type="button" class="st-ch${on ? " on" : ""}${here ? " here" : ""}" data-action="st-ch" data-w="${c.id}" aria-pressed="${on}" style="${palVars(c)}">${plateHTML(c)}<b>${esc(c.n)}</b>${here ? `<small>You're here</small>` : ""}</button>`;
+  const p = stPos(), on = !!(ST.view && ST.view.w === c.id), here = !!(p && p.w === c.id), done = chDone(c.id);
+  return `<button type="button" class="st-ch${on ? " on" : ""}${here ? " here" : ""}${done ? " done" : ""}" data-action="st-ch" data-w="${c.id}" aria-pressed="${on}" style="${palVars(c)}">${plateHTML(c)}<b>${done ? OK_MARK : ""}${esc(c.n)}${done ? `<span class="sr"> (cleared)</span>` : ""}</b>${here ? `<small>${stWho("You're here", "{n}'s here")}</small>` : ""}</button>`;
 }
 // one section: a row you click open; the open one shows its battles and their enemies
 function secRowHTML(war, q, i, ctx) {
@@ -14107,29 +14279,33 @@ function secRowHTML(war, q, i, ctx) {
   const head = `<button type="button" class="st-row-h" data-action="st-q" data-q="${q.id}" aria-expanded="${open}">
       <span class="st-row-k">${secLabel(q) === q.n ? "" : esc(secLabel(q))}</span><span class="st-row-n"><b>${esc(q.n)}</b>${q.sp ? `<small>${esc(q.sp)}</small>` : ""}</span>
       <span class="st-row-m">${q.pe.length ? plural(q.pe.length, "battle") : "Story only"}${q.lv && q.lv !== "0" ? ` · Lv ${esc(q.lv)}` : ""}</span>
-      ${isPos ? `<span class="st-row-tag">You're here</span>` : ""}<span class="st-row-ch" aria-hidden="true"></span></button>`;
+      ${isPos ? `<span class="st-row-tag">${stWho("You're here", "{n}'s here")}</span>` : done ? `<span class="st-row-done">${OK_MARK}Cleared</span>` : ""}<span class="st-row-ch" aria-hidden="true"></span></button>`;
   const cls = `st-row${done ? " done" : ""}${isPos ? " here" : ""}${open ? " open" : ""}`;
   if (!open) return `<article class="${cls}" data-q="${q.id}">${head}</article>`;
   const v = ST.view, pIdx = Math.max(0, q.pe.indexOf(v.ph));
   const ph = q.pe.length ? ST.phases[q.id + "-" + q.pe[pIdx]] : null, pk = "story:phase:" + q.id + "-" + q.pe[pIdx];
-  const battles = q.pe.length > 1 ? `<div class="st-bats" role="tablist" aria-label="Battles">${q.pe.map((p, j) => `<button type="button" role="tab" class="st-bat${j === pIdx ? " on" : ""}${ctx.here && ST.pos.q === q.id && p === ST.pos.ph ? " here" : ""}" data-action="st-ph" data-ph="${p}" aria-selected="${j === pIdx}">Battle ${j + 1}</button>`).join("")}</div>` : "";
-  const isHere = ctx.here && ST.pos.q === q.id && q.pe[pIdx] === ST.pos.ph;
+  const sp = stPos(), atQ = ctx.here && sp.q === q.id, pj = atQ ? q.pe.indexOf(sp.ph) : -1;
+  const battles = q.pe.length > 1 ? `<div class="st-bats" role="tablist" aria-label="Battles">${q.pe.map((p, j) => { const bd = done || (atQ && j < pj); return `<button type="button" role="tab" class="st-bat${j === pIdx ? " on" : ""}${atQ && p === sp.ph ? " here" : ""}${bd ? " done" : ""}" data-action="st-ph" data-ph="${p}" aria-selected="${j === pIdx}">${bd ? OK_MARK : ""}Battle ${j + 1}</button>`; }).join("")}</div>` : "";
+  const isHere = atQ && q.pe[pIdx] === sp.ph;
   const fight = !q.pe.length ? `<p class="tr-none">Story only: no battles in this section.</p>`
     : ph ? `${ph.fld.length ? `<p class="st-fld">Field: ${ph.fld.map(esc).join(", ")}</p>` : ""}${ph.st.map((w) => waveHTML(w, ph)).join("") || `<p class="tr-none">No enemies listed for this battle.</p>`}`
     : ST.err[pk] ? `<div class="st-msg"><p>Couldn't load this battle's enemies.</p><button type="button" class="btn sm" data-action="st-retry">Try again</button></div>` : `<div class="skeleton" style="height:180px"></div>`;
   return `<article class="${cls}" data-q="${q.id}">${head}
     <div class="st-row-b">
       <div class="st-row-top"><dl class="st-qm">${q.lv && q.lv !== "0" ? `<div><dt>Rec. Lv</dt><dd>${esc(q.lv)}</dd></div>` : ""}${q.ap ? `<div><dt>AP</dt><dd>${q.ap}</dd></div>` : ""}<div><dt>Battles</dt><dd>${q.pe.length}</dd></div></dl>
-        ${q.pe.length ? `<div class="st-here-row">${isHere ? `<span class="st-here-tag">You're here</span><button type="button" class="btn sm primary" data-action="st-next">Cleared it: next fight</button>` : `<button type="button" class="btn sm" data-action="st-here">I'm here</button>`}</div>` : ""}</div>
+        ${q.pe.length ? `<div class="st-here-row">${ST.other ? (isHere ? `<span class="st-here-tag">${stWho("", "{n}'s here")}</span>` : "") : isHere ? `<span class="st-here-tag">You're here</span><button type="button" class="btn sm primary" data-action="st-next">Cleared it: next fight</button>` : `<button type="button" class="btn sm" data-action="st-here">I'm here</button>`}</div>` : ""}</div>
       ${battles}
       <div class="st-fight">${fight}</div></div></article>`;
 }
 function storyHTML() {
-  const parts = `<div class="seg st-parts" role="tablist" aria-label="Story parts">${STORY_PARTS.map(([k, t]) => `<button type="button" role="tab" data-action="st-part" data-k="${k}" aria-selected="${ST.part === k}">${t}</button>`).join("")}</div>`;
+  const partDone = (k) => STORY_CH.filter((c) => c.part === k).every((c) => chDone(c.id));
+  const parts = `<div class="seg st-parts" role="tablist" aria-label="Story parts">${STORY_PARTS.map(([k, t]) => `<button type="button" role="tab" data-action="st-part" data-k="${k}" aria-selected="${ST.part === k}"${partDone(k) ? ` class="done"` : ""}>${partDone(k) ? OK_MARK : ""}${t}${partDone(k) ? `<span class="sr"> (cleared)</span>` : ""}</button>`).join("")}</div>`;
   const chips = STORY_CH.filter((c) => c.part === ST.part).map(chipHTML).join("");
-  const posLine = ST.pos ? (() => { const c = STORY_BY.get(ST.pos.w), w = ST.wars[ST.pos.w], q = w && w.q.find((x) => x.id === ST.pos.q); return `You're at <b>${esc(c.n)}</b>${q ? ` · ${esc(secLabel(q))}, battle ${Math.max(1, q.pe.indexOf(ST.pos.ph) + 1)}` : ""}.`; })() : "Pick the chapter you're on, then the section and battle you've reached.";
+  const P = stPos(), nDone = P ? STORY_CH.filter((c) => chDone(c.id)).length : 0;
+  const posLine = P ? (() => { const c = STORY_BY.get(P.w), w = ST.wars[P.w], q = w && w.q.find((x) => x.id === P.q); return `${stWho("You're at", "<b>{n}</b> is at")} <b>${esc(c.n)}</b>${q ? ` · ${esc(secLabel(q))}, battle ${Math.max(1, q.pe.indexOf(P.ph) + 1)}` : ""}.${nDone ? ` <span class="st-cleared">${OK_MARK}${plural(nDone, "chapter")} cleared</span>` : ""}`; })()
+    : ST.other ? `<b>${esc(ST.other.name)}</b> hasn't set a story position yet.` : "Pick the chapter you're on, then the section and battle you've reached.";
   const head = `<header class="st-head"><div><h2>Story</h2><p class="st-pos">${posLine}</p></div>
-    <label class="st-theme"><input type="checkbox" data-st-theme${ST.theme ? " checked" : ""}> Chapter look on the other pages</label></header>`;
+    ${ST.other ? "" : `<label class="st-theme"><input type="checkbox" data-st-theme${ST.theme ? " checked" : ""}> Chapter look on the other pages</label>`}</header>`;
   let body = "";
   const v = ST.view;
   if (v) {
@@ -14137,23 +14313,23 @@ function storyHTML() {
     if (!war) body = ST.err[k] ? `<div class="st-msg"><p>${ST.err[k] === "offline" ? "You're offline, and this chapter isn't saved in this browser yet." : "Atlas Academy didn't answer for this chapter."}</p><button type="button" class="btn sm" data-action="st-retry">Try again</button></div>` : `<div class="skeleton" style="height:260px"></div>`;
     else if (!war.q.length) body = `<p class="tr-none">${esc(c.n)} has no story sections in NA's data yet.</p>`;
     else {
-      const qi = Math.max(0, war.q.findIndex((x) => x.id === v.q)), q = war.q[qi], here = !!(ST.pos && ST.pos.w === v.w);
-      const posQi = here ? war.q.findIndex((x) => x.id === ST.pos.q) : -1;
+      const qi = Math.max(0, war.q.findIndex((x) => x.id === v.q)), q = war.q[qi], here = !!(P && P.w === v.w);
+      const posQi = here ? war.q.findIndex((x) => x.id === P.q) : chDone(v.w) ? war.q.length : -1;
       const strip = `<div class="st-strip"><button type="button" class="st-arrow" data-action="st-sec" data-d="-1" aria-label="Previous section"${qi ? "" : " disabled"}>‹</button>
-        <div class="st-secs" role="tablist" aria-label="Sections">${war.q.map((x, i) => `<button type="button" role="tab" class="st-sec${i === qi ? " on" : ""}${i < posQi ? " done" : ""}${i === posQi ? " here" : ""}" data-action="st-go" data-q="${x.id}" aria-selected="${i === qi}" title="${esc(secLabel(x) + ": " + x.n)}">${esc(nodeLabel(x))}</button>`).join("")}</div>
+        <div class="st-secs" role="tablist" aria-label="Sections">${war.q.map((x, i) => `<button type="button" role="tab" class="st-sec${i === qi ? " on" : ""}${i < posQi ? " done" : ""}${i === posQi ? " here" : ""}" data-action="st-go" data-q="${x.id}" aria-selected="${i === qi}" title="${esc(secLabel(x) + ": " + x.n + (i < posQi ? " (cleared)" : ""))}">${esc(nodeLabel(x))}</button>`).join("")}</div>
         <button type="button" class="st-arrow" data-action="st-sec" data-d="1" aria-label="Next section"${qi < war.q.length - 1 ? "" : " disabled"}>›</button></div>`;
       const ctx = {q: q, here: here, posQi: posQi};
       body = `<div class="st-chapter" style="${palVars(c)}">
-        <div class="st-title">${plateHTML(c, true)}<div><h3>${esc(war.n || c.ln)}</h3><p>${plural(war.q.length, "section")} · ${plural(fightsOf(war).length, "battle")}</p></div></div>
+        <div class="st-title">${plateHTML(c, true)}<div><h3>${esc(war.n || c.ln)}</h3><p>${plural(war.q.length, "section")} · ${plural(fightsOf(war).length, "battle")}${chDone(v.w) ? ` · <span class="st-cleared">${OK_MARK}Cleared</span>` : ""}</p></div></div>
         ${strip}
         <div class="st-list">${war.q.map((x, i) => secRowHTML(war, x, i, ctx)).join("")}</div></div>`;
     }
   }
   // the next fight, wherever you're browsing
   let next = "";
-  if (ST.pos) {
-    const war = ST.wars[ST.pos.w], q = war && war.q.find((x) => x.id === ST.pos.q), ph = q ? ST.phases[q.id + "-" + ST.pos.ph] : null;
-    if (q && ph) next = adviceHTML(ph, q, ST.pos.ph, war);
+  if (P) {
+    const war = ST.wars[P.w], q = war && war.q.find((x) => x.id === P.q), ph = q ? ST.phases[q.id + "-" + P.ph] : null;
+    if (q && ph) next = adviceHTML(ph, q, P.ph, war);
   }
   return head + next + `<nav class="st-nav" aria-label="Chapters">${parts}<div class="st-chips">${chips}</div></nav>` + body;
 }
@@ -14177,8 +14353,9 @@ async function storyNeed() {
   let changed = false;
   try {
     const want = [];
+    const P = stPos();
     if (ST.view) want.push(ST.view);
-    if (ST.pos && (!ST.view || ST.pos.w !== ST.view.w || ST.pos.q !== ST.view.q || ST.pos.ph !== ST.view.ph)) want.push(ST.pos);
+    if (P && (!ST.view || P.w !== ST.view.w || P.q !== ST.view.q || P.ph !== ST.view.ph)) want.push(P);
     for (const v of want) {
       const had = !!ST.wars[v.w], hadErr = !!ST.err["story:war:" + v.w], war = await storyWar(v.w); if (!had && war) changed = true;
       if (!war) { if (!hadErr && ST.err["story:war:" + v.w]) changed = true; continue; }
@@ -14201,7 +14378,7 @@ document.addEventListener("click", (e) => {
   const a = b.dataset.action; if (!/^st-/.test(a)) return;
   const v = ST.view, war = v ? ST.wars[v.w] : null;
   if (a === "st-part") { ST.part = b.dataset.k; storySave(); renderStory(); return; }
-  if (a === "st-ch") { const w = num(b.dataset.w); ST.shut = false; ST.view = ST.pos && ST.pos.w === w ? {w: w, q: ST.pos.q, ph: ST.pos.ph} : {w: w, q: 0, ph: 0}; renderStory(); return; }
+  if (a === "st-ch") { const w = num(b.dataset.w), P = stPos(); ST.shut = false; ST.view = P && P.w === w ? {w: w, q: P.q, ph: P.ph} : {w: w, q: 0, ph: 0}; renderStory(); return; }
   if (a === "st-retry") { Object.keys(ST.err).forEach((k) => delete ST.err[k]); renderStory(); return; }
   if (!v || !war) return;
   const qi = Math.max(0, war.q.findIndex((x) => x.id === v.q));
@@ -14222,6 +14399,7 @@ document.addEventListener("click", (e) => {
     return;
   }
   if (a === "st-ph") { ST.view = {w: v.w, q: v.q, ph: num(b.dataset.ph)}; renderStory(); return; }
+  if (ST.other && (a === "st-here" || a === "st-next")) return;
   if (a === "st-here") { storySetPos(v.w, v.q, v.ph); renderStory(); toast("Story position set: " + STORY_BY.get(v.w).n + "."); return; }
   if (a === "st-next") {
     const all = fightsOf(war), i = all.findIndex(([q, p]) => q.id === ST.pos.q && p === ST.pos.ph);
@@ -14259,16 +14437,22 @@ renderAll = function () { const r = renderAll24s.apply(this, arguments); renderS
 
 /* ---------- the chapter's look on the rest of the page ---------- */
 const storyOn = () => !!(ST.theme && ST.pos && STORY_BY.has(ST.pos.w)) && !pageActive() && S.tab !== "event";
+// 0.26.1: livelier: more of the chapter's own particles, slow glows in its colours, light turning around the summoning
+// circle (which stays, tinted), and one touch of its own per kind (heat, lightning, shooting stars, mist, pulses)
+const SB_EXTRA = {embers: '<b class="sb-heat"></b>', icefire: '<b class="sb-heat"></b><b class="sb-mist"></b>', rain: '<b class="sb-flash"></b><b class="sb-mist"></b>',
+  stars: '<b class="sb-shoot"></b><b class="sb-shoot s2"></b>', rings: '<b class="sb-shoot"></b><b class="sb-pulse"></b>', beams: '<b class="sb-shoot s2"></b><b class="sb-pulse"></b>',
+  snow: '<b class="sb-mist"></b><b class="sb-mist m2"></b>', fog: '<b class="sb-mist"></b><b class="sb-mist m2"></b>', waves: '<b class="sb-shine"></b><b class="sb-shine s2"></b>',
+  grid: '<b class="sb-pulse"></b><b class="sb-pulse p2"></b>', motes: '<b class="sb-pulse"></b>', dust: '<b class="sb-heat dusk"></b>', petals: '<b class="sb-shine petal"></b>', leaves: '<b class="sb-mist"></b>'};
 function storyBgHTML(c) {
   let seed = c.id * 7919 + 17; const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const n = {embers: 22, snow: 26, icefire: 28, petals: 18, leaves: 18, stars: 36, motes: 20, dust: 26, rain: 30, fog: 6, waves: 4, beams: 7, rings: 4, grid: 3}[c.m] || 18;
+  const n = Math.round(({embers: 22, snow: 26, icefire: 28, petals: 18, leaves: 18, stars: 36, motes: 20, dust: 26, rain: 30, fog: 6, waves: 4, beams: 7, rings: 4, grid: 3}[c.m] || 18) * (["fog", "waves", "beams", "rings", "grid"].includes(c.m) ? 1 : 1.6));
   let h = "";
   for (let i = 0; i < n; i++) {
     const x = (r() * 100).toFixed(1), y = (r() * 100).toFixed(1), s = (0.55 + r() * 0.9).toFixed(2), d = (c.m === "rain" ? 0.9 + r() * 0.8 : c.m === "stars" ? 2.5 + r() * 4 : 9 + r() * 14).toFixed(1);
     const dl = (-r() * 20).toFixed(1), k = c.m === "icefire" ? (i % 2 ? 2 : 1) : 1 + (i % 3), rz = Math.round(r() * 360), sw = ((r() - 0.5) * 12).toFixed(1);
     h += `<i class="k${k}" style="--x:${x}%;--y:${y}%;--s:${s};--d:${d}s;--dl:${dl}s;--r:${rz}deg;--sw:${sw}vw;--i:${i}"></i>`;
   }
-  return h;
+  return `<b class="sb-glow g1"></b><b class="sb-glow g2"></b><b class="sb-glow g3"></b><b class="sb-rays"></b>${SB_EXTRA[c.m] || ""}<div class="sb-parts">${h}</div>`;
 }
 let storyBgKey = "";
 function storyPaint() {
@@ -14293,12 +14477,16 @@ function storyPaint() {
   // the page's colours
   if (c) {
     const key = c.id + "|" + isDark();
-    if (curPal !== c.pal || storyPalKey !== key) { storyPalKey = key; curPal = c.pal; curExtra = null; PAGE.pal = c.pal.map(hexToRgb); paintPage(); }
-    const idle = document.getElementById("idle-bg"); if (idle) idle.classList.remove("on");
+    // 0.26.1: the chapter's main colour runs through the page a little stronger (like the brighter classes do)
+    if (curPal !== c.pal || storyPalKey !== key) { storyPalKey = key; curPal = c.pal; curExtra = hexToRgb(c.pal[0]); PAGE.pal = c.pal.map(hexToRgb); paintPage(); }
+    // and the summoning circle stays, in the chapter's colours (it used to be put away)
+    setIdle(true);
+    const idle = document.getElementById("idle-bg"); if (idle && idle.dataset.st !== String(c.id)) { idle.dataset.st = String(c.id); idle.classList.add("st-tint"); idle.style.cssText = palVars(c); }
   } else if (storyPalKey) {
     // it was on (an Event page opened, or the look was turned off): the page's own colours come back
     storyPalKey = ""; themeKey9 = ""; syncPageTheme();
   }
+  if (!c) { const idle = document.getElementById("idle-bg"); if (idle && idle.dataset.st) { delete idle.dataset.st; idle.classList.remove("st-tint"); idle.style.cssText = ""; } }
 }
 let storyPalKey = "";
 // turning the look on or off, or a new chapter: the page's own theme is worked out again first
@@ -14699,7 +14887,7 @@ const SPK_CLASSES = ["Saber", "Archer", "Lancer", "Rider", "Caster", "Assassin",
 function spkAll() {
   if (SPK.list) return SPK.list; // 0.26.0: a list of its own (your supports, friends' servants for Versus)
   const out = [];
-  S.guests.forEach((g) => out.push({key: "g:" + g.id, n: g.name, a: atlasOf(g), g: "Your Guests"}));
+  guestsForSup().forEach((x) => out.push({key: x.key, n: x.n, a: atlasOf(x.s || x.g), s: x.s, g: "Your Guests"}));
   NPC_POP.forEach((no) => { const a = ATLAS_BY_NO.get(no); if (a) out.push({key: "a:" + no, n: a.n, a: a, g: "Often borrowed"}); });
   S.servants.filter((x) => !x.wish).slice().sort((a, b) => a.name.localeCompare(b.name)).forEach((s) => out.push({key: "r:" + s.id, n: s.name, a: atlasOf(s), s: s, g: "Your servants"}));
   ATLAS_S.slice().sort((a, b) => a.n.localeCompare(b.n)).forEach((a) => out.push({key: "a:" + a.no, n: a.n, a: a, g: "Every NA servant"}));
@@ -14720,7 +14908,7 @@ function spkCardHTML(x) {
   const on = x.key === SPK.cur;
   return `<li><button type="button" class="pc-card r${clamp(r || 1, 1, 5)}${on ? " is-on" : ""}" data-spk="${esc(x.key)}" aria-pressed="${on}" aria-label="${esc(x.n)}${cls ? ", " + esc(cls) : ""}">
     <span class="pc-face">${face ? `<img src="${esc(face)}" alt="" loading="lazy" decoding="async">` : `<i class="spk-none">${esc((x.n || "?").slice(0, 1))}</i>`}${CLASS_LOGO[cls] ? `<img class="pc-cls" src="${CLASS_LOGO[cls]}" alt="">` : ""}${r ? `<span class="pc-st">${stars(r)}</span>` : ""}</span>
-    <span class="pc-n">${esc(x.n)}</span><span class="pc-m">${esc(cls || "not in NA's data")}${x.m ? " · " + esc(x.m) : x.s ? " · your levels" : ""}</span></button></li>`;
+    <span class="pc-n">${esc(x.n)}</span><span class="pc-m">${esc(cls || "not in NA's data")}${x.m ? " · " + esc(x.m) : x.s ? (x.s.wish ? " · Guest" : " · your levels") : ""}</span></button></li>`;
 }
 function spkBody() {
   const all = spkList(), searching = !!(SPK.q.trim() || SPK.c);
@@ -15947,8 +16135,9 @@ function renderFriends() {
          ${rm ? `<span class="fr-rm">Remove ${esc(f.name)}? <button type="button" class="btn danger solid sm" data-action="fr-remove" data-id="${f.id}">Remove</button><button type="button" class="btn ghost sm" data-action="fr-rm-no">Keep</button></span>`
            : `<button type="button" class="btn ghost sm fr-x" data-action="fr-rm-ask" data-id="${f.id}" aria-label="Remove ${esc(f.name)} from your friends">Remove</button>`}`;
     const sup = open ? `<div class="fr-sups">${FR.sup.list ? (FR.sup.list.length ? FR.sup.list.map((s) => `<div class="fr-sv">${frFaceHTML(s)}<span><b>${esc(s.name)}</b><small>${esc(s.cls || "")} · ${esc(supStats(s))}</small></span>
-        <button type="button" class="btn ghost sm" data-action="fr-vs" data-k="${esc(s.id)}">Versus</button></div>`).join("") : `<p class="muted">${esc(f.name)} hasn't picked supports yet.</p>`) : `<p class="muted">Loading…</p>`}</div>` : "";
-    return `<li class="fr-card"><span class="acct-av" aria-hidden="true">${esc(f.name.slice(0, 1).toUpperCase())}</span><div class="fr-who"><b>${esc(f.name)}</b><small>${fmtCode(f.code)}${f.seen && kind === "friend" ? " · seen " + frAgo(f.seen) : ""}</small></div><div class="fr-acts">${acts}</div>${sup}</li>`;
+        <span class="fr-sv-b"><button type="button" class="btn ghost sm" data-action="fr-vs" data-k="${esc(s.id)}">Versus</button>${mineHas(s) ? "" : `<button type="button" class="btn ghost sm" data-action="fr-guest" data-k="${esc(s.id)}" title="Add ${esc(s.name)} to your Guests with ${esc(f.name)}'s levels">+ Guest</button>`}</span></div>`).join("") : `<p class="muted">${esc(f.name)} hasn't picked supports yet.</p>`) : `<p class="muted">Loading…</p>`}</div>` : "";
+    const sc = kind === "friend" && f.story ? STORY_BY.get(f.story.w) : null;
+    return `<li class="fr-card"><span class="acct-av" aria-hidden="true">${esc(f.name.slice(0, 1).toUpperCase())}</span><div class="fr-who"><b>${esc(f.name)}</b><small>${fmtCode(f.code)}${f.seen && kind === "friend" ? " · seen " + frAgo(f.seen) : ""}</small>${sc ? `<small class="fr-story" style="${palVars(sc)}">Story: <b>${esc(sc.n)}</b></small>` : ""}</div><div class="fr-acts">${acts}</div>${sup}</li>`;
   };
   el.innerHTML = `<div class="fr-grid">
     <div class="fr-col">
@@ -16067,7 +16256,7 @@ vsHeroHTML = function (s, i, ids) {
     const groups = Array.from(by.keys()).map((n) => `<optgroup label="${esc(n)}'s">${by.get(n).map(opt).join("")}</optgroup>`).join("");
     h = h.replace(/(<select class="vs-sel"[^>]*>[\s\S]*?)(<\/select>)/, "$1" + groups + "$2");
   }
-  if (s.fr) h = h.replace(/<button type="button" class="vs-name" data-action="goto"[^>]*>([\s\S]*?)<\/button>/, `<span class="vs-name">$1</span>`).replace(/(<p class="vs-meta">)/, `$1<span class="tag fr-tag">${esc(s.fr.name)}'s</span>`);
+  if (s.fr) h = h.replace(/<button type="button" class="vs-name" data-action="goto"[^>]*>([\s\S]*?)<\/button>/, `<span class="vs-name">$1</span>`).replace(/(<p class="vs-meta">)/, `$1<span class="tag fr-tag">${esc(s.fr.name)}'s</span>${mineHas(s) ? "" : `<button type="button" class="linkish fr-gbtn" data-action="fr-guest" data-k="${esc(s.id)}">Add to my Guests</button>`}`);
   return h;
 };
 const renderVersus26 = renderVersus;
@@ -16124,6 +16313,11 @@ async function fvOpen(user, token) {
     by[d.col].push(o);
   });
   COLS.forEach((c) => { S[c] = by[c].sort((x, y) => (num(x.order) ?? 1e9) - (num(y.order) ?? 1e9)); S.loaded[c] = true; });
+  // 0.26.1: where they are in the story; the Story page shows their place while you look (yours is kept)
+  const sp = j.story && STORY_BY.has(num(j.story.w)) ? {w: num(j.story.w), q: num(j.story.q) || 0, ph: num(j.story.ph) || 0} : null;
+  if (!FV.stBack) FV.stBack = {view: ST.view, part: ST.part, shut: ST.shut};
+  ST.other = {name: user.name, pos: sp}; ST.shut = false;
+  if (sp) { ST.view = {w: sp.w, q: sp.q, ph: sp.ph}; ST.part = STORY_BY.get(sp.w).part; }
   S.readOnly = true; S.selected = null; S.editing = null; S.partyEdit = null; S.guestEdit = null;
   S.tab = "servants";
   try { history.pushState({tab: "servants"}, "", "#servants"); } catch (e) {}
@@ -16133,6 +16327,7 @@ async function fvOpen(user, token) {
 function fvClose() {
   if (!FV.on) return;
   FV.on = false; S.readOnly = false;
+  ST.other = null; if (FV.stBack) { ST.view = FV.stBack.view; ST.part = FV.stBack.part; ST.shut = FV.stBack.shut; FV.stBack = null; }
   const back = FV.back || {tab: "friends"}; FV.back = null; FV.pend.clear();
   COLS.forEach((c) => notify26(c));
   S.selected = back.sel || null; S.tab = FV.token && !API.user ? "servants" : back.tab === "servants" ? "friends" : back.tab || "friends";
@@ -16148,7 +16343,9 @@ function fvBar() {
     head.insertAdjacentHTML("afterend", `<div id="fv-bar" class="fv-bar" role="status"></div>`); bar = document.getElementById("fv-bar");
   }
   document.documentElement.classList.add("fv-on");
-  const html = `<p>Looking at <b>${esc(FV.user.name)}</b>'s roster${FV.token ? " (a shared link)" : ""}. Read-only.</p><button type="button" class="btn primary sm" data-action="fv-close">${API.user || !FV.token ? "Back to yours" : "Close"}</button>`;
+  const sc = ST.other && ST.other.pos ? STORY_BY.get(ST.other.pos.w) : null;
+  const story = sc ? ` <span class="fv-story">Story: <b>${esc(sc.n)}</b> ${S.tab === "story" ? "" : `<button type="button" class="linkish" data-action="tab" data-tab="story">see where</button>`}</span>` : "";
+  const html = `<p>Looking at <b>${esc(FV.user.name)}</b>'s roster${FV.token ? " (a shared link)" : ""}. Read-only.${story}</p><button type="button" class="btn primary sm" data-action="fv-close">${API.user || !FV.token ? "Back to yours" : "Close"}</button>`;
   if (bar.innerHTML !== html) bar.innerHTML = html;
 }
 // a shared link: ?roster=<token>
@@ -16168,6 +16365,85 @@ const acctSignedIn26 = acctSignedIn;
 acctSignedIn = function () { const r = acctSignedIn26.apply(this, arguments); FR.loaded = false; frSupLoad(); frLoad(true); return r; };
 const acctSignedOut26 = acctSignedOut;
 acctSignedOut = function () { if (FV.on && !FV.token) fvClose(); FSV.clear(); FSUP = []; Object.assign(FR, {loaded: false, friends: [], incoming: [], outgoing: [], feed: [], sup: null}); return acctSignedOut26.apply(this, arguments); };
+
+/* ================= 0.26.1 ================= */
+// Versus: a friend's servant picked from the list (not only from "Compare with a friend's servant") is taken
+vsKnown = (id) => S.servants.some((s) => s.id === id) || FSV.has(id);
+// a friend's servant picked before a reload comes back once their roster is loaded again
+let vsFrBusy = false;
+const vsFrTried = new Set(); // each friend's roster is asked for once a visit, even if the servant isn't there any more
+async function vsFriendRestore() {
+  if (vsFrBusy || !API.user || API.offline || FV.on) return;
+  const miss = vsStored().filter((id) => /^f:/.test(id) && !FSV.has(id) && !vsFrTried.has(id.split(":")[1])); if (!miss.length) return;
+  vsFrBusy = true;
+  try {
+    if (!FR.loaded) await frLoad(true);
+    const uids = Array.from(new Set(miss.map((id) => id.split(":")[1])));
+    uids.forEach((u) => vsFrTried.add(u));
+    await Promise.all(uids.map(async (uid) => {
+      const f = FR.friends.find((x) => x.id === uid); if (!f) return;
+      try { const j = await api("GET", "u/" + uid + "/roster"); fsvAdd(f, j.docs.filter((d) => d.col === "servants")); } catch (e) {}
+      try { const j = await api("GET", "u/" + uid); fsvAdd(j.user, j.supports); } catch (e) {}
+    }));
+  } finally { vsFrBusy = false; }
+  if (miss.some((id) => FSV.has(id)) && S.tab === "versus") renderVersus();
+}
+const renderVersus261 = renderVersus;
+renderVersus = function () { const r = renderVersus261.apply(this, arguments); vsFriendRestore(); return r; };
+// the Story page's "worth borrowing" counts your friends' supports too
+storyBorrowFriends = () => FV.on ? [] : FSUP.flatMap((f) => f.supports.map((s) => ({name: s.name, cls: s.cls, who: f.user.name})));
+const frSupLoad26 = frSupLoad;
+frSupLoad = async function () { const r = await frSupLoad26.apply(this, arguments); if (S.tab === "story" && !FV.on) renderStory(); return r; };
+
+// a friend's servant into your own Guests, with their levels (to borrow them, or to plan for your own copy)
+function mineHas(s) { const a = atlasOf(s); return store.servants.find((x) => { const b = atlasOf(x); return (a && b && a.no === b.no) || normName(x.name) === normName(s.name); }) || null; }
+async function myGuestWrite(o) {
+  if (!FV.on) return writeDoc("servants", o);
+  // looking at a friend's roster: straight into your own list, which comes back when you're done looking
+  FV.on = false;
+  try { await S.db.collection("servants").doc(o.id).set(bodyOf(o)); return true; } catch (e) { writeFailed(e); return false; } finally { FV.on = true; }
+}
+async function frAddGuest(fs, who) {
+  if (!fs) return;
+  const have = mineHas(fs);
+  if (have) { toast(have.name + (have.wish ? " is already in your Guests." : " is already on your roster.")); return; }
+  const a = atlasOf(fs), mine = store.servants;
+  const o = a ? atlasToServant(a) : {name: fs.name, cls: fs.cls || null, rarity: num(fs.rarity) || null};
+  o.wish = true;
+  ["level", "npLevel", "fouHp", "fouAtk", "hp", "atk"].forEach((k) => { if (num(fs[k]) != null) o[k] = num(fs[k]); });
+  if (Array.isArray(fs.skills)) o.skills = fs.skills.slice(0, 3);
+  if (Array.isArray(fs.appends)) o.appends = fs.appends.slice(0, 5);
+  const sk = Array.isArray(o.skills) ? o.skills.map((v) => typeof v === "number" ? v : "–").join("/") : "";
+  o.notes = who + "'s support" + (o.level ? ": Lv " + o.level : "") + (o.npLevel ? ", NP" + o.npLevel : "") + (sk ? ", skills " + sk : "") + ".";
+  o.id = slug(o.name, mine); o.order = nextOrder(mine);
+  if (!(await myGuestWrite(o))) return;
+  mineCache = null;
+  if (FV.on) { document.querySelectorAll("#dossier .fv-guest").forEach((x) => x.remove()); renderDossier(true); } else renderAll();
+  if (S.tab === "friends") renderFriends();
+  toastAction(o.name + " added to your Guests.", "Open", () => { if (FV.on) fvClose(); goServant(o.id); });
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest('[data-action="fr-guest"]'); if (!b) return;
+  if (b.dataset.k) { const s = FSV.get(b.dataset.k); if (s) frAddGuest(s, s.fr.name); return; }
+  if (b.dataset.sid && FV.on) { const s = S.servants.find((x) => x.id === b.dataset.sid); if (s) frAddGuest(s, FV.user.name); }
+});
+// looking at a friend's servant: add them to your Guests from their page
+const renderDossier261 = renderDossier;
+renderDossier = function (force) {
+  const r = renderDossier261.apply(this, arguments);
+  const d = document.getElementById("dossier");
+  const old = d && d.querySelector(".fv-guest"), sid = FV.on ? shownId() : null;
+  if (old && old.dataset.sid !== sid) old.remove();
+  if (d && FV.on && !d.querySelector(".fv-guest") && !d.querySelector("#servant-form")) {
+    const s = S.servants.find((x) => x.id === sid);
+    if (s && !s.wish) {
+      const have = mineHas(s), el = document.createElement("div"); el.className = "fv-guest"; el.dataset.sid = s.id;
+      el.innerHTML = `<p><b>${esc(FV.user.name)}'s ${esc(s.name)}.</b> ${have ? (have.wish ? "In your Guests." : "You have " + esc(have.name) + " too.") : "Borrowing them? Add them to your Guests with these levels."}</p>${have ? "" : `<button type="button" class="btn sm primary" data-action="fr-guest" data-sid="${esc(s.id)}">Add to my Guests</button>`}`;
+      const first = d.querySelector(".d-sec"); if (first) first.parentNode.insertBefore(el, first); else d.appendChild(el);
+    }
+  }
+  return r;
+};
 
 // start: ask whether a server is there (nothing happens on the file people open from their computer)
 acctInit();

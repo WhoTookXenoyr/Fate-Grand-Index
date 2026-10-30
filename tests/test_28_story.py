@@ -95,7 +95,7 @@ with sync_playwright() as p:
     check("on the servant page the chapter's look steps aside", not pg.evaluate("document.documentElement.classList.contains('story-on')"))
     pg.click("#tab-home"); pg.wait_for_timeout(1000)
     on = pg.evaluate("document.documentElement.classList.contains('story-on')")
-    bg = pg.evaluate("(() => { const b = document.getElementById('story-bg'); return b ? [b.dataset.m, b.classList.contains('on'), b.style.getPropertyValue('--c1'), b.children.length] : null; })()")
+    bg = pg.evaluate("(() => { const b = document.getElementById('story-bg'); return b ? [b.dataset.m, b.classList.contains('on'), b.style.getPropertyValue('--c1'), b.querySelectorAll('i').length] : null; })()")
     check(f"on Home the page wears Fuyuki's look ({bg})", on and bg and bg[0] == "embers" and bg[1] and bg[2] == "#d9542b" and bg[3] >= 10)
     check(f"and its colours ({pg.evaluate(G1)} vs {g1_default})", pg.evaluate(G1) != g1_default)
     plate = pg.evaluate("(() => { const p = document.getElementById('story-plate'); return p && !p.hidden ? p.querySelector('img').getAttribute('src') : null; })()")

@@ -43,7 +43,7 @@ html:not([data-theme="dark"]) .brand-logo, html:not([data-theme="dark"]) .sf-log
 .sf-col button, .sf-bottom a, .sf-top { all: unset; cursor: pointer; color: var(--page-ink, var(--ink)); border-radius: 4px; }
 .sf-col button:hover, .sf-bottom a:hover, .sf-top:hover { text-decoration: underline; text-underline-offset: 3px; }
 .sf-col button:focus-visible, .sf-bottom a:focus-visible, .sf-top:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-.sf-col .sf-danger { color: var(--buster); }
+.sf-col .sf-danger { color: color-mix(in srgb, var(--buster) 80%, var(--ink)); }
 .sf-save { margin: 0 0 10px; line-height: 1.5; }
 .sf-acct { margin: 12px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; line-height: 1.4; }
 .sf-pill { display: inline-block; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; font-size: 11px; font-weight: 600; letter-spacing: .04em; }

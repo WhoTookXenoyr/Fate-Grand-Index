@@ -12,7 +12,7 @@ const SPK_CLASSES = ["Saber", "Archer", "Lancer", "Rider", "Caster", "Assassin",
 function spkAll() {
   if (SPK.list) return SPK.list; // 0.26.0: a list of its own (your supports, friends' servants for Versus)
   const out = [];
-  S.guests.forEach((g) => out.push({key: "g:" + g.id, n: g.name, a: atlasOf(g), g: "Your Guests"}));
+  guestsForSup().forEach((x) => out.push({key: x.key, n: x.n, a: atlasOf(x.s || x.g), s: x.s, g: "Your Guests"}));
   NPC_POP.forEach((no) => { const a = ATLAS_BY_NO.get(no); if (a) out.push({key: "a:" + no, n: a.n, a: a, g: "Often borrowed"}); });
   S.servants.filter((x) => !x.wish).slice().sort((a, b) => a.name.localeCompare(b.name)).forEach((s) => out.push({key: "r:" + s.id, n: s.name, a: atlasOf(s), s: s, g: "Your servants"}));
   ATLAS_S.slice().sort((a, b) => a.n.localeCompare(b.n)).forEach((a) => out.push({key: "a:" + a.no, n: a.n, a: a, g: "Every NA servant"}));
@@ -33,7 +33,7 @@ function spkCardHTML(x) {
   const on = x.key === SPK.cur;
   return `<li><button type="button" class="pc-card r${clamp(r || 1, 1, 5)}${on ? " is-on" : ""}" data-spk="${esc(x.key)}" aria-pressed="${on}" aria-label="${esc(x.n)}${cls ? ", " + esc(cls) : ""}">
     <span class="pc-face">${face ? `<img src="${esc(face)}" alt="" loading="lazy" decoding="async">` : `<i class="spk-none">${esc((x.n || "?").slice(0, 1))}</i>`}${CLASS_LOGO[cls] ? `<img class="pc-cls" src="${CLASS_LOGO[cls]}" alt="">` : ""}${r ? `<span class="pc-st">${stars(r)}</span>` : ""}</span>
-    <span class="pc-n">${esc(x.n)}</span><span class="pc-m">${esc(cls || "not in NA's data")}${x.m ? " · " + esc(x.m) : x.s ? " · your levels" : ""}</span></button></li>`;
+    <span class="pc-n">${esc(x.n)}</span><span class="pc-m">${esc(cls || "not in NA's data")}${x.m ? " · " + esc(x.m) : x.s ? (x.s.wish ? " · Guest" : " · your levels") : ""}</span></button></li>`;
 }
 function spkBody() {
   const all = spkList(), searching = !!(SPK.q.trim() || SPK.c);

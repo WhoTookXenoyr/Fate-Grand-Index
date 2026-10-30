@@ -61,10 +61,21 @@ function npcAuto(s) {
 // the supports most people borrow, first in the list
 const NPC_POP = [284, 215, 316, 314, 37, 150, 62, 241, 373, 385, 357];
 const NPC_FIELD = {a: "atk", c: "card", n: "np", p: "pow", d: "def", r: "card", f: "dp"};
+// 0.26.1: "Your Guests" are the Guests on the Servants page (servants not summoned yet, kept as "r:<id>"), plus any entry
+// of the old Guests tab that never moved over; before, it was only that old list, so Guests added since never showed up
+function guestsForSup() {
+  const out = S.servants.filter((x) => x.wish).map((s) => ({key: "r:" + s.id, n: s.name, cls: s.cls, s: s}));
+  (S.guests || []).forEach((g) => { if (g && g.name && !g.movedTo && !out.some((x) => normName(x.n) === normName(g.name))) out.push({key: "g:" + g.id, n: g.name, cls: g.cls, g: g}); });
+  return out;
+}
 // who a support is: one of your Guests, a servant on your list, or any NA servant (by its number)
 function npcSrc(key) {
   const k = String(key || ""), t = k.slice(0, 2), v = k.slice(2);
-  if (t === "g:") { const g = S.guests.find((x) => x.id === v); return g ? {key: k, n: g.name, a: atlasOf(g), lv: skLevels(g)} : null; }
+  if (t === "g:") {
+    const g = S.guests.find((x) => x.id === v), m = g && g.movedTo ? S.servants.find((x) => x.id === g.movedTo) : null;
+    if (m) return {key: k, n: m.name, a: atlasOf(m), lv: skLevels(m)};
+    return g ? {key: k, n: g.name, a: atlasOf(g), lv: skLevels(g)} : null;
+  }
   if (t === "r:") { const s = S.servants.find((x) => x.id === v); return s ? {key: k, n: s.name, a: atlasOf(s), lv: skLevels(s)} : null; }
   if (t === "a:") { const a = ATLAS_BY_NO.get(num(v)); return a ? {key: k, n: a.n, a: a, lv: [0, 0, 0]} : null; }
   return null;
@@ -128,7 +139,7 @@ function npcSupSel(i, cur) {
   const o = (v, t) => { const on = !picked && v === (cur || ""); if (on) picked = true; return `<option value="${esc(v)}"${on ? " selected" : ""}>${esc(t)}</option>`; };
   const pop = NPC_POP.map((no) => ATLAS_BY_NO.get(no)).filter(Boolean), mine = S.servants.filter((x) => !x.wish).slice().sort((a, b) => a.name.localeCompare(b.name));
   return `<label class="npc-f npc-sup"><span>Support ${i + 1}</span><select data-npc-sup="${i}">${o("", "None")}
-    ${S.guests.length ? `<optgroup label="Your Guests">${S.guests.map((g) => o("g:" + g.id, g.name + (g.cls ? " · " + g.cls : ""))).join("")}</optgroup>` : ""}
+    ${guestsForSup().length ? `<optgroup label="Your Guests">${guestsForSup().map((g) => o(g.key, g.n + (g.cls ? " · " + g.cls : ""))).join("")}</optgroup>` : ""}
     <optgroup label="Often borrowed">${pop.map((a) => o("a:" + a.no, a.n + " · " + a.c)).join("")}</optgroup>
     ${mine.length ? `<optgroup label="Your servants">${mine.map((x) => o("r:" + x.id, x.name)).join("")}</optgroup>` : ""}
     <optgroup label="Every NA servant">${ATLAS_S.slice().sort((a, b) => a.n.localeCompare(b.n)).map((a) => o("a:" + a.no, a.n + " · " + a.c)).join("")}</optgroup></select></label>`;

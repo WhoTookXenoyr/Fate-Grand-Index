@@ -51,6 +51,19 @@ export async function saveAccount(ctx) {
   return json({user: await me(ctx, nu)});
 }
 
+// 0.26.1: where someone is in the story ({w, q, ph}), from the page's remembered story progress (extras/story)
+function storyPos(data) {
+  try { const p = JSON.parse(JSON.parse(data).v).pos; const n = (x) => Math.max(0, Math.floor(Number(x) || 0)); return p && n(p.w) ? {w: n(p.w), q: n(p.q), ph: n(p.ph)} : null; } catch (e) { return null; }
+}
+async function storyOf(env, ids) {
+  const out = {};
+  for (let i = 0; i < ids.length; i += 90) {
+    const part = ids.slice(i, i + 90);
+    const rows = (await env.DB.prepare("SELECT user_id, data FROM docs WHERE col = 'extras' AND id = 'story' AND data IS NOT NULL AND user_id IN (" + part.map(() => "?").join(",") + ")").bind(...part).all()).results || [];
+    rows.forEach((r) => { const p = storyPos(r.data); if (p) out[r.user_id] = p; });
+  }
+  return out;
+}
 export async function list(ctx) {
   const env = ctx.env, u = await needUser(ctx);
   const rows = (await env.DB.prepare(`SELECT f.state, f.by, f.created, x.id, x.name, x.code, x.vis, x.supports, x.seen FROM friends f
@@ -61,6 +74,9 @@ export async function list(ctx) {
     const f = Object.assign(pub(r), {since: r.created, supports: sup, seen: r.seen});
     if (r.state === "accepted") out.friends.push(f); else if (r.by === u.id) out.outgoing.push(f); else out.incoming.push(f);
   });
+  // friends see where you are in the story, unless your roster is only for you
+  const st = await storyOf(env, out.friends.filter((f) => f.vis !== "private").map((f) => f.id));
+  out.friends.forEach((f) => { if (st[f.id]) f.story = st[f.id]; });
   return json(out);
 }
 // ask by friend code (123456789, spaces and commas allowed) or by name; asking someone who asked you accepts
@@ -114,8 +130,10 @@ export async function profile(ctx, owner) {
 export async function roster(ctx, owner) {
   const env = ctx.env;
   if (!(await canSee(ctx, owner, "docs"))) fail(404, "not_found", "That roster isn't shared with you.");
-  const rows = (await env.DB.prepare("SELECT col, id, data FROM docs WHERE user_id = ? AND col IN ('servants','parties','guests') AND data IS NOT NULL").bind(owner).all()).results || [];
-  return new Response('{"docs":[' + rows.map((r) => '{"col":' + JSON.stringify(r.col) + ',"id":' + JSON.stringify(r.id) + ',"data":' + r.data + "}").join(",") + "]}",
+  const rows = (await env.DB.prepare("SELECT col, id, data FROM docs WHERE user_id = ? AND (col IN ('servants','parties','guests') OR (col = 'extras' AND id = 'story')) AND data IS NOT NULL").bind(owner).all()).results || [];
+  // 0.26.1: with the roster comes where they are in the story (only the position, not the rest of what's remembered)
+  const story = rows.filter((r) => r.col === "extras").map((r) => storyPos(r.data))[0] || null;
+  return new Response('{"docs":[' + rows.filter((r) => r.col !== "extras").map((r) => '{"col":' + JSON.stringify(r.col) + ',"id":' + JSON.stringify(r.id) + ',"data":' + r.data + "}").join(",") + '],"story":' + JSON.stringify(story) + "}",
     {headers: {"content-type": "application/json; charset=utf-8", "cache-control": "no-store"}});
 }
 // the link someone shared: whose roster it is

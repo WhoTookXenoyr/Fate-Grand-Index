@@ -88,8 +88,9 @@ function renderFriends() {
          ${rm ? `<span class="fr-rm">Remove ${esc(f.name)}? <button type="button" class="btn danger solid sm" data-action="fr-remove" data-id="${f.id}">Remove</button><button type="button" class="btn ghost sm" data-action="fr-rm-no">Keep</button></span>`
            : `<button type="button" class="btn ghost sm fr-x" data-action="fr-rm-ask" data-id="${f.id}" aria-label="Remove ${esc(f.name)} from your friends">Remove</button>`}`;
     const sup = open ? `<div class="fr-sups">${FR.sup.list ? (FR.sup.list.length ? FR.sup.list.map((s) => `<div class="fr-sv">${frFaceHTML(s)}<span><b>${esc(s.name)}</b><small>${esc(s.cls || "")} · ${esc(supStats(s))}</small></span>
-        <button type="button" class="btn ghost sm" data-action="fr-vs" data-k="${esc(s.id)}">Versus</button></div>`).join("") : `<p class="muted">${esc(f.name)} hasn't picked supports yet.</p>`) : `<p class="muted">Loading…</p>`}</div>` : "";
-    return `<li class="fr-card"><span class="acct-av" aria-hidden="true">${esc(f.name.slice(0, 1).toUpperCase())}</span><div class="fr-who"><b>${esc(f.name)}</b><small>${fmtCode(f.code)}${f.seen && kind === "friend" ? " · seen " + frAgo(f.seen) : ""}</small></div><div class="fr-acts">${acts}</div>${sup}</li>`;
+        <span class="fr-sv-b"><button type="button" class="btn ghost sm" data-action="fr-vs" data-k="${esc(s.id)}">Versus</button>${mineHas(s) ? "" : `<button type="button" class="btn ghost sm" data-action="fr-guest" data-k="${esc(s.id)}" title="Add ${esc(s.name)} to your Guests with ${esc(f.name)}'s levels">+ Guest</button>`}</span></div>`).join("") : `<p class="muted">${esc(f.name)} hasn't picked supports yet.</p>`) : `<p class="muted">Loading…</p>`}</div>` : "";
+    const sc = kind === "friend" && f.story ? STORY_BY.get(f.story.w) : null;
+    return `<li class="fr-card"><span class="acct-av" aria-hidden="true">${esc(f.name.slice(0, 1).toUpperCase())}</span><div class="fr-who"><b>${esc(f.name)}</b><small>${fmtCode(f.code)}${f.seen && kind === "friend" ? " · seen " + frAgo(f.seen) : ""}</small>${sc ? `<small class="fr-story" style="${palVars(sc)}">Story: <b>${esc(sc.n)}</b></small>` : ""}</div><div class="fr-acts">${acts}</div>${sup}</li>`;
   };
   el.innerHTML = `<div class="fr-grid">
     <div class="fr-col">
@@ -208,7 +209,7 @@ vsHeroHTML = function (s, i, ids) {
     const groups = Array.from(by.keys()).map((n) => `<optgroup label="${esc(n)}'s">${by.get(n).map(opt).join("")}</optgroup>`).join("");
     h = h.replace(/(<select class="vs-sel"[^>]*>[\s\S]*?)(<\/select>)/, "$1" + groups + "$2");
   }
-  if (s.fr) h = h.replace(/<button type="button" class="vs-name" data-action="goto"[^>]*>([\s\S]*?)<\/button>/, `<span class="vs-name">$1</span>`).replace(/(<p class="vs-meta">)/, `$1<span class="tag fr-tag">${esc(s.fr.name)}'s</span>`);
+  if (s.fr) h = h.replace(/<button type="button" class="vs-name" data-action="goto"[^>]*>([\s\S]*?)<\/button>/, `<span class="vs-name">$1</span>`).replace(/(<p class="vs-meta">)/, `$1<span class="tag fr-tag">${esc(s.fr.name)}'s</span>${mineHas(s) ? "" : `<button type="button" class="linkish fr-gbtn" data-action="fr-guest" data-k="${esc(s.id)}">Add to my Guests</button>`}`);
   return h;
 };
 const renderVersus26 = renderVersus;
@@ -265,6 +266,11 @@ async function fvOpen(user, token) {
     by[d.col].push(o);
   });
   COLS.forEach((c) => { S[c] = by[c].sort((x, y) => (num(x.order) ?? 1e9) - (num(y.order) ?? 1e9)); S.loaded[c] = true; });
+  // 0.26.1: where they are in the story; the Story page shows their place while you look (yours is kept)
+  const sp = j.story && STORY_BY.has(num(j.story.w)) ? {w: num(j.story.w), q: num(j.story.q) || 0, ph: num(j.story.ph) || 0} : null;
+  if (!FV.stBack) FV.stBack = {view: ST.view, part: ST.part, shut: ST.shut};
+  ST.other = {name: user.name, pos: sp}; ST.shut = false;
+  if (sp) { ST.view = {w: sp.w, q: sp.q, ph: sp.ph}; ST.part = STORY_BY.get(sp.w).part; }
   S.readOnly = true; S.selected = null; S.editing = null; S.partyEdit = null; S.guestEdit = null;
   S.tab = "servants";
   try { history.pushState({tab: "servants"}, "", "#servants"); } catch (e) {}
@@ -274,6 +280,7 @@ async function fvOpen(user, token) {
 function fvClose() {
   if (!FV.on) return;
   FV.on = false; S.readOnly = false;
+  ST.other = null; if (FV.stBack) { ST.view = FV.stBack.view; ST.part = FV.stBack.part; ST.shut = FV.stBack.shut; FV.stBack = null; }
   const back = FV.back || {tab: "friends"}; FV.back = null; FV.pend.clear();
   COLS.forEach((c) => notify26(c));
   S.selected = back.sel || null; S.tab = FV.token && !API.user ? "servants" : back.tab === "servants" ? "friends" : back.tab || "friends";
@@ -289,7 +296,9 @@ function fvBar() {
     head.insertAdjacentHTML("afterend", `<div id="fv-bar" class="fv-bar" role="status"></div>`); bar = document.getElementById("fv-bar");
   }
   document.documentElement.classList.add("fv-on");
-  const html = `<p>Looking at <b>${esc(FV.user.name)}</b>'s roster${FV.token ? " (a shared link)" : ""}. Read-only.</p><button type="button" class="btn primary sm" data-action="fv-close">${API.user || !FV.token ? "Back to yours" : "Close"}</button>`;
+  const sc = ST.other && ST.other.pos ? STORY_BY.get(ST.other.pos.w) : null;
+  const story = sc ? ` <span class="fv-story">Story: <b>${esc(sc.n)}</b> ${S.tab === "story" ? "" : `<button type="button" class="linkish" data-action="tab" data-tab="story">see where</button>`}</span>` : "";
+  const html = `<p>Looking at <b>${esc(FV.user.name)}</b>'s roster${FV.token ? " (a shared link)" : ""}. Read-only.${story}</p><button type="button" class="btn primary sm" data-action="fv-close">${API.user || !FV.token ? "Back to yours" : "Close"}</button>`;
   if (bar.innerHTML !== html) bar.innerHTML = html;
 }
 // a shared link: ?roster=<token>
@@ -309,6 +318,85 @@ const acctSignedIn26 = acctSignedIn;
 acctSignedIn = function () { const r = acctSignedIn26.apply(this, arguments); FR.loaded = false; frSupLoad(); frLoad(true); return r; };
 const acctSignedOut26 = acctSignedOut;
 acctSignedOut = function () { if (FV.on && !FV.token) fvClose(); FSV.clear(); FSUP = []; Object.assign(FR, {loaded: false, friends: [], incoming: [], outgoing: [], feed: [], sup: null}); return acctSignedOut26.apply(this, arguments); };
+
+/* ================= 0.26.1 ================= */
+// Versus: a friend's servant picked from the list (not only from "Compare with a friend's servant") is taken
+vsKnown = (id) => S.servants.some((s) => s.id === id) || FSV.has(id);
+// a friend's servant picked before a reload comes back once their roster is loaded again
+let vsFrBusy = false;
+const vsFrTried = new Set(); // each friend's roster is asked for once a visit, even if the servant isn't there any more
+async function vsFriendRestore() {
+  if (vsFrBusy || !API.user || API.offline || FV.on) return;
+  const miss = vsStored().filter((id) => /^f:/.test(id) && !FSV.has(id) && !vsFrTried.has(id.split(":")[1])); if (!miss.length) return;
+  vsFrBusy = true;
+  try {
+    if (!FR.loaded) await frLoad(true);
+    const uids = Array.from(new Set(miss.map((id) => id.split(":")[1])));
+    uids.forEach((u) => vsFrTried.add(u));
+    await Promise.all(uids.map(async (uid) => {
+      const f = FR.friends.find((x) => x.id === uid); if (!f) return;
+      try { const j = await api("GET", "u/" + uid + "/roster"); fsvAdd(f, j.docs.filter((d) => d.col === "servants")); } catch (e) {}
+      try { const j = await api("GET", "u/" + uid); fsvAdd(j.user, j.supports); } catch (e) {}
+    }));
+  } finally { vsFrBusy = false; }
+  if (miss.some((id) => FSV.has(id)) && S.tab === "versus") renderVersus();
+}
+const renderVersus261 = renderVersus;
+renderVersus = function () { const r = renderVersus261.apply(this, arguments); vsFriendRestore(); return r; };
+// the Story page's "worth borrowing" counts your friends' supports too
+storyBorrowFriends = () => FV.on ? [] : FSUP.flatMap((f) => f.supports.map((s) => ({name: s.name, cls: s.cls, who: f.user.name})));
+const frSupLoad26 = frSupLoad;
+frSupLoad = async function () { const r = await frSupLoad26.apply(this, arguments); if (S.tab === "story" && !FV.on) renderStory(); return r; };
+
+// a friend's servant into your own Guests, with their levels (to borrow them, or to plan for your own copy)
+function mineHas(s) { const a = atlasOf(s); return store.servants.find((x) => { const b = atlasOf(x); return (a && b && a.no === b.no) || normName(x.name) === normName(s.name); }) || null; }
+async function myGuestWrite(o) {
+  if (!FV.on) return writeDoc("servants", o);
+  // looking at a friend's roster: straight into your own list, which comes back when you're done looking
+  FV.on = false;
+  try { await S.db.collection("servants").doc(o.id).set(bodyOf(o)); return true; } catch (e) { writeFailed(e); return false; } finally { FV.on = true; }
+}
+async function frAddGuest(fs, who) {
+  if (!fs) return;
+  const have = mineHas(fs);
+  if (have) { toast(have.name + (have.wish ? " is already in your Guests." : " is already on your roster.")); return; }
+  const a = atlasOf(fs), mine = store.servants;
+  const o = a ? atlasToServant(a) : {name: fs.name, cls: fs.cls || null, rarity: num(fs.rarity) || null};
+  o.wish = true;
+  ["level", "npLevel", "fouHp", "fouAtk", "hp", "atk"].forEach((k) => { if (num(fs[k]) != null) o[k] = num(fs[k]); });
+  if (Array.isArray(fs.skills)) o.skills = fs.skills.slice(0, 3);
+  if (Array.isArray(fs.appends)) o.appends = fs.appends.slice(0, 5);
+  const sk = Array.isArray(o.skills) ? o.skills.map((v) => typeof v === "number" ? v : "–").join("/") : "";
+  o.notes = who + "'s support" + (o.level ? ": Lv " + o.level : "") + (o.npLevel ? ", NP" + o.npLevel : "") + (sk ? ", skills " + sk : "") + ".";
+  o.id = slug(o.name, mine); o.order = nextOrder(mine);
+  if (!(await myGuestWrite(o))) return;
+  mineCache = null;
+  if (FV.on) { document.querySelectorAll("#dossier .fv-guest").forEach((x) => x.remove()); renderDossier(true); } else renderAll();
+  if (S.tab === "friends") renderFriends();
+  toastAction(o.name + " added to your Guests.", "Open", () => { if (FV.on) fvClose(); goServant(o.id); });
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest('[data-action="fr-guest"]'); if (!b) return;
+  if (b.dataset.k) { const s = FSV.get(b.dataset.k); if (s) frAddGuest(s, s.fr.name); return; }
+  if (b.dataset.sid && FV.on) { const s = S.servants.find((x) => x.id === b.dataset.sid); if (s) frAddGuest(s, FV.user.name); }
+});
+// looking at a friend's servant: add them to your Guests from their page
+const renderDossier261 = renderDossier;
+renderDossier = function (force) {
+  const r = renderDossier261.apply(this, arguments);
+  const d = document.getElementById("dossier");
+  const old = d && d.querySelector(".fv-guest"), sid = FV.on ? shownId() : null;
+  if (old && old.dataset.sid !== sid) old.remove();
+  if (d && FV.on && !d.querySelector(".fv-guest") && !d.querySelector("#servant-form")) {
+    const s = S.servants.find((x) => x.id === sid);
+    if (s && !s.wish) {
+      const have = mineHas(s), el = document.createElement("div"); el.className = "fv-guest"; el.dataset.sid = s.id;
+      el.innerHTML = `<p><b>${esc(FV.user.name)}'s ${esc(s.name)}.</b> ${have ? (have.wish ? "In your Guests." : "You have " + esc(have.name) + " too.") : "Borrowing them? Add them to your Guests with these levels."}</p>${have ? "" : `<button type="button" class="btn sm primary" data-action="fr-guest" data-sid="${esc(s.id)}">Add to my Guests</button>`}`;
+      const first = d.querySelector(".d-sec"); if (first) first.parentNode.insertBefore(el, first); else d.appendChild(el);
+    }
+  }
+  return r;
+};
 
 // start: ask whether a server is there (nothing happens on the file people open from their computer)
 acctInit();

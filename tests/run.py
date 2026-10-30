@@ -5,6 +5,8 @@
     python3 tests/run.py -j 2            run two suites at the same time (default 1; worth it with 4 or more cores)
     python3 tests/run.py --no-build      test the build that is already there
     python3 tests/run.py --retries 0     a suite that fails is not run a second time
+    python3 tests/run.py --ci-fonts      with the fonts GitHub's machines fall back to (DejaVu instead of Inter, when
+                                         the page's own fonts can't load), to see width problems the CI would
 
 Needs Playwright for Python with Chromium, and Pillow: pip install -r tests/requirements.txt; python3 -m playwright install chromium
 The suites open the page from build/test-work/ (a copy of the build, the NA data and placeholder pictures), served
@@ -110,6 +112,8 @@ def main():
     opt = {"-j": 1, "--retries": 1}
     for k in opt:
         if k in args: i = args.index(k); opt[k] = int(args[i + 1]); del args[i:i + 2]
+    if "--ci-fonts" in args:
+        args.remove("--ci-fonts"); os.environ["FONTCONFIG_FILE"] = os.path.join(HERE, "fixtures", "fonts-like-ci.conf")
     if "--no-build" in args: args.remove("--no-build")
     else: subprocess.run([sys.executable, os.path.join(ROOT, "tools", "build.py")], check=True)
     suites = sorted(os.path.join(HERE, n) for n in os.listdir(HERE) if n.startswith("test_") and n.endswith(".py"))

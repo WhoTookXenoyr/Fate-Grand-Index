@@ -1,6 +1,6 @@
 # Fate/Grand Index
 
-A Fate/Grand Order index of every NA servant and Craft Essence (Past Chaldea), plus your own Spirit Origin List: roster, Guests, parties, rankings, versus, a summoning simulator, a materials planner, an NP damage calculator and a Story page. It ships as one self-contained HTML file that saves everything in your own browser, and (0.26.0) as a hosted site and installable app with accounts, sync and friends.
+A Fate/Grand Order index of every NA servant and Craft Essence (Past Chaldea), plus your own Spirit Origin List: roster, Guests, parties, rankings, versus, a summoning simulator, a materials planner, an NP damage calculator, a Story page and (0.27.0) a Servant Workshop for servants of your own. It ships as one self-contained HTML file that saves everything in your own browser, and (0.26.0) as a hosted site and installable app with accounts, sync and friends.
 
 **Online: [fategrandindex.com](https://fategrandindex.com)** (the site and the installable app, with accounts and friends).
 
@@ -100,6 +100,14 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
 - **Security**: `site/_headers` sets a Content-Security-Policy that runs only the page's two scripts (by their hashes, written by `tools/build.py`), since other people's names and notes now show on the page. Every answer, static or `/api/`, also says HTTPS only (HSTS, 0.26.1).
 - **Crawlers and missing pages** (0.26.1): `site/robots.txt` lets search engines read the page but not `/api/`; an address that doesn't exist gets `site/404.html` (a real 404) instead of the page.
 - **Friends' story and Guests** (0.26.1): a friend's roster comes with where they are in the story (`extras/story`, only the position), shown on their card, in the bar while you look, and on the Story page; any friend's servant can go into your own Guests with their levels; friends' supports count as "worth borrowing" on the Story page.
+
+## The Servant Workshop and growth curves (0.27.0)
+
+- **Growth** (`src/app/44-custom-servants.js`): HP and ATK climb from Lv 1 to the max level along one of six curves (the wiki's "Growth Curves": Linear, S, Reverse S, Semi S, Semi Reverse S, Semi Reverse S then Linear), and past the max level every servant with that max level shares the grail curve. `ATLAS_CURVES` has NA's numbers (per mille of the Lv 1 → max gain, Lv 1 to 120); a curve NA doesn't use at some max level is made by `synthCurve` from the same curve's shape plus that max level's grail part, under a key like `x:ss:1`. A servant NA doesn't have can keep `growth: {type, hp: [Lv 1, max], atk: [Lv 1, max]}` (Edit details → Growth), and `syncStats` then moves HP and ATK with its level the way it does for NA's servants.
+- **Custom servants**: `custom: true` and `kit` (what the Workshop edits) on an ordinary servant entry, plus the usual fields made from the kit by `kitDerive` (skills, passives, deck, NP table, traits, growth). `atlasOf` never matches a custom servant to NA, whatever its name. `calcKitOf(s)` gives the damage calculator and the support pickers the NA record, or the same shape built from the kit (skill buffs, passives' card and Damage Plus bonuses, attribute).
+- **Effects** (`FX`): 33 kinds plus "write your own", each with its targets, usual Lv 1 / Lv 10 values (a second pair for "yourself"), turns and times, how NA's text words it, and what it does to NP damage (the calculator's buff kinds). NA's skill and NP text is read back into effects for Remix (`naToFx`), and anything it can't read stays as written.
+- **The Workshop** (`src/app/45-workshop.js`, `src/styles/28-workshop.css`): eight steps and a live card; parts flagged in `kit.auto` follow the class and rarity (`typicalOf`: NA's median stats, most used curve, deck, NP card, passives) until changed. The draft is `spirit-origin-list:v1:workshop`. Share codes are `FGI2.` + the kit as deflated base64url (`FGI1.` without deflate where `CompressionStream` is missing), cleaned by `wsClean` when opened.
+- **Versus with NA**: picks like `na:<number>` are NA servants at max level, NP1 and skills at 10, built on the fly (`vnaGet`), never saved.
 
 ## Your data
 

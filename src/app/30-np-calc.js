@@ -36,7 +36,7 @@ function npcNp(s) {
 const r0 = (r) => r.vals.filter((v) => String(v).trim());
 // what the class passives and the equipped Craft Essence add, always on
 function npcAuto(s) {
-  const a = atlasOf(s), pm = (a && a.pm) || [0, 0, 0, 0, 0], out = {card: {Buster: pm[0], Arts: pm[1], Quick: pm[2]}, np: pm[3], dp: pm[4], atk: 0, ce: null, from: []};
+  const a = calcKitOf(s), pm = (a && a.pm) || [0, 0, 0, 0, 0], out = {card: {Buster: pm[0], Arts: pm[1], Quick: pm[2]}, np: pm[3], dp: pm[4], atk: 0, ce: null, from: []};
   const c = typeof favOn === "function" ? favOn(s) : null;
   if (c) {
     out.ce = c;
@@ -73,10 +73,10 @@ function npcSrc(key) {
   const k = String(key || ""), t = k.slice(0, 2), v = k.slice(2);
   if (t === "g:") {
     const g = S.guests.find((x) => x.id === v), m = g && g.movedTo ? S.servants.find((x) => x.id === g.movedTo) : null;
-    if (m) return {key: k, n: m.name, a: atlasOf(m), lv: skLevels(m)};
-    return g ? {key: k, n: g.name, a: atlasOf(g), lv: skLevels(g)} : null;
+    if (m) return {key: k, n: m.name, a: calcKitOf(m), lv: skLevels(m)};
+    return g ? {key: k, n: g.name, a: calcKitOf(g), lv: skLevels(g)} : null;
   }
-  if (t === "r:") { const s = S.servants.find((x) => x.id === v); return s ? {key: k, n: s.name, a: atlasOf(s), lv: skLevels(s)} : null; }
+  if (t === "r:") { const s = S.servants.find((x) => x.id === v); return s ? {key: k, n: s.name, a: calcKitOf(s), lv: skLevels(s)} : null; }
   if (t === "a:") { const a = ATLAS_BY_NO.get(num(v)); return a ? {key: k, n: a.n, a: a, lv: [0, 0, 0]} : null; }
   return null;
 }
@@ -125,7 +125,7 @@ function npcFxText(b, lv, np, me, I) {
 }
 // everything ticked, added up: {atk, card, np, pow, def, dp} in % (Damage Plus as is)
 function npcTeam(s, np, I) {
-  const T = {atk: 0, card: 0, np: 0, pow: 0, def: 0, dp: 0}, me = atlasOf(s);
+  const T = {atk: 0, card: 0, np: 0, pow: 0, def: 0, dp: 0}, me = calcKitOf(s);
   const run = (who, a, lv, mine) => npcSkills(a, lv, mine).forEach((k) => {
     if (!npcIsOn(who + "|" + k.i)) return;
     k.fx.forEach((b) => { const x = npcFx(b, k.lv, np, me, I); if (x.ok) T[NPC_FIELD[b[0]]] += x.v; });
@@ -145,7 +145,7 @@ function npcSupSel(i, cur) {
     <optgroup label="Every NA servant">${ATLAS_S.slice().sort((a, b) => a.n.localeCompare(b.n)).map((a) => o("a:" + a.no, a.n + " · " + a.c)).join("")}</optgroup></select></label>`;
 }
 function npcTeamHTML(s, np, I) {
-  const me = atlasOf(s), sup = (npcPrefs.sup || []).slice(0, 2);
+  const me = calcKitOf(s), sup = (npcPrefs.sup || []).slice(0, 2);
   const list = (who, a, lv, mine, name) => {
     const ks = npcSkills(a, lv, mine);
     if (!ks.length) return `<p class="npc-none">${mine ? "None of " + esc(name) + "'s own skills change NP damage." : "None of " + esc(name) + "'s skills raise another servant's NP damage."}</p>`;
@@ -184,7 +184,7 @@ function npcCalc(s, np, I, ecls) {
     const v = np.se.vals[(np.se.byOc ? I.oc : I.lv) - 1];
     if (v != null) { if (np.se.add) mult += v; else if (I.se) se = v / 100; }
   }
-  const atkA = atlasOf(s), myAttr = (atkA && atkA.a) || s.attr || "";
+  const atkA = calcKitOf(s), myAttr = (atkA && atkA.a) || s.attr || "";
   // the ticked skills (the Story page's advice leaves them out: one NP a wave with no buffs)
   const B = I.team ? npcTeam(s, np, ecls && ecls !== I.ecls ? Object.assign({}, I, {ecls: ecls}) : I) : {atk: 0, card: 0, np: 0, pow: 0, def: 0, dp: 0};
   const cardMod = clamp((I.card + (A.card[np.card] || 0) + B.card) / 100, -1, 4);

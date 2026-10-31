@@ -12,9 +12,9 @@ const SPK_CLASSES = ["Saber", "Archer", "Lancer", "Rider", "Caster", "Assassin",
 function spkAll() {
   if (SPK.list) return SPK.list; // 0.26.0: a list of its own (your supports, friends' servants for Versus)
   const out = [];
-  guestsForSup().forEach((x) => out.push({key: x.key, n: x.n, a: atlasOf(x.s || x.g), s: x.s, g: "Your Guests"}));
+  guestsForSup().forEach((x) => out.push({key: x.key, n: x.n, a: calcKitOf(x.s || x.g), s: x.s, g: "Your Guests"}));
   NPC_POP.forEach((no) => { const a = ATLAS_BY_NO.get(no); if (a) out.push({key: "a:" + no, n: a.n, a: a, g: "Often borrowed"}); });
-  S.servants.filter((x) => !x.wish).slice().sort((a, b) => a.name.localeCompare(b.name)).forEach((s) => out.push({key: "r:" + s.id, n: s.name, a: atlasOf(s), s: s, g: "Your servants"}));
+  S.servants.filter((x) => !x.wish).slice().sort((a, b) => a.name.localeCompare(b.name)).forEach((s) => out.push({key: "r:" + s.id, n: s.name, a: calcKitOf(s), s: s, g: "Your servants"}));
   ATLAS_S.slice().sort((a, b) => a.n.localeCompare(b.n)).forEach((a) => out.push({key: "a:" + a.no, n: a.n, a: a, g: "Every NA servant"}));
   return out;
 }

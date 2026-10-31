@@ -1443,6 +1443,8 @@ html.vt-theme::view-transition-old(root) { z-index: 1; } html.vt-theme::view-tra
 
 /* ----- toast with a button ----- */
 #toast.has-btn { pointer-events: auto; display: flex; align-items: center; gap: 12px; }
+/* 0.27.0: once it has faded out it doesn't catch clicks meant for what's under it */
+#toast.has-btn:not(.show) { pointer-events: none; }
 .toast-btn { border: 0; background: transparent; color: inherit; font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 4px 2px; white-space: nowrap; }
 
 .fou-in { width: 10ch; }
@@ -3784,6 +3786,432 @@ i.fr-face.none { display: grid; place-items: center; font-style: normal; font-we
 .fv-guest { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; margin: 0 0 12px; padding: 10px 14px; border-radius: 14px; border: 1px dashed color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 7%, var(--panel)); }
 .fv-guest p { margin: 0; font-size: 14px; }
 .fr-gbtn { margin-left: 8px; font-size: 12.5px; }
+/* 0.27.0: the Servant Workshop (45-workshop.js) and growth in Edit details (44-custom-servants.js).
+   Low on the graphics card like the rest: only transform and opacity move, no blur, no backdrop-filter. */
+html.ws-on { overflow: hidden; }
+/* toasts sit above the Workshop's bottom bar */
+html.ws-on #toast { bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); }
+.ws { position: fixed; inset: 0; z-index: 45; zoom: var(--ui-z, 1); color: var(--ink); }
+.ws[hidden] { display: none; }
+.ws-veil { position: absolute; inset: 0; background: radial-gradient(120% 80% at 70% 10%, color-mix(in srgb, var(--gold) 14%, transparent), transparent 60%), linear-gradient(150deg, var(--g1) 0%, var(--g2) 55%, var(--g3) 100%); }
+.ws-veil::after { content: ""; position: absolute; inset: 0; background: var(--bg); opacity: .55; }
+.ws-frame { position: relative; height: 100%; display: grid; grid-template-columns: 220px minmax(0, 1fr) 352px; grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas: "top top top" "rail main pv" "rail foot pv"; max-width: 1560px; margin: 0 auto; }
+.ws-frame:focus { outline: none; }
+.ws-frame:not(.has-k) { grid-template-columns: 220px minmax(0, 1fr); grid-template-areas: "top top" "rail main" "rail foot"; }
+
+/* top bar */
+.ws-top { grid-area: top; display: flex; align-items: center; gap: 16px; padding: 14px 24px 10px; border-bottom: 1px solid var(--line); }
+.ws-brand { flex: 1 1 auto; min-width: 0; }
+.ws-brand h2 { margin: 2px 0 0; font: 750 clamp(1.3rem, 2.4vw, 1.9rem)/1.05 var(--f-display); font-variation-settings: "wdth" 85; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ws-saved { font: 500 11.5px var(--f-data); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.ws-saved.flash { animation: wsflash 1.6s ease; }
+@keyframes wsflash { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: .7; } }
+.ws-x { flex: none; width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 50%; background: var(--panel); color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer; }
+.ws-x:hover { border-color: var(--gold); }
+
+/* steps */
+.ws-rail { grid-area: rail; padding: 18px 10px 18px 20px; overflow-y: auto; }
+.ws-rail ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; position: relative; }
+.ws-rail button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border: 0; border-radius: 12px; background: none; color: var(--muted); font-weight: 600; font-size: 14.5px; text-align: left; cursor: pointer; }
+.ws-rail button:hover:not(:disabled) { background: color-mix(in srgb, var(--panel) 70%, transparent); color: var(--ink); }
+.ws-rail button:disabled { opacity: .45; cursor: default; }
+.ws-rail button[aria-current] { background: var(--panel); color: var(--ink); box-shadow: var(--shadow); }
+.ws-n { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; border: 1.5px solid var(--line); font: 600 12px var(--f-data); background: var(--panel); }
+.ws-rail button.done .ws-n { border-color: var(--quick); color: var(--quick); }
+.ws-rail button[aria-current] .ws-n { border-color: var(--gold); background: var(--gold); color: var(--on-accent); }
+.ws-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* the step itself */
+.ws-main { grid-area: main; overflow-y: auto; padding: 22px clamp(16px, 3vw, 40px) 40px; overscroll-behavior: contain; }
+.ws-step { max-width: 860px; animation: wsin .32s ease both; }
+@keyframes wsin { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.ws-step h3 { margin: 0 0 14px; font: 750 1.6rem/1.1 var(--f-display); font-variation-settings: "wdth" 85; letter-spacing: -.01em; outline: none; }
+.ws-lede { margin: -4px 0 16px; color: var(--muted); }
+.ws-lede b { color: var(--ink); font-family: var(--f-data); font-weight: 600; }
+.ws-note { margin: 10px 0 0; font-size: 13.5px; color: var(--muted); }
+.ws-npnote { margin: -4px 0 18px; }
+.ws-se .ws-mini.wide { max-width: 320px; }
+.ws-lab { display: block; margin: 0 0 7px; font: 500 11.5px var(--f-data); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.ws-lab small { text-transform: none; letter-spacing: 0; font-family: var(--f-body); }
+.ws-field { margin: 0 0 18px; }
+.ws-f { display: block; margin: 0 0 14px; }
+.ws-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ws-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; }
+.ws-grid3 { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr); gap: 0 18px; align-items: start; }
+.ws input[type="text"], .ws input[type="search"], .ws input[type="number"], .ws select, .ws textarea { min-height: 38px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--ink); max-width: 100%; }
+.ws-f > input, .ws-f > select, .ws-f .ws-row > input { width: 100%; }
+.ws-f .ws-row > input { flex: 1 1 0; min-width: 0; }
+.ws textarea { width: 100%; font-family: var(--f-data); font-size: 13px; }
+.ws input:focus-visible, .ws select:focus-visible, .ws textarea:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.ws-auto { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: color-mix(in srgb, var(--quick) 16%, transparent); color: var(--quick); font: 600 10.5px var(--f-body); letter-spacing: .02em; text-transform: none; vertical-align: 1px; }
+.linkish { padding: 0; border: 0; background: none; color: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; font: inherit; font-weight: 600; }
+
+/* segmented pickers */
+.ws-seg { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--panel) 75%, transparent); }
+.ws-seg + .ws-seg { margin-left: 8px; }
+.ws-field > .ws-seg.multi + .ws-seg.multi { margin: 6px 0 0; }
+.ws-seg button { min-height: 32px; padding: 4px 12px; border: 0; border-radius: 9px; background: none; color: var(--muted); font-weight: 600; font-size: 13.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.ws-seg button:hover { color: var(--ink); }
+.ws-seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+.ws-seg.sm button { min-height: 28px; padding: 3px 9px; font-size: 12.5px; }
+.ws-seg.big button { min-height: 40px; padding: 6px 16px; font-size: 14.5px; }
+.ws-seg.wrap { max-width: 100%; }
+.ws-usual { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); display: inline-block; }
+
+/* start */
+.ws-hero p { margin: 0 0 18px; color: var(--muted); max-width: 62ch; }
+.ws-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.ws-tile { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 18px 18px 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); color: var(--ink); text-align: left; cursor: pointer; box-shadow: var(--shadow); transition: transform .2s ease, border-color .2s; }
+.ws-tile:hover { transform: translateY(-2px); border-color: var(--gold); }
+.ws-tile.on { border-color: var(--gold); box-shadow: 0 0 0 2px color-mix(in srgb, var(--gold) 45%, transparent), var(--shadow); }
+.ws-tile b { font: 700 1.1rem var(--f-display); }
+.ws-tile > span:last-child { font-size: 13.5px; color: var(--muted); line-height: 1.4; }
+.ws-tic { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; font-size: 22px; background: color-mix(in srgb, var(--gold) 18%, transparent); color: var(--gold); }
+.ws-pane { margin-top: 16px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--panel) 80%, transparent); animation: wsin .25s ease both; }
+.ws-pane input[type="search"] { width: 100%; margin-bottom: 12px; }
+.ws-nagrid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
+.ws-draft { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 16px; padding: 12px 16px; border-radius: 14px; background: var(--warn-bg); color: var(--warn-ink); }
+.ws-draft p { margin: 0; }
+.ws-draft span { display: flex; gap: 8px; }
+
+/* who */
+.ws-namebox { margin-bottom: 18px; }
+.ws-bigname { flex: 1 1 0; min-width: 0; font: 700 1.35rem var(--f-display) !important; min-height: 48px !important; }
+.ws-dice { min-width: 44px; font-size: 20px; }
+.ws-classes { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; }
+.ws-clsb { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px 7px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; transition: transform .15s ease; }
+.ws-clsb img { width: 34px; height: 34px; object-fit: contain; transition: transform .2s ease; }
+.ws-clsb:hover img { transform: scale(1.08); }
+.ws-clsb[aria-pressed="true"] { border-color: var(--gold); color: var(--ink); background: color-mix(in srgb, var(--gold) 14%, var(--panel)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--gold) 40%, transparent); }
+.ws-rars { gap: 6px; }
+.ws-rar { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 88px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--ink); cursor: pointer; }
+.ws-rar .stars { color: var(--gold); letter-spacing: -.05em; }
+.ws-rar small { color: var(--muted); font-size: 11.5px; }
+.ws-rar.on, .ws-rar[aria-pressed="true"] { border-color: var(--gold); box-shadow: 0 0 0 2px color-mix(in srgb, var(--gold) 40%, transparent); }
+.ws-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.ws-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 4px 3px 10px; border-radius: 999px; background: var(--sunken); font-size: 13px; font-weight: 600; }
+.ws-chip button { width: 22px; height: 22px; border: 0; border-radius: 50%; background: none; color: var(--muted); cursor: pointer; font-size: 15px; line-height: 1; }
+.ws-chip button:hover { background: var(--panel); color: var(--ink); }
+.ws-sugg { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.ws-sugg .chip small { color: var(--muted); font-family: var(--f-data); }
+#ws-trait { flex: 1 1 160px; }
+.ws-drop { position: relative; display: grid; place-items: center; width: min(240px, 100%); aspect-ratio: 4 / 5; border: 2px dashed var(--line); border-radius: 16px; background: color-mix(in srgb, var(--panel) 70%, transparent); color: var(--muted); text-align: center; padding: 14px; cursor: pointer; overflow: hidden; font-size: 13.5px; }
+.ws-drop.over, .ws-drop:hover { border-color: var(--gold); color: var(--ink); }
+.ws-drop.has { border-style: solid; padding: 0; }
+.ws-drop img { width: 100%; height: 100%; object-fit: cover; }
+.ws-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.ws-drop + .btn { margin-top: 8px; }
+
+/* stats */
+.ws-feel { display: grid; gap: 10px; margin: 0 0 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--panel) 80%, transparent); }
+.ws-slider { display: grid; grid-template-columns: 76px minmax(0, 1fr) 76px; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.ws-sl-r { text-align: right; }
+.ws input[type="range"] { width: 100%; accent-color: var(--gold); }
+.ws-nums { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0 0 18px; }
+.ws-num { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.ws-num input { width: 100%; font: 600 15px var(--f-data) !important; }
+.ws-power { display: grid; gap: 12px; margin: 0 0 20px; }
+.ws-power.sm { gap: 7px; margin: 12px 0 0; }
+.ws-mh { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.ws-mh b { font: 600 15px var(--f-data); color: var(--ink); }
+.ws-power.sm .ws-mh { font-size: 11.5px; }
+.ws-power.sm .ws-mh b { font-size: 12.5px; }
+.ws-strip { position: relative; height: 18px; margin-top: 5px; border-radius: 999px; background: var(--sunken); overflow: hidden; }
+.ws-power.sm .ws-strip { height: 7px; margin-top: 3px; }
+.ws-bar { position: absolute; inset: 0; transform-origin: left; background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 25%, transparent), color-mix(in srgb, var(--gold) 55%, transparent)); transition: transform .35s ease; }
+.ws-meter.k-hp .ws-bar { background: linear-gradient(90deg, color-mix(in srgb, var(--quick) 22%, transparent), color-mix(in srgb, var(--quick) 50%, transparent)); }
+.ws-meter.k-np .ws-bar { background: linear-gradient(90deg, color-mix(in srgb, var(--buster) 22%, transparent), color-mix(in srgb, var(--buster) 50%, transparent)); }
+.ws-strip i { position: absolute; top: 4px; bottom: 4px; width: 2px; margin-left: -1px; background: color-mix(in srgb, var(--ink) 35%, transparent); z-index: 1; }
+.ws-strip b.you { position: absolute; top: 1px; bottom: 1px; width: 6px; margin-left: -3px; border-radius: 3px; background: var(--accent); box-shadow: 0 0 0 2px var(--panel); z-index: 2; transition: left .35s ease; }
+.ws-power.sm .ws-strip b.you { top: 0; bottom: 0; width: 4px; margin-left: -2px; box-shadow: none; }
+.ws-mp { margin: 4px 0 0; font-size: 12.5px; color: var(--muted); }
+.ws-curves { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.ws-curve { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); color: var(--ink); text-align: left; cursor: pointer; }
+.ws-curve b { font-size: 14px; }
+.ws-curve span { font-size: 12.5px; color: var(--muted); line-height: 1.35; }
+.ws-curve small { font: 500 11px var(--f-data); color: var(--muted); }
+.ws-curve[aria-pressed="true"] { border-color: var(--gold); box-shadow: 0 0 0 2px color-mix(in srgb, var(--gold) 40%, transparent); }
+.ws-csvg { width: 100%; height: 40px; margin-bottom: 4px; }
+.ws-csvg path { fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ws-curve[aria-pressed="true"] .ws-csvg path { stroke: var(--gold); stroke-width: 2.6; }
+.ws-chart { margin: 18px 0 0; padding: 12px 12px 8px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); touch-action: pan-y; }
+.ws-chart svg { display: block; width: 100%; height: auto; cursor: ew-resize; user-select: none; }
+.ws-chart .g { stroke: var(--line); stroke-width: 1; }
+.ws-chart .gy, .ws-chart .gx { fill: var(--muted); font: 500 10.5px var(--f-data); }
+.ws-chart .gy { text-anchor: end; }
+.ws-chart .gx { text-anchor: middle; }
+.ws-chart .grz { fill: color-mix(in srgb, var(--gold) 10%, transparent); }
+.ws-chart .grt { fill: var(--gold); font: 600 10.5px var(--f-data); text-anchor: middle; letter-spacing: .1em; text-transform: uppercase; }
+.ws-chart .ln, .ws-chart .ty { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.ws-chart .ty { stroke-width: 1.4; stroke-dasharray: 4 4; opacity: .55; }
+.ws-chart .hp { stroke: var(--quick); }
+.ws-chart .atk { stroke: var(--buster); }
+.ws-chart .cur { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 3 3; opacity: .6; }
+.ws-chart .dot { stroke: var(--panel); stroke-width: 2; }
+.ws-chart .dot.hp { fill: var(--quick); }
+.ws-chart .dot.atk { fill: var(--buster); }
+.ws-chart .hit { fill: transparent; }
+.ws-ckey { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 6px 4px 0; font-size: 13px; }
+.ws-ckey i { display: inline-block; width: 12px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+.ws-ckey i.hp { background: var(--quick); }
+.ws-ckey i.atk { background: var(--buster); }
+.ws-ckey b { font-family: var(--f-data); }
+
+/* cards */
+.ws-decks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.ws-deck { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); color: var(--ink); cursor: pointer; }
+.ws-deck b { font-size: 12.5px; }
+.ws-deck small { font: 500 11px var(--f-data); color: var(--muted); }
+.ws-dcards { display: flex; gap: 2px; }
+.ws-dcards img { width: 30px; height: auto; transition: transform .2s ease; }
+.ws-deck:hover .ws-dcards img { transform: translateY(-2px); }
+.ws-deck[aria-pressed="true"], .ws-npcard[aria-pressed="true"] { border-color: var(--gold); box-shadow: 0 0 0 2px color-mix(in srgb, var(--gold) 40%, transparent); background: color-mix(in srgb, var(--gold) 8%, var(--panel)); }
+.ws-npcards { display: grid; grid-template-columns: repeat(3, minmax(0, 150px)); gap: 10px; }
+.ws-npcard { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 10px 10px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); color: var(--ink); cursor: pointer; }
+.ws-npcard img { width: 64px; height: auto; transition: transform .25s ease; }
+.ws-npcard:hover img, .ws-npcard[aria-pressed="true"] img { transform: translateY(-3px) rotate(-3deg); }
+.ws-npcard small { font: 500 11px var(--f-data); color: var(--muted); }
+
+/* NP */
+.ws-five { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin: 10px 0; }
+.ws-five label { position: relative; display: flex; flex-direction: column; gap: 3px; font: 500 11px var(--f-data); color: var(--muted); }
+.ws-five input { width: 100%; padding-right: 22px !important; font: 600 14px var(--f-data) !important; }
+.ws-five i { position: absolute; right: 9px; bottom: 10px; font-style: normal; color: var(--muted); font-size: 12px; }
+.ws-five.sm { margin: 6px 0 0; }
+.ws-five.sm input { min-height: 32px !important; font-size: 13px !important; padding: 4px 18px 4px 8px !important; }
+.ws-five.sm i { bottom: 8px; right: 7px; }
+.ws-chk { display: flex; align-items: center; gap: 8px; margin: 8px 0; font-weight: 600; }
+.ws-se { padding: 10px 12px; border-left: 3px solid var(--gold); background: color-mix(in srgb, var(--gold) 7%, transparent); border-radius: 0 12px 12px 0; }
+.ws-nppv, .ws-skpv { pointer-events: none; }
+.ws-npt { padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); }
+.ws-npt-h { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.ws-npt-h img { width: 46px; height: auto; }
+.ws-npt-h b { display: block; font: 700 1.15rem var(--f-display); }
+.ws-npt-h small { color: var(--muted); }
+.ws-npt .effect { margin: 6px 0; }
+.ws-npt .effect.oc { padding-top: 8px; border-top: 1px dashed var(--line); }
+.ws-ntab { width: 100%; border-collapse: collapse; margin: 8px 0 4px; font-size: 13px; }
+.ws-ntab th, .ws-ntab td { padding: 5px 6px; border-bottom: 1px solid var(--line); text-align: center; }
+.ws-ntab th:first-child { text-align: left; color: var(--muted); font-weight: 600; }
+.ws-ntab td { font-family: var(--f-data); }
+.ws-ntab thead th { font: 500 11px var(--f-data); color: var(--muted); }
+
+/* effects */
+.ws-fxs { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.ws-fx { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; padding: 12px 12px 12px 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); animation: wsin .25s ease both; }
+.ws-fx-ic { display: grid; place-items: start center; padding-top: 2px; }
+.ws-fx-ic .ic { width: 30px; height: 30px; }
+.ws-dot { display: block; width: 10px; height: 10px; margin: 8px; border-radius: 50%; background: var(--line); }
+.ws-fx-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-bottom: 8px; }
+.ws-fx-name { padding: 2px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--sunken); color: var(--ink); font-weight: 700; font-size: 13px; cursor: pointer; }
+.ws-fx-name:hover { border-color: var(--gold); }
+.ws-fx-line { font-size: 13.5px; color: var(--muted); font-style: italic; }
+.ws-fx-ctl { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 10px; }
+.ws-fx-ctl .ws-seg { margin: 0; }
+.ws-mini { display: inline-flex; flex-direction: column; gap: 2px; font: 500 10.5px var(--f-data); letter-spacing: .04em; color: var(--muted); }
+.ws-mini input, .ws-mini select { width: 84px; min-height: 32px !important; padding: 4px 8px !important; font: 600 13.5px var(--f-data) !important; }
+.ws-mini.wide { flex: 1 1 220px; }
+.ws-mini.wide input { width: 100%; font-family: var(--f-body) !important; font-weight: 500 !important; }
+.ws-lv1 { display: inline-flex; align-items: flex-end; gap: 6px; }
+.ws-arrow { padding-bottom: 7px; color: var(--muted); }
+.ws-unit { padding-bottom: 8px; font: 600 13px var(--f-data); color: var(--muted); min-width: 1ch; }
+.ws-lv1 select { width: auto; min-height: 32px; font-size: 12.5px; }
+.ws-fx-ord { display: flex; flex-direction: column; gap: 4px; }
+.ws-fx-ord button { width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 50%; background: none; color: var(--muted); cursor: pointer; font-size: 15px; line-height: 1; }
+.ws-fx-ord button:hover:not(:disabled) { color: var(--ink); border-color: var(--gold); }
+.ws-fx-ord button:disabled { opacity: .3; cursor: default; }
+.ws-fx-x { width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 50%; background: none; color: var(--muted); cursor: pointer; font-size: 17px; line-height: 1; }
+.ws-fx-x:hover { color: var(--buster); border-color: var(--buster); }
+.ws-addfx { border-style: dashed; }
+.ws-presets { margin: 12px 0; }
+.ws-presets summary { cursor: pointer; font-weight: 600; color: var(--muted); }
+.ws-presets-l { display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 6px; margin: 10px 0 16px; }
+.ws-preset { display: flex; flex-direction: column; gap: 2px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--ink); text-align: left; cursor: pointer; }
+.ws-preset:hover { border-color: var(--gold); transform: translateY(-1px); }
+.ws-preset b { font-size: 13.5px; }
+.ws-preset small { font-size: 12px; color: var(--muted); }
+.ws-sktabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 0 0 16px; }
+.ws-sktabs button { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--panel) 70%, transparent); color: var(--muted); text-align: left; cursor: pointer; }
+.ws-sktabs button small { font: 500 10.5px var(--f-data); letter-spacing: .08em; text-transform: uppercase; }
+.ws-sktabs button b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.ws-sktabs button[aria-selected="true"] { background: var(--panel); color: var(--ink); border-color: var(--gold); box-shadow: 0 0 0 2px color-mix(in srgb, var(--gold) 35%, transparent); }
+.ws-fxn { position: absolute; top: 8px; right: 10px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--sunken); font: 600 11px/20px var(--f-data); font-style: normal; text-align: center; }
+.ws-skhead .ws-field { margin: 0; }
+.ws-skpv { display: block; }
+.ws-skpv .skill { margin: 0; }
+
+/* passives */
+.ws-pss { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ws-ps { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+.ws-psic { width: 30px; height: 30px; }
+.ws-ps-m p { margin: 4px 0 0; font-size: 13.5px; color: var(--muted); }
+.ws-ps-m select { min-height: 30px !important; padding: 2px 8px !important; font-size: 12.5px; }
+.ws-psv { font: 600 11.5px var(--f-data); color: var(--quick); }
+.ws-own { margin-top: 8px; }
+.ws-own summary { cursor: pointer; font-weight: 600; color: var(--muted); margin-bottom: 10px; }
+#ws-psq { width: 100%; }
+
+/* summon */
+.ws-checks { list-style: none; margin: 0 0 20px; padding: 0; display: grid; gap: 6px; }
+.ws-checks li { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.ws-checks li > span { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; flex: none; }
+.ws-checks li.ok > span { background: color-mix(in srgb, var(--quick) 20%, transparent); color: var(--quick); }
+.ws-checks li.todo > span { background: var(--warn-bg); color: var(--warn-ink); }
+.ws-checks li.todo { color: var(--muted); }
+.ws-copy { margin: 0 0 20px; padding: 14px 16px 4px; border: 1px solid var(--line); border-radius: 16px; }
+.ws-copy legend { padding: 0 6px; font-weight: 700; }
+.ws-copy output { font-family: var(--f-data); color: var(--ink); text-transform: none; }
+.ws-copy input[type="range"] { background: linear-gradient(90deg, transparent var(--m), color-mix(in srgb, var(--gold) 25%, transparent) var(--m)); border-radius: 999px; }
+.ws-go { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.ws-summon { position: relative; overflow: hidden; min-height: 50px; padding: 10px 26px; font-size: 16px; }
+.ws-summon::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.45) 50%, transparent 65%); transform: translateX(-120%); animation: smshine 3.2s ease-in-out infinite; }
+.ws-codeout { margin-top: 10px; }
+
+/* footer */
+.ws-foot { grid-area: foot; display: flex; align-items: center; gap: 10px; padding: 12px clamp(16px, 3vw, 40px) 16px; border-top: 1px solid var(--line); }
+.ws-prog { flex: 1 1 auto; height: 4px; border-radius: 999px; background: var(--sunken); overflow: hidden; }
+.ws-prog i { display: block; height: 100%; background: var(--gold); transform-origin: left; transition: transform .4s ease; }
+.ws-pvbtn { display: none; }
+.ws-foot > .btn.primary { margin-left: auto; }
+.ws-saved { white-space: nowrap; }
+
+/* the card */
+.ws-pv { grid-area: pv; overflow-y: auto; padding: 18px 20px 18px 6px; }
+.ws-card { position: relative; border-radius: 22px; padding: 3px; background: linear-gradient(150deg, #8a6a3a, #e9d29a 30%, #9b7838 60%, #f1dda5 85%, #8a6a3a); box-shadow: 0 22px 44px -26px rgba(40,24,6,.6); }
+.ws-card.silver { background: linear-gradient(150deg, #7d8590, #e7ecf2 30%, #8d96a3 60%, #f3f6fa 85%, #7d8590); }
+.ws-card.bronze { background: linear-gradient(150deg, #6d4a2f, #d8a87c 30%, #7d5536 60%, #e6bb92 85%, #6d4a2f); }
+.ws-card.r5 { background: linear-gradient(150deg, #8a6a3a, #fff0b8 22%, #b88a3a 45%, #f8e3a2 70%, #fff6d6 82%, #8a6a3a); }
+.ws-card.roll { animation: wsroll .7s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes wsroll { 0% { transform: rotateY(90deg) scale(.92); opacity: 0; } 100% { transform: none; opacity: 1; } }
+.ws-card-art { position: relative; aspect-ratio: 5 / 4; border-radius: 19px 19px 0 0; overflow: hidden; background: radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--acc, var(--gold)) 30%, #1b1610), #0e0b08 75%); }
+.ws-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 18%; }
+.ws-art.mark { inset: 14% 22%; width: 56%; height: 72%; object-fit: contain; opacity: .85; }
+.ws-shine { position: absolute; inset: -40% -60%; background: linear-gradient(105deg, transparent 42%, rgba(255,255,255,.22) 50%, transparent 58%); transform: translateX(-60%); animation: wsshine 7s ease-in-out infinite; pointer-events: none; }
+@keyframes wsshine { 0%, 55% { transform: translateX(-60%); } 85%, 100% { transform: translateX(60%); } }
+.ws-cls { position: absolute; left: 10px; top: 10px; width: 40px; height: 40px; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
+.ws-stars { position: absolute; left: 0; right: 0; bottom: 8px; text-align: center; color: #ffdf7e; font-size: 17px; letter-spacing: .02em; text-shadow: 0 1px 2px rgba(0,0,0,.8), 0 0 8px rgba(255,200,80,.6); }
+.ws-lvtag { position: absolute; right: 10px; top: 12px; display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; background: rgba(10,8,6,.62); color: #fff; font: 600 12px var(--f-data); }
+.ws-grail { width: 16px; height: 16px; }
+.ws-card-body { padding: 12px 14px 14px; border-radius: 0 0 19px 19px; background: var(--panel); }
+.ws-cname { margin: 0; font: 750 1.3rem/1.1 var(--f-display); font-variation-settings: "wdth" 85; overflow-wrap: anywhere; }
+.ws-cmeta { margin: 3px 0 10px; font-size: 12.5px; color: var(--muted); }
+.ws-cstats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ws-cstats div { padding: 6px 10px; border-radius: 10px; background: var(--sunken); }
+.ws-cstats span { display: block; font: 500 10.5px var(--f-data); letter-spacing: .1em; color: var(--muted); }
+.ws-cstats b { font: 600 1.15rem var(--f-data); font-variant-numeric: tabular-nums; }
+.ws-lvrange { display: block; margin: 8px 0 4px; }
+.ws-lvrange input { display: block; }
+.ws-cdeck { display: flex; justify-content: center; gap: 3px; margin: 8px 0; }
+.ws-cdeck img { width: 34px; height: auto; }
+.ws-cnp { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: var(--sunken); }
+.ws-cnp img { width: 30px; height: auto; flex: none; }
+.ws-cnp b { display: block; font-size: 13.5px; line-height: 1.2; overflow-wrap: anywhere; }
+.ws-cnp small { font-size: 11.5px; color: var(--muted); }
+.ws-csk { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
+.ws-csk li { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+.ws-csk li .ic { width: 22px; height: 22px; }
+.ws-csk li .ws-dot { width: 8px; height: 8px; margin: 7px; }
+.ws-csk li.empty { color: var(--muted); font-weight: 500; }
+.ws-csk li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ws-csk small { font: 500 10.5px var(--f-data); color: var(--muted); }
+
+/* the effect picker */
+.ws-pal { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; padding: 20px; }
+.ws-pal-veil { position: absolute; inset: 0; background: rgba(10,8,6,.5); }
+.ws-pal-p { position: relative; width: min(720px, 100%); max-height: 100%; display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 20px; background: var(--panel); box-shadow: 0 30px 60px -30px rgba(0,0,0,.6); animation: wsin .2s ease both; }
+.ws-pal-p header { display: flex; align-items: center; justify-content: space-between; font-size: 1.05rem; }
+.ws-pal-p input { width: 100%; }
+.ws-pal-b { overflow-y: auto; }
+.ws-pal-b h4 { margin: 10px 0 6px; font: 500 11px var(--f-data); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.ws-pal-g { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.ws-pal-g button { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--ink); font-weight: 600; font-size: 13px; text-align: left; cursor: pointer; }
+.ws-pal-g button:hover, .ws-pal-g button:focus-visible { border-color: var(--gold); }
+.ws-pal-g .ic { width: 24px; height: 24px; flex: none; }
+.ws-pal-g .ws-dot { margin: 7px; flex: none; }
+
+/* tags elsewhere */
+#view-servants .toolbar #q { flex-basis: 120px; }
+.ws-newbtn span { color: var(--gold); }
+.ws-tag { background: color-mix(in srgb, var(--gold) 22%, transparent) !important; color: var(--warn-ink) !important; }
+.na-tag { background: color-mix(in srgb, var(--arts) 20%, transparent) !important; }
+.ws-formnote { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0 0 14px; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--gold) 12%, transparent); }
+.ws-formnote p { margin: 0; flex: 1 1 260px; font-size: 14px; }
+
+/* growth in Edit details */
+.fs-growth .gr-status { margin: 0 0 10px; font-size: 14px; }
+.fs-growth .gr-status b { font-family: var(--f-data); }
+.gr-grail { margin-left: 4px; padding: 1px 7px; border-radius: 999px; background: color-mix(in srgb, var(--gold) 18%, transparent); color: var(--warn-ink); font-size: 12px; font-weight: 600; }
+.gr-hint { margin: 8px 0 0; font-size: 12.5px; }
+.fs-growth .gr-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.fs-growth .gr-grid .full { grid-column: 1 / -1; }
+@media (max-width: 700px) { .fs-growth .gr-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+input.gr-auto { background: var(--sunken) !important; color: var(--muted); }
+.gr-viz:empty { display: none; }
+.gv { display: block; width: 100%; height: 96px; border-radius: 10px; background: var(--sunken); }
+.gv-grail { fill: color-mix(in srgb, var(--gold) 14%, transparent); }
+.gv-max { stroke: var(--gold); stroke-width: 1; stroke-dasharray: 3 3; }
+.gv-l { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.gv-l.hp { stroke: var(--quick); }
+.gv-l.atk { stroke: var(--buster); }
+.gv-cur { stroke: var(--ink); stroke-width: 1; opacity: .5; vector-effect: non-scaling-stroke; }
+.gv-dot.hp { fill: var(--quick); }
+.gv-dot.atk { fill: var(--buster); }
+.gv-key { display: flex; gap: 12px; margin-top: 4px; font-size: 12px; color: var(--muted); align-items: center; }
+.gv-key i { display: inline-block; width: 12px; height: 3px; border-radius: 2px; margin-right: -6px; }
+.gv-key i.hp { background: var(--quick); }
+.gv-key i.atk { background: var(--buster); }
+.gv-key i.gr { height: 10px; background: color-mix(in srgb, var(--gold) 30%, transparent); }
+
+/* tablets and phones: the steps across the top, the card as a sheet from the bottom */
+@media (max-width: 1100px) {
+  .ws-frame, .ws-frame:not(.has-k) { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto; grid-template-areas: "top" "rail" "main" "foot"; }
+  .ws-rail { padding: 8px 12px; border-bottom: 1px solid var(--line); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+  .ws-rail ol { flex-direction: row; gap: 4px; }
+  .ws-rail button { padding: 6px 10px 6px 6px; white-space: nowrap; font-size: 13.5px; }
+  .ws-rail button:not([aria-current]) .ws-t { display: none; }
+  .ws-pv { position: absolute; left: 0; right: 0; bottom: 0; z-index: 4; max-height: 82%; padding: 14px 16px 90px; background: var(--bg); border-radius: 22px 22px 0 0; box-shadow: 0 -20px 40px -20px rgba(0,0,0,.5); transform: translateY(105%); transition: transform .3s ease; visibility: hidden; }
+  .ws-pv.open { transform: none; visibility: visible; }
+  .ws-pv .ws-card { max-width: 380px; margin: 0 auto; }
+  .ws-foot { position: relative; z-index: 5; background: var(--bg); }
+  .ws-pvbtn { display: inline-flex; }
+}
+@media (max-width: 700px) {
+  .ws-top { padding: 10px 14px 8px; gap: 10px; }
+  .ws-saved { font-size: 10px; letter-spacing: .04em; }
+  .ws-main { padding: 16px 16px 30px; }
+  .ws-step h3 { font-size: 1.35rem; }
+  .ws-grid2, .ws-grid3 { grid-template-columns: minmax(0, 1fr); }
+  .ws-nums { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ws-curves, .ws-decks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ws-npcards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ws-classes { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
+  .ws-clsb { font-size: 10.5px; }
+  .ws-clsb img { width: 28px; height: 28px; }
+  .ws-rar { min-width: 0; flex: 1 1 56px; padding: 6px 4px; }
+  .ws-rar .stars { font-size: 11px; }
+  .ws-slider { grid-template-columns: 62px minmax(0, 1fr) 62px; font-size: 12px; }
+  .ws-fx { grid-template-columns: minmax(0, 1fr) auto; padding: 10px; }
+  .ws-fx-ic { display: none; }
+  .ws-five { gap: 4px; }
+  .ws-five input { padding: 6px 16px 6px 6px !important; font-size: 13px !important; }
+  .ws-five i { right: 5px; }
+  .ws-foot { padding: 10px 12px 12px; gap: 8px; }
+  .ws-foot .btn { padding-inline: 12px; }
+  .ws-prog { display: none; }
+  .ws-foot > span:empty { flex: 1 1 auto; }
+  .ws-sktabs b { font-size: 12.5px; }
+  .ws-npt { padding: 12px 10px; }
+  .ws-ntab { table-layout: fixed; font-size: 11.5px; }
+  .ws-ntab th, .ws-ntab td { padding: 4px 1px; }
+  .ws-ntab th:first-child { width: 27%; overflow-wrap: anywhere; }
+  .ws-ntab thead th { font-size: 10px; }
+  .ws-seg + .ws-seg { margin: 6px 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ws-step, .ws-fx, .ws-pane, .ws-pal-p, .ws-card.roll { animation: none; }
+  .ws-shine, .ws-summon::after { animation: none; opacity: 0; }
+}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#1c1624">
@@ -10231,7 +10659,7 @@ renderAll = function () { renderAll13(); renderFillNote(); };
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.26.1";
+const APP_VER = "0.27.0";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -10393,6 +10821,16 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.27.0", d: "31 Oct 2026", t: "The Servant Workshop: servants of your own", i: [
+    "<b>The Servant Workshop</b>: press <b>Create</b> next to Add servant and make a servant of your own, step by step, with their Saint Graph card beside you the whole way. Start from scratch, from any NA servant's kit (<b>Remix in the Workshop</b> in Past Chaldea does the same), from a made-up one with <b>Surprise me</b>, or from a friend's share code.",
+    "Every step starts at what NA's servants of that class and rarity usually have: HP and ATK, growth curve, deck, Noble Phantasm card and passives. Those keep following the class and rarity until you change them, so they can be summoned after any step.",
+    "<b>Stats and growth</b>: two sliders (weaker or stronger, more HP or more ATK) or numbers of your own, the six growth curves with how many NA servants use each, and a chart from Lv 1 to 120 with the grails; drag across it to see any level. Bars show where they'd stand among NA's servants of the same class and rarity: ATK, HP and NP1 damage.",
+    "<b>Skills and Noble Phantasms</b> from 33 effects (ATK up, card up, NP Charge, Invincible, DEF down, special attack against a trait…) or your own words. Their text reads like NA's, values go from Lv 1 to 10 and cooldowns drop the game's way, and you see each skill as it will look on their page. Fourteen classic skills to start from. The Noble Phantasm has the usual damage for its card and target, the upgraded one or your own numbers, extra damage against a trait, and effects that grow with NP level or Overcharge.",
+    "Your servant works everywhere a servant does: the roster, Ranking, Versus, parties, the Story page and the damage calculator, which counts their own skills and passives. <b>Workshop</b> on their page changes them later. Summoning has Undo, and one you haven't finished waits as a draft in this browser.",
+    "<b>Share codes</b>: Copy a share code, send it to a friend, and they open your servant in their Workshop.",
+    "<b>HP and ATK follow the level for servants NA doesn't have</b>: Edit details has a Growth box (HP and ATK at Lv 1 and at the max level, and the curve). From then on + and − on the level, grails included, move HP and ATK like they do for NA's servants. A new servant NA does have starts with NA's HP and ATK for its level.",
+    "<b>Versus</b>: Compare with an NA servant puts any NA servant (max level, NP1, skills at 10) next to yours, without adding them to your roster.",
+    "A toast with a button no longer catches clicks after it has faded."]},
   {v: "0.26.1", d: "30 Oct 2026", t: "Friends' story progress, friends' servants as Guests, and livelier chapters", i: [
     "<b>Guests</b>: a Guest's page has <b>Remove from Guests</b> (before, it was at the bottom of Edit details), with Undo. Your Guests are now the ones in the damage calculator's support window too; it used to show only the old Guests tab's list.",
     "A stage picture you removed comes back: an empty stage has <b>Use NA's picture</b>, and Fill in puts back any stage picture that's missing, not only when a servant has none. The Remove button under a picture now says Remove picture, and Undo brings it back.",
@@ -13555,7 +13993,7 @@ function npcNp(s) {
 const r0 = (r) => r.vals.filter((v) => String(v).trim());
 // what the class passives and the equipped Craft Essence add, always on
 function npcAuto(s) {
-  const a = atlasOf(s), pm = (a && a.pm) || [0, 0, 0, 0, 0], out = {card: {Buster: pm[0], Arts: pm[1], Quick: pm[2]}, np: pm[3], dp: pm[4], atk: 0, ce: null, from: []};
+  const a = calcKitOf(s), pm = (a && a.pm) || [0, 0, 0, 0, 0], out = {card: {Buster: pm[0], Arts: pm[1], Quick: pm[2]}, np: pm[3], dp: pm[4], atk: 0, ce: null, from: []};
   const c = typeof favOn === "function" ? favOn(s) : null;
   if (c) {
     out.ce = c;
@@ -13592,10 +14030,10 @@ function npcSrc(key) {
   const k = String(key || ""), t = k.slice(0, 2), v = k.slice(2);
   if (t === "g:") {
     const g = S.guests.find((x) => x.id === v), m = g && g.movedTo ? S.servants.find((x) => x.id === g.movedTo) : null;
-    if (m) return {key: k, n: m.name, a: atlasOf(m), lv: skLevels(m)};
-    return g ? {key: k, n: g.name, a: atlasOf(g), lv: skLevels(g)} : null;
+    if (m) return {key: k, n: m.name, a: calcKitOf(m), lv: skLevels(m)};
+    return g ? {key: k, n: g.name, a: calcKitOf(g), lv: skLevels(g)} : null;
   }
-  if (t === "r:") { const s = S.servants.find((x) => x.id === v); return s ? {key: k, n: s.name, a: atlasOf(s), lv: skLevels(s)} : null; }
+  if (t === "r:") { const s = S.servants.find((x) => x.id === v); return s ? {key: k, n: s.name, a: calcKitOf(s), lv: skLevels(s)} : null; }
   if (t === "a:") { const a = ATLAS_BY_NO.get(num(v)); return a ? {key: k, n: a.n, a: a, lv: [0, 0, 0]} : null; }
   return null;
 }
@@ -13644,7 +14082,7 @@ function npcFxText(b, lv, np, me, I) {
 }
 // everything ticked, added up: {atk, card, np, pow, def, dp} in % (Damage Plus as is)
 function npcTeam(s, np, I) {
-  const T = {atk: 0, card: 0, np: 0, pow: 0, def: 0, dp: 0}, me = atlasOf(s);
+  const T = {atk: 0, card: 0, np: 0, pow: 0, def: 0, dp: 0}, me = calcKitOf(s);
   const run = (who, a, lv, mine) => npcSkills(a, lv, mine).forEach((k) => {
     if (!npcIsOn(who + "|" + k.i)) return;
     k.fx.forEach((b) => { const x = npcFx(b, k.lv, np, me, I); if (x.ok) T[NPC_FIELD[b[0]]] += x.v; });
@@ -13664,7 +14102,7 @@ function npcSupSel(i, cur) {
     <optgroup label="Every NA servant">${ATLAS_S.slice().sort((a, b) => a.n.localeCompare(b.n)).map((a) => o("a:" + a.no, a.n + " · " + a.c)).join("")}</optgroup></select></label>`;
 }
 function npcTeamHTML(s, np, I) {
-  const me = atlasOf(s), sup = (npcPrefs.sup || []).slice(0, 2);
+  const me = calcKitOf(s), sup = (npcPrefs.sup || []).slice(0, 2);
   const list = (who, a, lv, mine, name) => {
     const ks = npcSkills(a, lv, mine);
     if (!ks.length) return `<p class="npc-none">${mine ? "None of " + esc(name) + "'s own skills change NP damage." : "None of " + esc(name) + "'s skills raise another servant's NP damage."}</p>`;
@@ -13703,7 +14141,7 @@ function npcCalc(s, np, I, ecls) {
     const v = np.se.vals[(np.se.byOc ? I.oc : I.lv) - 1];
     if (v != null) { if (np.se.add) mult += v; else if (I.se) se = v / 100; }
   }
-  const atkA = atlasOf(s), myAttr = (atkA && atkA.a) || s.attr || "";
+  const atkA = calcKitOf(s), myAttr = (atkA && atkA.a) || s.attr || "";
   // the ticked skills (the Story page's advice leaves them out: one NP a wave with no buffs)
   const B = I.team ? npcTeam(s, np, ecls && ecls !== I.ecls ? Object.assign({}, I, {ecls: ecls}) : I) : {atk: 0, card: 0, np: 0, pow: 0, def: 0, dp: 0};
   const cardMod = clamp((I.card + (A.card[np.card] || 0) + B.card) / 100, -1, 4);
@@ -14894,9 +15332,9 @@ const SPK_CLASSES = ["Saber", "Archer", "Lancer", "Rider", "Caster", "Assassin",
 function spkAll() {
   if (SPK.list) return SPK.list; // 0.26.0: a list of its own (your supports, friends' servants for Versus)
   const out = [];
-  guestsForSup().forEach((x) => out.push({key: x.key, n: x.n, a: atlasOf(x.s || x.g), s: x.s, g: "Your Guests"}));
+  guestsForSup().forEach((x) => out.push({key: x.key, n: x.n, a: calcKitOf(x.s || x.g), s: x.s, g: "Your Guests"}));
   NPC_POP.forEach((no) => { const a = ATLAS_BY_NO.get(no); if (a) out.push({key: "a:" + no, n: a.n, a: a, g: "Often borrowed"}); });
-  S.servants.filter((x) => !x.wish).slice().sort((a, b) => a.name.localeCompare(b.name)).forEach((s) => out.push({key: "r:" + s.id, n: s.name, a: atlasOf(s), s: s, g: "Your servants"}));
+  S.servants.filter((x) => !x.wish).slice().sort((a, b) => a.name.localeCompare(b.name)).forEach((s) => out.push({key: "r:" + s.id, n: s.name, a: calcKitOf(s), s: s, g: "Your servants"}));
   ATLAS_S.slice().sort((a, b) => a.n.localeCompare(b.n)).forEach((a) => out.push({key: "a:" + a.no, n: a.n, a: a, g: "Every NA servant"}));
   return out;
 }
@@ -16200,7 +16638,7 @@ document.addEventListener("click", async (e) => {
   if (a === "fr-addsup") {
     const have = new Set(API.user.supports || []);
     const list = S.servants.filter((x) => !x.wish && !have.has(x.id)).slice().sort((x, y) => x.name.localeCompare(y.name))
-      .map((s) => ({key: "r:" + s.id, n: s.name, a: atlasOf(s), s: s, g: "Your servants", m: supStats(s)}));
+      .map((s) => ({key: "r:" + s.id, n: s.name, a: calcKitOf(s), s: s, g: "Your servants", m: supStats(s)}));
     openSpk("Lend a support to your friends", "", (key) => { if (key && key.startsWith("r:")) frMySupports(Array.from(have).concat([key.slice(2)]).slice(0, 10)); }, list);
     return;
   }
@@ -16223,7 +16661,7 @@ async function frSupLoad() {
 const npcSrc26 = npcSrc;
 npcSrc = function (key) {
   const k = String(key || "");
-  if (k.startsWith("f:")) { const s = FSV.get(k); return s ? {key: k, n: s.name + " (" + s.fr.name + ")", a: atlasOf(s), lv: skLevels(s)} : null; }
+  if (k.startsWith("f:")) { const s = FSV.get(k); return s ? {key: k, n: s.name + " (" + s.fr.name + ")", a: calcKitOf(s), lv: skLevels(s)} : null; }
   return npcSrc26(key);
 };
 const spkAll26 = spkAll;
@@ -16231,7 +16669,7 @@ spkAll = function () {
   const out = spkAll26.apply(this, arguments);
   if (SPK.list || !FSUP.length) return out;
   const fr = [];
-  FSUP.forEach((f) => f.supports.forEach((s) => fr.push({key: s.id, n: s.name, a: atlasOf(s), s: s, g: "Friends' supports", m: f.user.name + " · " + supStats(s)})));
+  FSUP.forEach((f) => f.supports.forEach((s) => fr.push({key: s.id, n: s.name, a: calcKitOf(s), s: s, g: "Friends' supports", m: f.user.name + " · " + supStats(s)})));
   const i = out.findIndex((x) => x.g === "Often borrowed");
   return i < 0 ? fr.concat(out) : out.slice(0, i).concat(fr, out.slice(i));
 };
@@ -16293,10 +16731,10 @@ document.addEventListener("click", async (e) => {
   // friends' supports, and the whole roster of friends who let you look
   await frSupLoad();
   const list = [];
-  FSUP.forEach((f) => f.supports.forEach((s) => list.push({key: s.id, n: s.name, a: atlasOf(s), s: s, g: f.user.name + "'s supports", m: supStats(s)})));
+  FSUP.forEach((f) => f.supports.forEach((s) => list.push({key: s.id, n: s.name, a: calcKitOf(s), s: s, g: f.user.name + "'s supports", m: supStats(s)})));
   const open = FR.friends.filter((f) => f.vis !== "private").slice(0, 12);
   await Promise.all(open.map(async (f) => {
-    try { const j = await api("GET", "u/" + f.id + "/roster"); fsvAdd(f, j.docs.filter((d) => d.col === "servants")).filter((s) => !s.wish).forEach((s) => { if (!list.some((x) => x.key === s.id)) list.push({key: s.id, n: s.name, a: atlasOf(s), s: s, g: f.name + "'s roster", m: supStats(s)}); }); } catch (er) {}
+    try { const j = await api("GET", "u/" + f.id + "/roster"); fsvAdd(f, j.docs.filter((d) => d.col === "servants")).filter((s) => !s.wish).forEach((s) => { if (!list.some((x) => x.key === s.id)) list.push({key: s.id, n: s.name, a: calcKitOf(s), s: s, g: f.name + "'s roster", m: supStats(s)}); }); } catch (er) {}
   }));
   b.disabled = false;
   if (!list.length) { toast("Your friends haven't shared any servants yet: no supports, and their rosters are private."); return; }
@@ -16454,6 +16892,1488 @@ renderDossier = function (force) {
 
 // start: ask whether a server is there (nothing happens on the file people open from their computer)
 acctInit();
+/* ================= 0.27.0: growth curves for every servant, and servants you make yourself =================
+   Growth (the wiki's "Growth Curves"): HP and ATK climb from Lv 1 to the max level along one of six curves, and past
+   the max level every servant with that max level follows the same grail curve (five grails from Lv 90 to 100 add about
+   1,000 HP and ATK). NA's numbers for the curves are ATLAS_CURVES: per mille of the Lv 1 → max gain at Lv 1 to 120.
+   NA doesn't use every curve at every max level, so the missing ones are made here: the same curve's shape stretched to
+   that max level, then that max level's grail part.
+   Before, only servants matched to NA followed their level; a servant typed in by hand kept whatever HP and ATK were
+   typed. Now a hand-made servant can have a growth record ({type, hp: [Lv 1, max], atk: [Lv 1, max]}, set in Edit
+   details) and follows its level the same way.
+   Custom servants (s.custom, made in the Servant Workshop, 45-workshop.js) keep what they were made from in s.kit and
+   never match an NA servant, even with an NA name. calcKitOf(s) is what the damage calculator and the support pickers read:
+   the NA record, or the same shape built from the kit (skills with what they do to NP damage, passives, attribute). */
+
+/* ---------- the six curves ---------- */
+// ids: NA's curve for max level 60, 65, 70, 80, 90 (★1, ★2 and ★0, ★3, ★4, ★5); 0 where NA has none
+const GROWTH = [
+  {k: "linear", t: "Linear", d: "An even climb: every level adds the same.", ids: [1, 2, 3, 4, 5]},
+  {k: "s", t: "S", d: "Slow at first, fastest in the middle, slow again near the top.", ids: [11, 12, 13, 14, 15]},
+  {k: "rs", t: "Reverse S", d: "Quick at first, nearly flat in the middle, quick again near the top.", ids: [6, 7, 8, 9, 10]},
+  {k: "ss", t: "Semi S", d: "A gentler S: a soft start and a soft finish.", ids: [0, 27, 28, 29, 30]},
+  {k: "srs", t: "Semi Reverse S", d: "A gentler Reverse S: a quick start, a calm middle.", ids: [0, 0, 23, 24, 25]},
+  {k: "srsl", t: "Semi Reverse S, then Linear", d: "Reverse S up to halfway, then an even climb.", ids: [0, 0, 0, 0, 35]}
+];
+const GROWTH_BY = {}; GROWTH.forEach((g) => { GROWTH_BY[g.k] = g; });
+const GC_TYPE = {}; GROWTH.forEach((g) => g.ids.forEach((id) => { if (id) GC_TYPE[id] = g.k; }));
+const RANK_LV = [60, 65, 70, 80, 90];
+const growthRank = (r) => ({0: 2, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5})[num(r)] || 5;
+const maxLvOf = (r) => RANK_LV[growthRank(r) - 1];
+function synthCurve(g, rank) {
+  const from = [5, 4, 3, 2, 1].find((r) => g.ids[r - 1] && ATLAS_CURVES[String(g.ids[r - 1])]);
+  const tpl = ATLAS_CURVES[String(g.ids[from - 1])], tm = RANK_LV[from - 1];
+  const lin = ATLAS_CURVES[String(GROWTH[0].ids[rank - 1])], M = RANK_LV[rank - 1];
+  return lin.map((v, i) => {
+    if (i >= M - 1) return v; // 1000 at the max level, then the grail part every servant of this max level shares
+    const x = i / (M - 1) * (tm - 1), j = Math.floor(x), f = x - j;
+    return Math.round(tpl[j] + (tpl[Math.min(j + 1, tm - 1)] - tpl[j]) * f);
+  });
+}
+// the ATLAS_CURVES key for a curve type at a rarity (made the first time it's needed)
+function curveKey(type, r) {
+  const g = GROWTH_BY[type] || GROWTH[0], rank = growthRank(r), id = g.ids[rank - 1];
+  if (id && ATLAS_CURVES[String(id)]) return String(id);
+  const key = "x:" + g.k + ":" + rank;
+  if (!ATLAS_CURVES[key]) ATLAS_CURVES[key] = synthCurve(g, rank);
+  return key;
+}
+const growthTypeOf = (gc) => GC_TYPE[num(gc)] || "linear";
+// a servant's own growth record, in the shape statAt() reads (null when it has none or it's incomplete)
+function growthRec(s) {
+  const g = s && s.growth;
+  if (!g || typeof g !== "object" || !Array.isArray(g.hp) || !Array.isArray(g.atk)) return null;
+  const hp = g.hp.slice(0, 2).map(num), atk = g.atk.slice(0, 2).map(num);
+  if (hp.length < 2 || atk.length < 2 || hp.concat(atk).some((v) => v == null || v < 0)) return null;
+  return {gc: curveKey(g.type, s.rarity), hp: hp, atk: atk};
+}
+// a whole curve, for drawing: [[level, hp, atk] …] from Lv 1 to 120
+function growthLine(rec) {
+  if (!rec) return [];
+  const out = [];
+  for (let lv = 1; lv <= 120; lv++) out.push([lv, statAt(rec, lv, "hp"), statAt(rec, lv, "atk")]);
+  return out;
+}
+
+/* ---------- HP and ATK follow the level: NA's numbers, else the servant's own growth ---------- */
+const syncStats19 = syncStats;
+syncStats = function (s) {
+  if (!s || atlasOf(s)) return syncStats19(s);
+  const g = growthRec(s), lv = num(s.level);
+  if (!g || lv == null || lv < 1) return false;
+  let ch = false;
+  ["hp", "atk"].forEach((k) => { const v = statAt(g, lv, k); if (v != null && num(s[k]) !== v) { s[k] = v; ch = true; } });
+  return ch;
+};
+
+/* ---------- custom servants are their own, never an NA servant ---------- */
+const atlasOf26 = atlasOf;
+atlasOf = function (s) { return s && s.custom ? null : atlasOf26(s); };
+
+/* ---------- what NA says is typical, by class and rarity ---------- */
+let NA_PEERS = null;
+function naPeers() {
+  if (NA_PEERS) return NA_PEERS;
+  NA_PEERS = {};
+  const add = (k, x) => { (NA_PEERS[k] = NA_PEERS[k] || []).push(x); };
+  ATLAS_S.forEach((x) => { if (!x.hp || !x.atk || !x.r) return; add(x.c + "|" + x.r, x); add("*|" + x.r, x); add(x.c + "|*", x); });
+  return NA_PEERS;
+}
+// the NA servants to compare with: the same class and rarity, or every class at that rarity when there are too few
+function peersOf(cls, r) {
+  const P = naPeers(), a = P[cls + "|" + r] || [];
+  return a.length >= 4 ? {list: a, cls: cls} : {list: P["*|" + r] || [], cls: ""};
+}
+const median = (a) => { const s = a.filter((v) => v != null).sort((x, y) => x - y), n = s.length; return !n ? null : n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
+const modeOf = (a) => { const m = new Map(); let best = null, bn = 0; a.forEach((v) => { if (v == null) return; const n = (m.get(v) || 0) + 1; m.set(v, n); if (n > bn) { bn = n; best = v; } }); return best; };
+// share of the list below v (ties count half), 0 to 1
+function pctOf(v, arr) {
+  if (v == null || !arr.length) return null;
+  let below = 0, eq = 0; arr.forEach((x) => { if (x < v) below++; else if (x === v) eq++; });
+  return (below + eq / 2) / arr.length;
+}
+function typicalOf(cls, r) {
+  const peers = peersOf(cls, r).list, byCls = naPeers()[cls + "|*"] || [];
+  const md = (f) => Math.round(median(peers.map(f)) || 0);
+  const rnd = (v, step) => Math.round(v / step) * step;
+  return {
+    hp: [rnd(md((x) => x.hp[0]), 1), rnd(md((x) => x.hp[1]), 1)], atk: [rnd(md((x) => x.atk[0]), 1), rnd(md((x) => x.atk[1]), 1)],
+    growth: modeOf(peers.map((x) => growthTypeOf(x.gc))) || "linear",
+    deck: modeOf((byCls.length ? byCls : peers).map((x) => x.d)) || "QAABB",
+    card: CARD_OF[modeOf((byCls.length ? byCls : peers).map((x) => x.np && x.np.cd))] || "Buster",
+    tg: modeOf(peers.map((x) => x.np && x.np.tg)) || "AoE",
+    attr: modeOf((byCls.length ? byCls : peers).map((x) => x.a)) || "Man"
+  };
+}
+// how many NA servants of a class use each deck / curve: [[value, count] …], most first
+function countsOf(list, f) { const m = new Map(); list.forEach((x) => { const v = f(x); if (v != null) m.set(v, (m.get(v) || 0) + 1); }); return Array.from(m.entries()).sort((a, b) => b[1] - a[1]); }
+
+/* ---------- what skills and Noble Phantasms can do ---------- */
+// targets: how a line names them (whose, whom) and the label on the button
+const FX_TG = {
+  s: {pos: "your", obj: "yourself", t: "Yourself"},
+  o: {pos: "one ally's", obj: "one ally", t: "One ally"},
+  a: {pos: "all allies'", obj: "all allies", t: "All allies"},
+  x: {pos: "all other allies'", obj: "all other allies", t: "Other allies"},
+  e: {pos: "one enemy's", obj: "one enemy", t: "One enemy"},
+  E: {pos: "all enemies'", obj: "all enemies", t: "All enemies"}
+};
+const ALLY_TG = "soax", FOE_TG = "eE";
+const FX_GROUPS = [["up", "Attack"], ["np", "NP & stars"], ["def", "Defence"], ["foe", "Against enemies"], ["etc", "Anything else"]];
+// k id · t name · g group · tgs targets it can have (tg the usual one; "" for none) · v [Lv 1, Lv 10] (vs for yourself)
+// · u unit · l the value's label · d turns · n times · c what it does to NP damage (the calculator's buff kinds:
+// a ATK, c card, n NP Strength, p special attack, d DEF down, r card resistance down, f Damage Plus) · card / vs: picks a
+// card / what it works against · line: the sentence (P: pos, obj, card, vs)
+const FX = [
+  {k: "atk", t: "ATK up", g: "up", tgs: ALLY_TG, tg: "a", v: [10, 20], vs: [20, 30], u: "%", l: "ATK Up", d: 3, c: "a", line: (P) => `Increase ${P.pos} ATK`},
+  {k: "card", t: "Card up", g: "up", tgs: ALLY_TG, tg: "s", v: [10, 20], vs: [30, 50], u: "%", l: "{card} Up", d: 3, ds: 1, c: "c", card: true, line: (P) => `Increase ${P.pos} ${P.card} Card effectiveness`},
+  {k: "np", t: "NP Strength up", g: "up", tgs: ALLY_TG, tg: "a", v: [10, 20], vs: [20, 30], u: "%", l: "NP Strength Up", d: 3, ds: 1, c: "n", line: (P) => `Increase ${P.pos} NP Strength`},
+  {k: "crit", t: "Critical damage up", g: "up", tgs: ALLY_TG, tg: "s", v: [20, 40], vs: [50, 100], u: "%", l: "Critical Damage Up", d: 3, ds: 1, line: (P) => `Increase ${P.pos} Critical Strength`},
+  {k: "vs", t: "Special attack vs …", g: "up", tgs: ALLY_TG, tg: "s", v: [30, 50], u: "%", l: "Special Attack Up", d: 3, c: "p", vsPick: true, line: (P) => `Increase ${P.pos} attack strength against [${P.vs || "a trait"}]`},
+  {k: "dp", t: "Damage Plus", g: "up", tgs: ALLY_TG, tg: "s", v: [200, 500], u: "damage", l: "Damage Plus", d: 3, c: "f", line: (P) => `Apply Damage Plus to ${P.obj}`},
+  {k: "pierce", t: "Ignore Invincible", g: "up", tgs: ALLY_TG, tg: "s", v: null, d: 1, line: (P) => `Grant ${P.obj} Ignore Invincible`},
+  {k: "charge", t: "NP Charge", g: "np", tgs: ALLY_TG, tg: "s", v: [10, 20], vs: [30, 50], u: "%", l: "NP Charge", d: 0, line: (P) => `Charge ${P.pos} NP gauge`},
+  {k: "npturn", t: "NP each turn", g: "np", tgs: ALLY_TG, tg: "s", v: [5, 10], u: "%", l: "NP per Turn", d: 3, line: (P) => `Charge ${P.pos} NP gauge each turn`},
+  {k: "gain", t: "NP Gain up", g: "np", tgs: ALLY_TG, tg: "s", v: [20, 30], vs: [30, 50], u: "%", l: "NP Gain Up", d: 3, line: (P) => `Increase ${P.pos} NP Gain`},
+  {k: "stars", t: "Gain C. Stars", g: "np", tgs: "", v: [5, 15], u: "stars", l: "C. Stars", d: 0, line: () => `Gain C. Stars`},
+  {k: "starturn", t: "C. Stars each turn", g: "np", tgs: "", v: [3, 5], u: "stars", l: "Stars per Turn", d: 3, line: () => `Gain C. Stars each turn`},
+  {k: "drop", t: "Star drop rate up", g: "np", tgs: ALLY_TG, tg: "s", v: [30, 50], u: "%", l: "Star Drop Rate Up", d: 3, line: (P) => `Increase ${P.pos} C. Star Drop Rate`},
+  {k: "gather", t: "Star gather up", g: "np", tgs: ALLY_TG, tg: "s", v: [300, 600], u: "%", l: "Star Gather Up", d: 3, line: (P) => `Increase ${P.pos} C. Star Gather Rate`},
+  {k: "cd", t: "Skill cooldowns −1", g: "np", tgs: ALLY_TG, tg: "a", v: null, d: 0, line: (P) => `Reduce ${P.pos} skill cooldowns by 1`},
+  {k: "defup", t: "DEF up", g: "def", tgs: ALLY_TG, tg: "a", v: [10, 20], vs: [20, 30], u: "%", l: "DEF Up", d: 3, line: (P) => `Increase ${P.pos} DEF`},
+  {k: "cut", t: "Damage Cut", g: "def", tgs: ALLY_TG, tg: "a", v: [500, 1000], u: "damage", l: "Damage Cut", d: 3, line: (P) => `Apply Damage Cut to ${P.obj}`},
+  {k: "invinc", t: "Invincible", g: "def", tgs: ALLY_TG, tg: "s", v: null, d: 3, n: 1, line: (P) => `Grant ${P.obj} Invincible`},
+  {k: "evade", t: "Evade", g: "def", tgs: ALLY_TG, tg: "s", v: null, d: 3, n: 1, line: (P) => `Grant ${P.obj} Evade`},
+  {k: "guts", t: "Guts", g: "def", tgs: ALLY_TG, tg: "s", v: [1000, 2500], u: "HP", l: "Guts HP", d: 5, n: 1, line: (P) => `Grant ${P.obj} Guts`},
+  {k: "taunt", t: "Taunt", g: "def", tgs: ALLY_TG, tg: "s", v: null, d: 1, line: (P) => `Apply Target Focus to ${P.obj}`},
+  {k: "heal", t: "Restore HP", g: "def", tgs: ALLY_TG, tg: "a", v: [1000, 3000], u: "HP", l: "Heal", d: 0, line: (P) => `Restore ${P.pos} HP`},
+  {k: "maxhp", t: "Max HP up", g: "def", tgs: ALLY_TG, tg: "a", v: [1000, 2000], u: "HP", l: "Max HP Up", d: 3, line: (P) => `Increase ${P.pos} Max HP`},
+  {k: "immune", t: "Debuff Immunity", g: "def", tgs: ALLY_TG, tg: "s", v: null, d: 3, n: 1, line: (P) => `Grant ${P.obj} Debuff Immunity`},
+  {k: "cleanse", t: "Remove debuffs", g: "def", tgs: ALLY_TG, tg: "a", v: null, d: 0, line: (P) => `Remove ${P.pos} debuffs`},
+  {k: "dres", t: "Debuff Resist up", g: "def", tgs: ALLY_TG, tg: "s", v: [20, 40], u: "%", l: "Debuff Resist Up", d: 3, line: (P) => `Increase ${P.pos} Debuff Resist`},
+  {k: "defdown", t: "DEF down", g: "foe", tgs: FOE_TG, tg: "e", v: [10, 20], u: "%", l: "DEF Down", d: 3, c: "d", line: (P) => `Decrease ${P.pos} DEF`},
+  {k: "resdown", t: "Card resistance down", g: "foe", tgs: FOE_TG, tg: "e", v: [10, 20], u: "%", l: "{card} Resist Down", d: 3, c: "r", card: true, line: (P) => `Decrease ${P.pos} ${P.card} resistance`},
+  {k: "atkdown", t: "ATK down", g: "foe", tgs: FOE_TG, tg: "e", v: [10, 20], u: "%", l: "ATK Down", d: 3, line: (P) => `Decrease ${P.pos} ATK`},
+  {k: "chargedown", t: "Charge down", g: "foe", tgs: FOE_TG, tg: "e", v: null, d: 0, line: (P) => `Decrease ${P.pos} Charge by 1`},
+  {k: "stun", t: "Stun", g: "foe", tgs: FOE_TG, tg: "e", v: [60, 100], u: "%", l: "Stun Chance", d: 1, line: (P) => `Stun ${P.obj}`},
+  {k: "charm", t: "Charm", g: "foe", tgs: FOE_TG, tg: "e", v: [60, 100], u: "%", l: "Charm Chance", d: 1, line: (P) => `Charm ${P.obj}`},
+  {k: "burn", t: "Burn", g: "foe", tgs: FOE_TG, tg: "e", v: [500, 1000], u: "damage", l: "Burn Damage", d: 5, line: (P) => `Inflict Burn on ${P.obj}`},
+  {k: "own", t: "Write your own", g: "etc", tgs: "", v: null, line: (P) => P.txt}
+];
+const FX_BY = {}; FX.forEach((f) => { FX_BY[f.k] = f; });
+// " (1 time, 3 turns)"
+function durText(d, n) {
+  const p = [];
+  if (num(n) > 0) p.push(n + (num(n) === 1 ? " time" : " times"));
+  if (num(d) > 0) p.push(d + (num(d) === 1 ? " turn" : " turns"));
+  return p.length ? " (" + p.join(", ") + ")" : "";
+}
+// one effect, written the way NA's skill text reads
+function fxLine(f, dflCard) {
+  const def = FX_BY[f && f.e]; if (!def) return "";
+  const tg = FX_TG[def.tgs ? (def.tgs.includes(f.tg) ? f.tg : def.tg) : "s"] || FX_TG.s;
+  const card = CARDS.includes(f.card) ? f.card : dflCard || "Buster";
+  const body = def.line({pos: tg.pos, obj: tg.obj, card: card, vs: String(f.vs || "").trim(), txt: String(f.txt || "").trim()});
+  return def.k === "own" ? body : body + durText(f.d, f.n);
+}
+function fxLabel(f, dflCard) {
+  const def = FX_BY[f && f.e]; if (!def) return "";
+  if (def.k === "own") return String(f.l || "").trim();
+  return String(def.l || def.t).replace("{card}", CARDS.includes(f.card) ? f.card : dflCard || "Buster");
+}
+// a skill value at Lv 1 to 10, the game's way (10% steps up to Lv 9, the full value at Lv 10)
+const skVals = (v1, v10) => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => i === 9 ? v10 : Math.round((v1 + (v10 - v1) * i / 10) * 100) / 100);
+
+/* ---------- Noble Phantasm damage: the usual numbers per card and target (and the upgraded ones) ---------- */
+const NP_DMG_STD = {
+  AoE: {Buster: [300, 400, 450, 475, 500], Arts: [450, 600, 675, 712.5, 750], Quick: [600, 800, 900, 950, 1000]},
+  "Single Target": {Buster: [600, 800, 900, 950, 1000], Arts: [900, 1200, 1350, 1425, 1500], Quick: [1200, 1600, 1800, 1900, 2000]}
+};
+const NP_UP = {AoE: {Buster: 100, Arts: 150, Quick: 200}, "Single Target": {Buster: 200, Arts: 300, Quick: 400}};
+function npStdDmg(tg, card, up) {
+  const t = NP_DMG_STD[tg] && NP_DMG_STD[tg][card]; if (!t) return null;
+  const add = up ? NP_UP[tg][card] : 0;
+  return t.map((v) => v + add);
+}
+const SE_STD = [150, 162.5, 175, 187.5, 200];
+const pctTxt = (v) => (Math.round(Number(v) * 100) / 100).toLocaleString("en-US") + "%";
+const valTxt = (v, u) => u === "%" ? pctTxt(v) : fmt(Math.round(Number(v) * 100) / 100) + (u && u !== "damage" ? " " + u : "");
+
+/* ---------- passives: NA's names and lines; the ones that change damage carry their numbers ---------- */
+const PS_RANK_RE = /^(.*?\S)\s+(EX|[A-E](?:\+{1,3}|-)?)$/;
+let PS_LIB = null;
+function psLib() {
+  if (PS_LIB) return PS_LIB;
+  const by = new Map();
+  ATLAS_S.forEach((x) => (x.ps || []).forEach((p) => {
+    const m = PS_RANK_RE.exec(p.n || ""), name = m ? m[1] : p.n, rank = m ? m[2] : "";
+    if (!name || /^(?:No Effect|\?\?\?)$/.test(name)) return;
+    let o = by.get(name); if (!o) { o = {name: name, e: (p.e || []).slice(), ic: p.ic || "", n: 0, cls: {}, ranks: {}}; by.set(name, o); }
+    o.n++; o.cls[x.c] = (o.cls[x.c] || 0) + 1; if (rank) o.ranks[rank] = (o.ranks[rank] || 0) + 1;
+  }));
+  PS_LIB = Array.from(by.values()).filter((o) => !/^No Effect$/.test(o.e.join(""))).sort((a, b) => b.n - a.n);
+  return PS_LIB;
+}
+const PS_CARD_V = {"EX": 12, "A++": 11.5, "A+": 11, "A": 10, "A-": 9.5, "B++": 9.5, "B+": 9, "B": 8, "B-": 7.5, "C++": 7.5, "C+": 7, "C": 6, "C-": 5.5, "D++": 5.5, "D+": 5, "D": 4, "D-": 3.5, "E++": 3.5, "E+": 3, "E": 2, "E-": 1};
+const PS_DIV_V = {"EX": 250, "A++": 230, "A+": 210, "A": 200, "A-": 195, "B+": 185, "B": 175, "B-": 170, "C+": 160, "C": 150, "C-": 145, "D+": 135, "D": 125, "D-": 120, "E+": 110, "E": 100, "E-": 95};
+// passives that change NP damage: [pm slot (Buster, Arts, Quick, NP, Damage Plus), value table, unit]
+const PS_CALC = {"Riding Skill": [2, PS_CARD_V, "%"], "Territory Creation": [1, PS_CARD_V, "%"], "Madness Enhancement": [0, PS_CARD_V, "%"], "Divinity": [4, PS_DIV_V, ""]};
+const PS_RANKS = ["EX", "A++", "A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "E+", "E", "E-"];
+function psValue(p) { const c = PS_CALC[p && p.name], v = c && c[1][String(p.rank || "").toUpperCase()]; return c && v != null ? {slot: c[0], v: v, u: c[2]} : null; }
+function psLines(p) {
+  const lines = (Array.isArray(p.e) ? p.e : String(p.e || "").split("\n")).map((t) => String(t).trim()).filter(Boolean), v = psValue(p);
+  if (v && lines.length) lines[0] = lines[0] + " (" + (v.u === "%" ? "+" + v.v + "%" : "+" + v.v) + ")";
+  return lines;
+}
+// the passives NA gives a class most often, each with its most usual rank
+function psFor(cls) {
+  return psLib().filter((o) => o.cls[cls]).sort((a, b) => b.cls[cls] - a.cls[cls]).slice(0, 8)
+    .map((o) => ({name: o.name, rank: Object.keys(o.ranks).sort((a, b) => o.ranks[b] - o.ranks[a])[0] || "", e: o.e.slice(), ic: o.ic, n: o.cls[cls]}));
+}
+
+/* ---------- a kit (what the Workshop edits) → the servant's own fields ---------- */
+const DAMAGE_WORDS = {AoE: ["Deal damage to all enemies", "Deal heavy damage to all enemies"], "Single Target": ["Deal heavy damage to one enemy", "Deal severe damage to one enemy"]};
+function kitNpLines(np) {
+  const card = CARDS.includes(np.card) ? np.card : "Buster", pre = [], post = [], oc = [], rows = [], ocRows = [];
+  (np.fx || []).forEach((f) => {
+    const line = fxLine(f, card), def = FX_BY[f.e]; if (!def) return;
+    const byOc = f.by === "oc";
+    if (line) (byOc ? oc : f.when === "pre" ? pre : post).push(line + (f.when === "pre" && !byOc && np.tg !== "Support" ? " before damage" : ""));
+    const vals = Array.isArray(f.vals) ? f.vals.slice(0, 5).map(num) : [], lab = fxLabel(f, card);
+    if ((def.v || (def.k === "own" && lab)) && f.by !== "fix" && vals.length === 5 && vals.every((v) => v != null)) (byOc ? ocRows : rows).push({label: lab || "Value", vals: vals.map((v) => valTxt(v, def.u))});
+  });
+  const dmg = np.tg !== "Support" && Array.isArray(np.dmg) && np.dmg.length === 5 && np.dmg.every((v) => num(v) != null);
+  const se = dmg && np.se && String(np.se.vs || "").trim() ? np.se : null;
+  const main = [];
+  if (dmg) main.push(DAMAGE_WORDS[np.tg === "Single Target" ? "Single Target" : "AoE"][np.up ? 1 : 0] + (se ? ", with extra damage against [" + String(se.vs).trim() + "]" : ""));
+  if (dmg) rows.unshift({label: "Damage", vals: np.dmg.map((v) => pctTxt(v))});
+  if (se) { oc.unshift("Extra damage against [" + String(se.vs).trim() + "] grows with Overcharge"); ocRows.unshift({label: "Special damage", vals: (Array.isArray(se.vals) && se.vals.length === 5 ? se.vals : SE_STD).map((v) => pctTxt(v))}); }
+  return {effect: pre.concat(main, post), oc: oc, rows: rows, ocRows: ocRows};
+}
+function kitDerive(k) {
+  const card = CARDS.includes(k.np && k.np.card) ? k.np.card : "Buster", np = k.np || {};
+  const skillInfo = [0, 1, 2].map((i) => {
+    const sk = (k.sk || [])[i] || {}, fx = (sk.fx || []).filter((f) => FX_BY[f.e]);
+    const scales = fx.filter((f) => FX_BY[f.e].v && Array.isArray(f.v) && num(f.v[0]) != null && num(f.v[1]) != null)
+      .map((f) => ({label: fxLabel(f, card), v1: num(f.v[0]), v10: num(f.v[1]), unit: FX_BY[f.e].u === "damage" ? "damage" : FX_BY[f.e].u || null}));
+    const own = fx.filter((f) => f.e === "own" && String(f.l || "").trim() && num(f.v1) != null && num(f.v10) != null).map((f) => ({label: String(f.l).trim(), v1: num(f.v1), v10: num(f.v10), unit: f.u || null}));
+    const sc = scales.concat(own), first = sc[0] || {};
+    return {name: String(sk.name || "").trim() || null, rank: String(sk.rank || "").trim() || null, effect: fx.map((f) => fxLine(f, card)).filter(Boolean).join("\n") || null,
+      cd: num(sk.cd), scales: sc, label: first.label || null, v1: first.v1 != null ? first.v1 : null, v10: first.v10 != null ? first.v10 : null, unit: first.unit || null};
+  });
+  const passives = (k.ps || []).filter((p) => p && String(p.name || "").trim()).map((p) => ({name: String(p.name).trim() + (p.rank ? " " + p.rank : ""), effect: psLines(p).join("\n") || null}));
+  const L = kitNpLines(np), npName = String(np.name || "").trim();
+  const o = {
+    cls: k.cls || null, rarity: clamp(num(k.r) || 5, 1, 5), attr: k.attr || null,
+    lawOrder: (k.order || []).filter((v) => ORDERS.includes(v)), moral: (k.moral || []).filter((v) => MORALS.includes(v)),
+    traits: Array.from(new Set((k.gender && k.gender !== "Unknown" ? [k.gender] : []).concat((k.traits || []).map(normTrait).filter(Boolean)))), traitsSet: true,
+    deck: String(k.deck || "QAABB").split("").map((c) => CARD_OF[c] || ""), skillInfo: skillInfo, passives: passives,
+    npName: npName || null, npCard: card, npTarget: np.tg || "AoE",
+    growth: {type: GROWTH_BY[k.growth] ? k.growth : "linear", hp: (k.hp || []).slice(0, 2).map(num), atk: (k.atk || []).slice(0, 2).map(num)}
+  };
+  o.npTable = {g: [{name: "", slots: []}], v: [{tab: "", note: "", name: npName, sub: String(np.sub || "").trim(), card: card, base: "", rank: String(np.rank || "").trim(), type: String(np.type || "").trim(),
+    hits: np.tg === "Support" ? "" : String(clamp(num(np.hits) || 1, 1, 15)), perHit: "", effect: L.effect.join("\n"), oc: L.oc.join("\n"), rows: L.rows, ocRows: L.ocRows, grp: 0}]};
+  return o;
+}
+// the custom servant in the NA record's shape, for the damage calculator and the support pickers
+const KIT_CACHE = new WeakMap();
+function customKit(s) {
+  if (!s || !s.custom || !s.kit || typeof s.kit !== "object") return null;
+  const hit = KIT_CACHE.get(s.kit); if (hit && hit.s === s) return hit.a;
+  const k = s.kit, card = CARDS.includes(k.np && k.np.card) ? k.np.card : "Buster", pm = [0, 0, 0, 0, 0];
+  (k.ps || []).forEach((p) => { const v = psValue(p); if (v) pm[v.slot] += v.v; });
+  const t = (s.traits || []).slice(), g = t.includes("Female") ? "Female" : t.includes("Male") ? "Male" : "Unknown";
+  const a = {n: s.name, c: s.cls, r: num(s.rarity) || 5, a: s.attr || "", g: g, o: (s.lawOrder || []).slice(), m: (s.moral || []).slice(), t: t, pm: pm, custom: true,
+    d: String(k.deck || ""), np: {n: (k.np || {}).name || "", tg: (k.np || {}).tg || "", cd: card.charAt(0)},
+    sk: [0, 1, 2].map((i) => {
+      const sk = (k.sk || [])[i] || {};
+      const b = (sk.fx || []).map((f) => {
+        const def = FX_BY[f.e]; if (!def || !def.c || !def.v || !Array.isArray(f.v)) return null;
+        const v1 = num(f.v[0]), v10 = num(f.v[1]); if (v1 == null || v10 == null) return null;
+        const tg = def.tgs.includes(f.tg) ? f.tg : def.tg, row = [def.c, tg === "E" ? "e" : tg, def.card ? (CARDS.includes(f.card) ? f.card : card).charAt(0) : "", skVals(v1, v10)];
+        if (def.vsPick) row.push(vsNeed(f.vs));
+        return row;
+      }).filter(Boolean);
+      return {n: [sk.name, sk.rank].filter(Boolean).join(" ") || "Skill " + (i + 1), ic: "", b: b};
+    })};
+  KIT_CACHE.set(s.kit, {s: s, a: a});
+  return a;
+}
+// what a "special attack against …" works against, in the calculator's words: a class, an attribute, else a trait it can't check
+function vsNeed(vs) {
+  const v = String(vs || "").trim(); if (!v) return "?cond";
+  const c = CLASSES.find((x) => x.toLowerCase() === v.toLowerCase()); if (c) return "-#" + c;
+  const at = ATTRS.find((x) => x.toLowerCase() === v.toLowerCase()); if (at) return "-@" + at;
+  return "-" + v;
+}
+function calcKitOf(s) { return atlasOf(s) || customKit(s); }
+
+/* ---------- Edit details: how a hand-made servant grows ---------- */
+// (a servant matched to NA follows NA's numbers; the box says so, live, as the name is typed)
+const growthHint = `HP and ATK at Lv 1 and at the max level are on the servant's wiki page under Stats, and the growth curve too.`;
+function growthFieldHTML(s) {
+  const g = (s && s.growth) || {}, hp = Array.isArray(g.hp) ? g.hp : [], atk = Array.isArray(g.atk) ? g.atk : [];
+  const opts = GROWTH.map((x) => `<option value="${x.k}"${(g.type || "") === x.k ? " selected" : ""}>${esc(x.t)}</option>`).join("");
+  return `<fieldset id="fs-growth" class="fs-growth"><legend>Growth</legend>
+    <p class="gr-status" id="gr-status" aria-live="polite"></p>
+    <div class="form-grid gr-grid" id="gr-grid">
+      ${fld("gr-type", "Growth curve", `<select id="gr-type"><option value="">Not set</option>${opts}</select>`, "full")}
+      ${fld("gr-hp1", "HP at Lv 1", inp("gr-hp1", hp[0], "number", 'min="0" inputmode="numeric"'))}
+      ${fld("gr-hpm", "HP at max level", inp("gr-hpm", hp[1], "number", 'min="0" inputmode="numeric"'))}
+      ${fld("gr-atk1", "ATK at Lv 1", inp("gr-atk1", atk[0], "number", 'min="0" inputmode="numeric"'))}
+      ${fld("gr-atkm", "ATK at max level", inp("gr-atkm", atk[1], "number", 'min="0" inputmode="numeric"'))}
+      <div class="f full gr-viz" id="gr-viz" aria-hidden="true"></div>
+    </div>
+    <p class="gr-hint muted">${growthHint} With all four numbers and a curve, HP and ATK above follow the level by themselves, grails included.</p>
+  </fieldset>`;
+}
+function readGrowthForm() {
+  const t = val("gr-type"), n = (id) => num(val(id));
+  const hp = [n("gr-hp1"), n("gr-hpm")], atk = [n("gr-atk1"), n("gr-atkm")];
+  if (!t && hp.concat(atk).every((v) => v == null)) return null;
+  return {type: GROWTH_BY[t] ? t : "linear", hp: hp, atk: atk};
+}
+// the servant the form describes right now (for the NA check and the numbers)
+function formGuess() {
+  const base = S.editing && S.editing !== "new" ? S.servants.find((x) => x.id === S.editing) : null;
+  return {id: base ? base.id : "", name: val("sv-name"), cls: val("sv-cls") || null, rarity: num(val("sv-rarity")) || 5, level: num(val("sv-level")), custom: !!(base && base.custom), growth: readGrowthForm()};
+}
+function syncGrowthForm(from) {
+  const st = document.getElementById("gr-status"), grid = document.getElementById("gr-grid"); if (!st || !grid) return;
+  const s = formGuess();
+  // an NA match by the link you picked, the servant's own NA number, or the name
+  const base = S.editing && S.editing !== "new" ? S.servants.find((x) => x.id === S.editing) : null;
+  const a = s.custom ? null : (base && normName(base.name) === normName(s.name) ? atlasOf(base) : s.name ? autoMatch({name: s.name, cls: s.cls, rarity: s.rarity}) : null);
+  grid.hidden = !!a; document.querySelector("#fs-growth .gr-hint").hidden = !!a;
+  const h = document.getElementById("sv-hp"), k = document.getElementById("sv-atk");
+  const follow = (on) => { [h, k].forEach((x) => { if (x) { x.readOnly = on; x.classList.toggle("gr-auto", on); } }); };
+  const lv = s.level != null ? clamp(Math.round(s.level), 1, 120) : null;
+  if (a) {
+    st.innerHTML = `<b>Follows NA.</b> ${esc(s.name)} matches NA's <b>${esc(a.n)}</b>, so HP and ATK follow the level by themselves.`;
+    // a new servant starts with NA's numbers for its level (one you have keeps yours until its level changes)
+    if (!base && lv) { if (h) h.value = statAt(a, lv, "hp"); if (k) k.value = statAt(a, lv, "atk"); }
+    follow(false); drawGrowthViz(null); return;
+  }
+  const rec = s.growth ? growthRec({growth: s.growth, rarity: s.rarity}) : null, M = maxLvOf(s.rarity);
+  if (!rec) { st.innerHTML = s.name ? `<b>${esc(s.name)}</b> isn't in NA's data. Fill in how they grow and HP and ATK follow the level.` : `Not in NA's data? Fill in how the servant grows and HP and ATK follow the level.`; follow(false); drawGrowthViz(null); return; }
+  const L = lv || 1, hp = statAt(rec, L, "hp"), atk = statAt(rec, L, "atk");
+  st.innerHTML = `At <b>Lv ${L}</b>: HP <b>${fmt(hp)}</b>, ATK <b>${fmt(atk)}</b>${L > M ? ` <span class="gr-grail">grailed past Lv ${M}</span>` : ""}. Base HP and ATK above follow this.`;
+  // the stats above take these numbers (they're what a save keeps anyway)
+  if (h) h.value = hp; if (k) k.value = atk; follow(true);
+  drawGrowthViz(rec, L, M);
+}
+// a small chart in the form: the HP and ATK lines, the max level and where the level is now
+function growthSvg(rec, lv, M, o) {
+  o = o || {};
+  const W = o.w || 320, H = o.h || 96, P = o.pad || 6, line = growthLine(rec); if (!line.length) return "";
+  const top = Math.max(1, ...line.map((r) => Math.max(r[1], r[2])));
+  const X = (l) => P + (l - 1) / 119 * (W - 2 * P), Y = (v) => H - P - v / top * (H - 2 * P);
+  const path = (i) => "M" + line.map((r) => X(r[0]).toFixed(1) + " " + Y(r[i]).toFixed(1)).join("L");
+  const g = `<rect class="gv-grail" x="${X(M).toFixed(1)}" y="${P}" width="${(X(120) - X(M)).toFixed(1)}" height="${H - 2 * P}"/>`;
+  const cur = lv ? `<line class="gv-cur" x1="${X(lv).toFixed(1)}" x2="${X(lv).toFixed(1)}" y1="${P}" y2="${H - P}"/><circle class="gv-dot hp" cx="${X(lv).toFixed(1)}" cy="${Y(statAt(rec, lv, "hp")).toFixed(1)}" r="3"/><circle class="gv-dot atk" cx="${X(lv).toFixed(1)}" cy="${Y(statAt(rec, lv, "atk")).toFixed(1)}" r="3"/>` : "";
+  return `<svg class="gv" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" focusable="false">${g}<line class="gv-max" x1="${X(M).toFixed(1)}" x2="${X(M).toFixed(1)}" y1="${P}" y2="${H - P}"/><path class="gv-l hp" d="${path(1)}"/><path class="gv-l atk" d="${path(2)}"/>${cur}</svg>`;
+}
+function drawGrowthViz(rec, lv, M) {
+  const v = document.getElementById("gr-viz"); if (!v) return;
+  v.innerHTML = rec ? growthSvg(rec, lv, M) + `<span class="gv-key"><i class="hp"></i>HP <i class="atk"></i>ATK <i class="gr"></i>grails, Lv ${M}–120</span>` : "";
+}
+const servantForm26 = servantForm;
+servantForm = function (s) {
+  let h = servantForm26.apply(this, arguments);
+  // custom servants are made in the Workshop: their skills, NP and growth are best changed there
+  if (s && s.custom) h = h.replace(/(<fieldset><legend>Basics<\/legend>)/, `<div class="ws-formnote"><p><b>Made in the Servant Workshop.</b> Change their skills, Noble Phantasm, cards and growth there; this form keeps everything else.</p><button type="button" class="btn sm" data-action="ws-open" data-id="${esc(s.id)}">Open in the Workshop</button></div>$1`);
+  return h.replace(/(<fieldset><legend>Noble Phantasm<\/legend>)/, growthFieldHTML(s) + "$1");
+};
+const readServantForm26 = readServantForm;
+readServantForm = function (base) {
+  const o = readServantForm26.apply(this, arguments);
+  if (!document.getElementById("fs-growth")) return o;
+  const g = readGrowthForm(), grid = document.getElementById("gr-grid");
+  if (grid && grid.hidden) {
+    // follows NA: nothing of its own to keep; a new servant takes NA's HP and ATK for its level
+    const a = !base ? atlasOf(o) : null; if (a && o.level != null) { o.hp = statAt(a, o.level, "hp"); o.atk = statAt(a, o.level, "atk"); }
+    return o;
+  }
+  if (g) o.growth = g; else delete o.growth;
+  const rec = growthRec(o); if (rec && o.level != null) { o.hp = statAt(rec, o.level, "hp"); o.atk = statAt(rec, o.level, "atk"); }
+  return o;
+};
+const openServantEditor26 = openServantEditor;
+openServantEditor = function () { const r = openServantEditor26.apply(this, arguments); syncGrowthForm("open"); return r; };
+document.addEventListener("input", (e) => {
+  const t = e.target; if (!t || !t.closest || !t.closest("#servant-form")) return;
+  if (/^(?:gr-|sv-name$|sv-cls$|sv-rarity$|sv-level$)/.test(t.id || "")) syncGrowthForm("");
+});
+document.addEventListener("change", (e) => {
+  const t = e.target; if (!t || !t.closest || !t.closest("#servant-form")) return;
+  if (/^(?:gr-|sv-cls$|sv-rarity$)/.test(t.id || "")) syncGrowthForm("");
+});
+
+/* ---------- Versus: any NA servant can stand next to yours ---------- */
+// at NA's max level, NP1 and skills at 10 (how most people raise them), never saved anywhere
+const VNA = new Map();
+const isNaId = (id) => /^na:\d+$/.test(String(id || ""));
+function vnaGet(id) {
+  if (!isNaId(id)) return null;
+  if (VNA.has(id)) return VNA.get(id);
+  const x = ATLAS_BY_NO.get(num(String(id).slice(3))); if (!x) return null;
+  const o = atlasToServant(x); o.id = id; o.wish = false; o.na = x.no; o.order = 1e9;
+  VNA.set(id, o); return o;
+}
+const vsKnown26 = vsKnown;
+vsKnown = (id) => vsKnown26(id) || !!vnaGet(id);
+const vsPicks27 = vsPicks;
+vsPicks = function () {
+  const st = vsStored(); if (!st.some(isNaId)) return vsPicks27.apply(this, arguments);
+  const ids = [], known = (id) => isNaId(id) ? !!vnaGet(id) : (S.servants.some((s) => s.id === id) || (typeof FSV !== "undefined" && FSV.has(id)));
+  st.forEach((id) => { if (ids.length < 3 && !ids.includes(id) && known(id)) ids.push(id); });
+  vsPicks27.apply(this, arguments).forEach((id) => { if (ids.length < 2 && !ids.includes(id)) ids.push(id); });
+  return ids;
+};
+const vsHeroHTML27 = vsHeroHTML;
+vsHeroHTML = function (s, i, ids) {
+  let h = vsHeroHTML27.apply(this, arguments).replace(/<option value="na:[^"]*"[^>]*>[^<]*<\/option>/g, "").replace(/<optgroup label="[^"]*"><\/optgroup>/g, "");
+  const na = ids.filter(isNaId).map(vnaGet).filter(Boolean);
+  if (na.length) h = h.replace(/(<select class="vs-sel"[^>]*>[\s\S]*?)(<\/select>)/, "$1" + `<optgroup label="NA servants">${na.map((x) => `<option value="${esc(x.id)}"${x.id === s.id ? " selected" : ""}${x.id !== s.id && ids.includes(x.id) ? " disabled" : ""}>${esc(x.name)}</option>`).join("")}</optgroup>` + "$2");
+  if (s.na) h = h.replace(/<button type="button" class="vs-name" data-action="goto"[^>]*>([\s\S]*?)<\/button>/, `<button type="button" class="vs-name" data-action="ws-pc" data-no="${s.na}" title="Open in Past Chaldea">$1</button>`)
+    .replace(/(<p class="vs-meta">)/, `$1<span class="tag na-tag">NA</span>`);
+  if (s.custom) h = h.replace(/(<p class="vs-meta">)/, `$1<span class="tag ws-tag">Custom</span>`);
+  return h;
+};
+const renderVersus27 = renderVersus;
+renderVersus = function () {
+  const na = Array.from(vsPicks()).filter(isNaId).map(vnaGet).filter(Boolean);
+  if (!na.length) { const r = renderVersus27.apply(this, arguments); vsNaBtn(); return r; }
+  const keep = S.servants; S.servants = keep.concat(na);
+  try { renderVersus27.apply(this, arguments); } finally { S.servants = keep; }
+  vsNaBtn();
+};
+function vsNaBtn() {
+  const t = document.querySelector("#versus .vs-tools"); if (!t || t.querySelector("[data-action='vs-na']")) return;
+  t.insertAdjacentHTML("beforeend", `<button type="button" class="btn sm" data-action="vs-na">Compare with an NA servant</button>`);
+}
+function vsWith(a, key) {
+  setVsPicks([a, key].filter(Boolean));
+  S.tab = "versus"; try { history.pushState({tab: "versus"}, "", "#versus"); } catch (e) {}
+  renderChrome(); renderVersus(); window.scrollTo({top: 0});
+}
+function naPickList() { return ATLAS_S.slice().sort((a, b) => a.n.localeCompare(b.n)).map((a) => ({key: "na:" + a.no, n: a.n, a: a, g: "Every NA servant", m: "Lv " + a.lv + " · NP1 · skills 10/10/10"})); }
+// pick an NA servant to stand next to `mine` (or Versus's first pick)
+function pickNaFor(mine, title) {
+  const cur = vsPicks(), a = mine || (cur[0] && !isNaId(cur[0]) ? cur[0] : (S.servants.find((s) => !s.wish) || S.servants[0] || {}).id);
+  openSpk(title || "Compare with an NA servant", "", (key) => { if (key) vsWith(a, key); }, naPickList());
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest('[data-action="vs-na"], [data-action="ws-pc"]'); if (!b) return;
+  if (b.dataset.action === "vs-na") { pickNaFor(null); return; }
+  const no = num(b.dataset.no); if (no && ATLAS_BY_NO.has(no)) pcShow(no);
+});
+
+/* ---------- the servant page: custom servants say so, and open in the Workshop ---------- */
+const renderDossier26 = renderDossier;
+renderDossier = function (force) {
+  const r = renderDossier26.apply(this, arguments);
+  const d = document.getElementById("dossier"), s = d && !S.editing ? S.servants.find((v) => v.id === shownId()) : null;
+  if (s && s.custom && !d.querySelector("#servant-form")) {
+    const meta = d.querySelector(".d-head .d-meta"); if (meta && !meta.querySelector(".ws-tag")) meta.insertAdjacentHTML("beforeend", `<span class="tag ws-tag" title="Made in the Servant Workshop">Custom</span>`);
+    const acts = d.querySelector(".d-head-actions"); if (acts && !S.readOnly && !acts.querySelector('[data-action="ws-open"]')) acts.insertAdjacentHTML("afterbegin", `<button class="btn sm ws-open" data-action="ws-open" data-id="${esc(s.id)}" title="Change skills, Noble Phantasm, cards and growth">Workshop</button>`);
+  }
+  return r;
+};
+/* ================= 0.27.0: the Servant Workshop: make a servant of your own =================
+   A full-screen window with a live Saint Graph card beside it. Every step starts at what NA's servants of that class
+   and rarity usually have (stats, growth curve, deck, Noble Phantasm card, passives), and keeps following the class and
+   rarity until you change that part yourself, so a servant can be summoned after any step. Skills and Noble Phantasm
+   effects are picked from a list and written the way NA's text reads, with Lv 1 → 10 values the game's way; the ones
+   that change NP damage count in the damage calculator. Start from scratch, from any NA servant's kit, from a made-up
+   one ("Surprise me") or from a friend's share code. The draft is kept in this browser (spirit-origin-list:v1:workshop)
+   until it's summoned or thrown away. Summoning saves one servant (s.custom, s.kit and the usual fields from it), with
+   Undo; nothing else on the roster changes. */
+const WS_KEY = "spirit-origin-list:v1:workshop";
+const WS_STEPS = [
+  {k: "start", t: "Start"}, {k: "who", t: "Who they are"}, {k: "stats", t: "Stats & growth"}, {k: "cards", t: "Cards"},
+  {k: "np", t: "Noble Phantasm"}, {k: "skills", t: "Skills"}, {k: "ps", t: "Passives"}, {k: "go", t: "Summon"}
+];
+const W = {open: false, step: 0, k: null, id: null, copy: null, art: null, artNew: [], mode: "", q: "", code: "", sk: 0, add: null, pvLv: null, pvOpen: false, back: null, savedAt: 0, err: "", seen: []};
+const NP_RANKS = ["EX", "A++", "A+", "A", "B+", "B", "C+", "C", "D", "E"];
+const NP_TYPES = ["Anti-Unit", "Anti-Army", "Anti-Fortress", "Anti-World", "Anti-Country", "Anti-Planet", "Anti-Personnel", "Anti-Team", "Anti-Evil", "Anti-Divine", "Anti-King", "Anti-Dragon", "Barrier", "Fortress"];
+const SK_RANKS = ["EX", "A++", "A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D", "E"];
+const DECKS = ["QAABB", "QQABB", "QQAAB", "QAAAB", "QABBB", "QQQAB"];
+const GENDERS = ["Female", "Male", "Unknown"];
+const WS_TRAIT_SUGG = ["Humanoid", "Hominidae Servant", "Divine", "Dragon", "King", "Riding", "Weak to Enuma Elish", "Roman", "Fae", "Demonic", "Wild Beast", "Threat to Humanity", "Greek Mythology Male", "Pseudo-Servant", "Super Large"];
+const WS_VS = ["Dragon", "Divine", "King", "Demonic", "Evil", "Good", "Male", "Female", "Humanoid", "Roman", "Fae", "Undead", "Threat to Humanity", "Wild Beast", "Riding"].concat(CLASSES, ATTRS);
+// classic skills to start from (the values are the usual ones; change anything)
+const WS_SK_PRESETS = [
+  {name: "Charisma", rank: "B", cd: 7, fx: [{e: "atk", tg: "a", v: [9, 18], d: 3}]},
+  {name: "Mana Burst", rank: "A", cd: 7, fx: [{e: "card", tg: "s", card: "Buster", v: [30, 50], d: 1}]},
+  {name: "Instinct", rank: "A", cd: 7, fx: [{e: "stars", v: [5, 15]}]},
+  {name: "Battle Continuation", rank: "A", cd: 9, fx: [{e: "guts", tg: "s", v: [1000, 2500], d: 5, n: 1}]},
+  {name: "Eye of the Mind (True)", rank: "B", cd: 8, fx: [{e: "evade", tg: "s", d: 1, n: 1}, {e: "defup", tg: "s", v: [18, 36], d: 3}]},
+  {name: "Golden Rule", rank: "A", cd: 8, fx: [{e: "gain", tg: "s", v: [20, 50], d: 3}]},
+  {name: "Mana Charge", rank: "A", cd: 8, fx: [{e: "charge", tg: "s", v: [30, 50]}]},
+  {name: "Military Tactics", rank: "B", cd: 8, fx: [{e: "np", tg: "a", v: [8, 16], d: 1}]},
+  {name: "Battle Medicine", rank: "A", cd: 7, fx: [{e: "heal", tg: "o", v: [1000, 3000]}, {e: "cleanse", tg: "o"}]},
+  {name: "Protection from Arrows", rank: "B", cd: 7, fx: [{e: "evade", tg: "s", d: 5, n: 3}, {e: "defup", tg: "s", v: [10, 20], d: 3}]},
+  {name: "Shield of the Oath", rank: "A", cd: 7, fx: [{e: "taunt", tg: "s", d: 1}, {e: "defup", tg: "s", v: [20, 40], d: 1}]},
+  {name: "Sage's Counsel", rank: "A", cd: 8, fx: [{e: "charge", tg: "o", v: [20, 30]}, {e: "card", tg: "o", card: "Arts", v: [20, 30], d: 3}]},
+  {name: "Hex of Ruin", rank: "B", cd: 7, fx: [{e: "defdown", tg: "E", v: [10, 20], d: 3}]},
+  {name: "Divine Blessing", rank: "A", cd: 8, fx: [{e: "invinc", tg: "s", d: 1, n: 1}, {e: "crit", tg: "s", v: [30, 50], d: 3}]}
+];
+const WS_NAMES = ["Astraea", "Bellatrix", "Caelum", "Dagda", "Eirene", "Fionnuala", "Gwynn", "Hesper", "Isolde", "Jarnsaxa", "Kaede", "Lugh", "Morrighan", "Nemain", "Orielle", "Perun", "Rhiannon", "Sigrun", "Tanith", "Ulrike", "Veles", "Wren", "Ysolde", "Zephyrine", "Aoife", "Branwen", "Ciaran", "Elowen", "Hana", "Ilmatar", "Kalinda", "Lorelei", "Mireille", "Nuada", "Saoirse", "Tamsin"];
+const WS_EPI = ["", "", "", " Alter", " (Summer)", " Lily", " of the Silver Lake", " the Unbroken", " of the Last Light", " the Wandering Star", " (Santa)", " of Ten Thousand Swords"];
+const WS_NP_A = ["Gate of", "Requiem for", "Spear of", "Crown of", "Garden of", "Last Song of", "Oath of", "Lament of", "Mirror of", "Ninefold", "Hymn of", "Banner of"];
+const WS_NP_B = ["the Endless Sky", "Burning Roses", "a Thousand Suns", "the Drowned Moon", "Iron Snow", "the Starless Sea", "the Silver Wolf", "Falling Embers", "the Broken Crown", "the Last Dawn", "Glass Wings"];
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const wsClone = (o) => JSON.parse(JSON.stringify(o));
+const five = (a, b) => [0, .25, .5, .75, 1].map((f) => Math.round((a + (b - a) * f) * 10) / 10);
+
+/* ---------- a kit ---------- */
+function wsSkill() { return {name: "", rank: "", cd: 7, fx: []}; }
+function wsFx(e, tg, card) {
+  const def = FX_BY[e] || FX_BY.own, t = def.tgs ? (tg && def.tgs.includes(tg) ? tg : def.tg) : "";
+  const f = {e: def.k, tg: t};
+  if (def.v) f.v = (t === "s" && def.vs ? def.vs : def.v).slice();
+  if (def.d != null) f.d = t === "s" && def.ds != null ? def.ds : def.d;
+  if (def.n != null) f.n = def.n;
+  if (def.card) f.card = CARDS.includes(card) ? card : "Buster";
+  if (def.vsPick) f.vs = "";
+  if (def.k === "own") { f.txt = ""; f.l = ""; f.v1 = null; f.v10 = null; f.u = "%"; }
+  return f;
+}
+function wsNpFx(e, card) {
+  const f = wsFx(e, null, card), def = FX_BY[f.e];
+  f.when = "post"; f.by = def.v ? (f.e === "charge" || f.e === "stars" ? "oc" : "np") : "fix";
+  if (def.v) f.vals = five(f.v[0], f.v[1]); delete f.v;
+  if (def.k === "own") { f.vals = [null, null, null, null, null]; f.by = "fix"; }
+  return f;
+}
+// the passives a class usually has: those at least 3 in 10 of the class have (up to 3, at least 1)
+function wsPsDefault(cls) {
+  const all = psFor(cls), size = (naPeers()[cls + "|*"] || []).length || 1;
+  const got = all.filter((p) => p.n / size >= 0.3).slice(0, 3);
+  return (got.length ? got : all.slice(0, 1)).map((p) => ({name: p.name, rank: p.rank, e: p.e.slice(), ic: p.ic}));
+}
+function wsBlank(cls, r) {
+  cls = cls || "Saber"; r = r || 5;
+  const T = typicalOf(cls, r);
+  const k = {v: 1, name: "", cls: cls, r: r, attr: T.attr, order: [], moral: [], gender: "Unknown", traits: ["Humanoid"],
+    growth: T.growth, hp: T.hp.slice(), atk: T.atk.slice(), feel: {bal: 0, pow: 0}, deck: T.deck,
+    np: {name: "", sub: "", rank: "A", type: T.tg === "AoE" ? "Anti-Army" : "Anti-Unit", card: T.card, tg: T.tg, hits: T.tg === "AoE" ? 3 : 5, mode: "std", up: false, dmg: npStdDmg(T.tg, T.card, false), se: null, fx: []},
+    sk: [wsSkill(), wsSkill(), wsSkill()], ps: wsPsDefault(cls),
+    auto: {stats: true, growth: true, deck: true, card: true, ps: true, attr: true}};
+  return k;
+}
+function wsCopyDefault(k) { return {level: maxLvOf(k.r), np: 1, skills: [10, 10, 10], fouHp: 0, fouAtk: 0, wish: false}; }
+// stats from the two sliders: power (weaker … stronger) and balance (more HP … more ATK) around NA's usual numbers
+function wsFeelStats(k) {
+  const T = typicalOf(k.cls, k.r), f = k.feel || {bal: 0, pow: 0}, pw = 1 + 0.15 * (num(f.pow) || 0), ba = 0.16 * (num(f.bal) || 0);
+  k.atk = T.atk.map((v) => Math.round(v * pw * (1 + ba)));
+  k.hp = T.hp.map((v) => Math.round(v * pw * (1 - ba)));
+}
+// the class or rarity changed: every part still at "usual" follows
+function wsRetune() {
+  const k = W.k, T = typicalOf(k.cls, k.r), A = k.auto || {};
+  if (A.stats) wsFeelStats(k);
+  if (A.growth) k.growth = T.growth;
+  if (A.deck) k.deck = T.deck;
+  if (A.attr) k.attr = T.attr;
+  if (A.card) { k.np.card = T.card; k.np.tg = T.tg; k.np.type = T.tg === "AoE" ? "Anti-Army" : "Anti-Unit"; k.np.hits = T.tg === "AoE" ? 3 : 5; }
+  if (A.ps) k.ps = wsPsDefault(k.cls);
+  wsNpDmg();
+  if (W.copy && !W.id) W.copy.level = maxLvOf(k.r);
+  W.pvLv = null;
+}
+function wsNpDmg() { const np = W.k.np; if (np.tg === "Support") return; if (np.mode !== "own") np.dmg = npStdDmg(np.tg, np.card, np.mode === "up") || np.dmg; }
+
+/* ---------- starting points ---------- */
+function wsRandomKit() {
+  const cls = pick(CLASSES.filter((c) => c !== "Beast" && c !== "Shielder")), r = pick([5, 5, 5, 4, 4, 4, 3, 3, 2, 1]);
+  const k = wsBlank(cls, r), T = typicalOf(cls, r), peers = peersOf(cls, r).list;
+  k.name = pick(WS_NAMES) + pick(WS_EPI);
+  k.gender = pick(["Female", "Female", "Male", "Male", "Unknown"]);
+  k.traits = ["Humanoid"].concat(Array.from(new Set([pick(WS_TRAIT_SUGG.slice(2)), Math.random() < 0.4 ? pick(WS_TRAIT_SUGG.slice(2)) : ""]))).filter(Boolean);
+  k.attr = pick(ATTRS.slice(0, 4)); k.order = [pick(ORDERS)]; k.moral = [pick(["Good", "Good", "Balanced", "Evil", "Evil"])];
+  k.feel = {bal: Math.round((Math.random() * 1.4 - 0.7) * 10) / 10, pow: Math.round((Math.random() * 1.2 - 0.5) * 10) / 10}; wsFeelStats(k);
+  const curves = countsOf(peers, (x) => growthTypeOf(x.gc)); k.growth = curves.length ? pick(curves.slice(0, 3))[0] : T.growth;
+  const decks = countsOf(naPeers()[cls + "|*"] || peers, (x) => x.d); k.deck = decks.length ? pick(decks.slice(0, 3))[0] : T.deck;
+  k.np.card = pick(CARDS); k.np.tg = pick(["AoE", "AoE", "Single Target", "Single Target", "Support"]);
+  k.np.name = pick(WS_NP_A) + " " + pick(WS_NP_B); k.np.rank = pick(["EX", "A++", "A+", "A", "B+", "B"]);
+  k.np.type = k.np.tg === "AoE" ? pick(["Anti-Army", "Anti-Fortress", "Anti-World"]) : k.np.tg === "Support" ? pick(["Barrier", "Anti-Personnel", "Fortress"]) : pick(["Anti-Unit", "Anti-Personnel", "Anti-Divine"]);
+  k.np.hits = k.np.tg === "AoE" ? pick([1, 3, 4, 5]) : pick([1, 3, 5, 6, 8]);
+  k.np.mode = Math.random() < 0.3 ? "up" : "std"; k.np.up = k.np.mode === "up"; k.np.dmg = npStdDmg(k.np.tg === "Support" ? "AoE" : k.np.tg, k.np.card, k.np.up);
+  const npfx = [["defdown", "post"], ["card", "pre"], ["charge", "post"], ["stars", "post"], ["atkdown", "post"], ["np", "pre"]];
+  if (k.np.tg === "Support") k.np.fx = [wsNpFx("atk"), wsNpFx("charge"), wsNpFx("defup")].map((f, i) => { f.tg = ["a", "a", "a"][i]; return f; });
+  else { const p = pick(npfx), f = wsNpFx(p[0], k.np.card); f.when = p[1]; if (p[0] === "defdown" || p[0] === "atkdown") f.tg = k.np.tg === "AoE" ? "E" : "e"; k.np.fx = [f]; if (Math.random() < 0.35) k.np.se = {vs: pick(WS_VS.slice(0, 8)), vals: SE_STD.slice()}; }
+  const sks = WS_SK_PRESETS.slice().sort(() => Math.random() - 0.5).slice(0, 3);
+  k.sk = sks.map((p) => wsFromPreset(p, k.np.card));
+  k.auto = {stats: false, growth: false, deck: false, card: false, ps: true, attr: false};
+  k.dice = true;
+  return k;
+}
+function wsFromPreset(p, card) {
+  return {name: p.name, rank: p.rank, cd: p.cd, fx: p.fx.map((x) => { const f = wsFx(x.e, x.tg, x.card || card); ["v", "d", "n"].forEach((q) => { if (x[q] != null) f[q] = Array.isArray(x[q]) ? x[q].slice() : x[q]; }); return f; })};
+}
+// NA's text → the Workshop's effects, as far as the words tell; anything it can't read stays as written
+const NA_FX_RULES = [
+  [/ignore invincib/i, "pierce"], [/invincib/i, "invinc"], [/\bevade\b|\bevasion\b/i, "evade"], [/\bguts\b/i, "guts"],
+  [/target focus|\btaunt/i, "taunt"], [/debuff immunity/i, "immune"], [/remove\w* .*debuffs|remove debuffs/i, "cleanse"],
+  [/debuff res/i, "dres"], [/max hp/i, "maxhp"], [/(?:restore|recover)\w* .*\bhp\b/i, "heal"], [/damage cut/i, "cut"], [/damage plus/i, "dp"],
+  [/(?:decreas|reduc|drain)\w* .*\bcharge\b|charge by \d/i, "chargedown"],
+  [/np gauge each turn|each turn.*\bnp\b|\bnp\b.*each turn/i, "npturn"], [/np gain/i, "gain"], [/np gauge|charge .*\bnp\b/i, "charge"],
+  [/stars? each turn/i, "starturn"], [/star drop/i, "drop"], [/star gather|star absorption/i, "gather"], [/c\. stars?\b/i, "stars"],
+  [/cooldown/i, "cd"], [/np strength|np damage/i, "np"], [/critical strength|critical damage/i, "crit"],
+  [/(?:buster|arts|quick)[^.]*resist/i, "resdown"], [/(?:buster|arts|quick) card effectiveness|(?:buster|arts|quick) (?:card )?(?:up|performance)/i, "card"],
+  [/attack strength against|special attack|power against/i, "vs"],
+  [/(?:decreas|reduc|lower)\w* .*\bdef\b|\bdef down/i, "defdown"], [/(?:decreas|reduc|lower)\w* .*\batk\b|\batk down/i, "atkdown"],
+  [/increas\w* .*\bdef\b|\bdef up/i, "defup"], [/increas\w* .*\batk\b|\batk up/i, "atk"],
+  [/\bstun/i, "stun"], [/\bcharm/i, "charm"], [/\bburn/i, "burn"]
+];
+function naTarget(t, def) {
+  const s = t.toLowerCase();
+  const tg = /all (?:other )?allies[^.]*except yourself|other allies|allies other than/.test(s) ? "x" : /all allies|party|all members/.test(s) ? "a" : /one ally|an ally/.test(s) ? "o"
+    : /all enemies/.test(s) ? "E" : /one enemy|an enemy|target enemy/.test(s) ? "e" : /yourself|\byour\b|\bself\b/.test(s) ? "s" : "";
+  return def.tgs ? (def.tgs.includes(tg) ? tg : def.tg) : "";
+}
+const wordsOf = (t) => String(t || "").toLowerCase().replace(/[^a-z ]+/g, " ").split(" ").filter((w) => w.length > 1 && !["up", "down", "of", "the"].includes(w));
+// lines + value rows ([label, v1, v10, unit] or [label, [5 values]]) → effects; leftover rows become values of their own
+function naToFx(lines, rows, five) {
+  const out = [], used = new Set();
+  lines.forEach((line) => {
+    const parts = String(line).split(/\s+&\s+/), tail = /( for [^&]+| to [^&]+)$/.exec(line);
+    parts.forEach((cl, ci) => {
+      const rule = NA_FX_RULES.find((r) => r[0].test(cl));
+      if (!rule) { out.push(Object.assign(wsFx("own"), {txt: (cl + (ci < parts.length - 1 && tail ? tail[1] : "")).trim()})); return; }
+      const def = FX_BY[rule[1]], f = wsFx(def.k, naTarget(cl + " " + (tail ? tail[1] : line), def));
+      const cm = /(buster|arts|quick)/i.exec(cl); if (def.card && cm) f.card = cm[1].charAt(0).toUpperCase() + cm[1].slice(1).toLowerCase();
+      const vm = /against \[?([^\]()&]+?)\]?(?:\s*\(|$| for| &)/i.exec(cl); if (def.vsPick && vm) f.vs = vm[1].trim();
+      const dm = /\((\d+) times?(?:,\s*(\d+) turns?)?\)|\((\d+) turns?(?:,\s*(\d+) times?)?\)/i.exec(cl);
+      if (dm) { if (dm[1]) { f.n = num(dm[1]); f.d = num(dm[2]) || 0; } else { f.d = num(dm[3]); if (dm[4]) f.n = num(dm[4]); } }
+      else if (def.d != null) f.d = 0;
+      if (def.v) {
+        const want = wordsOf(fxLabel(f, f.card)).concat(wordsOf(def.t));
+        let bi = -1, best = 0;
+        rows.forEach((r, i) => { if (used.has(i)) return; const w = wordsOf(r[0]), sc = w.filter((x) => want.includes(x)).length; if (sc > best) { best = sc; bi = i; } });
+        if (bi >= 0) { used.add(bi); const r = rows[bi]; if (five) f.vals = r[1].slice(); else f.v = [r[1], r[2]]; }
+        else if (five) f.vals = null;
+      }
+      out.push(f);
+    });
+  });
+  rows.forEach((r, i) => { if (!used.has(i)) out.push(Object.assign(wsFx("own"), five ? {l: r[0], vals: r[1].slice()} : {l: r[0], v1: r[1], v10: r[2], u: r[3] || ""})); });
+  return out;
+}
+function wsFromNa(no) {
+  const x = ATLAS_BY_NO.get(num(no)); if (!x) return null;
+  const k = wsBlank(x.c, clamp(x.r || 1, 1, 5)), np = x.np || {}, card = CARD_OF[np.cd] || "Buster";
+  k.name = x.n + " (Custom)"; k.attr = x.a || k.attr; k.order = (x.o || []).slice(); k.moral = (x.m || []).slice();
+  k.gender = GENDERS.includes(x.g) ? x.g : "Unknown"; k.traits = (x.t || []).filter((t) => t !== "Female" && t !== "Male");
+  k.growth = growthTypeOf(x.gc); k.hp = [x.hp[0], x.hp[1]]; k.atk = [x.atk[0], x.atk[1]]; k.feel = null; k.deck = x.d;
+  const pc = (v) => { const m = /(-?\d+(?:\.\d+)?)/.exec(String(v || "")); return m ? Number(m[1]) : null; };
+  const rows = (np.r || []).map((r) => [r[0], (r[1] || []).slice(0, 5).map(pc)]), oc = (np.o || []).map((r) => [r[0], (r[1] || []).slice(0, 5).map(pc)]);
+  const dmgR = rows.find((r) => /^damage/i.test(r[0]) && r[1].every((v) => v != null)), seR = oc.find((r) => /special|extra damage|super/i.test(r[0]) && r[1].every((v) => v != null));
+  const tg = /support/i.test(np.tg || "") || !dmgR ? "Support" : /single/i.test(np.tg || "") ? "Single Target" : "AoE";
+  const lines = np.e || [], dIdx = lines.findIndex((l) => /\bdeal\w*\b.*damage/i.test(l)), trait = /\[([^\]]{1,40})\]/.exec(lines.concat(np.oc || []).join(" "));
+  const std = npStdDmg(tg === "Support" ? "AoE" : tg, card, false), upd = npStdDmg(tg === "Support" ? "AoE" : tg, card, true);
+  k.np = {name: np.n || "", sub: np.ru || "", rank: np.k || "", type: np.ty || "", card: card, tg: tg, hits: num(np.h) || 1, mode: "std", up: false, dmg: dmgR ? dmgR[1] : std, se: seR && trait ? {vs: trait[1], vals: seR[1]} : null, fx: []};
+  if (dmgR) { k.np.mode = JSON.stringify(dmgR[1]) === JSON.stringify(std) ? "std" : JSON.stringify(dmgR[1]) === JSON.stringify(upd) ? "up" : "own"; k.np.up = k.np.mode === "up" || (std && dmgR[1][0] > std[0]); }
+  const pre = lines.filter((l, i) => dIdx >= 0 && i < dIdx), post = lines.filter((l, i) => i > dIdx);
+  const npRows = rows.filter((r) => r !== dmgR), ocRows = oc.filter((r) => r !== seR);
+  const toNp = (ls, rs, by, when) => naToFx(ls, rs, true).map((f) => { const def = FX_BY[f.e]; const o = Object.assign(f, {when: when, by: f.vals ? by : "fix"}); delete o.v; if (!def.v && f.e !== "own") o.by = "fix"; if (f.e === "own") o.by = o.vals ? by : "fix"; return o; });
+  k.np.fx = toNp(pre, [], "np", "pre").concat(toNp(post, npRows, "np", "post"), toNp((np.oc || []).filter((l) => !/special damage|extra damage|super/i.test(l) || !seR), ocRows, "oc", "post"));
+  k.sk = [0, 1, 2].map((i) => {
+    const s = (x.sk || [])[i]; if (!s) return wsSkill();
+    const m = PS_RANK_RE.exec(s.n || "");
+    return {name: m ? m[1] : s.n, rank: m ? m[2] : "", cd: num(s.cd) || 7, fx: naToFx(s.e || [], (s.v || []).map((v) => [v[0], v[1], v[2], v[3]]), false)};
+  });
+  k.ps = (x.ps || []).map((p) => { const m = PS_RANK_RE.exec(p.n || ""); return {name: m ? m[1] : p.n, rank: m ? m[2] : "", e: (p.e || []).slice(), ic: p.ic || ""}; });
+  k.auto = {stats: false, growth: false, deck: false, card: false, ps: false, attr: false};
+  k.from = x.no;
+  return k;
+}
+
+/* ---------- a kit that came from anywhere (a share code, an old draft): only what the Workshop knows, in range ---------- */
+function wsClean(k0) {
+  const k = k0 && typeof k0 === "object" ? k0 : {}, str = (v, n) => String(v == null ? "" : v).replace(/[\u0000-\u001f]+/g, " ").slice(0, n || 80);
+  const nn = (v, a, b, d) => { const x = num(v); return x == null ? d : clamp(x, a, b); };
+  const cls = CLASSES.includes(k.cls) ? k.cls : "Saber", r = clamp(Math.round(num(k.r) || 5), 1, 5), b = wsBlank(cls, r);
+  const fx = (f, np) => {
+    if (!f || !FX_BY[f.e]) return null;
+    const def = FX_BY[f.e], o = np ? wsNpFx(def.k, f.card) : wsFx(def.k, f.tg, f.card);
+    if (def.tgs) o.tg = def.tgs.includes(f.tg) ? f.tg : def.tg;
+    if (!np && def.v && Array.isArray(f.v)) o.v = [nn(f.v[0], -1e6, 1e6, def.v[0]), nn(f.v[1], -1e6, 1e6, def.v[1])];
+    if (np) { o.when = f.when === "pre" ? "pre" : "post"; o.by = ["np", "oc", "fix"].includes(f.by) ? f.by : o.by; o.vals = Array.isArray(f.vals) ? [0, 1, 2, 3, 4].map((i) => nn(f.vals[i], -1e6, 1e6, null)) : (o.vals || null); }
+    if (def.d != null || f.d != null) o.d = nn(f.d, 0, 99, def.d || 0);
+    if (def.n != null || f.n != null) { const t = nn(f.n, 0, 99, def.n || 0); if (t) o.n = t; else delete o.n; }
+    if (def.card) o.card = CARDS.includes(f.card) ? f.card : "Buster";
+    if (def.vsPick) o.vs = str(f.vs, 40);
+    if (def.k === "own") { o.txt = str(f.txt, 200); o.l = str(f.l, 40); if (!np) { o.v1 = nn(f.v1, -1e6, 1e6, null); o.v10 = nn(f.v10, -1e6, 1e6, null); o.u = UNITS.concat([""]).includes(f.u) ? f.u : ""; } }
+    return o;
+  };
+  const np = k.np && typeof k.np === "object" ? k.np : {};
+  const o = {v: 1, name: str(k.name, 80), cls: cls, r: r, attr: ATTRS.includes(k.attr) ? k.attr : b.attr,
+    order: (Array.isArray(k.order) ? k.order : []).filter((v) => ORDERS.includes(v)), moral: (Array.isArray(k.moral) ? k.moral : []).filter((v) => MORALS.includes(v)),
+    gender: GENDERS.includes(k.gender) ? k.gender : "Unknown", traits: Array.from(new Set((Array.isArray(k.traits) ? k.traits : []).map((t) => normTrait(str(t, 40))).filter(Boolean))).slice(0, 30),
+    growth: GROWTH_BY[k.growth] ? k.growth : b.growth,
+    hp: [nn((k.hp || [])[0], 0, 99999, b.hp[0]), nn((k.hp || [])[1], 0, 99999, b.hp[1])], atk: [nn((k.atk || [])[0], 0, 99999, b.atk[0]), nn((k.atk || [])[1], 0, 99999, b.atk[1])],
+    feel: k.feel && typeof k.feel === "object" ? {bal: nn(k.feel.bal, -1, 1, 0), pow: nn(k.feel.pow, -1, 1, 0)} : null,
+    deck: DECKS.includes(k.deck) ? k.deck : b.deck,
+    np: {name: str(np.name, 80), sub: str(np.sub, 80), rank: str(np.rank, 8), type: str(np.type, 40), card: CARDS.includes(np.card) ? np.card : b.np.card,
+      tg: ["AoE", "Single Target", "Support"].includes(np.tg) ? np.tg : b.np.tg, hits: nn(np.hits, 1, 15, 1), mode: ["std", "up", "own"].includes(np.mode) ? np.mode : "std", up: !!np.up,
+      dmg: Array.isArray(np.dmg) ? [0, 1, 2, 3, 4].map((i) => nn(np.dmg[i], 0, 1e5, 0)) : b.np.dmg,
+      se: np.se && typeof np.se === "object" ? {vs: str(np.se.vs, 40), vals: Array.isArray(np.se.vals) ? [0, 1, 2, 3, 4].map((i) => nn(np.se.vals[i], 0, 1e4, SE_STD[i])) : SE_STD.slice()} : null,
+      fx: (Array.isArray(np.fx) ? np.fx : []).slice(0, 10).map((f) => fx(f, true)).filter(Boolean)},
+    sk: [0, 1, 2].map((i) => { const s = (Array.isArray(k.sk) ? k.sk : [])[i] || {}; return {name: str(s.name, 60), rank: str(s.rank, 8), cd: nn(s.cd, 1, 20, 7), fx: (Array.isArray(s.fx) ? s.fx : []).slice(0, 10).map((f) => fx(f, false)).filter(Boolean)}; }),
+    ps: (Array.isArray(k.ps) ? k.ps : []).slice(0, 8).filter((p) => p && str(p.name).trim()).map((p) => ({name: str(p.name, 60), rank: str(p.rank, 8), e: (Array.isArray(p.e) ? p.e : String(p.e || "").split("\n")).map((t) => str(t, 200)).filter(Boolean).slice(0, 6), ic: /^K:\d{1,6}$/.test(p.ic || "") ? p.ic : ""})),
+    auto: Object.assign({stats: false, growth: false, deck: false, card: false, ps: false, attr: false}, k.auto && typeof k.auto === "object" ? Object.fromEntries(Object.entries(k.auto).map((e) => [e[0], !!e[1]])) : {})};
+  if (num(k.from)) o.from = num(k.from);
+  return o;
+}
+
+/* ---------- share codes: a kit as text to paste anywhere (packed small when the browser can) ---------- */
+const b64e = (bytes) => { let t = ""; bytes.forEach((c) => { t += String.fromCharCode(c); }); return btoa(t).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); };
+const b64d = (s) => { const t = atob(String(s).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(t, (c) => c.charCodeAt(0)); };
+async function packBytes(bytes, how) {
+  const cs = how === "c" ? new CompressionStream("deflate-raw") : new DecompressionStream("deflate-raw");
+  const out = new Response(new Blob([bytes]).stream().pipeThrough(cs));
+  return new Uint8Array(await out.arrayBuffer());
+}
+async function wsCodeOf(k) {
+  const c = wsClone(k); delete c.auto; delete c.feel;
+  const bytes = new TextEncoder().encode(JSON.stringify({fgi: 1, k: c}));
+  if (typeof CompressionStream === "function") { try { return "FGI2." + b64e(await packBytes(bytes, "c")); } catch (e) {} }
+  return "FGI1." + b64e(bytes);
+}
+async function wsReadCode(text) {
+  const m = /FGI([12])\.([A-Za-z0-9_-]+)/.exec(String(text || "").replace(/\s+/g, ""));
+  if (!m) return null;
+  try {
+    let bytes = b64d(m[2]);
+    if (m[1] === "2") { if (typeof DecompressionStream !== "function") return null; bytes = await packBytes(bytes, "d"); }
+    const j = JSON.parse(new TextDecoder().decode(bytes));
+    return j && j.fgi === 1 && j.k ? wsClean(j.k) : null;
+  } catch (e) { return null; }
+}
+
+/* ---------- the draft ---------- */
+function wsDraft() { try { const d = JSON.parse(localStorage.getItem(WS_KEY) || "null"); return d && d.k ? d : null; } catch (e) { return null; } }
+let wsSaveT = 0;
+// nav: only moving between steps, which keeps a draft of a new servant but doesn't start one for a servant you have
+function wsSaveSoon(nav) {
+  if (nav && W.id && !W.dirty) return;
+  if (!nav) { W.dirty = true; if (W.k) delete W.k.dice; }
+  clearTimeout(wsSaveT);
+  wsSaveT = setTimeout(() => {
+    if (!W.k) return;
+    try { localStorage.setItem(WS_KEY, JSON.stringify({k: W.k, step: W.step, id: W.id, copy: W.copy, art: W.art, artNew: W.artNew, sk: W.sk, seen: W.seen, t: Date.now()})); W.savedAt = Date.now(); } catch (e) {}
+    const el = document.getElementById("ws-saved"); if (el) { el.textContent = "Draft saved"; el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); }
+  }, 350);
+}
+function wsDropDraft() {
+  try { localStorage.removeItem(WS_KEY); } catch (e) {}
+  wsFreeArt(W.artNew);
+}
+// pictures uploaded for a draft that never became a servant
+function wsFreeArt(ids) {
+  if (!S.assets || !ids || !ids.length) return;
+  const used = new Set(); S.servants.forEach((x) => Object.values(x.art || {}).forEach((v) => used.add(v)));
+  ids.forEach((id) => { if (!used.has(id)) Promise.resolve().then(() => S.assets.delete(id)).catch(() => {}); });
+}
+
+/* ---------- opening and closing ---------- */
+const ws = document.createElement("div");
+ws.id = "ws"; ws.className = "ws"; ws.hidden = true; ws.setAttribute("role", "dialog"); ws.setAttribute("aria-modal", "true"); ws.setAttribute("aria-labelledby", "ws-title");
+document.body.appendChild(ws);
+function wsOpen(opts) {
+  opts = opts || {};
+  if (S.readOnly) { toast("This page is view-only for you."); return; }
+  W.back = document.activeElement; W.add = null; W.mode = ""; W.q = ""; W.code = ""; W.err = ""; W.pvOpen = false; W.dirty = false;
+  const d = wsDraft();
+  if (opts.id) {
+    const s = S.servants.find((x) => x.id === opts.id); if (!s) return;
+    if (d && d.id === s.id) { wsLoad(d); toast("Picked up your changes where you left off."); }
+    else { W.k = wsClean(s.kit || {}); W.k.name = s.name; W.id = s.id; W.copy = null; W.art = null; W.artNew = []; W.step = 1; W.sk = 0; W.seen = WS_STEPS.map((x, i) => i); }
+  } else if (opts.no) { W.k = wsFromNa(opts.no); W.id = null; W.copy = wsCopyDefault(W.k); W.art = null; W.artNew = []; W.step = 1; W.sk = 0; W.seen = WS_STEPS.map((x, i) => i); }
+  else if (d && !d.id) { wsLoad(d); W.step = 0; }
+  else { W.k = null; W.id = null; W.copy = null; W.art = null; W.artNew = []; W.step = 0; W.sk = 0; }
+  W.open = true; W.pvLv = null;
+  ws.hidden = false; document.documentElement.classList.add("ws-on");
+  const sh = document.querySelector(".shell"); if (sh) sh.inert = true;
+  wsRender(true);
+  if (opts.no) wsSaveSoon();
+  const f = ws.querySelector(W.step === 1 ? "#ws-name" : ".ws-step [data-ws], .ws-step input") || ws.querySelector(".ws-x"); if (f) f.focus({preventScroll: true});
+}
+function wsLoad(d) {
+  W.k = wsClean(d.k); if (d.k && d.k.feel === null) W.k.feel = null;
+  W.id = d.id && S.servants.some((x) => x.id === d.id) ? d.id : null;
+  W.copy = d.copy && typeof d.copy === "object" ? Object.assign(wsCopyDefault(W.k), d.copy) : (W.id ? null : wsCopyDefault(W.k));
+  W.art = typeof d.art === "string" ? d.art : null; W.artNew = Array.isArray(d.artNew) ? d.artNew.filter((x) => typeof x === "string") : [];
+  W.step = clamp(num(d.step) || 1, 0, WS_STEPS.length - 1); W.sk = clamp(num(d.sk) || 0, 0, 2);
+  W.seen = Array.isArray(d.seen) ? d.seen.filter((x) => typeof x === "number") : [];
+  W.dirty = true;
+}
+function wsClose() {
+  if (!W.open) return;
+  W.open = false; W.add = null; ws.hidden = true; ws.innerHTML = ""; document.documentElement.classList.remove("ws-on");
+  const sh = document.querySelector(".shell"); if (sh) sh.inert = false;
+  const b = W.back; W.back = null; if (b && b.isConnected && b.focus) b.focus({preventScroll: true});
+}
+function wsBegin(k, step, all) {
+  if (W.k && !W.id && W.artNew.length) wsFreeArt(W.artNew);
+  W.k = k; W.id = null; W.copy = wsCopyDefault(k); W.art = null; W.artNew = []; W.sk = 0; W.mode = ""; W.pvLv = null;
+  W.seen = all ? WS_STEPS.map((x, i) => i) : [0];
+  wsGo(step == null ? 1 : step);
+}
+function wsGo(i) {
+  W.step = clamp(i, 0, WS_STEPS.length - 1); W.add = null; W.err = ""; W.q = ""; W.mode = "";
+  if (!W.seen.includes(W.step)) W.seen.push(W.step);
+  if (W.step > 0 && !W.k) W.k = wsBlank(), W.copy = wsCopyDefault(W.k);
+  wsRender(true);
+  const m = ws.querySelector(".ws-main"); if (m) m.scrollTop = 0;
+  const h = ws.querySelector(".ws-step h3"); if (h) { h.setAttribute("tabindex", "-1"); h.focus({preventScroll: true}); }
+  wsSaveSoon(true);
+}
+
+/* ---------- drawing ---------- */
+const stepDone = (k, i) => {
+  if (!k || !W.seen.includes(i)) return false;
+  const st = WS_STEPS[i].k;
+  if (st === "who") return !!k.name.trim();
+  if (st === "stats") return k.hp[1] > 0 && k.atk[1] > 0;
+  if (st === "cards") return DECKS.includes(k.deck);
+  if (st === "np") return !!k.np.name.trim();
+  if (st === "skills") return k.sk.filter((s) => s.fx.length).length === 3;
+  if (st === "ps") return k.ps.length > 0;
+  return false;
+};
+function wsRender(full) {
+  if (!W.open) return;
+  const fk = wsFocusKey();
+  const k = W.k, st = WS_STEPS[W.step].k, nm = k && k.name.trim();
+  ws.innerHTML = `<div class="ws-veil" aria-hidden="true"></div>
+    <div class="ws-frame${k ? " has-k" : ""}" data-step="${st}" tabindex="-1">
+      <header class="ws-top">
+        <div class="ws-brand"><p class="eyebrow">Servant Workshop</p><h2 id="ws-title">${esc(nm || (W.id ? "Your servant" : "A new servant"))}</h2></div>
+        <span class="ws-saved" id="ws-saved" aria-live="polite">${W.savedAt ? "Draft saved" : ""}</span>
+        <button type="button" class="ws-x" data-ws="close" aria-label="Close the Workshop (your draft is kept)">×</button>
+      </header>
+      <nav class="ws-rail" aria-label="Steps"><ol>${WS_STEPS.map((x, i) => `<li><button type="button" data-ws="go" data-i="${i}"${i === W.step ? ' aria-current="step"' : ""}${i > 0 && !k ? " disabled" : ""} class="${stepDone(k, i) ? "done" : ""}"><span class="ws-n">${stepDone(k, i) ? "✓" : i + 1}</span><span class="ws-t">${esc(x.t)}</span></button></li>`).join("")}</ol></nav>
+      <main class="ws-main"><section class="ws-step ws-s-${st}" id="ws-step">${wsStepHTML(st)}</section></main>
+      ${k ? `<aside class="ws-pv${W.pvOpen ? " open" : ""}" id="ws-pv" aria-label="Preview">${wsCardHTML()}</aside>` : ""}
+      <footer class="ws-foot">
+        ${W.step > 0 ? `<button type="button" class="btn ghost" data-ws="go" data-i="${W.step - 1}">← Back</button>` : `<span></span>`}
+        ${k ? `<button type="button" class="btn ghost ws-pvbtn" data-ws="pv" aria-expanded="${W.pvOpen}">${W.pvOpen ? "Hide card" : "Card"}</button>` : ""}
+        <span class="ws-prog" aria-hidden="true"><i style="transform:scaleX(${(W.step / (WS_STEPS.length - 1)).toFixed(3)})"></i></span>
+        ${st === "go" || !k ? `<span></span>` : `<button type="button" class="btn primary" data-ws="go" data-i="${W.step + 1}">${esc(WS_STEPS[W.step + 1].t)} →</button>`}
+      </footer>
+      ${W.add ? wsPaletteHTML() : ""}
+    </div>`;
+  wsAfter();
+  wsRefocus(fk);
+}
+function wsRenderStep() {
+  const el = document.getElementById("ws-step"); if (!el) { wsRender(); return; }
+  el.innerHTML = wsStepHTML(WS_STEPS[W.step].k); wsAfter();
+}
+// the level on the card moved: the numbers, the level tag and the chart follow (the slider itself stays put)
+function wsLvLive() {
+  if (!W.k) return;
+  const pv = document.getElementById("ws-pv"), lv = wsPvLv(), M = maxLvOf(W.k.r), rec = wsRec();
+  if (pv) {
+    const st = pv.querySelectorAll(".ws-cstats b"); if (st.length === 2 && rec) { st[0].textContent = fmt(statAt(rec, lv, "hp")); st[1].textContent = fmt(statAt(rec, lv, "atk")); }
+    const tag = pv.querySelector(".ws-lvtag"); if (tag) tag.innerHTML = "Lv " + lv + (lv > M ? ` <img src="data:image/webp;base64,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" alt="" class="ws-grail">` : "");
+    const r = pv.querySelector("[data-ws-lv]"); if (r) { if (num(r.value) !== lv) r.value = lv; r.style.setProperty("--p", ((lv - 1) / 119 * 100).toFixed(2) + "%"); r.setAttribute("aria-valuetext", "Level " + lv + (lv > M ? ", grailed" : "")); }
+  }
+  const c = ws.querySelector('[data-live="chart"]'); if (c) c.innerHTML = wsChartHTML();
+}
+function wsFocusKey() { const a = document.activeElement; if (!a || !ws.contains(a)) return null; return a.getAttribute("data-fk") || (a.id ? "#" + a.id : null); }
+function wsRefocus(key) {
+  // whatever had focus was drawn again: the same control, else the window itself (so keys still reach it)
+  if (!key) { if (!ws.contains(document.activeElement)) { const f = ws.querySelector(".ws-frame"); if (f) f.focus({preventScroll: true}); } return; }
+  const el = key[0] === "#" ? ws.querySelector(key) : ws.querySelector(`[data-fk="${CSS.escape(key)}"]`);
+  if (el) el.focus({preventScroll: true});
+}
+// the live parts: the card, the title, the step marks and whatever the step shows that follows what you type
+function wsLive() {
+  if (!W.open || !W.k) return;
+  const t = document.getElementById("ws-title"); if (t) t.textContent = W.k.name.trim() || (W.id ? "Your servant" : "A new servant");
+  const pv = document.getElementById("ws-pv"); if (pv) pv.innerHTML = wsCardHTML();
+  ws.querySelectorAll(".ws-rail button[data-i]").forEach((b) => { const i = num(b.dataset.i), d = stepDone(W.k, i); b.classList.toggle("done", d); const n = b.querySelector(".ws-n"); if (n) n.textContent = d ? "✓" : i + 1; });
+  ws.querySelectorAll("[data-live]").forEach((el) => { const f = WS_LIVE[el.dataset.live]; if (f) el.innerHTML = f(el.dataset); });
+  wsAfter();
+}
+function wsAfter() {
+  // the chart: drag (or click) to look at a level (on the box around it, which stays while the chart is redrawn)
+  const c = ws.querySelector(".ws-chart");
+  if (c && !c._ws) { c._ws = 1; c.addEventListener("pointerdown", wsChartDown); }
+}
+
+/* ---------- the card ---------- */
+const RTIER = (r) => r >= 4 ? "gold" : r === 3 ? "silver" : "bronze";
+function wsPvLv() { return clamp(Math.round(num(W.pvLv) || (W.copy ? num(W.copy.level) : null) || maxLvOf(W.k.r)), 1, 120); }
+function wsRec() { return growthRec({growth: {type: W.k.growth, hp: W.k.hp, atk: W.k.atk}, rarity: W.k.r}); }
+function wsCardHTML() {
+  const k = W.k, r = k.r, lv = wsPvLv(), M = maxLvOf(r), rec = wsRec(), hp = rec ? statAt(rec, lv, "hp") : null, atk = rec ? statAt(rec, lv, "atk") : null;
+  const art = W.art ? artSrc(W.art) : (W.id ? (() => { const s = S.servants.find((x) => x.id === W.id), sl = s && iconSlot(s); return sl ? artSrc(artOf(s, sl)) : ""; })() : "");
+  const np = k.np, dmg = np.tg !== "Support" && np.dmg ? np.dmg[0] : null, x = EXTRA_ACC[k.cls];
+  const sks = k.sk.map((s, i) => { const nm = [s.name, s.rank].filter(Boolean).join(" "); return `<li${s.fx.length ? "" : ' class="empty"'}>${s.fx.length ? icHTML(guessIcon(fxLine(s.fx[0], np.card)) || "") : `<i class="ws-dot" aria-hidden="true"></i>`}<span>${esc(nm || "Skill " + (i + 1))}</span>${s.fx.length ? `<small>CD ${clamp(num(s.cd) || 7, 1, 20) - 2}–${clamp(num(s.cd) || 7, 1, 20)}</small>` : ""}</li>`; }).join("");
+  const grails = lv > M ? Math.min(10, lv > 100 ? 5 + Math.ceil((lv - 100) / 2) : Math.ceil((lv - M) / (M >= 90 ? 2 : 5))) : 0;
+  return `<div class="ws-card ${RTIER(r)} r${r}${x ? " extra" : ""}"${x ? ` style="--acc: rgb(${x.join(",")})"` : ""}>
+    <div class="ws-card-art">
+      ${art ? `<img class="ws-art" src="${esc(art)}" alt="" data-art="1">` : CLASS_MARK[k.cls] ? `<img class="ws-art mark" src="${CLASS_MARK[k.cls]}" alt="">` : ""}
+      <i class="ws-shine" aria-hidden="true"></i>
+      ${CLASS_LOGO[k.cls] ? `<img class="ws-cls" src="${CLASS_LOGO[k.cls]}" alt="${esc(k.cls)}">` : ""}
+      <span class="ws-stars" aria-label="${r} stars">${"★".repeat(r)}</span>
+      <span class="ws-lvtag">Lv ${lv}${grails ? ` <img src="data:image/webp;base64,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" alt="" class="ws-grail">` : ""}</span>
+    </div>
+    <div class="ws-card-body">
+      <h3 class="ws-cname">${esc(k.name.trim() || "Nameless")}</h3>
+      <p class="ws-cmeta">${esc(k.cls)} · ${esc(ATTR_LABEL[k.attr] || k.attr)}${k.order.length || k.moral.length ? " · " + esc(k.order.concat(k.moral).join(" ")) : ""}</p>
+      <div class="ws-cstats"><div><span>HP</span><b>${fmt(hp)}</b></div><div><span>ATK</span><b>${fmt(atk)}</b></div></div>
+      <label class="ws-lvrange"><span class="sr">Level on the card</span><input type="range" min="1" max="120" value="${lv}" data-ws-lv style="--m:${((M - 1) / 119 * 100).toFixed(2)}%;--p:${((lv - 1) / 119 * 100).toFixed(2)}%" aria-label="Level on the card" aria-valuetext="Level ${lv}${lv > M ? ", grailed" : ""}"></label>
+      <div class="ws-cdeck" aria-label="Deck ${esc(k.deck)}">${k.deck.split("").map((c) => `<img src="${CARD_IMG[CARD_OF[c]]}" alt="">`).join("")}</div>
+      <div class="ws-cnp"><img src="${CARD_IMG[np.card]}" alt="${esc(np.card)}"><div><b>${esc(np.name.trim() || "Noble Phantasm")}</b><small>${esc([np.rank, np.tg === "Support" ? "Support" : np.tg, dmg ? pctTxt(dmg) + " at NP1" : ""].filter(Boolean).join(" · "))}</small></div></div>
+      <ol class="ws-csk">${sks}</ol>
+      ${wsPowerHTML(true)}
+    </div>
+  </div>`;
+}
+// how they compare with NA: max ATK, max HP and NP1 damage (no buffs, a neutral enemy), against the same class and rarity
+function wsPower() {
+  const k = W.k, P = peersOf(k.cls, k.r), list = P.list, who = (P.cls ? "★" + k.r + " " + P.cls + "s" : "★" + k.r + " servants");
+  const out = [{k: "atk", t: "ATK", v: k.atk[1], arr: list.map((x) => x.atk[1]), who: who, names: list.map((x) => x.n)}, {k: "hp", t: "HP", v: k.hp[1], arr: list.map((x) => x.hp[1]), who: who, names: list.map((x) => x.n)}];
+  if (k.np.tg !== "Support" && k.np.dmg) {
+    const pm = [0, 0, 0, 0, 0]; k.ps.forEach((p) => { const v = psValue(p); if (v) pm[v.slot] += v.v; });
+    const slot = {Buster: 0, Arts: 1, Quick: 2};
+    const dmgOf = (atk, pct, card, cls, pmx) => Math.round(atk * 0.23 * pct / 100 * (NPC_CARD[card] || 1) * (1 + ((pmx || [])[slot[card]] || 0) / 100) * (NPC_CLASS_ATK[cls] || 1) * (1 + ((pmx || [])[3] || 0) / 100) + ((pmx || [])[4] || 0));
+    const same = (x) => x.np && x.np.tg === k.np.tg && (x.np.r || []).some((r) => /^damage/i.test(r[0]));
+    let peers = list.filter(same); let pw = who;
+    if (peers.length < 4) { peers = (naPeers()["*|" + k.r] || []).filter(same); pw = "★" + k.r + " servants"; }
+    const npc = (x) => { const r = x.np.r.find((q) => /^damage/i.test(q[0])), m = /(\d+(?:\.\d+)?)/.exec(String(r[1][0])); return m ? dmgOf(x.atk[1], Number(m[1]), CARD_OF[x.np.cd], x.c, x.pm) : null; };
+    const arr = peers.map(npc), ok = arr.map((v, i) => v != null ? i : -1).filter((i) => i >= 0);
+    out.push({k: "np", t: "NP1 damage", v: dmgOf(k.atk[1], k.np.dmg[0], k.np.card, k.cls, pm), arr: ok.map((i) => arr[i]), who: pw + " with " + (k.np.tg === "AoE" ? "AoE" : "single-target") + " NPs", names: ok.map((i) => peers[i].n)});
+  }
+  return out;
+}
+function pctWords(p) { return p == null ? "" : p >= 0.97 ? "Stronger than all but a few" : p <= 0.03 ? "Weaker than nearly all" : "Higher than " + Math.round(p * 100) + "%"; }
+function wsPowerHTML(small) {
+  return `<div class="ws-power${small ? " sm" : ""}">${wsPower().map((m) => {
+    const p = pctOf(m.v, m.arr), lo = Math.min(m.v, ...m.arr), hi = Math.max(m.v, ...m.arr), X = (v) => hi > lo ? (v - lo) / (hi - lo) * 100 : 50;
+    const ticks = small ? "" : m.arr.map((v, i) => `<i style="left:${X(v).toFixed(1)}%" title="${esc(m.names[i] + ": " + fmt(v))}"></i>`).join("");
+    return `<div class="ws-meter k-${m.k}"><div class="ws-mh"><span>${esc(m.t)}${small ? "" : " at max level"}</span><b>${fmt(m.v)}</b></div>
+      <div class="ws-strip" role="img" aria-label="${esc(m.t + ": " + pctWords(p) + " of " + m.who)}">${ticks}<span class="ws-bar" style="transform:scaleX(${(X(m.v) / 100).toFixed(3)})"></span><b class="you" style="left:${X(m.v).toFixed(1)}%"></b></div>
+      ${small ? "" : `<p class="ws-mp">${esc(pctWords(p))} of ${esc(m.who)} (${m.arr.length})</p>`}</div>`;
+  }).join("")}</div>`;
+}
+
+/* ---------- the steps ---------- */
+function wsStepHTML(st) {
+  if (st === "start") return wsStartHTML();
+  return ({who: wsWhoHTML, stats: wsStatsHTML, cards: wsCardsHTML, np: wsNpHTML, skills: wsSkillsHTML, ps: wsPsHTML, go: wsGoHTML})[st]();
+}
+const seg = (path, opts, cur, label, cls) => `<div class="ws-seg${cls ? " " + cls : ""}" role="group" aria-label="${esc(label)}">${opts.map((o) => { const v = Array.isArray(o) ? o[0] : o, t = Array.isArray(o) ? o[1] : o; return `<button type="button" data-ws="set" data-p="${path}" data-v="${esc(v)}" aria-pressed="${String(v) === String(cur)}" data-fk="${esc(path + "=" + v)}">${t}</button>`; }).join("")}</div>`;
+const togs = (path, opts, cur, label) => `<div class="ws-seg multi" role="group" aria-label="${esc(label)}">${opts.map((v) => `<button type="button" data-ws="tog" data-p="${path}" data-v="${esc(v)}" aria-pressed="${(cur || []).includes(v)}" data-fk="${esc(path + "~" + v)}">${esc(v)}</button>`).join("")}</div>`;
+const autoTag = (on, what) => on ? `<span class="ws-auto" title="Follows the class and rarity until you change it">usual for ${esc(what)}</span>` : "";
+function wsStartHTML() {
+  const d = wsDraft(), cur = W.k;
+  const tile = (act, ic, t, p) => `<button type="button" class="ws-tile${W.mode === act ? " on" : ""}" data-ws="${act}" aria-expanded="${W.mode === act}"><span class="ws-tic" aria-hidden="true">${ic}</span><b>${t}</b><span>${p}</span></button>`;
+  let more = "";
+  if (W.mode === "na") {
+    const q = nick(W.q), words = q.split(" ").filter(Boolean);
+    const hits = ATLAS_S.filter((x) => !words.length || words.every((w) => (" " + NICK_N.get(x.no) + " " + nname(x.c) + " ").includes(w))).slice(0, words.length ? 30 : 18);
+    more = `<div class="ws-pane"><label class="ws-lab" for="ws-naq">Find an NA servant</label><input id="ws-naq" type="search" class="field-input" data-ws-q value="${esc(W.q)}" placeholder="Name or class: Castoria, Skadi, Berserker…" autocomplete="off">
+      <ul class="pc-grid ws-nagrid">${hits.map((x) => `<li><button type="button" class="pc-card r${clamp(x.r || 1, 1, 5)}" data-ws="from-na" data-no="${x.no}" title="${esc(x.n)}" aria-label="${esc(x.n)}, ${esc(x.c)}"><span class="pc-face">${x.f ? `<img src="${esc(aimg(x.f))}" alt="" loading="lazy">` : ""}${CLASS_LOGO[x.c] ? `<img class="pc-cls" src="${CLASS_LOGO[x.c]}" alt="">` : ""}</span><span class="pc-n">${esc(x.n)}</span><span class="pc-m">${esc(x.c)} · ${"★".repeat(x.r || 0)}</span></button></li>`).join("")}</ul>
+      ${hits.length ? "" : `<p class="tr-none">No NA servant matches that.</p>`}</div>`;
+  } else if (W.mode === "code") {
+    more = `<div class="ws-pane"><label class="ws-lab" for="ws-code">Paste the share code</label><textarea id="ws-code" rows="3" data-ws-code placeholder="FGI2.…" spellcheck="false">${esc(W.code)}</textarea>
+      <div class="ws-row"><button type="button" class="btn primary" data-ws="code-go">Open it</button>${W.err ? `<p class="form-error">${esc(W.err)}</p>` : ""}</div></div>`;
+  } else if (W.mode === "blank") {
+    more = `<div class="ws-pane"><p class="ws-lab">Pick a class, then a rarity (both can change later)</p>${wsClassGrid(W.blankCls || "Saber", "blank-cls")}
+      <div class="ws-row">${[5, 4, 3, 2, 1].map((r) => `<button type="button" class="ws-rar" data-ws="blank-go" data-r="${r}"><span class="stars">${"★".repeat(r)}</span><small>max Lv ${maxLvOf(r)}</small></button>`).join("")}</div></div>`;
+  }
+  const cont = d && d.k ? `<div class="ws-draft"><p><b>Your draft:</b> ${esc((d.k.name || "").trim() || "a servant with no name yet")}${d.k.cls ? " · " + esc(d.k.cls) + " " + "★".repeat(clamp(num(d.k.r) || 0, 0, 5)) : ""}${d.id ? " (changes to a servant you have)" : ""}</p><span><button type="button" class="btn primary sm" data-ws="draft-go">Continue</button><button type="button" class="btn ghost sm" data-ws="draft-drop">Throw it away</button></span></div>` : "";
+  return `<div class="ws-hero"><h3>Make a servant of your own</h3><p>Each step starts at what NA's servants of the class and rarity usually have, so you can summon them after any step. The card on the side shows them as you go.</p></div>
+    ${cont}
+    <div class="ws-tiles">
+      ${tile("blank", "＋", "From scratch", "Pick a class and rarity. Stats, cards and passives start at the usual ones.")}
+      ${tile("na", "⟳", "From a real servant", "Start from any NA servant's kit and make it your own.")}
+      ${tile("dice", "⚄", "Surprise me", "A whole servant made up on the spot: name, NP, skills and all.")}
+      ${tile("code", "⌘", "From a share code", "A friend made one? Paste their code here.")}
+    </div>${more}`;
+}
+function wsClassGrid(cur, act) {
+  return `<div class="ws-classes" role="group" aria-label="Class">${CLASSES.map((c) => `<button type="button" class="ws-clsb" data-ws="${act}" data-v="${esc(c)}" aria-pressed="${c === cur}" data-fk="${esc(act + "=" + c)}">${CLASS_LOGO[c] ? `<img src="${CLASS_LOGO[c]}" alt="">` : ""}<span>${esc(c)}</span></button>`).join("")}</div>`;
+}
+function wsWhoHTML() {
+  const k = W.k, T = typicalOf(k.cls, k.r), trs = Array.from(new Set(COMMON_TRAITS.concat(Array.from(naTraits())))).sort();
+  const sugg = WS_TRAIT_SUGG.filter((t) => !k.traits.includes(t)).slice(0, 9);
+  return `<h3>Who they are</h3>
+    <div class="ws-namebox"><label class="ws-lab" for="ws-name">Name</label><div class="ws-row"><input id="ws-name" class="ws-bigname" type="text" data-wk="name" value="${esc(k.name)}" maxlength="80" placeholder="Their true name" autocomplete="off" spellcheck="false"><button type="button" class="btn ghost ws-dice" data-ws="dice-name" title="A random name" aria-label="A random name">⚄</button></div>${W.err ? `<p class="form-error">${esc(W.err)}</p>` : ""}</div>
+    <div class="ws-field"><p class="ws-lab">Class</p>${wsClassGrid(k.cls, "cls")}</div>
+    <div class="ws-field"><p class="ws-lab">Rarity <small class="muted">sets the max level, and the NA servants they're measured against</small></p><div class="ws-row ws-rars">${[1, 2, 3, 4, 5].map((r) => `<button type="button" class="ws-rar${r === k.r ? " on" : ""}" data-ws="set" data-p="r" data-v="${r}" data-t="num" aria-pressed="${r === k.r}" data-fk="r=${r}"><span class="stars">${"★".repeat(r)}</span><small>max Lv ${maxLvOf(r)}</small></button>`).join("")}</div></div>
+    <div class="ws-grid2">
+      <div class="ws-field"><p class="ws-lab">Attribute ${autoTag(k.auto.attr, k.cls + "s")}</p>${seg("attr", ATTRS.map((a) => [a, esc(a) + (a === T.attr ? `<i class="ws-usual" title="Most ${esc(k.cls)}s"></i>` : "")]), k.attr, "Attribute")}</div>
+      <div class="ws-field"><p class="ws-lab">Gender</p>${seg("gender", GENDERS, k.gender, "Gender")}</div>
+      <div class="ws-field"><p class="ws-lab">Alignment</p>${togs("order", ORDERS, k.order, "Order")}${togs("moral", MORALS, k.moral, "Morality")}</div>
+      <div class="ws-field"><p class="ws-lab">Traits <small class="muted">what "special attack against …" looks for</small></p>
+        <div class="ws-chips">${k.traits.map((t, i) => `<span class="ws-chip">${esc(t)}<button type="button" data-ws="trait-del" data-i="${i}" aria-label="Remove ${esc(t)}">×</button></span>`).join("") || `<span class="muted">None yet</span>`}</div>
+        <div class="ws-row"><input id="ws-trait" type="text" list="ws-traits" placeholder="Add a trait" autocomplete="off"><button type="button" class="btn sm" data-ws="trait-add">Add</button></div>
+        <datalist id="ws-traits">${trs.map((t) => `<option value="${esc(t)}"></option>`).join("")}</datalist>
+        ${sugg.length ? `<div class="ws-sugg">${sugg.map((t) => `<button type="button" class="chip" data-ws="trait-quick" data-v="${esc(t)}">+ ${esc(t)}</button>`).join("")}</div>` : ""}</div>
+    </div>
+    ${W.id ? `<p class="ws-note">Their pictures stay on their page: change them under Ascension art there.</p>` : `<div class="ws-field"><p class="ws-lab">Picture <small class="muted">optional; more stages and costumes can go on their page later</small></p>
+      <label class="ws-drop${W.art ? " has" : ""}">${W.art ? `<img src="${esc(artSrc(W.art))}" alt="">` : `<span>${S.assets ? "Drop a picture here or press to choose one" : "Pictures can't be added in this view"}</span>`}<input type="file" accept="image/*" data-ws-file${S.assets ? "" : " disabled"}></label>
+      ${W.art ? `<button type="button" class="btn ghost sm" data-ws="art-del">Remove picture</button>` : ""}</div>`}`;
+}
+function wsStatsHTML() {
+  const k = W.k, T = typicalOf(k.cls, k.r), P = peersOf(k.cls, k.r), who = P.cls ? "★" + k.r + " " + P.cls : "★" + k.r;
+  const curves = countsOf(P.list, (x) => growthTypeOf(x.gc)), cnt = (t) => (curves.find((c) => c[0] === t) || [0, 0])[1];
+  const f = k.feel, M = maxLvOf(k.r);
+  const box = (path, lab) => `<label class="ws-num"><span>${lab}</span><input type="number" min="0" max="99999" inputmode="numeric" data-wk="${path}" data-t="num" value="${esc(num(path.split(".").reduce((o, p) => o[p], k)))}"></label>`;
+  return `<h3>Stats & growth</h3>
+    <p class="ws-lede">A usual ${esc(who)} has <b>${fmt(T.hp[0])} → ${fmt(T.hp[1])} HP</b> and <b>${fmt(T.atk[0])} → ${fmt(T.atk[1])} ATK</b> from Lv 1 to Lv ${M}. ${k.auto.stats ? autoTag(true, who + "s") : `<button type="button" class="linkish" data-ws="stats-usual">Go back to the usual numbers</button>`}</p>
+    <div class="ws-feel">
+      <label class="ws-slider"><span class="ws-sl-l">Weaker</span><input type="range" min="-1" max="1" step="0.1" value="${f ? f.pow : 0}" data-ws-feel="pow" aria-label="Overall strength"><span class="ws-sl-r">Stronger</span></label>
+      <label class="ws-slider"><span class="ws-sl-l">More HP</span><input type="range" min="-1" max="1" step="0.1" value="${f ? f.bal : 0}" data-ws-feel="bal" aria-label="HP or ATK"><span class="ws-sl-r">More ATK</span></label>
+      ${f ? "" : `<p class="ws-note">You typed your own numbers; moving a slider starts again from the usual ones.</p>`}
+    </div>
+    <div class="ws-nums">${box("hp.0", "HP at Lv 1")}${box("hp.1", "HP at Lv " + M)}${box("atk.0", "ATK at Lv 1")}${box("atk.1", "ATK at Lv " + M)}</div>
+    <div data-live="meters">${wsPowerHTML(false)}</div>
+    <div class="ws-field"><p class="ws-lab">Growth curve ${autoTag(k.auto.growth, who + "s")} <small class="muted">how HP and ATK climb from Lv 1 to ${M}; grails past that are the same for everyone</small></p>
+      <div class="ws-curves" role="group" aria-label="Growth curve">${GROWTH.map((g) => `<button type="button" class="ws-curve" data-ws="set" data-p="growth" data-v="${g.k}" aria-pressed="${k.growth === g.k}" data-fk="growth=${g.k}">${wsCurveSvg(g.k, k.r)}<b>${esc(g.t)}</b><span>${esc(g.d)}</span><small>${cnt(g.k) ? cnt(g.k) + " of " + P.list.length + " " + esc(who) + "s" : "&nbsp;"}</small></button>`).join("")}</div></div>
+    <div class="ws-chart" data-live="chart">${wsChartHTML()}</div>`;
+}
+function wsCurveSvg(type, r) {
+  const c = ATLAS_CURVES[curveKey(type, r)], M = maxLvOf(r), W0 = 84, H0 = 40;
+  const pts = []; for (let l = 1; l <= M; l += Math.max(1, Math.round(M / 30))) pts.push([l, c[l - 1]]); pts.push([M, 1000]);
+  return `<svg viewBox="0 0 ${W0} ${H0}" class="ws-csvg" aria-hidden="true" focusable="false"><path d="M${pts.map((p) => ((p[0] - 1) / (M - 1) * (W0 - 4) + 2).toFixed(1) + " " + (H0 - 2 - p[1] / 1000 * (H0 - 4)).toFixed(1)).join("L")}"/></svg>`;
+}
+function wsChartHTML() {
+  const k = W.k, rec = wsRec(), M = maxLvOf(k.r), lv = wsPvLv(); if (!rec) return "";
+  const T = typicalOf(k.cls, k.r), trec = growthRec({growth: {type: k.growth, hp: T.hp, atk: T.atk}, rarity: k.r});
+  const Wd = 640, H = 230, L = 46, R = 12, Tp = 14, B = 28, line = growthLine(rec), tl = growthLine(trec);
+  const top = Math.max(...line.map((r) => Math.max(r[1], r[2])), ...tl.map((r) => Math.max(r[1], r[2]))) * 1.04;
+  const X = (l) => L + (l - 1) / 119 * (Wd - L - R), Y = (v) => H - B - v / top * (H - Tp - B);
+  const path = (ln, i) => "M" + ln.map((r) => X(r[0]).toFixed(1) + " " + Y(r[i]).toFixed(1)).join("L");
+  const step = [500, 1000, 2000, 2500, 5000, 10000].find((x) => top / x <= 5) || 20000;
+  const grid = Array.from({length: Math.floor(top / step)}, (_, i) => (i + 1) * step).map((v) => { return `<line class="g" x1="${L}" x2="${Wd - R}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}"/><text class="gy" x="${L - 6}" y="${(Y(v) + 4).toFixed(1)}">${fmt(v)}</text>`; }).join("");
+  const xs = [1, M, 100, 120].filter((v, i, a) => a.indexOf(v) === i).map((l) => `<text class="gx" x="${X(l).toFixed(1)}" y="${H - 8}">${l === 1 ? "Lv 1" : l}</text>`).join("");
+  const hp = statAt(rec, lv, "hp"), atk = statAt(rec, lv, "atk");
+  return `<svg viewBox="0 0 ${Wd} ${H}" role="img" aria-label="HP and ATK from Lv 1 to 120. At Lv ${lv}: HP ${fmt(hp)}, ATK ${fmt(atk)}." focusable="false">
+      <rect class="grz" x="${X(M).toFixed(1)}" y="${Tp}" width="${(X(120) - X(M)).toFixed(1)}" height="${H - Tp - B}"/><text class="grt" x="${((X(M) + X(120)) / 2).toFixed(1)}" y="${Tp + 14}">grails</text>
+      ${grid}${xs}
+      <path class="ty hp" d="${path(tl, 1)}"/><path class="ty atk" d="${path(tl, 2)}"/>
+      <path class="ln hp" d="${path(line, 1)}"/><path class="ln atk" d="${path(line, 2)}"/>
+      <line class="cur" x1="${X(lv).toFixed(1)}" x2="${X(lv).toFixed(1)}" y1="${Tp}" y2="${H - B}"/>
+      <circle class="dot hp" cx="${X(lv).toFixed(1)}" cy="${Y(hp).toFixed(1)}" r="4.5"/><circle class="dot atk" cx="${X(lv).toFixed(1)}" cy="${Y(atk).toFixed(1)}" r="4.5"/>
+      <rect class="hit" x="${L}" y="0" width="${Wd - L - R}" height="${H}"/>
+    </svg>
+    <p class="ws-ckey"><span><i class="hp"></i>HP <b>${fmt(hp)}</b></span><span><i class="atk"></i>ATK <b>${fmt(atk)}</b></span><span class="muted">at Lv ${lv}${lv > M ? " (grailed)" : ""} · dashed: a usual ${esc(k.cls)} · drag across to look at any level</span></p>`;
+}
+function wsChartDown(e) {
+  const box = e.currentTarget; if (!e.target.closest || !e.target.closest("svg")) return;
+  const move = (ev) => {
+    const svg = box.querySelector("svg"); if (!svg) return;
+    const r = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal, x = (ev.clientX - r.left) / r.width * vb.width;
+    W.pvLv = clamp(Math.round((x - 46) / (vb.width - 58) * 119 + 1), 1, 120); wsLvLive();
+  };
+  e.preventDefault();
+  try { box.setPointerCapture(e.pointerId); } catch (er) {}
+  move(e);
+  const up = () => { box.removeEventListener("pointermove", move); box.removeEventListener("pointerup", up); box.removeEventListener("pointercancel", up); };
+  box.addEventListener("pointermove", move); box.addEventListener("pointerup", up); box.addEventListener("pointercancel", up);
+}
+function wsCardsHTML() {
+  const k = W.k, list = naPeers()[k.cls + "|*"] || [], decks = countsOf(list, (x) => x.d), dn = (d) => (decks.find((x) => x[0] === d) || [0, 0])[1];
+  const cards = countsOf(list, (x) => CARD_OF[x.np && x.np.cd]), cn = (c) => (cards.find((x) => x[0] === c) || [0, 0])[1];
+  return `<h3>Command cards</h3>
+    <div class="ws-field"><p class="ws-lab">Deck ${autoTag(k.auto.deck, k.cls + "s")} <small class="muted">the five cards they bring to every turn</small></p>
+      <div class="ws-decks" role="group" aria-label="Deck">${DECKS.map((d) => `<button type="button" class="ws-deck" data-ws="set" data-p="deck" data-v="${d}" aria-pressed="${k.deck === d}" data-fk="deck=${d}"><span class="ws-dcards">${d.split("").map((c) => `<img src="${CARD_IMG[CARD_OF[c]]}" alt="">`).join("")}</span><b>${["Quick", "Arts", "Buster"].map((c) => { const n = d.split("").filter((x) => CARD_OF[x] === c).length; return n + " " + c; }).join(" · ")}</b><small>${dn(d) ? dn(d) + " of " + list.length + " " + esc(k.cls) + "s" : "&nbsp;"}</small></button>`).join("")}</div></div>
+    <div class="ws-field"><p class="ws-lab">Noble Phantasm card ${autoTag(k.auto.card, k.cls + "s")}</p>
+      <div class="ws-npcards" role="group" aria-label="Noble Phantasm card">${CARDS.map((c) => `<button type="button" class="ws-npcard c-${c.toLowerCase()}" data-ws="set" data-p="np.card" data-v="${c}" aria-pressed="${k.np.card === c}" data-fk="np.card=${c}"><img src="${CARD_IMG[c]}" alt=""><b>${c}</b><small>${cn(c) ? cn(c) + " " + esc(k.cls) + "s" : "&nbsp;"}</small></button>`).join("")}</div></div>
+    <div class="ws-field"><p class="ws-lab">Who the Noble Phantasm hits</p>${seg("np.tg", [["AoE", "All enemies"], ["Single Target", "One enemy"], ["Support", "Nobody: it's a support NP"]], k.np.tg, "Noble Phantasm target", "big")}</div>
+    <p class="ws-note">Damage follows the card and the target: ${k.np.tg === "Support" ? "a support NP deals none." : `${esc(k.np.card)} ${k.np.tg === "AoE" ? "AoE" : "single-target"} starts at ${pctTxt((npStdDmg(k.np.tg, k.np.card, false) || [0])[0])} at NP1. Change it on the next step.`}</p>`;
+}
+function wsNpHTML() {
+  const k = W.k, np = k.np, sup = np.tg === "Support";
+  return `<h3>Noble Phantasm</h3>
+    <div class="ws-grid2">
+      <label class="ws-f"><span class="ws-lab">Name</span><div class="ws-row"><input type="text" data-wk="np.name" value="${esc(np.name)}" maxlength="80" placeholder="e.g. ${esc(WS_NP_A[0] + " " + WS_NP_B[0])}" autocomplete="off"><button type="button" class="btn ghost ws-dice" data-ws="dice-np" title="A random name" aria-label="A random NP name">⚄</button></div></label>
+      <label class="ws-f"><span class="ws-lab">Second name or reading <small class="muted">optional</small></span><input type="text" data-wk="np.sub" value="${esc(np.sub)}" maxlength="80" autocomplete="off"></label>
+    </div>
+    <div class="ws-grid3">
+      <div class="ws-field"><p class="ws-lab">Rank</p>${seg("np.rank", NP_RANKS, np.rank, "Rank", "wrap")}</div>
+      <label class="ws-f"><span class="ws-lab">Type</span><select data-wk="np.type">${NP_TYPES.concat(np.type && !NP_TYPES.includes(np.type) ? [np.type] : []).map((t) => `<option${t === np.type ? " selected" : ""}>${esc(t)}</option>`).join("")}</select></label>
+      ${sup ? "" : `<label class="ws-f"><span class="ws-lab">Hits</span><input type="number" min="1" max="15" data-wk="np.hits" data-t="num" value="${esc(np.hits)}"></label>`}
+    </div>
+    <p class="ws-note ws-npnote">${esc(np.card)} card · ${sup ? "a support Noble Phantasm" : np.tg === "AoE" ? "hits all enemies" : "hits one enemy"} <button type="button" class="linkish" data-ws="go" data-i="3">change on Cards</button></p>
+    ${sup ? "" : `<div class="ws-field"><p class="ws-lab">Damage by NP level</p>
+      ${seg("np.mode", [["std", "Standard"], ["up", "Upgraded"], ["own", "My own numbers"]], np.mode, "Damage numbers")}
+      <div class="ws-five">${[0, 1, 2, 3, 4].map((i) => `<label><span>NP${i + 1}</span><input type="number" min="0" max="99999" step="0.5" data-wk="np.dmg.${i}" data-t="num" value="${esc(np.dmg[i])}"><i>%</i></label>`).join("")}</div>
+      <label class="chk ws-chk"><input type="checkbox" data-ws-se${np.se ? " checked" : ""}> Extra damage against a trait (grows with Overcharge)</label>
+      ${np.se ? `<div class="ws-se"><label class="ws-mini wide"><span>Against</span><input type="text" list="ws-vs" data-wk="np.se.vs" value="${esc(np.se.vs)}" placeholder="Dragon, Divine, Saber…" autocomplete="off"></label>
+        <div class="ws-five">${[0, 1, 2, 3, 4].map((i) => `<label><span>${(i + 1) * 100}%</span><input type="number" min="100" max="9999" step="0.5" data-wk="np.se.vals.${i}" data-t="num" value="${esc(np.se.vals[i])}"><i>%</i></label>`).join("")}</div></div>` : ""}
+    </div>`}
+    <div class="ws-field"><p class="ws-lab">${sup ? "What it does" : "What else it does"}</p>
+      <ol class="ws-fxs">${np.fx.map((f, i) => wsFxRowHTML(f, "np", 0, i)).join("")}</ol>
+      <button type="button" class="btn ws-addfx" data-ws="fx-add" data-w="np">+ Add an effect</button></div>
+    <datalist id="ws-vs">${WS_VS.map((v) => `<option value="${esc(v)}"></option>`).join("")}</datalist>
+    <div class="ws-field"><p class="ws-lab">On their page it reads</p><div class="ws-nppv" data-live="nppv">${wsNpPvHTML()}</div></div>`;
+}
+function wsNpPvHTML() {
+  const d = kitDerive(W.k), V = d.npTable.v[0], card = V.card;
+  const tr = (r, oc) => `<tr${oc ? ' class="oc"' : ""}><th>${esc(r.label)}</th>${r.vals.map((v) => `<td>${esc(v)}</td>`).join("")}</tr>`;
+  return `<div class="ws-npt c-${card.toLowerCase()}"><div class="ws-npt-h"><img src="${CARD_IMG[card]}" alt=""><div><b>${esc(V.name || "Noble Phantasm")}</b><small>${esc([V.sub, V.rank && "Rank " + V.rank, V.type, W.k.np.tg === "Support" ? "" : V.hits + (V.hits === "1" ? " hit" : " hits")].filter(Boolean).join(" · "))}</small></div></div>
+    <div class="effect">${iconLinesHTML({id: "ws-preview"}, V.effect, true) || `<span class="muted">No effects yet.</span>`}</div>
+    ${V.rows.length ? `<table class="ws-ntab"><thead><tr><th></th>${[1, 2, 3, 4, 5].map((i) => `<th>NP${i}</th>`).join("")}</tr></thead><tbody>${V.rows.map((r) => tr(r)).join("")}</tbody></table>` : ""}
+    ${V.oc ? `<div class="effect oc">${iconLinesHTML({id: "ws-preview"}, V.oc, true)}</div>` : ""}
+    ${V.ocRows.length ? `<table class="ws-ntab oc"><thead><tr><th>Overcharge</th>${[1, 2, 3, 4, 5].map((i) => `<th>${i * 100}%</th>`).join("")}</tr></thead><tbody>${V.ocRows.map((r) => tr(r, true)).join("")}</tbody></table>` : ""}</div>`;
+}
+// one effect, with what can be set on it
+function wsFxRowHTML(f, w, si, i) {
+  const def = FX_BY[f.e] || FX_BY.own, base = w === "np" ? "np.fx." + i : "sk." + si + ".fx." + i, card = W.k.np.card;
+  const line = fxLine(f, card), unit = def.u === "damage" ? "" : def.u === "%" ? "%" : def.u ? " " + def.u : "";
+  const ctl = [];
+  if (def.tgs) ctl.push(seg(base + ".tg", def.tgs.split("").map((t) => [t, esc(FX_TG[t].t)]), f.tg, "Who it's for", "sm"));
+  if (def.card) ctl.push(seg(base + ".card", CARDS, f.card, "Card", "sm"));
+  if (def.vsPick) ctl.push(`<label class="ws-mini wide"><span>Against</span><input type="text" list="ws-vs" data-wk="${base}.vs" value="${esc(f.vs || "")}" placeholder="Dragon, Saber, Earth…" autocomplete="off"></label>`);
+  if (def.k === "own") ctl.push(`<label class="ws-mini wide"><span>It reads</span><input type="text" data-wk="${base}.txt" value="${esc(f.txt || "")}" maxlength="200" placeholder="Increase your … (3 turns)" autocomplete="off"></label><label class="ws-mini"><span>Value's name</span><input type="text" data-wk="${base}.l" value="${esc(f.l || "")}" maxlength="40" placeholder="optional" autocomplete="off"></label>`);
+  if (w === "sk" && def.v) ctl.push(`<span class="ws-lv1">${wsNumIn(base + ".v.0", f.v[0], "Lv 1")}<span class="ws-arrow" aria-hidden="true">→</span>${wsNumIn(base + ".v.1", f.v[1], "Lv 10")}<span class="ws-unit">${esc(unit.trim())}</span></span>`);
+  if (w === "sk" && def.k === "own") ctl.push(`<span class="ws-lv1">${wsNumIn(base + ".v1", f.v1, "Lv 1")}<span class="ws-arrow" aria-hidden="true">→</span>${wsNumIn(base + ".v10", f.v10, "Lv 10")}<select data-wk="${base}.u" aria-label="Unit">${["", "%", "HP", "stars", "turns", "times", "damage"].map((u) => `<option value="${u}"${(f.u || "") === u ? " selected" : ""}>${u || "no unit"}</option>`).join("")}</select></span>`);
+  if (w === "np") {
+    ctl.push(seg(base + ".when", [["pre", "Before damage"], ["post", "After damage"]], f.when, "When", "sm"));
+    if (def.v || def.k === "own") ctl.push(seg(base + ".by", [["np", "Grows with NP level"], ["oc", "Grows with Overcharge"], ["fix", "Always the same"]], f.by, "What it grows with", "sm"));
+    if ((def.v || def.k === "own") && f.by !== "fix") ctl.push(`<div class="ws-five sm">${[0, 1, 2, 3, 4].map((j) => `<label><span>${f.by === "oc" ? (j + 1) * 100 + "%" : "NP" + (j + 1)}</span><input type="number" step="0.5" data-wk="${base}.vals.${j}" data-t="num" value="${esc((f.vals || [])[j] ?? "")}"><i>${esc(unit.trim())}</i></label>`).join("")}</div>`);
+  }
+  if (def.d != null && def.d !== 0 || num(f.d) > 0) ctl.push(wsNumIn(base + ".d", f.d, "Turns", "0", "20"));
+  if (def.n != null) ctl.push(wsNumIn(base + ".n", f.n, "Times", "0", "20"));
+  return `<li class="ws-fx"><span class="ws-fx-ic" data-live="fxic" data-p="${base}">${icHTML(guessIcon(line)) || `<i class="ws-dot"></i>`}</span>
+    <div class="ws-fx-main"><div class="ws-fx-top"><button type="button" class="ws-fx-name" data-ws="fx-change" data-w="${w}" data-si="${si}" data-i="${i}" title="Change the effect">${esc(def.t)} ▾</button><span class="ws-fx-line" data-live="fxline" data-p="${base}">${esc(line)}</span></div>
+      <div class="ws-fx-ctl">${ctl.join("")}</div></div>
+    <span class="ws-fx-ord"><button type="button" data-ws="fx-up" data-w="${w}" data-si="${si}" data-i="${i}" aria-label="Move up"${i ? "" : " disabled"}>↑</button><button type="button" class="ws-fx-x" data-ws="fx-del" data-w="${w}" data-si="${si}" data-i="${i}" aria-label="Remove ${esc(def.t)}">×</button></span></li>`;
+}
+const wsNumIn = (path, v, lab, min, max) => `<label class="ws-mini"><span>${lab}</span><input type="number" step="any" data-wk="${path}" data-t="num" value="${esc(v ?? "")}"${min != null ? ` min="${min}"` : ""}${max != null ? ` max="${max}"` : ""}></label>`;
+function wsSkillsHTML() {
+  const k = W.k, i = W.sk, s = k.sk[i];
+  const tabs = k.sk.map((x, j) => `<button type="button" role="tab" data-ws="sk-tab" data-i="${j}" aria-selected="${j === i}" data-fk="sk-tab=${j}"><small>Skill ${j + 1}</small><b>${esc([x.name, x.rank].filter(Boolean).join(" ") || "Not made yet")}</b>${x.fx.length ? `<i class="ws-fxn">${x.fx.length}</i>` : ""}</button>`).join("");
+  const cd = clamp(num(s.cd) || 7, 1, 20);
+  return `<h3>Skills</h3>
+    <div class="ws-sktabs" role="tablist" aria-label="Skills">${tabs}</div>
+    <div class="ws-grid3 ws-skhead">
+      <label class="ws-f wide"><span class="ws-lab">Name</span><input type="text" data-wk="sk.${i}.name" value="${esc(s.name)}" maxlength="60" placeholder="e.g. Charisma" autocomplete="off"></label>
+      <label class="ws-f"><span class="ws-lab">Rank</span><input type="text" list="ws-skranks" data-wk="sk.${i}.rank" value="${esc(s.rank)}" maxlength="8" placeholder="A+" autocomplete="off" spellcheck="false"></label>
+      <div class="ws-field"><p class="ws-lab">Cooldown <small class="muted">at Lv 1 → 6 → 10: ${cd} → ${Math.max(0, cd - 1)} → ${Math.max(0, cd - 2)}</small></p>${seg("sk." + i + ".cd", [5, 6, 7, 8, 9, 10], cd, "Cooldown", "sm")}</div>
+    </div>
+    <datalist id="ws-skranks">${SK_RANKS.map((r) => `<option value="${r}"></option>`).join("")}</datalist>
+    <ol class="ws-fxs">${s.fx.map((f, j) => wsFxRowHTML(f, "sk", i, j)).join("")}</ol>
+    <div class="ws-row"><button type="button" class="btn ws-addfx" data-ws="fx-add" data-w="sk" data-si="${i}">+ Add an effect</button>${s.fx.length ? "" : `<span class="muted">or start from a classic:</span>`}</div>
+    ${s.fx.length ? `<details class="ws-presets"><summary>Start this skill from a classic</summary>${wsPresetsHTML(i)}</details>` : wsPresetsHTML(i)}
+    <datalist id="ws-vs">${WS_VS.map((v) => `<option value="${esc(v)}"></option>`).join("")}</datalist>
+    <div class="ws-field"><p class="ws-lab">On their page it reads <small class="muted">at skill level ${W.copy ? W.copy.skills[i] : 10}</small></p><div class="skills ws-skpv" data-live="skpv">${wsSkPvHTML()}</div></div>`;
+}
+function wsPresetsHTML(i) {
+  return `<div class="ws-presets-l">${WS_SK_PRESETS.map((p, j) => `<button type="button" class="ws-preset" data-ws="sk-preset" data-i="${i}" data-j="${j}"><b>${esc(p.name)} ${esc(p.rank)}</b><small>${esc(p.fx.map((x) => FX_BY[x.e].t).join(" + "))}</small></button>`).join("")}</div>`;
+}
+function wsTemp() {
+  const d = kitDerive(W.k), c = W.copy || {skills: [10, 10, 10]};
+  return Object.assign({id: "ws-preview", name: W.k.name, skills: c.skills.slice(), level: wsPvLv()}, d);
+}
+function wsSkPvHTML() {
+  const t = wsTemp();
+  return skillHTML(t, W.sk, t.skillInfo, 0).replace(/<button type="button" class="lv-toggle"[\s\S]*?<\/button>/, "");
+}
+function wsPsHTML() {
+  const k = W.k, mine = new Set(k.ps.map((p) => p.name)), sugg = psFor(k.cls).filter((p) => !mine.has(p.name));
+  const q = nname(W.q), found = q ? psLib().filter((p) => nname(p.name).includes(q) && !mine.has(p.name)).slice(0, 12) : [];
+  const row = (p, i) => { const v = psValue(p); return `<li class="ws-ps">${p.ic && GAME_ICONS.has(p.ic) ? icHTML(p.ic, "ws-psic") : icHTML(guessIcon((p.e || [])[0] || "") || "", "ws-psic") || `<i class="ws-dot"></i>`}
+    <div class="ws-ps-m"><div class="ws-row"><b>${esc(p.name)}</b><select data-wk="ps.${i}.rank" aria-label="${esc(p.name)} rank">${[""].concat(PS_RANKS).map((r) => `<option value="${r}"${(p.rank || "") === r ? " selected" : ""}>${r || "no rank"}</option>`).join("")}</select>${v ? `<span class="ws-psv">${v.u === "%" ? "+" + v.v + "%" : "+" + v.v} counted in NP damage</span>` : ""}</div>
+      <p>${esc(psLines(p).join(" · ") || "No effect text")}</p></div>
+    <button type="button" class="ws-fx-x" data-ws="ps-del" data-i="${i}" aria-label="Remove ${esc(p.name)}">×</button></li>`; };
+  return `<h3>Passive skills</h3>
+    <p class="ws-lede">Class skills that are always on. ${k.auto.ps ? autoTag(true, k.cls + "s") : ""}</p>
+    <ol class="ws-pss">${k.ps.map(row).join("") || `<li class="muted">None yet.</li>`}</ol>
+    ${sugg.length ? `<div class="ws-field"><p class="ws-lab">Usual for ${esc(k.cls)}s</p><div class="ws-sugg">${sugg.map((p) => `<button type="button" class="chip" data-ws="ps-add" data-v="${esc(p.name)}" data-r="${esc(p.rank)}" title="${esc(p.e.join(" · "))}">+ ${esc(p.name)} ${esc(p.rank)} <small>${p.n}</small></button>`).join("")}</div></div>` : ""}
+    <div class="ws-field"><label class="ws-lab" for="ws-psq">Any passive from NA</label><input id="ws-psq" type="search" data-ws-q value="${esc(W.q)}" placeholder="Divinity, Riding, Self-Restoration…" autocomplete="off">
+      ${found.length ? `<div class="ws-sugg">${found.map((p) => `<button type="button" class="chip" data-ws="ps-add" data-v="${esc(p.name)}" data-r="${esc(Object.keys(p.ranks).sort((a, b) => p.ranks[b] - p.ranks[a])[0] || "")}" title="${esc(p.e.join(" · "))}">+ ${esc(p.name)}</button>`).join("")}</div>` : q ? `<p class="muted">No NA passive by that name. Make your own below.</p>` : ""}</div>
+    <details class="ws-own"${q && !found.length ? " open" : ""}><summary>Make your own passive</summary>
+      <div class="ws-grid2"><label class="ws-f"><span class="ws-lab">Name</span><input id="ws-psn" type="text" maxlength="60" value="${esc(W.q)}" autocomplete="off"></label><label class="ws-f"><span class="ws-lab">Rank</span><input id="ws-psr" type="text" maxlength="8" list="ws-skranks" autocomplete="off"></label></div>
+      <label class="ws-f"><span class="ws-lab">What it does</span><input id="ws-pse" type="text" maxlength="200" placeholder="Increase your Critical Strength" autocomplete="off"></label>
+      <datalist id="ws-skranks">${SK_RANKS.map((r) => `<option value="${r}"></option>`).join("")}</datalist>
+      <button type="button" class="btn sm" data-ws="ps-own">Add it</button></details>`;
+}
+function wsGoHTML() {
+  const k = W.k, c = W.copy, M = maxLvOf(k.r), nm = k.name.trim();
+  const checks = [
+    [!!nm, nm ? "Named " + nm : "No name yet", 1],
+    [true, k.cls + ", " + "★".repeat(k.r) + ", " + GROWTH_BY[k.growth].t + " growth", 2],
+    [!!k.np.name.trim(), k.np.name.trim() ? "Noble Phantasm: " + k.np.name.trim() : "Their Noble Phantasm has no name", 4],
+    [k.sk.every((s) => s.fx.length), k.sk.filter((s) => s.fx.length).length + " of 3 skills do something", 5],
+    [k.ps.length > 0, k.ps.length ? k.ps.length + " passive" + (k.ps.length === 1 ? "" : "s") : "No passives", 6]
+  ];
+  return `<h3>${W.id ? "Save " + esc(nm || "them") : "Ready to summon " + esc(nm || "them")}</h3>
+    <ul class="ws-checks">${checks.map((x) => `<li class="${x[0] ? "ok" : "todo"}"><span aria-hidden="true">${x[0] ? "✓" : "!"}</span>${esc(x[1])}${x[0] ? "" : ` <button type="button" class="linkish" data-ws="go" data-i="${x[2]}">fix</button>`}</li>`).join("")}</ul>
+    <div class="ws-field"><p class="ws-lab">Against NA's servants</p><div data-live="meters">${wsPowerHTML(false)}</div></div>
+    ${W.id ? "" : `<fieldset class="ws-copy"><legend>Your copy</legend>
+      <div class="ws-grid2">
+        <label class="ws-f"><span class="ws-lab">Level <output data-live="lvout">${c.level}</output></span><input type="range" min="1" max="120" data-wc="level" value="${c.level}" style="--m:${((M - 1) / 119 * 100).toFixed(2)}%"></label>
+        <div class="ws-field"><p class="ws-lab">NP level</p><div class="ws-seg" role="group" aria-label="NP level">${[1, 2, 3, 4, 5].map((n) => `<button type="button" data-ws="copy" data-p="np" data-v="${n}" aria-pressed="${c.np === n}" data-fk="cnp=${n}">NP${n}</button>`).join("")}</div></div>
+        <div class="ws-field"><p class="ws-lab">Skill levels</p><div class="ws-row">${[0, 1, 2].map((i) => `<select data-wc="skills.${i}" aria-label="Skill ${i + 1} level">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((v) => `<option${c.skills[i] === v ? " selected" : ""}>${v}</option>`).join("")}</select>`).join("")}</div></div>
+        <div class="ws-field"><p class="ws-lab">Fou</p><div class="ws-row"><label class="ws-mini"><span>HP</span><input type="number" min="0" max="2000" step="10" data-wc="fouHp" value="${c.fouHp}"></label><label class="ws-mini"><span>ATK</span><input type="number" min="0" max="2000" step="10" data-wc="fouAtk" value="${c.fouAtk}"></label></div></div>
+      </div>
+      <div class="ws-field"><p class="ws-lab">Where they go</p>${`<div class="ws-seg big" role="group" aria-label="Where they go"><button type="button" data-ws="copy" data-p="wish" data-v="0" aria-pressed="${!c.wish}">Summon them to my roster</button><button type="button" data-ws="copy" data-p="wish" data-v="1" aria-pressed="${!!c.wish}">Keep them in Guests</button></div>`}</div>
+    </fieldset>`}
+    <div class="ws-go">
+      <button type="button" class="btn primary ws-summon" data-ws="save">${W.id ? "Save changes" : c.wish ? "Add " + esc(nm || "them") + " to Guests" : "Summon " + esc(nm || "them")}</button>
+      <button type="button" class="btn" data-ws="save-vs">${W.id ? "Save and compare" : "Summon and compare"} with an NA servant</button>
+      <button type="button" class="btn ghost" data-ws="share">Copy a share code</button>
+      ${k.dice && !W.id ? `<button type="button" class="btn ghost" data-ws="dice" title="Throw this one away and make up another">⚄ Roll again</button>` : ""}
+    </div>
+    ${W.err ? `<p class="form-error">${esc(W.err)}</p>` : ""}
+    <p class="ws-note">${W.id ? "Their level, Bond, pictures and notes stay as they are." : "Change anything later: open them in the Workshop from their page."} A share code holds everything above but the picture; a friend opens it with From a share code.</p>`;
+}
+// the effect list to pick from
+function wsPaletteBody() {
+  const q = nname(W.add.q || ""), ok = (f) => !q || nname(f.t + " " + (f.l || "") + " " + f.g).includes(q) || (f.k === "own");
+  const groups = FX_GROUPS.map((g) => { const list = FX.filter((f) => f.g === g[0] && ok(f)); return list.length ? `<section><h4>${esc(g[1])}</h4><div class="ws-pal-g">${list.map((f) => { const sample = f.line({pos: "your", obj: "yourself", card: W.k.np.card, vs: "Dragon", txt: ""}) || ""; return `<button type="button" data-ws="fx-pick" data-e="${f.k}">${icHTML(guessIcon(sample)) || `<i class="ws-dot"></i>`}<span>${esc(f.t)}</span></button>`; }).join("")}</div></section>` : ""; }).join("");
+  return groups;
+}
+function wsPaletteHTML() {
+  return `<div class="ws-pal" role="dialog" aria-modal="true" aria-label="Pick an effect"><div class="ws-pal-veil" data-ws="pal-close"></div><div class="ws-pal-p">
+    <header><b>${W.add.i != null ? "Change the effect" : "Add an effect"}</b><button type="button" class="ws-x" data-ws="pal-close" aria-label="Close">×</button></header>
+    <input type="search" class="field-input" data-ws-palq value="${esc(W.add.q || "")}" placeholder="Search: ATK, NP, heal, stun…" autocomplete="off" aria-label="Search effects">
+    <div class="ws-pal-b">${wsPaletteBody()}</div></div></div>`;
+}
+const WS_LIVE = {
+  meters: () => wsPowerHTML(false),
+  chart: () => wsChartHTML(),
+  nppv: () => wsNpPvHTML(),
+  skpv: () => wsSkPvHTML(),
+  lvout: () => String(W.copy ? W.copy.level : ""),
+  fxline: (d) => { const f = wsAt(d.p); return f ? esc(fxLine(f, W.k.np.card)) : ""; },
+  fxic: (d) => { const f = wsAt(d.p); return f ? icHTML(guessIcon(fxLine(f, W.k.np.card))) || `<i class="ws-dot"></i>` : ""; }
+};
+
+/* ---------- changing the kit ---------- */
+function wsAt(path) { return String(path).split(".").reduce((o, p) => (o == null ? o : o[p]), W.k); }
+function wsSet(path, v) {
+  const ps = String(path).split("."), last = ps.pop(), o = ps.reduce((x, p) => (x == null ? x : x[p]), W.k);
+  if (o != null) o[last] = v;
+}
+// what a change means beyond itself: parts stop following the class once you set them
+function wsChanged(path) {
+  const k = W.k, A = k.auto;
+  if (/^(?:hp|atk)\./.test(path)) { A.stats = false; k.feel = null; }
+  if (path === "growth") A.growth = false;
+  if (path === "deck") A.deck = false;
+  if (path === "attr") A.attr = false;
+  if (path === "np.card" || path === "np.tg") {
+    A.card = false;
+    if (path === "np.tg") { k.np.type = k.np.tg === "AoE" ? "Anti-Army" : k.np.tg === "Support" ? "Barrier" : "Anti-Unit"; k.np.hits = k.np.tg === "AoE" ? 3 : 5; if (k.np.tg === "Support") k.np.se = null; else if (!k.np.dmg || k.np.mode === "own") k.np.mode = "std"; }
+    wsNpDmg();
+  }
+  if (path === "np.mode") { k.np.up = k.np.mode === "up"; wsNpDmg(); }
+  if (/^np\.dmg\./.test(path)) { k.np.mode = "own"; }
+  if (path === "cls" || path === "r") wsRetune();
+  if (/^ps\./.test(path)) A.ps = false;
+  wsSaveSoon();
+}
+function wsVal(el) {
+  if (el.dataset.t === "num") { const v = el.value.trim(); return v === "" ? null : num(v); }
+  return el.value;
+}
+ws.addEventListener("input", (e) => {
+  const t = e.target;
+  if (t.dataset.wk != null) {
+    const p = t.dataset.wk; wsSet(p, wsVal(t)); wsChanged(p);
+    // a change that moves numbers elsewhere on the step draws the step again; anything typed only refreshes what follows it
+    wsLive();
+    if (/^np\.dmg\./.test(p)) { const s = ws.querySelector('[data-p="np.mode"][data-v="own"]'); if (s && s.getAttribute("aria-pressed") !== "true") ws.querySelectorAll('[data-p="np.mode"]').forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === "own"))); }
+    if (/^(?:hp|atk)\./.test(p)) { ws.querySelectorAll("[data-ws-feel]").forEach((r) => { r.value = 0; }); }
+    return;
+  }
+  if (t.dataset.wsFeel != null) {
+    const k = W.k; if (!k.feel) k.feel = {bal: 0, pow: 0};
+    k.feel[t.dataset.wsFeel] = num(t.value) || 0; k.auto.stats = false; wsFeelStats(k);
+    ws.querySelectorAll(".ws-nums input[data-wk]").forEach((i) => { i.value = wsAt(i.dataset.wk); });
+    wsLive(); wsSaveSoon(); return;
+  }
+  if (t.dataset.wsLv != null) { W.pvLv = num(t.value); wsLvLive(); return; }
+  if (t.dataset.wc != null) {
+    const p = t.dataset.wc, v = num(t.value); if (v == null) return;
+    if (p.startsWith("skills.")) W.copy.skills[num(p.split(".")[1])] = clamp(v, 1, 10);
+    else W.copy[p] = p === "level" ? clamp(Math.round(v), 1, 120) : clamp(v, 0, 2000);
+    if (p === "level") W.pvLv = null;
+    wsLive(); wsSaveSoon(); return;
+  }
+  if (t.dataset.wsQ != null) { W.q = t.value; const pos = t.selectionStart; wsRenderStep(); const n = ws.querySelector("[data-ws-q]"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (er) {} } return; }
+  if (t.dataset.wsPalq != null) { W.add.q = t.value; const b = ws.querySelector(".ws-pal-b"); if (b) b.innerHTML = wsPaletteBody(); return; }
+  if (t.dataset.wsCode != null) { W.code = t.value; return; }
+});
+ws.addEventListener("change", (e) => {
+  const t = e.target;
+  if (t.dataset.wsSe != null) { W.k.np.se = t.checked ? {vs: "", vals: SE_STD.slice()} : null; wsSaveSoon(); wsRender(); return; }
+  if (t.dataset.wsFile != null && t.files && t.files[0]) { wsUpload(t.files[0]); t.value = ""; return; }
+  if (t.dataset.wk === "np.type" || /\.rank$|\.u$/.test(t.dataset.wk || "")) { wsLive(); return; }
+});
+ws.addEventListener("dragover", (e) => { const d = e.target.closest && e.target.closest(".ws-drop"); if (d) { e.preventDefault(); d.classList.add("over"); } });
+ws.addEventListener("dragleave", (e) => { const d = e.target.closest && e.target.closest(".ws-drop"); if (d) d.classList.remove("over"); });
+ws.addEventListener("drop", (e) => { const d = e.target.closest && e.target.closest(".ws-drop"); if (!d) return; e.preventDefault(); d.classList.remove("over"); const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) wsUpload(f); });
+async function wsUpload(file) {
+  if (!S.assets || S.readOnly) { toast("Pictures can't be added in this view."); return; }
+  if (!/^image\//.test(file.type || "")) { toast("That file isn't an image."); return; }
+  const blob = await shrink(file);
+  let r = null;
+  try { r = await S.assets.upload(blob, {type: blob.type || file.type}); } catch (e) { uploadFailed(e); return; }
+  if (!r) return;
+  S.urlCache[r.id] = r.url;
+  if (W.art && W.artNew.includes(W.art)) { const old = W.art; W.artNew = W.artNew.filter((x) => x !== old); wsFreeArt([old]); }
+  W.art = r.id; W.artNew.push(r.id); wsSaveSoon(); wsRender();
+}
+document.addEventListener("keydown", (e) => {
+  if (!W.open || e.key !== "Escape" || !spk.hidden) return;
+  e.preventDefault(); if (W.add) { W.add = null; wsRender(); } else if (W.pvOpen) { W.pvOpen = false; wsRender(); } else wsClose();
+});
+ws.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && e.target.id === "ws-trait") { e.preventDefault(); wsAddTrait(e.target.value); return; }
+  if (e.key === "Enter" && e.target.dataset && e.target.dataset.wsPalq != null) { const b = ws.querySelector(".ws-pal [data-ws='fx-pick']"); if (b) b.click(); e.preventDefault(); }
+});
+function wsAddTrait(v) {
+  const t = normTrait(v); if (!t) return;
+  if (t === "Female" || t === "Male") { W.k.gender = t; } else if (!W.k.traits.includes(t)) W.k.traits.push(t);
+  wsSaveSoon(); wsRender(); const i = document.getElementById("ws-trait"); if (i) i.focus();
+}
+ws.addEventListener("click", async (e) => {
+  const b = e.target.closest && e.target.closest("[data-ws]"); if (!b || !ws.contains(b) || b.disabled) return;
+  const a = b.dataset.ws, k = W.k;
+  if (a === "close") { wsClose(); return; }
+  if (a === "go") { const i = num(b.dataset.i); if (i === 1 && !k) return; wsGo(i); return; }
+  if (a === "pv") { W.pvOpen = !W.pvOpen; wsRender(); return; }
+  if (a === "blank" || a === "na" || a === "code") { W.mode = W.mode === a ? "" : a; W.q = ""; W.err = ""; wsRender(); const f = ws.querySelector(a === "na" ? "#ws-naq" : a === "code" ? "#ws-code" : ".ws-pane button"); if (f) f.focus(); return; }
+  if (a === "blank-cls") { ws.querySelectorAll('[data-ws="blank-cls"]').forEach((x) => x.setAttribute("aria-pressed", String(x === b))); W.blankCls = b.dataset.v; return; }
+  if (a === "blank-go") { const k2 = wsBlank(W.blankCls || "Saber", num(b.dataset.r)); W.blankCls = null; wsBegin(k2); return; }
+  if (a === "dice") { const k2 = wsRandomKit(); wsBegin(k2, 7, true); ws.querySelector(".ws-card") && ws.querySelector(".ws-card").classList.add("roll"); toast("Meet " + k2.name + ". Roll again from Start, or change anything."); return; }
+  if (a === "from-na") { const k2 = wsFromNa(b.dataset.no); if (k2) wsBegin(k2, 1, true); return; }
+  if (a === "code-go") { const k2 = await wsReadCode(W.code); if (!k2) { W.err = "That doesn't look like a Workshop share code. It starts with FGI and a number."; wsRender(); return; } wsBegin(k2, 7, true); toast((k2.name || "Their servant") + " is in your Workshop. Summon them on this step."); return; }
+  if (a === "draft-go") { const d = wsDraft(); if (d) { wsLoad(d); wsGo(Math.max(1, W.step)); } return; }
+  if (a === "draft-drop") { const d = wsDraft(); if (d) { W.artNew = Array.isArray(d.artNew) ? d.artNew : []; wsDropDraft(); } W.k = null; W.id = null; W.art = null; W.artNew = []; wsRender(); toast("Draft thrown away."); return; }
+  if (!k) return;
+  if (a === "cls") { k.cls = b.dataset.v; wsChanged("cls"); wsRender(); return; }
+  if (a === "set") {
+    const p = b.dataset.p, v = b.dataset.t === "num" ? num(b.dataset.v) : (/\.cd$|\.hits$/.test(p) ? num(b.dataset.v) : b.dataset.v);
+    wsSet(p, v);
+    if (/\.tg$/.test(p) && /^(?:sk|np)\./.test(p)) { const f = wsAt(p.replace(/\.tg$/, "")), def = FX_BY[f.e]; if (def && def.v && !/^np\./.test(p)) { const was = f.v; const want = (v === "s" && def.vs ? def.vs : def.v); if (JSON.stringify(was) === JSON.stringify(def.v) || JSON.stringify(was) === JSON.stringify(def.vs)) f.v = want.slice(); } if (def && def.ds != null && f.d === (v === "s" ? def.d : def.ds)) f.d = v === "s" ? def.ds : def.d; }
+    wsChanged(p); wsRender(); return;
+  }
+  if (a === "tog") { const p = b.dataset.p, arr = wsAt(p) || [], v = b.dataset.v, i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); wsSet(p, arr); wsChanged(p); wsRender(); return; }
+  if (a === "dice-name") { k.name = pick(WS_NAMES) + pick(WS_EPI); wsChanged("name"); wsRender(); return; }
+  if (a === "dice-np") { k.np.name = pick(WS_NP_A) + " " + pick(WS_NP_B); wsChanged("np.name"); wsRender(); return; }
+  if (a === "trait-add") { const i = document.getElementById("ws-trait"); if (i) wsAddTrait(i.value); return; }
+  if (a === "trait-quick") { wsAddTrait(b.dataset.v); return; }
+  if (a === "trait-del") { k.traits.splice(num(b.dataset.i), 1); wsSaveSoon(); wsRender(); return; }
+  if (a === "art-del") { const old = W.art; W.art = null; if (old && W.artNew.includes(old)) { W.artNew = W.artNew.filter((x) => x !== old); wsFreeArt([old]); } wsSaveSoon(); wsRender(); return; }
+  if (a === "stats-usual") { k.auto.stats = true; k.feel = {bal: 0, pow: 0}; wsFeelStats(k); wsSaveSoon(); wsRender(); return; }
+  if (a === "sk-tab") { W.sk = num(b.dataset.i); wsRender(); return; }
+  if (a === "sk-preset") { const i = num(b.dataset.i), p = WS_SK_PRESETS[num(b.dataset.j)]; k.sk[i] = wsFromPreset(p, k.np.card); wsSaveSoon(); wsRender(); return; }
+  if (a === "fx-add" || a === "fx-change") { W.add = {w: b.dataset.w, si: num(b.dataset.si) || 0, i: a === "fx-change" ? num(b.dataset.i) : null, q: ""}; wsRender(); const q = ws.querySelector("[data-ws-palq]"); if (q) q.focus(); return; }
+  if (a === "pal-close") { W.add = null; wsRender(); return; }
+  if (a === "fx-pick") {
+    const A = W.add, list = A.w === "np" ? k.np.fx : k.sk[A.si].fx, old = A.i != null ? list[A.i] : null;
+    const f = A.w === "np" ? wsNpFx(b.dataset.e, k.np.card) : wsFx(b.dataset.e, old && old.tg, k.np.card);
+    if (old && A.w === "np") { f.when = old.when; }
+    if (A.w === "np" && FX_BY[f.e].tgs.includes("E") && k.np.tg === "AoE") f.tg = "E";
+    if (A.i != null) list[A.i] = f; else list.push(f);
+    W.add = null; wsSaveSoon(); wsRender();
+    const rows = ws.querySelectorAll(".ws-fx"), row = rows[A.i != null ? A.i : rows.length - 1]; if (row) { const n = row.querySelector("input, .ws-fx-name"); if (n) n.focus({preventScroll: false}); }
+    return;
+  }
+  if (a === "fx-del" || a === "fx-up") {
+    const list = b.dataset.w === "np" ? k.np.fx : k.sk[num(b.dataset.si)].fx, i = num(b.dataset.i);
+    if (a === "fx-del") list.splice(i, 1); else if (i > 0) { const t = list[i]; list[i] = list[i - 1]; list[i - 1] = t; }
+    wsSaveSoon(); wsRender(); return;
+  }
+  if (a === "ps-add") { const p = psLib().find((x) => x.name === b.dataset.v); if (p) { k.ps.push({name: p.name, rank: b.dataset.r || "", e: p.e.slice(), ic: p.ic}); k.auto.ps = false; W.q = ""; wsSaveSoon(); wsRender(); } return; }
+  if (a === "ps-del") { k.ps.splice(num(b.dataset.i), 1); k.auto.ps = false; wsSaveSoon(); wsRender(); return; }
+  if (a === "ps-own") { const n = (document.getElementById("ws-psn") || {}).value || "", r = (document.getElementById("ws-psr") || {}).value || "", t = (document.getElementById("ws-pse") || {}).value || ""; if (!n.trim()) { toast("Give the passive a name."); return; } k.ps.push({name: n.trim().slice(0, 60), rank: r.trim().slice(0, 8), e: t.trim() ? [t.trim().slice(0, 200)] : [], ic: ""}); k.auto.ps = false; W.q = ""; wsSaveSoon(); wsRender(); return; }
+  if (a === "copy") { const p = b.dataset.p; if (p === "np") W.copy.np = num(b.dataset.v); if (p === "wish") W.copy.wish = b.dataset.v === "1"; wsSaveSoon(); wsRender(); return; }
+  if (a === "share") { const code = await wsCodeOf(k); try { await navigator.clipboard.writeText(code); toast("Share code copied. A friend pastes it in the Workshop under From a share code."); } catch (er) { wsShowCode(code); } return; }
+  if (a === "save" || a === "save-vs") { await wsSave(a === "save-vs"); return; }
+});
+function wsShowCode(code) {
+  const box = document.createElement("textarea"); box.className = "ws-codeout"; box.readOnly = true; box.value = code; box.rows = 3; box.setAttribute("aria-label", "Share code");
+  const go = ws.querySelector(".ws-go"); if (go) { const old = ws.querySelector(".ws-codeout"); if (old) old.remove(); go.after(box); box.focus(); box.select(); }
+  toast("Copy the share code from the box.");
+}
+
+/* ---------- summoning: one servant saved, with Undo ---------- */
+async function wsSave(thenVs) {
+  const k = wsClean(W.k), nm = k.name.trim();
+  if (!nm) { W.err = "Give them a name first."; wsGo(1); const n = document.getElementById("ws-name"); if (n) n.focus(); return; }
+  k.name = nm;
+  const base = W.id ? S.servants.find((x) => x.id === W.id) : null, prev = base ? wsClone(base) : null;
+  const d = kitDerive(k), o = Object.assign({}, base || {}, d, {name: nm, custom: true, kit: k});
+  delete o.atlas; delete o.skUpKeep;
+  if (!base) {
+    const c = W.copy || wsCopyDefault(k);
+    Object.assign(o, {id: slug(nm, S.servants), order: nextOrder(S.servants), level: clamp(c.level, 1, 120), npLevel: clamp(c.np, 1, 5), skills: c.skills.slice(0, 3).map((v) => clamp(num(v) || 1, 1, 10)), fouHp: num(c.fouHp) || 0, fouAtk: num(c.fouAtk) || 0, bond: 0});
+    if (c.wish) o.wish = true; else delete o.wish;
+    if (W.art) { o.art = {"1": W.art}; o.artStage = "1"; }
+  }
+  const rec = growthRec(o); if (rec && num(o.level)) { o.hp = statAt(rec, o.level, "hp"); o.atk = statAt(rec, o.level, "atk"); }
+  // a share code of someone else's servant keeps where it came from out of yours
+  if (o.kit.from && !ATLAS_BY_NO.has(o.kit.from)) delete o.kit.from;
+  const ok = await writeDoc("servants", o); if (!ok) { W.err = "Couldn't save. Check your connection, then try again."; wsRender(); return; }
+  const i = S.servants.findIndex((x) => x.id === o.id); if (i >= 0) S.servants[i] = o; else S.servants.push(o);
+  try { localStorage.removeItem(WS_KEY); } catch (e) {}
+  W.artNew = [];
+  wsClose();
+  if (!base && !o.wish && SM.anim !== false) { try { await playSummon(o); } catch (e) {} }
+  S.tab = "servants"; S.selected = o.id; S.lastSel = o.id; S.editing = null; if (!base && !o.wish) { S.justSummoned = o.id; setTimeout(() => { if (S.justSummoned === o.id) S.justSummoned = null; }, 3200); }
+  try { history.pushState({tab: "servants"}, "", "#servants"); } catch (e) {}
+  renderAll(); syncPageTheme(); window.scrollTo({top: 0});
+  const undo = async () => {
+    if (prev) { const ok2 = await writeDoc("servants", prev); if (ok2) { const j = S.servants.findIndex((x) => x.id === prev.id); if (j >= 0) S.servants[j] = prev; renderAll(); toast("Put back as they were."); } }
+    else { const ok2 = await removeDoc("servants", o.id); if (ok2) { if (S.selected === o.id) S.selected = null; renderAll(); toast(nm + " is gone again. Your draft wasn't kept."); } }
+  };
+  if (thenVs) { pickNaFor(o.id, "Compare " + nm + " with an NA servant"); return; }
+  toastAction(base ? "Saved " + nm + "." : o.wish ? nm + " is in your Guests." : nm + " joined your roster!", "Undo", undo);
+}
+
+/* ---------- ways in ---------- */
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest('[data-action="ws-new"], [data-action="ws-open"], [data-action="ws-remix"]'); if (!b) return;
+  e.preventDefault();
+  if (b.dataset.action === "ws-open") { if (S.editing) { dropFormArt(); S.editing = null; renderDossier(true); } wsOpen({id: b.dataset.id}); return; }
+  if (b.dataset.action === "ws-remix") { if (typeof pcClose === "function") pcClose(); wsOpen({no: num(b.dataset.no)}); return; }
+  wsOpen({});
+});
+// the Servants page's toolbar, the empty roster, and Past Chaldea's servant window
+(function () {
+  const add = document.querySelector('#view-servants .toolbar [data-action="add-servant"]');
+  if (add) add.insertAdjacentHTML("beforebegin", `<button class="btn edit-only ws-newbtn" data-action="ws-new" title="Make a servant of your own in the Servant Workshop" aria-label="Create your own servant"><span aria-hidden="true">✦</span> Create</button>`);
+})();
+const renderList27 = renderList;
+renderList = function () {
+  const r = renderList27.apply(this, arguments);
+  const n = document.querySelector('#list .list-note [data-action="add-servant"]');
+  if (n && !S.readOnly && !n.parentNode.querySelector('[data-action="ws-new"]')) n.insertAdjacentHTML("afterend", ` <button class="btn" data-action="ws-new">Create your own</button>`);
+  return r;
+};
+const pcRenderDetail27 = pcRenderDetail;
+pcRenderDetail = function () {
+  const r = pcRenderDetail27.apply(this, arguments);
+  if (pcOpen && pcOpen.no != null && !pcOpen.ce && !S.readOnly) {
+    const at = pcDlg.querySelector('[data-action="pc-add"], [data-action="pc-summon"]');
+    if (at && !pcDlg.querySelector('[data-action="ws-remix"]')) at.parentNode.insertAdjacentHTML("beforeend", `<button type="button" class="btn ghost sm ws-remix" data-action="ws-remix" data-no="${pcOpen.no}" title="Make your own servant from this kit in the Servant Workshop">Remix in the Workshop</button>`);
+  }
+  return r;
+};
+// Home: next to Add a servant
+const renderHome27 = renderHome;
+renderHome = function () {
+  const r = renderHome27.apply(this, arguments);
+  const a = document.querySelector('#home .hm-actions [data-action="home-add"]');
+  if (a && !S.readOnly && !a.parentNode.querySelector('[data-action="ws-new"]')) a.insertAdjacentHTML("afterend", `<button type="button" class="btn ghost" data-action="ws-new">Create your own</button>`);
+  return r;
+};
 // Where the page is scrolled when it opens (0.23.1):
 // - While the page builds itself, the browser's scroll anchoring followed the footer down as the views filled in, so a
 //   reload on a phone ended at the bottom. Anchoring is off until the page has settled.

@@ -268,6 +268,8 @@ html.vt-theme::view-transition-old(root) { z-index: 1; } html.vt-theme::view-tra
 
 /* ----- toast with a button ----- */
 #toast.has-btn { pointer-events: auto; display: flex; align-items: center; gap: 12px; }
+/* 0.27.0: once it has faded out it doesn't catch clicks meant for what's under it */
+#toast.has-btn:not(.show) { pointer-events: none; }
 .toast-btn { border: 0; background: transparent; color: inherit; font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 4px 2px; white-space: nowrap; }
 
 .fou-in { width: 10ch; }

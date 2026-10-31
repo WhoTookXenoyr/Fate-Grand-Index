@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.26.1";
+const APP_VER = "0.27.0";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -163,6 +163,16 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.27.0", d: "31 Oct 2026", t: "The Servant Workshop: servants of your own", i: [
+    "<b>The Servant Workshop</b>: press <b>Create</b> next to Add servant and make a servant of your own, step by step, with their Saint Graph card beside you the whole way. Start from scratch, from any NA servant's kit (<b>Remix in the Workshop</b> in Past Chaldea does the same), from a made-up one with <b>Surprise me</b>, or from a friend's share code.",
+    "Every step starts at what NA's servants of that class and rarity usually have: HP and ATK, growth curve, deck, Noble Phantasm card and passives. Those keep following the class and rarity until you change them, so they can be summoned after any step.",
+    "<b>Stats and growth</b>: two sliders (weaker or stronger, more HP or more ATK) or numbers of your own, the six growth curves with how many NA servants use each, and a chart from Lv 1 to 120 with the grails; drag across it to see any level. Bars show where they'd stand among NA's servants of the same class and rarity: ATK, HP and NP1 damage.",
+    "<b>Skills and Noble Phantasms</b> from 33 effects (ATK up, card up, NP Charge, Invincible, DEF down, special attack against a trait…) or your own words. Their text reads like NA's, values go from Lv 1 to 10 and cooldowns drop the game's way, and you see each skill as it will look on their page. Fourteen classic skills to start from. The Noble Phantasm has the usual damage for its card and target, the upgraded one or your own numbers, extra damage against a trait, and effects that grow with NP level or Overcharge.",
+    "Your servant works everywhere a servant does: the roster, Ranking, Versus, parties, the Story page and the damage calculator, which counts their own skills and passives. <b>Workshop</b> on their page changes them later. Summoning has Undo, and one you haven't finished waits as a draft in this browser.",
+    "<b>Share codes</b>: Copy a share code, send it to a friend, and they open your servant in their Workshop.",
+    "<b>HP and ATK follow the level for servants NA doesn't have</b>: Edit details has a Growth box (HP and ATK at Lv 1 and at the max level, and the curve). From then on + and − on the level, grails included, move HP and ATK like they do for NA's servants. A new servant NA does have starts with NA's HP and ATK for its level.",
+    "<b>Versus</b>: Compare with an NA servant puts any NA servant (max level, NP1, skills at 10) next to yours, without adding them to your roster.",
+    "A toast with a button no longer catches clicks after it has faded."]},
   {v: "0.26.1", d: "30 Oct 2026", t: "Friends' story progress, friends' servants as Guests, and livelier chapters", i: [
     "<b>Guests</b>: a Guest's page has <b>Remove from Guests</b> (before, it was at the bottom of Edit details), with Undo. Your Guests are now the ones in the damage calculator's support window too; it used to show only the old Guests tab's list.",
     "A stage picture you removed comes back: an empty stage has <b>Use NA's picture</b>, and Fill in puts back any stage picture that's missing, not only when a servant has none. The Remove button under a picture now says Remove picture, and Undo brings it back.",

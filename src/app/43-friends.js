@@ -146,7 +146,7 @@ document.addEventListener("click", async (e) => {
   if (a === "fr-addsup") {
     const have = new Set(API.user.supports || []);
     const list = S.servants.filter((x) => !x.wish && !have.has(x.id)).slice().sort((x, y) => x.name.localeCompare(y.name))
-      .map((s) => ({key: "r:" + s.id, n: s.name, a: atlasOf(s), s: s, g: "Your servants", m: supStats(s)}));
+      .map((s) => ({key: "r:" + s.id, n: s.name, a: calcKitOf(s), s: s, g: "Your servants", m: supStats(s)}));
     openSpk("Lend a support to your friends", "", (key) => { if (key && key.startsWith("r:")) frMySupports(Array.from(have).concat([key.slice(2)]).slice(0, 10)); }, list);
     return;
   }
@@ -169,7 +169,7 @@ async function frSupLoad() {
 const npcSrc26 = npcSrc;
 npcSrc = function (key) {
   const k = String(key || "");
-  if (k.startsWith("f:")) { const s = FSV.get(k); return s ? {key: k, n: s.name + " (" + s.fr.name + ")", a: atlasOf(s), lv: skLevels(s)} : null; }
+  if (k.startsWith("f:")) { const s = FSV.get(k); return s ? {key: k, n: s.name + " (" + s.fr.name + ")", a: calcKitOf(s), lv: skLevels(s)} : null; }
   return npcSrc26(key);
 };
 const spkAll26 = spkAll;
@@ -177,7 +177,7 @@ spkAll = function () {
   const out = spkAll26.apply(this, arguments);
   if (SPK.list || !FSUP.length) return out;
   const fr = [];
-  FSUP.forEach((f) => f.supports.forEach((s) => fr.push({key: s.id, n: s.name, a: atlasOf(s), s: s, g: "Friends' supports", m: f.user.name + " · " + supStats(s)})));
+  FSUP.forEach((f) => f.supports.forEach((s) => fr.push({key: s.id, n: s.name, a: calcKitOf(s), s: s, g: "Friends' supports", m: f.user.name + " · " + supStats(s)})));
   const i = out.findIndex((x) => x.g === "Often borrowed");
   return i < 0 ? fr.concat(out) : out.slice(0, i).concat(fr, out.slice(i));
 };
@@ -239,10 +239,10 @@ document.addEventListener("click", async (e) => {
   // friends' supports, and the whole roster of friends who let you look
   await frSupLoad();
   const list = [];
-  FSUP.forEach((f) => f.supports.forEach((s) => list.push({key: s.id, n: s.name, a: atlasOf(s), s: s, g: f.user.name + "'s supports", m: supStats(s)})));
+  FSUP.forEach((f) => f.supports.forEach((s) => list.push({key: s.id, n: s.name, a: calcKitOf(s), s: s, g: f.user.name + "'s supports", m: supStats(s)})));
   const open = FR.friends.filter((f) => f.vis !== "private").slice(0, 12);
   await Promise.all(open.map(async (f) => {
-    try { const j = await api("GET", "u/" + f.id + "/roster"); fsvAdd(f, j.docs.filter((d) => d.col === "servants")).filter((s) => !s.wish).forEach((s) => { if (!list.some((x) => x.key === s.id)) list.push({key: s.id, n: s.name, a: atlasOf(s), s: s, g: f.name + "'s roster", m: supStats(s)}); }); } catch (er) {}
+    try { const j = await api("GET", "u/" + f.id + "/roster"); fsvAdd(f, j.docs.filter((d) => d.col === "servants")).filter((s) => !s.wish).forEach((s) => { if (!list.some((x) => x.key === s.id)) list.push({key: s.id, n: s.name, a: calcKitOf(s), s: s, g: f.name + "'s roster", m: supStats(s)}); }); } catch (er) {}
   }));
   b.disabled = false;
   if (!list.length) { toast("Your friends haven't shared any servants yet: no supports, and their rosters are private."); return; }

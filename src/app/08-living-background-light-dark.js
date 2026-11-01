@@ -266,7 +266,7 @@ playSummon = function (s) {
           <div class="sm-spin"><div class="sm-face sm-back"><img src="${CARD_BACK}" alt=""></div><div class="sm-face sm-back sm-back2"><img src="${CARD_BACK}" alt=""></div></div>
           <i class="sm-bloom"></i><i class="sm-ring"></i>
         </div>${r >= 3 ? `<i class="sm-halo"></i><i class="sm-edge"><b></b></i>` : ""}</div>
-        <div class="sm-info" role="status" aria-live="polite"><p class="sm-hss"><span class="vh">${hss}</span><span class="sm-hss-l" aria-hidden="true">${letters}</span></p><h2>${esc(s.name)}</h2><p class="sm-sub">${esc(s.cls || "")}${r ? " · " + "★".repeat(r) : ""}</p><button type="button" class="btn primary sm-done">Continue</button></div>
+        <div class="sm-info" role="status" aria-live="polite"><p class="sm-hss"><span class="vh">${hss}</span><span class="sm-hss-l" aria-hidden="true">${letters}</span></p><h2>${nmHTML(s)}</h2><p class="sm-sub">${esc(s.cls || "")}${r ? " · " + "★".repeat(r) : ""}</p><button type="button" class="btn primary sm-done">Continue</button></div>
       </div>
       <button type="button" class="btn ghost sm sm-skip">Skip</button>`;
     ov.dataset.tier = tier; ov.dataset.speed = r <= 2 ? "quick" : r === 3 ? "brisk" : "full"; ov.style.setProperty("--smk", (1 / sp).toFixed(3)); ov.className = "summon"; ov.hidden = false;

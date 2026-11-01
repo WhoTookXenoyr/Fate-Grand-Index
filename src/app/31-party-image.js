@@ -118,6 +118,8 @@ async function pimgDraw(p, theme) {
       if (logos[i]) ctx.drawImage(logos[i], x + 12, y + 12, 30, 30);
       if (sl.support) { ctx.save(); ctx.font = `600 11px ${fM}`; const tw = ctx.measureText("SUPPORT").width + 14; rr(ctx, x + cw - tw - 12, y + 14, tw, 20, 10); ctx.fillStyle = P.gold; ctx.fill(); ctx.fillStyle = "#1c1814"; ctx.fillText("SUPPORT", x + cw - tw - 5, y + 28); ctx.restore(); }
       else if (i === 0) { ctx.save(); ctx.font = `600 11px ${fM}`; const tw = ctx.measureText("LEADER").width + 14; rr(ctx, x + cw - tw - 12, y + 14, tw, 20, 10); ctx.fillStyle = "rgba(0,0,0,.55)"; ctx.fill(); ctx.fillStyle = "#fff"; ctx.fillText("LEADER", x + cw - tw - 5, y + 28); ctx.restore(); }
+      // a servant made in the Servant Workshop says so in the picture too (under SUPPORT or LEADER)
+      if (isCu(sl.s)) { const ty0 = sl.support || i === 0 ? 40 : 14; ctx.save(); ctx.font = `600 11px ${fM}`; const tw = ctx.measureText("CUSTOM").width + 14; rr(ctx, x + cw - tw - 12, y + ty0, tw, 20, 10); ctx.fillStyle = "rgba(242,211,145,.92)"; ctx.fill(); ctx.fillStyle = "#3a2a0c"; ctx.fillText("CUSTOM", x + cw - tw - 5, y + ty0 + 14); ctx.restore(); }
       ctx.fillStyle = "#fff"; ctx.font = `700 16px ${fD}`;
       const nl = wrapText(ctx, sl.name, cw - 28, 2);
       nl.forEach((l, j) => ctx.fillText(l, x + 14, y + ah - 8 - (nl.length - 1 - j) * 19));

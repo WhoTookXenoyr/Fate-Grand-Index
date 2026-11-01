@@ -101,7 +101,7 @@ function smCardHTML(x, i) {
   const tag = x.pity ? `<i class="smr-tag pity">Guaranteed</i>` : x.f ? `<i class="smr-tag up">Rate-up</i>` : s && s.wish ? `<i class="smr-tag new">Guest</i>` : "";
   return `<li class="smr ${sv ? "is-s" : "is-c"} r${x.r} ${x.r >= 4 ? "gold" : "silver"}${x.f ? " feat" : ""}${s ? "" : " anon"}" style="--i:${i}" data-glow="${glow}">
     <div class="smr-card"><div class="smr-in"><div class="smr-face smr-front">${front}${tag}</div><div class="smr-face smr-back"><img src="${CARD_BACK}" alt=""></div></div>${sv && x.r === 5 ? `<i class="smr-burst" aria-hidden="true"></i>` : ""}</div>
-    <span class="smr-n" title="${esc(name)} · summon ${x.p}">${s ? `<button type="button" data-action="goto" data-id="${esc(s.id)}">${esc(name)}</button>` : esc(name)}</span>
+    <span class="smr-n" title="${esc(name)} · summon ${x.p}">${s ? `<button type="button" data-action="goto" data-id="${esc(s.id)}">${esc(name)}</button>${cuTag(s)}` : esc(name)}</span>
   </li>`;
 }
 function smResultsHTML() {
@@ -123,14 +123,14 @@ function smHeroHTML() {
     : SM.got ? `${esc(f5.name)} came on summon ${SM.got}. The guarantee works once per banner.`
     : `Summon ${Math.min(SM.n, SM_PITY)} of ${SM_PITY}. If ${esc(f5.name)} hasn't come by summon ${SM_PITY}, that one is them.`;
   const fp = f5 ? Math.min(1, (SM.got || SM.n) / SM_PITY) : 0;
-  const mini = (s, r) => s ? `<span class="smh-f">${miniAva(s)}<span><b>${esc(s.name)}</b><small>★${r} rate-up · ${SM_FEAT[r]}%</small></span></span>` : "";
+  const mini = (s, r) => s ? `<span class="smh-f">${miniAva(s)}<span><b>${nmHTML(s)}</b><small>★${r} rate-up · ${SM_FEAT[r]}%</small></span></span>` : "";
   const can = !!f5, again = !!SM.got;
   return `<section class="smh${art ? " has-art" : ""}${f5 && f5.cls === "Beast" ? " beast" : ""}">
     <div class="smh-banner">
       ${art ? `<img class="smh-art" src="${esc(art)}" alt="" data-art="1">` : (f5 && CLASS_MARK[f5.cls] ? `<img class="smh-art mark" src="${CLASS_MARK[f5.cls]}" alt="">` : "")}
       <div class="smh-txt">
         <p class="smh-kick">${f5 ? "Pickup Summon" : "Summoning simulator"}</p>
-        <h2 class="smh-title">${f5 ? esc(f5.name) : "Your Spirit Origin List"}</h2>
+        <h2 class="smh-title">${f5 ? nmHTML(f5) : "Your Spirit Origin List"}</h2>
         <p class="smh-sub">${f5 ? `${esc(f5.cls || "")} · ★5 · ${SM_FEAT[5]}% each summon` : "Every servant on your list can answer. Feature one for a rate-up banner."}</p>
         ${f4 || f3 ? `<div class="smh-fs">${mini(f4, 4)}${mini(f3, 3)}</div>` : ""}
       </div>
@@ -159,7 +159,7 @@ function smHeroHTML() {
 function smSetupHTML() {
   const sel = (r) => {
     const pool = smPool(r), cur = smFeat(r), g = pool.filter((s) => s.wish), o = pool.filter((s) => !s.wish);
-    const op = (s) => `<option value="${esc(s.id)}"${cur && cur.id === s.id ? " selected" : ""}>${esc(s.name)}</option>`;
+    const op = (s) => `<option value="${esc(s.id)}"${cur && cur.id === s.id ? " selected" : ""}>${esc(nmText(s))}</option>`;
     return `<label class="sms-f"><span>Featured ★${r} <small>${SM_FEAT[r]}% of ${SM_RATE["s" + r]}%</small></span><select data-sm-feat="${r}"${pool.length ? "" : " disabled"}><option value="">${pool.length ? "No rate-up" : "No ★" + r + " servants on your list"}</option>${g.length ? `<optgroup label="Guests">${g.map(op).join("")}</optgroup>` : ""}${o.length ? `<optgroup label="Your servants">${o.map(op).join("")}</optgroup>` : ""}</select></label>`;
   };
   return `<section class="d-sec smb sm-setup"><h3>Banner <small>who's on rate-up</small></h3>
@@ -187,13 +187,13 @@ function smChancesHTML() {
   const body = [5, 4, 3].map((r) => {
     const rr = rows.filter((x) => x.r === r).sort((a, b) => b.p - a.p || a.s.name.localeCompare(b.s.name));
     if (!rr.length) return "";
-    return `<li class="smc-h">★${r} servants <small>${SM_RATE["s" + r]}% each summon in all</small></li>` + rr.map((x) => `<li class="smc${x.f ? " up" : ""}">${miniAva(x.s)}<span class="smc-n"><b>${esc(x.s.name)}</b><small>${x.f ? "Rate-up" : x.s.wish ? "Guest" : esc(x.s.cls || "")}</small></span><span class="smc-bar" aria-hidden="true"><i style="width:${(Math.sqrt(x.p / max) * 100).toFixed(1)}%"></i></span><b class="smc-p" title="Each summon">${smPct(x.p)}</b>${n ? `<span class="smc-y" title="With your ${plural(n, "summon")}">${smPct(smChance(x, n))}</span>` : ""}</li>`).join("");
+    return `<li class="smc-h">★${r} servants <small>${SM_RATE["s" + r]}% each summon in all</small></li>` + rr.map((x) => `<li class="smc${x.f ? " up" : ""}">${miniAva(x.s)}<span class="smc-n"><b>${nmHTML(x.s)}</b><small>${x.f ? "Rate-up" : x.s.wish ? "Guest" : esc(x.s.cls || "")}</small></span><span class="smc-bar" aria-hidden="true"><i style="width:${(Math.sqrt(x.p / max) * 100).toFixed(1)}%"></i></span><b class="smc-p" title="Each summon">${smPct(x.p)}</b>${n ? `<span class="smc-y" title="With your ${plural(n, "summon")}">${smPct(smChance(x, n))}</span>` : ""}</li>`).join("");
   }).join("");
   return `<section class="d-sec smb sm-ch"><h3>Drop chances <small>each summon${n ? ", and with your " + plural(n, "summon") : ""}</small></h3><ul class="smc-list">${body}</ul></section>`;
 }
 function smLogHTML() {
   const L = (SM.log || []).slice(0, 14);
-  const body = L.length ? `<ol class="sml">${L.map((x) => { const s = S.servants.find((v) => v.id === x.id); return s ? `<li class="${x.r === 5 ? "r5" : "r4"}${x.f ? " up" : ""}"><span class="sml-p">#${x.p}</span>${miniAva(s)}<span class="sml-n"><b>${esc(s.name)}</b><small>★${x.r}${x.pity ? " · the guarantee" : x.f ? " · rate-up" : ""}</small></span></li>` : ""; }).join("")}</ol>`
+  const body = L.length ? `<ol class="sml">${L.map((x) => { const s = S.servants.find((v) => v.id === x.id); return s ? `<li class="${x.r === 5 ? "r5" : "r4"}${x.f ? " up" : ""}"><span class="sml-p">#${x.p}</span>${miniAva(s)}<span class="sml-n"><b>${nmHTML(s)}</b><small>★${x.r}${x.pity ? " · the guarantee" : x.f ? " · rate-up" : ""}</small></span></li>` : ""; }).join("")}</ol>`
     : `<p class="tr-none">★4 and ★5 servants you pull on this banner are listed here.</p>`;
   const t = SM.t;
   return `<section class="d-sec smb sm-log"><h3>This banner <small>${plural(SM.n, "summon")}</small></h3>
@@ -206,7 +206,7 @@ function smGuestsHTML() {
     const r = clamp(num(s.rarity) || 0, 0, 5), art = smArt(s, true), on = smFeat(r) && smFeat(r).id === s.id;
     return `<li class="smg" id="smg-${esc(s.id)}">
       <button type="button" class="smg-face ${r >= 4 ? "gold" : r === 3 ? "silver" : "bronze"}" data-action="goto" data-id="${esc(s.id)}" aria-label="Open ${esc(s.name)}">${art ? `<img src="${esc(art)}" alt="" data-art="1">` : (CLASS_MARK[s.cls] ? `<img class="mark" src="${CLASS_MARK[s.cls]}" alt="">` : "")}<span class="smg-plate">${CLASS_LOGO[s.cls] ? `<img src="${CLASS_LOGO[s.cls]}" alt="">` : ""}${r ? smStars(r) : ""}</span></button>
-      <div class="smg-b"><b>${esc(s.name)}</b><small>${esc([s.cls, r ? "★" + r : "", s.level && num(s.level) > 1 ? "goal Lv " + s.level : ""].filter(Boolean).join(" · "))}</small>
+      <div class="smg-b"><b>${nmHTML(s)}</b><small>${esc([s.cls, r ? "★" + r : "", s.level && num(s.level) > 1 ? "goal Lv " + s.level : ""].filter(Boolean).join(" · "))}</small>
         <div class="smg-act">${S.readOnly ? "" : `<button type="button" class="btn sm summon-btn" data-action="summon" data-id="${esc(s.id)}" aria-label="Summon ${esc(s.name)}">Summon</button>`}${r >= 3 ? `<button type="button" class="btn ghost sm" data-action="sm-feature" data-id="${esc(s.id)}" aria-pressed="${!!on}">${on ? "On the banner" : "Feature"}</button>` : ""}</div></div>
     </li>`; }).join("")}</ul>`
     : `<p class="tr-none">Guests are the supports you borrow and the servants you hope to summon.</p>`;

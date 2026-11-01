@@ -148,7 +148,7 @@ function soloOf(s) {
   return {s: s, cover: cover, sus: sus, npT: npT, ce: ce, used: used, k: k, score: 0.55 * cover + 0.25 * Math.min(1, sus * 2) + 0.2 * Math.min(1, npT / 20)};
 }
 const pct = (v) => Math.round(v * 100) + "%";
-function dnaMember(s) { return `<span class="dna-m">${miniAva(s)}<span><button type="button" class="tr-name" data-action="goto" data-id="${esc(s.id)}">${esc(s.name)}</button><small>${esc(s.cls || "")}${s.wish ? " · guest" : ""}</small></span></span>`; }
+function dnaMember(s) { return `<span class="dna-m">${miniAva(s)}<span><button type="button" class="tr-name" data-action="goto" data-id="${esc(s.id)}">${esc(s.name)}</button>${cuTag(s)}<small>${esc(s.cls || "")}${s.wish ? " · guest" : ""}</small></span></span>`; }
 function pieceText(p) {
   const e = p.e, where = e.s === "np" ? "NP" : e.s === "p" ? "passive" : "skill " + (e.s + 1), who = e.who === "party" ? "party" : e.who === "ally" ? "one ally" : e.who === "enemy" ? "enemies" : "self";
   const often = e.s === "np" ? "on NP" : e.s === "p" ? "always" : (e.dur ? e.dur + " turn" + (e.dur > 1 ? "s" : "") + " every " : "every ") + Math.max(1, Math.round((e.cdNow || 7) / (1 + (p.rate || 0)))) + " turns";

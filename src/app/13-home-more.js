@@ -31,7 +31,7 @@ function homeVsHTML(own) {
   const best = rows.length ? rows[0].out : 1;
   const hurt = own.filter((s) => aff(e, s.cls) >= 2).length;
   const tag = (v, word) => `<span class="hv-x ${affCls(v)}" title="${esc(word)}">${affTxt(v)}</span>`;
-  const body = rows.length ? `<ol class="hv-list">${rows.map((x) => `<li><button type="button" class="hm-row" data-action="goto" data-id="${esc(x.s.id)}">${miniAva(x.s)}<span class="hm-main"><b>${esc(x.s.name)}</b><small>${esc(x.s.cls || "No class")}${x.inn !== 1 ? ` · takes ${affTxt(x.inn)} from them` : ""}</small></span>${tag(x.out, "Damage dealt to " + e)}</button></li>`).join("")}</ol>` : `<p class="tr-none">Add servants and the best answer to each class shows up here.</p>`;
+  const body = rows.length ? `<ol class="hv-list">${rows.map((x) => `<li><button type="button" class="hm-row" data-action="goto" data-id="${esc(x.s.id)}">${miniAva(x.s)}<span class="hm-main"><b>${nmHTML(x.s)}</b><small>${esc(x.s.cls || "No class")}${x.inn !== 1 ? ` · takes ${affTxt(x.inn)} from them` : ""}</small></span>${tag(x.out, "Damage dealt to " + e)}</button></li>`).join("")}</ol>` : `<p class="tr-none">Add servants and the best answer to each class shows up here.</p>`;
   const lead = !rows.length ? "" : best >= 2 ? `Your best answers to ${esc(e)} enemies.` : best > 1 ? `Nobody hits ${esc(e)} for double damage; these come closest.` : `Nobody on your roster has the advantage over ${esc(e)}; these are your strongest.`;
   return `<section class="d-sec hm-block hm-b-vs"><h3>Up against <small>pick an enemy class</small></h3>
     <div class="hv-cls" role="group" aria-label="Enemy class">${chips}</div>
@@ -97,7 +97,7 @@ function logText(e, s) {
 function homeLogHTML() {
   const log = readLog().slice(0, 7);
   const body = log.length ? `<ol class="hl-list">${log.map((e) => { const s = S.servants.find((x) => x.id === e.id);
-    return `<li class="hl-${esc(e.k)}">${s ? `<button type="button" class="hm-row" data-action="goto" data-id="${esc(s.id)}">` : `<span class="hm-row">`}${s ? miniAva(s) : `<span class="tr-ava"></span>`}<span class="hm-main"><b>${esc(s ? s.name : e.name)}</b><small>${esc(logText(e, s))}</small></span><time class="hl-t" datetime="${new Date(e.t).toISOString()}">${esc(ago(e.t))}</time>${s ? `</button>` : `</span>`}</li>`; }).join("")}</ol>`
+    return `<li class="hl-${esc(e.k)}">${s ? `<button type="button" class="hm-row" data-action="goto" data-id="${esc(s.id)}">` : `<span class="hm-row">`}${s ? miniAva(s) : `<span class="tr-ava"></span>`}<span class="hm-main"><b>${s ? nmHTML(s) : esc(e.name)}</b><small>${esc(logText(e, s))}</small></span><time class="hl-t" datetime="${new Date(e.t).toISOString()}">${esc(ago(e.t))}</time>${s ? `</button>` : `</span>`}</li>`; }).join("")}</ol>`
     : `<p class="tr-none">Level a skill, feed some Fou or summon a Guest, and it shows up here.</p>`;
   return `<section class="d-sec hm-block hm-b-log"><h3>Recent progress <small>saved in this browser</small></h3>${body}</section>`;
 }
@@ -105,12 +105,12 @@ function homeLogHTML() {
 /* ---------- Summoning, in short ---------- */
 function homeSummonHTML(guests) {
   const f5 = smFeat(5);
-  const ban = f5 ? `<button type="button" class="hm-row" data-action="tab" data-tab="summon">${miniAva(f5)}<span class="hm-main"><b>${esc(f5.name)} <span class="hs-up">rate-up</span></b><small>${SM.got ? "Came on summon " + SM.got + " of this banner" : SM.n ? SM.n + " of " + SM_PITY + " summons toward the guarantee" : "★5 · " + SM_FEAT[5] + "% each summon"}</small></span><span class="hs-sq">${SQ_SVG}${fmt(SM.sq)}</span></button>`
+  const ban = f5 ? `<button type="button" class="hm-row" data-action="tab" data-tab="summon">${miniAva(f5)}<span class="hm-main"><b>${nmHTML(f5)} <span class="hs-up">rate-up</span></b><small>${SM.got ? "Came on summon " + SM.got + " of this banner" : SM.n ? SM.n + " of " + SM_PITY + " summons toward the guarantee" : "★5 · " + SM_FEAT[5] + "% each summon"}</small></span><span class="hs-sq">${SQ_SVG}${fmt(SM.sq)}</span></button>`
     : `<p class="tr-none">No rate-up yet. Feature a ★5 on the Summoning page for a banner with the 330-summon guarantee.</p>`;
   const g = guests.slice(0, 8);
   return `<section class="d-sec hm-block hm-b-sum"><h3>Summoning <small>${guests.length ? plural(guests.length, "Guest") + " waiting" : "nobody waiting"}</small></h3>
     ${ban}
-    ${g.length ? `<div class="hs-guests">${g.map((s) => `<button type="button" class="hs-g" data-action="to-summon" data-id="${esc(s.id)}" title="${esc(s.name)}">${miniAva(s)}<span>${esc(s.name)}</span></button>`).join("")}</div>` : ""}
+    ${g.length ? `<div class="hs-guests">${g.map((s) => `<button type="button" class="hs-g" data-action="to-summon" data-id="${esc(s.id)}" title="${esc(nmText(s))}">${miniAva(s)}<span>${nmHTML(s)}</span></button>`).join("")}</div>` : ""}
     <div><button type="button" class="btn sm summon-btn" data-action="tab" data-tab="summon">Go to Summoning</button>${!guests.length && !S.readOnly ? ` <button type="button" class="btn ghost sm" data-action="add-wish">+ Add guest</button>` : ""}</div>
   </section>`;
 }

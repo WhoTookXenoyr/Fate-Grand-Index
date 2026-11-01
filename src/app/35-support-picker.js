@@ -33,7 +33,7 @@ function spkCardHTML(x) {
   const on = x.key === SPK.cur;
   return `<li><button type="button" class="pc-card r${clamp(r || 1, 1, 5)}${on ? " is-on" : ""}" data-spk="${esc(x.key)}" aria-pressed="${on}" aria-label="${esc(x.n)}${cls ? ", " + esc(cls) : ""}">
     <span class="pc-face">${face ? `<img src="${esc(face)}" alt="" loading="lazy" decoding="async">` : `<i class="spk-none">${esc((x.n || "?").slice(0, 1))}</i>`}${CLASS_LOGO[cls] ? `<img class="pc-cls" src="${CLASS_LOGO[cls]}" alt="">` : ""}${r ? `<span class="pc-st">${stars(r)}</span>` : ""}</span>
-    <span class="pc-n">${esc(x.n)}</span><span class="pc-m">${esc(cls || "not in NA's data")}${x.m ? " · " + esc(x.m) : x.s ? (x.s.wish ? " · Guest" : " · your levels") : ""}</span></button></li>`;
+    <span class="pc-n">${x.s ? nmHTML(Object.assign({}, x.s, {name: x.n})) : esc(x.n)}</span><span class="pc-m">${esc(cls || "not in NA's data")}${x.m ? " · " + esc(x.m) : x.s ? (x.s.wish ? " · Guest" : " · your levels") : ""}</span></button></li>`;
 }
 function spkBody() {
   const all = spkList(), searching = !!(SPK.q.trim() || SPK.c);

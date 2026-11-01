@@ -163,7 +163,8 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
-  {v: "0.27.1", d: "1 Nov 2026", t: "Workshop servants keep what you change in Edit details", i: [
+  {v: "0.27.1", d: "1 Nov 2026", t: "Workshop servants keep your edits and say Custom everywhere", i: [
+    "A servant made in the Workshop has a <b>Custom</b> tag next to their name wherever they show up: your roster and Guests, Ranking, Home, Versus, parties (the party picture too), Summoning, the Story page, the damage calculator and its support picker, and friends' supports and activity. Lists to pick from say (Custom). That way nobody takes them for a servant from the game. A name that already ends in (Custom) doesn't get a second one.",
     "A servant made in the Workshop keeps what you change in <b>Edit details</b> or on their page: skills and their values, the Noble Phantasm's name, card and target, passives, traits, deck and growth. Before, the Workshop had its own copy, so it opened with the old skills and saving there put them back. Skills you already changed this way come along the next time you open the Workshop.",
     "<b>Open in the Workshop</b> in Edit details takes what you've typed with it instead of throwing it away. Nothing is saved until you press Save changes there.",
     "A skill line you wrote yourself shows up in the Workshop as a <b>Write your own</b> effect with the same words, and a unit of your own (like hits) stays."]},

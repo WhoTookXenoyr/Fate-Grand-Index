@@ -51,15 +51,15 @@ const tagChip = (tag, extra) => `<button type="button" class="tr-tag k-${tagKind
 
 function worksHTML(hits) {
   if (!hits.length) return `<p class="tr-none">No servant in your roster has a buff aimed at these traits yet. A support shows up here once its skill text names who it's for (like "ATK up for Divine allies") or you add a buff target in its Edit details.</p>`;
-  return `<ul class="tr-people">${hits.map((h) => `<li>${miniAva(h.s)}<span><button type="button" class="tr-name" data-action="goto" data-id="${esc(h.s.id)}">${esc(h.s.name)}</button>${h.s.wish ? ` <span class="tag">Guest</span>` : ""}<small>${h.items.map((b) => `<b>${esc(tagLabel(b.tag))}:</b> ${esc(b.what || "buff")}`).join("<br>")}</small></span></li>`).join("")}</ul>`;
+  return `<ul class="tr-people">${hits.map((h) => `<li>${miniAva(h.s)}<span><button type="button" class="tr-name" data-action="goto" data-id="${esc(h.s.id)}">${esc(h.s.name)}</button>${cuTag(h.s)}${h.s.wish ? ` <span class="tag">Guest</span>` : ""}<small>${h.items.map((b) => `<b>${esc(tagLabel(b.tag))}:</b> ${esc(b.what || "buff")}`).join("<br>")}</small></span></li>`).join("")}</ul>`;
 }
 function boostsHTML(boosts) {
   if (!boosts.length) return "";
-  return boosts.map((b) => `<p class="tr-line"><b>${esc(tagLabel(b.tag))}</b> in your roster: ${b.list.length ? b.list.map((x, i, a) => `<span class="nowrap"><button type="button" class="tr-name" data-action="goto" data-id="${esc(x.id)}">${esc(x.name)}</button>${i < a.length - 1 ? "," : ""}</span>`).join(" ") : `<span class="muted">nobody yet</span>`}</p>`).join("");
+  return boosts.map((b) => `<p class="tr-line"><b>${esc(tagLabel(b.tag))}</b> in your roster: ${b.list.length ? b.list.map((x, i, a) => `<span class="nowrap"><button type="button" class="tr-name" data-action="goto" data-id="${esc(x.id)}">${esc(x.name)}</button>${cuTag(x)}${i < a.length - 1 ? "," : ""}</span>`).join(" ") : `<span class="muted">nobody yet</span>`}</p>`).join("");
 }
 function similarHTML(sim) {
   if (!sim.length) return `<p class="tr-none">No one else in your roster shares these yet.</p>`;
-  return `<ul class="tr-people">${sim.map((r) => `<li>${miniAva(r.s)}<span><button type="button" class="tr-name" data-action="goto" data-id="${esc(r.s.id)}">${esc(r.s.name)}</button>${r.s.wish ? ` <span class="tag">Guest</span>` : ""}<small>${r.shared.length} shared: ${r.shared.map((t) => esc(tagShort(t))).join(", ")}</small></span></li>`).join("")}</ul>`;
+  return `<ul class="tr-people">${sim.map((r) => `<li>${miniAva(r.s)}<span><button type="button" class="tr-name" data-action="goto" data-id="${esc(r.s.id)}">${esc(r.s.name)}</button>${cuTag(r.s)}${r.s.wish ? ` <span class="tag">Guest</span>` : ""}<small>${r.shared.length} shared: ${r.shared.map((t) => esc(tagShort(t))).join(", ")}</small></span></li>`).join("")}</ul>`;
 }
 // Which traits this servant shares with the servants most like it
 function overlapMatrixHTML(s, tags, sim) {
@@ -156,7 +156,7 @@ function fillTraitFilter() {
 function traitBannerHTML() {
   if (!S.trait) return "";
   const all = S.servants.filter((x) => tagsOf(x).includes(S.trait)), hits = buffHits([S.trait], null);
-  return `<div class="tr-banner"><p><b>${esc(tagLabel(S.trait))}</b> · ${all.length} servant${all.length === 1 ? "" : "s"}${hits.length ? `<br><span>Boosted by ${hits.map((h) => `<button type="button" class="tr-name" data-action="goto" data-id="${esc(h.s.id)}">${esc(h.s.name)}</button> <small>(${esc(h.items.map((b) => b.what).join("; "))})</small>`).join(", ")}</span>` : `<br><span class="muted">No support in your roster has a buff aimed at this yet.</span>`}</p><button type="button" class="btn ghost sm" data-action="trait-clear">Show everyone</button></div>`;
+  return `<div class="tr-banner"><p><b>${esc(tagLabel(S.trait))}</b> · ${all.length} servant${all.length === 1 ? "" : "s"}${hits.length ? `<br><span>Boosted by ${hits.map((h) => `<button type="button" class="tr-name" data-action="goto" data-id="${esc(h.s.id)}">${esc(h.s.name)}</button>${cuTag(h.s)} <small>(${esc(h.items.map((b) => b.what).join("; "))})</small>`).join(", ")}</span>` : `<br><span class="muted">No support in your roster has a buff aimed at this yet.</span>`}</p><button type="button" class="btn ghost sm" data-action="trait-clear">Show everyone</button></div>`;
 }
 function setTraitFilter(tag) {
   S.trait = tag || ""; traitOptKey = ""; fillTraitFilter();
@@ -177,7 +177,7 @@ function vsTraitsHTML(picks) {
   const sup = [];
   S.servants.forEach((x) => buffsOf(x).forEach((b) => { const who = tagsBy.map((ts, i) => ts.includes(b.tag) ? i : -1).filter((i) => i >= 0); if (who.length) sup.push({s: x, b: b, who: who}); }));
   sup.sort((a, b) => b.who.length - a.who.length);
-  const supHTML = sup.length ? `<ul class="tr-people">${sup.map((r) => `<li>${miniAva(r.s)}<span><button type="button" class="tr-name" data-action="goto" data-id="${esc(r.s.id)}">${esc(r.s.name)}</button>${r.who.length === n ? ` <span class="tr-all">Boosts ${n === 2 ? "both" : "all " + n}</span>` : ""}<small><b>${esc(tagLabel(r.b.tag))}:</b> ${esc(r.b.what || "buff")} · reaches ${r.who.map((i) => VS_K[i]).join(", ")}</small></span></li>`).join("")}</ul>` : `<p class="tr-none">No support in your roster has a buff aimed at their traits.</p>`;
+  const supHTML = sup.length ? `<ul class="tr-people">${sup.map((r) => `<li>${miniAva(r.s)}<span><button type="button" class="tr-name" data-action="goto" data-id="${esc(r.s.id)}">${esc(r.s.name)}</button>${cuTag(r.s)}${r.who.length === n ? ` <span class="tr-all">Boosts ${n === 2 ? "both" : "all " + n}</span>` : ""}<small><b>${esc(tagLabel(r.b.tag))}:</b> ${esc(r.b.what || "buff")} · reaches ${r.who.map((i) => VS_K[i]).join(", ")}</small></span></li>`).join("")}</ul>` : `<p class="tr-none">No support in your roster has a buff aimed at their traits.</p>`;
   return `${allShared.length ? `<p class="tr-shared">${n === 2 ? "Both" : "All " + n} share: ${allShared.map((r) => `<b>${esc(tagShort(r.t))}</b>`).join(", ")}.</p>` : ""}
     ${table}${only}
     <h4 class="tr-h">Supports that buff these traits</h4>${supHTML}`;

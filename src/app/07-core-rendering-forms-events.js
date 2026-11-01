@@ -104,7 +104,7 @@ function rosterRowHTML(s, sel) {
   const pips = [0, 1, 2].map((i) => { const v = (s.skills || [])[i]; return typeof v === "number" ? `<span class="pip${v === 10 ? " max" : ""}${skTierOf(s, i) ? " t-" + skTierOf(s, i) : ""}" style="--sk-p:${v / 10}">${v}</span>` : `<span class="pip locked" title="Locked">–</span>`; }).join("");
   return `<button class="row${sel === s.id ? " is-sel" : ""}${S.justSummoned === s.id ? " fresh" : ""}${grTier(s)}" data-action="select" data-id="${esc(s.id)}" aria-pressed="${sel === s.id}">
       ${grTier(s) ? grFX : ""}${iconHTML(s, "")}
-      <span class="row-main"><span class="row-name">${esc(s.name)}</span><span class="row-meta">${esc(s.cls || "No class")}<span class="row-r"> · <span class="stars" aria-label="${num(s.rarity) || 0} stars">${"★".repeat(clamp(num(s.rarity) || 0, 0, 5))}</span></span>${s.npLevel ? " · NP" + esc(s.npLevel) : ""}</span></span>
+      <span class="row-main"><span class="row-name">${nmHTML(s)}</span><span class="row-meta">${esc(s.cls || "No class")}<span class="row-r"> · <span class="stars" aria-label="${num(s.rarity) || 0} stars">${"★".repeat(clamp(num(s.rarity) || 0, 0, 5))}</span></span>${s.npLevel ? " · NP" + esc(s.npLevel) : ""}</span></span>
       <span class="row-side"><span class="row-lv${st && st.kind === "grail" ? " has-gr" : ""}">Lv ${esc(s.level ?? "—")}${st && st.kind === "grail" ? `<em>+${num(s.level) - CAPS[s.rarity]}<small> · ${plural(st.grails || 0, "grail")}</small></em>` : ""}</span><span class="pips" aria-label="Skill levels">${pips}</span>${cardLetter(s.npCard)}</span>
     </button>`;
 }
@@ -113,7 +113,7 @@ function wishListHTML(sel) {
   const head = `<div class="wish-head"><h2>Guests <small>${all.length}</small></h2><span class="wish-tools">${all.length ? `<button class="btn ghost sm" data-action="tab" data-tab="summon">Summoning</button>` : ""}${S.readOnly ? "" : `<button class="btn sm" data-action="add-wish">+ Add guest</button>`}</span></div>`;
   if (!all.length) return `<section class="wish" aria-label="Guests">${head}<p class="wish-empty">The supports you borrow from friends, and the servants you hope to summon. Fill them in like any servant, stage pictures included, then summon them on the Summoning page when one joins you.</p></section>`;
   const rows = list.length ? list.map((s) => `<div class="wish-row">
-      <button class="row wish-pick${sel === s.id ? " is-sel" : ""}" data-action="select" data-id="${esc(s.id)}" aria-pressed="${sel === s.id}">${iconHTML(s, "")}<span class="row-main"><span class="row-name">${esc(s.name)}</span><span class="row-meta">${esc(s.cls || "No class")} · <span class="stars" aria-label="${num(s.rarity) || 0} stars">${"★".repeat(clamp(num(s.rarity) || 0, 0, 5))}</span></span></span></button>
+      <button class="row wish-pick${sel === s.id ? " is-sel" : ""}" data-action="select" data-id="${esc(s.id)}" aria-pressed="${sel === s.id}">${iconHTML(s, "")}<span class="row-main"><span class="row-name">${nmHTML(s)}</span><span class="row-meta">${esc(s.cls || "No class")} · <span class="stars" aria-label="${num(s.rarity) || 0} stars">${"★".repeat(clamp(num(s.rarity) || 0, 0, 5))}</span></span></span></button>
     </div>`).join("") : `<p class="wish-empty">No Guests match these filters.</p>`;
   return `<section class="wish" aria-label="Guests">${head}<div class="wish-list">${rows}</div></section>`;
 }
@@ -147,7 +147,7 @@ function playSummon(s) {
           <div class="sm-face sm-front">${art ? `<img class="sm-art" src="${esc(art)}" alt="">` : (CLASS_MARK[s.cls] ? `<img class="sm-art mark" src="${CLASS_MARK[s.cls]}" alt="">` : "")}
             <div class="sm-plate">${logo ? `<img src="${logo}" alt="">` : ""}<span class="sm-stars">${"★".repeat(r)}</span></div></div>
         </div></div>
-        <div class="sm-info" role="status" aria-live="polite"><p class="sm-kicker">Summoned</p><h2>${esc(s.name)}</h2><p class="sm-sub">${esc(s.cls || "")}${r ? " · " + "★".repeat(r) : ""}</p><button type="button" class="btn primary sm-done">Continue</button></div>
+        <div class="sm-info" role="status" aria-live="polite"><p class="sm-kicker">Summoned</p><h2>${nmHTML(s)}</h2><p class="sm-sub">${esc(s.cls || "")}${r ? " · " + "★".repeat(r) : ""}</p><button type="button" class="btn primary sm-done">Continue</button></div>
       </div>
       <button type="button" class="btn ghost sm sm-skip">Skip</button>`;
     ov.dataset.tier = tier; ov.className = "summon"; ov.hidden = false;
@@ -691,7 +691,7 @@ function memberCard(name, i, ce) {
   const art = k ? `<img src="${esc(artSrc(artOf(s, k)))}" alt="" data-art="1" loading="lazy">` : (CLASS_LOGO[s.cls] ? `<img class="fc-biglogo" src="${CLASS_LOGO[s.cls]}" alt="">` : `<span class="fc-mono">${esc(ABBR[s.cls] || "—")}</span>`);
   return `<button type="button" class="fc ${metal}" data-action="goto" data-id="${esc(s.id)}" title="Open ${esc(s.name)}" aria-label="${esc(pos)}: ${esc(s.name)}, level ${esc(s.level ?? "not set")}. Open details">
     <span class="fc-in">
-      <span class="fc-art">${art}<span class="fc-name">${esc(s.name)}</span></span>
+      <span class="fc-art">${art}<span class="fc-name">${nmHTML(s)}</span></span>
       <span class="fc-cls">${CLASS_LOGO[s.cls] ? `<img class="fc-logo" src="${CLASS_LOGO[s.cls]}" alt="">` : `<span class="fc-gem"><i><b>${esc(ABBR[s.cls] || "—")}</b></i></span>`}<small>${esc(s.cls || "")}</small></span>
       ${badge}
       <span class="fc-ce${ce ? "" : " none"}"><span>${ce ? esc(ce) : "No Craft Essence"}</span></span>

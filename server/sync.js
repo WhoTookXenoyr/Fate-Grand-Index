@@ -69,6 +69,8 @@ function activityOf(rows, old) {
     const n = parse(r.data), o = parse(old[r.id]);
     if (!n || n.wish) continue;
     const who = {sid: r.id, name: clean(n.name, 80), cls: clean(n.cls, 20), rarity: Number(n.rarity) || 0, atlas: Number(n.atlas) || null};
+    // a servant made in the Servant Workshop shows as Custom in friends' feeds
+    if (n.custom) who.custom = true;
     const cap = CAPS[who.rarity] || 0, lv = Number(n.level) || 0, olv = o ? Number(o.level) || 0 : 0;
     if (!o || o.wish) { out.push({kind: "summoned", data: who}); continue; }
     if (lv > olv && cap && lv > cap) out.push({kind: "grail", data: Object.assign({to: lv}, who)});

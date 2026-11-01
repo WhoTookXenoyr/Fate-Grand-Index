@@ -210,7 +210,7 @@ function smRingsHTML(tier) {
 function smItemOf(s) {
   if (s && s._item) return s;
   const k = iconSlot(s);
-  return {k: "s", r: clamp(num(s.rarity) || 0, 0, 5), name: s.name, sub: s.cls || "", art: k ? artSrc(artOf(s, k)) : "", logo: CLASS_LOGO[s.cls] || "", mark: CLASS_MARK[s.cls] || ""};
+  return {k: "s", r: clamp(num(s.rarity) || 0, 0, 5), name: s.name, custom: !!s.custom, sub: s.cls || "", art: k ? artSrc(artOf(s, k)) : "", logo: CLASS_LOGO[s.cls] || "", mark: CLASS_MARK[s.cls] || ""};
 }
 playSummon = function (who) {
   return new Promise((resolve) => {
@@ -232,7 +232,7 @@ playSummon = function (who) {
             <div class="s2-cover"><i class="s2-band"></i><img src="${backOf(it.k, r)}" alt=""></div></div>
           ${r >= 3 ? `<i class="sm-halo"></i><i class="sm-edge"><b></b></i>` : ""}
         </div>
-        <div class="sm-info" role="status" aria-live="polite"><p class="sm-hss"><span class="vh">${hss}</span><span class="sm-hss-l" aria-hidden="true">${letters}</span></p><h2>${esc(it.name)}</h2><p class="sm-sub">${esc(it.sub || "")}${r ? " · " + "★".repeat(r) : ""}</p><button type="button" class="btn sm sm-done">Done</button></div>
+        <div class="sm-info" role="status" aria-live="polite"><p class="sm-hss"><span class="vh">${hss}</span><span class="sm-hss-l" aria-hidden="true">${letters}</span></p><h2>${nmHTML(it)}</h2><p class="sm-sub">${esc(it.sub || "")}${r ? " · " + "★".repeat(r) : ""}</p><button type="button" class="btn sm sm-done">Done</button></div>
       </div>
       <button type="button" class="btn ghost sm sm-skip">Skip</button>`;
     ov.dataset.tier = tier === "rainbow" ? "gold5" : tier === "none" ? "bronze" : tier; ov.dataset.look = tier; ov.dataset.k = it.k;

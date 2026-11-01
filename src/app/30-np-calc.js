@@ -141,7 +141,7 @@ function npcSupSel(i, cur) {
   return `<label class="npc-f npc-sup"><span>Support ${i + 1}</span><select data-npc-sup="${i}">${o("", "None")}
     ${guestsForSup().length ? `<optgroup label="Your Guests">${guestsForSup().map((g) => o(g.key, g.n + (g.cls ? " · " + g.cls : ""))).join("")}</optgroup>` : ""}
     <optgroup label="Often borrowed">${pop.map((a) => o("a:" + a.no, a.n + " · " + a.c)).join("")}</optgroup>
-    ${mine.length ? `<optgroup label="Your servants">${mine.map((x) => o("r:" + x.id, x.name)).join("")}</optgroup>` : ""}
+    ${mine.length ? `<optgroup label="Your servants">${mine.map((x) => o("r:" + x.id, nmText(x))).join("")}</optgroup>` : ""}
     <optgroup label="Every NA servant">${ATLAS_S.slice().sort((a, b) => a.n.localeCompare(b.n)).map((a) => o("a:" + a.no, a.n + " · " + a.c)).join("")}</optgroup></select></label>`;
 }
 function npcTeamHTML(s, np, I) {
@@ -153,7 +153,7 @@ function npcTeamHTML(s, np, I) {
       return `<label class="npc-sk${on ? "" : " off"}"><input type="checkbox" data-npc-sk="${esc(key)}"${on ? " checked" : ""}>${icHTML(k.ic, "npc-ic")}<span class="npc-skm"><b>${esc(k.n)}</b><span>${k.fx.map((b) => npcFxText(b, k.lv, np, me, I)).join("")}</span></span><i class="npc-lv">Lv ${k.lv}</i></label>`; }).join("")}</div>`;
   };
   const face = (a) => a && a.f ? `<img class="npc-face" src="${esc(aimg(a.f))}" alt="" loading="lazy">` : "";
-  return `<div class="npc-who"><div class="npc-wh">${face(me)}<b>${esc(s.name)}</b><small>own skills</small></div>
+  return `<div class="npc-who"><div class="npc-wh">${face(me)}<b>${nmHTML(s)}</b><small>own skills</small></div>
       ${me ? list("me:" + s.id, me, skLevels(s), true, s.name) : `<p class="npc-none">Fill in ${esc(s.name)} from NA to use its skills here.</p>`}</div>
     ${[0, 1].map((i) => { const src = npcSrc(sup[i]);
       return `<div class="npc-who sup"><div class="npc-wh">${src ? face(src.a) : ""}${npcSupSel(i, src ? src.key : "")}</div>${src ? (src.a ? list(src.key, src.a, src.lv, false, src.n) : `<p class="npc-none">${esc(src.n)} isn't in NA's data here.</p>`) : ""}</div>`; }).join("")}`;

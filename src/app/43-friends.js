@@ -55,7 +55,7 @@ async function frLoad(quiet) {
 function frBadge() { const b = document.getElementById("tab-friends"); if (b) b.classList.toggle("has-req", FR.incoming.length > 0); }
 const frAgo = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " d ago"; };
 function feedLine(it) {
-  const d = it.data || {}, who = `<b>${esc(it.user.name)}</b>`, sv = `<b>${esc(d.name || "a servant")}</b>`;
+  const d = it.data || {}, who = `<b>${esc(it.user.name)}</b>`, sv = `<b>${esc(d.name || "a servant")}</b>${cuTag(d)}`;
   return {summoned: `${who} summoned ${sv}${d.rarity ? " " + "★".repeat(clamp(d.rarity, 1, 5)) : ""}`, grail: `${who} grailed ${sv} to Lv ${d.to}`,
     maxlevel: `${who} got ${sv} to max level (Lv ${d.to})`, np: `${who} raised ${sv} to NP${d.to}`, skills: `${who} maxed ${sv}'s skills`,
     bond: `${who} reached Bond ${d.to} with ${sv}`}[it.kind] || `${who} did something with ${sv}`;
@@ -87,7 +87,7 @@ function renderFriends() {
          <button type="button" class="btn sm" data-action="fr-sup" data-id="${f.id}" aria-expanded="${open}">${f.supports ? "Supports " + f.supports : "No supports"}</button>
          ${rm ? `<span class="fr-rm">Remove ${esc(f.name)}? <button type="button" class="btn danger solid sm" data-action="fr-remove" data-id="${f.id}">Remove</button><button type="button" class="btn ghost sm" data-action="fr-rm-no">Keep</button></span>`
            : `<button type="button" class="btn ghost sm fr-x" data-action="fr-rm-ask" data-id="${f.id}" aria-label="Remove ${esc(f.name)} from your friends">Remove</button>`}`;
-    const sup = open ? `<div class="fr-sups">${FR.sup.list ? (FR.sup.list.length ? FR.sup.list.map((s) => `<div class="fr-sv">${frFaceHTML(s)}<span><b>${esc(s.name)}</b><small>${esc(s.cls || "")} · ${esc(supStats(s))}</small></span>
+    const sup = open ? `<div class="fr-sups">${FR.sup.list ? (FR.sup.list.length ? FR.sup.list.map((s) => `<div class="fr-sv">${frFaceHTML(s)}<span><b>${nmHTML(s)}</b><small>${esc(s.cls || "")} · ${esc(supStats(s))}</small></span>
         <span class="fr-sv-b"><button type="button" class="btn ghost sm" data-action="fr-vs" data-k="${esc(s.id)}">Versus</button>${mineHas(s) ? "" : `<button type="button" class="btn ghost sm" data-action="fr-guest" data-k="${esc(s.id)}" title="Add ${esc(s.name)} to your Guests with ${esc(f.name)}'s levels">+ Guest</button>`}</span></div>`).join("") : `<p class="muted">${esc(f.name)} hasn't picked supports yet.</p>`) : `<p class="muted">Loading…</p>`}</div>` : "";
     const sc = kind === "friend" && f.story ? STORY_BY.get(f.story.w) : null;
     return `<li class="fr-card"><span class="acct-av" aria-hidden="true">${esc(f.name.slice(0, 1).toUpperCase())}</span><div class="fr-who"><b>${esc(f.name)}</b><small>${fmtCode(f.code)}${f.seen && kind === "friend" ? " · seen " + frAgo(f.seen) : ""}</small>${sc ? `<small class="fr-story" style="${palVars(sc)}">Story: <b>${esc(sc.n)}</b></small>` : ""}</div><div class="fr-acts">${acts}</div>${sup}</li>`;
@@ -105,7 +105,7 @@ function renderFriends() {
     </div>
     <div class="fr-col">
       <section class="fr-box"><h3>Your supports <small>${mine.length} of 10</small></h3><p class="acct-note">Friends can borrow these in the damage calculator and compare them in Versus, whoever can see your roster.</p>
-        <ul class="fr-mysup">${mine.map((s) => `<li>${frFaceHTML(s)}<span><b>${esc(s.name)}</b><small>${esc(supStats(s))}</small></span><button type="button" class="fr-unsup" data-action="fr-unsup" data-id="${esc(s.id)}" aria-label="Stop lending ${esc(s.name)}">×</button></li>`).join("")}</ul>
+        <ul class="fr-mysup">${mine.map((s) => `<li>${frFaceHTML(s)}<span><b>${nmHTML(s)}</b><small>${esc(supStats(s))}</small></span><button type="button" class="fr-unsup" data-action="fr-unsup" data-id="${esc(s.id)}" aria-label="Stop lending ${esc(s.name)}">×</button></li>`).join("")}</ul>
         ${mine.length < 10 && S.servants.some((x) => !x.wish) ? `<button type="button" class="btn sm" data-action="fr-addsup">+ Add a support</button>` : ""}</section>
       <section class="fr-box"><h3>What your friends are up to</h3>${FR.feed.length ? `<ul class="fr-feed">${FR.feed.map((it) => `<li>${frFaceHTML({atlas: it.data && it.data.atlas, name: it.data && it.data.name, cls: it.data && it.data.cls})}<p>${feedLine(it)}<small>${frAgo(it.at)}</small></p></li>`).join("")}</ul>`
         : `<p class="muted">${FR.loaded ? "Nothing yet. When friends summon, grail or max out a servant, it shows here." : "Loading…"}</p>`}
@@ -204,7 +204,7 @@ vsHeroHTML = function (s, i, ids) {
   let h = vsHeroHTML26.apply(this, arguments).replace(/<option value="f:[^"]*"[^>]*>[^<]*<\/option>/g, "").replace(/<optgroup label="[^"]*"><\/optgroup>/g, "");
   const fr = Array.from(FSV.values());
   if (fr.length) {
-    const opt = (x) => `<option value="${esc(x.id)}"${x.id === s.id ? " selected" : ""}${x.id !== s.id && ids.includes(x.id) ? " disabled" : ""}>${esc(x.name)}</option>`;
+    const opt = (x) => `<option value="${esc(x.id)}"${x.id === s.id ? " selected" : ""}${x.id !== s.id && ids.includes(x.id) ? " disabled" : ""}>${esc(nmText(x))}</option>`;
     const by = new Map(); fr.forEach((x) => { if (!by.has(x.fr.name)) by.set(x.fr.name, []); by.get(x.fr.name).push(x); });
     const groups = Array.from(by.keys()).map((n) => `<optgroup label="${esc(n)}'s">${by.get(n).map(opt).join("")}</optgroup>`).join("");
     h = h.replace(/(<select class="vs-sel"[^>]*>[\s\S]*?)(<\/select>)/, "$1" + groups + "$2");
@@ -344,7 +344,7 @@ async function vsFriendRestore() {
 const renderVersus261 = renderVersus;
 renderVersus = function () { const r = renderVersus261.apply(this, arguments); vsFriendRestore(); return r; };
 // the Story page's "worth borrowing" counts your friends' supports too
-storyBorrowFriends = () => FV.on ? [] : FSUP.flatMap((f) => f.supports.map((s) => ({name: s.name, cls: s.cls, who: f.user.name})));
+storyBorrowFriends = () => FV.on ? [] : FSUP.flatMap((f) => f.supports.map((s) => ({name: s.name, cls: s.cls, who: f.user.name, custom: !!s.custom})));
 const frSupLoad26 = frSupLoad;
 frSupLoad = async function () { const r = await frSupLoad26.apply(this, arguments); if (S.tab === "story" && !FV.on) renderStory(); return r; };
 

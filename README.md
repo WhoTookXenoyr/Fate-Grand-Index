@@ -111,7 +111,9 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
 
 ## Card frames (0.28.0)
 - **Card frame** (Off / On) on the SERVANTPAGE and in Past Chaldea's windows, each remembered on its own in `spirit-origin-list:v1:cardframe` (`{mine, pc}`).
-- Servants get the game's Saint Graph frame (`src/assets/cardframe-f0…f5.webp`, ★0 made from the ★1 frame without its star) with the class in the diamond and ATK/HP by the plates. On the SERVANTPAGE those are the Stats section's numbers; in Past Chaldea, NA's at the max level.
+- Servants get the game's Saint Graph frame with the class in the diamond and ATK/HP under the swords. On the SERVANTPAGE those are the Stats section's numbers; in Past Chaldea, NA's at the max level.
+- The frame's metal follows the rarity and, on the SERVANTPAGE, grails, by NA's grail table (Atlas Academy's `export/NA/NiceSvtGrailCost.json`, copied into `CF_ADD`/`CF_STEP`): ★1–2 silver from the 1st grail and gold from the 3rd, ★3 gold from the 2nd. Past Lv 100 the game's frame is gold and red; we don't have that picture yet, so those keep gold (with `cf-red` on the box). ★0 stays bronze.
+- Pictures: `cardframe-f0…f5.webp` are Noyr's (★0 is the ★1 frame without its star). `cardframe-fs1/fs2` (silver ★1–2) and `fg1/fg2/fg3` (gold ★1–3) are put together from them: the star area redrawn from the starless bronze frame recoloured to the metal, then the stars of the frame with that many laid on (bronze ★1/★2's; gold ★3 is the ★5 frame's middle three). Atlas Academy has the grail rules but doesn't publish the frame pictures.
 - Craft Essences in Past Chaldea get the game's Craft Essence frame (`cardframe-o1…o5.webp`) with their max-level ATK/HP.
 - The overlay is added after each render (`src/app/46-card-frames.js`, `src/styles/29-card-frames.css`) and never saved with the servant.
 

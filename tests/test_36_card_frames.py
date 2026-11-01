@@ -1,7 +1,7 @@
 import os
 # 0.28.0: card frames. The SERVANTPAGE and Past Chaldea's windows each have Card frame: Off / On. Servants get the Saint
 # Graph frame with the class in its diamond; Craft Essences (Past Chaldea) the open frame with the vines. The frame
-# follows the rarity (gold, silver, bronze), shows ATK and HP (the Stats section's numbers; NA's max level in Past
+# follows the rarity and grails (bronze, silver, gold, NA's grail table), shows ATK and HP (the Stats section's numbers; NA's max level in Past
 # Chaldea), keeps up with the level, lets clicks through to the picture, stays off an empty stage, and each place
 # remembers its own choice.
 import sys, json
@@ -67,10 +67,13 @@ with sync_playwright() as p:
     pg.reload(); pg.wait_for_timeout(1500); pg.click(f'#list [data-id="{sid}"]'); pg.wait_for_timeout(600)
     check("still on after a reload", cf(pg)["cls"] == ["cf", "cf-f", "cf-gold"])
     # the frame's metal follows the rarity
-    for r, metal in ((3, "cf-silver"), (2, "cf-bronze"), (0, "cf-bronze")):
-        pg.evaluate(f"""() => {{ const d = JSON.parse(localStorage.getItem('{KEY}')); d.servants.find((x) => x.id === '{sid}').rarity = {r}; localStorage.setItem('{KEY}', JSON.stringify(d)); }}""")
+    # the metal follows the rarity, and grails upgrade it like NA's grail table says (★5 past Lv 100: gold and red)
+    for r, lv, want in ((3, 70, ["cf-silver"]), (3, 75, ["cf-silver"]), (3, 80, ["cf-gold"]), (2, 65, ["cf-bronze"]), (2, 70, ["cf-silver"]), (2, 80, ["cf-gold"]),
+                        (1, 60, ["cf-bronze"]), (1, 70, ["cf-silver"]), (0, 70, ["cf-bronze"]), (5, 100, ["cf-gold"]), (5, 102, ["cf-gold", "cf-red"])):
+        pg.evaluate(f"""() => {{ const d = JSON.parse(localStorage.getItem('{KEY}')), s = d.servants.find((x) => x.id === '{sid}'); s.rarity = {r}; s.level = {lv}; localStorage.setItem('{KEY}', JSON.stringify(d)); }}""")
         pg.reload(); pg.wait_for_timeout(1300); pg.click(f'#list [data-id="{sid}"]'); pg.wait_for_timeout(500)
-        check(f"★{r}: {metal}", metal in cf(pg)["cls"])
+        c = cf(pg)["cls"]
+        check(f"★{r} at Lv {lv}: {' '.join(want)} ({c})", all(w in c for w in want) and ("cf-red" in c) == ("cf-red" in want))
     pick(pg, "mine", False)
     c = cf(pg)
     check("Off takes it all away again", c["cls"] == [] and not c["frame"] and not c["diamond"] and c["atk"] is None)

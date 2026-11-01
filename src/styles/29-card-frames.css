@@ -12,12 +12,14 @@
 .cf > .cf-cls img { position: static; display: block; width: 100%; height: 100%; object-fit: contain; cursor: default; }
 .cf-silver > .cf-cls img { filter: grayscale(1) brightness(1.18) contrast(1.05); }
 .cf-bronze > .cf-cls img { filter: sepia(.4) saturate(.72) hue-rotate(-12deg) brightness(.78); }
-/* ATK after its plate, HP before its plate: white with a dark edge, like the game's numbers */
+/* ATK and HP: white with a dark edge, like the game's numbers */
 .cf > .cf-n { position: absolute; z-index: 4; bottom: 7.7%; font-family: var(--f-display); font-variation-settings: "wdth" 85; font-weight: 800; font-size: 4.2cqw; line-height: 1; letter-spacing: .02em;
   color: #fff; white-space: nowrap; pointer-events: none; font-variant-numeric: tabular-nums;
   text-shadow: 0 0 .1em #120d08, .06em .06em 0 #120d08, -.06em .06em 0 #120d08, .06em -.06em 0 #120d08, -.06em -.06em 0 #120d08, 0 .14em .24em rgba(0, 0, 0, .7); }
-.cf-f > .cf-atk { left: 20.6%; }
-.cf-f > .cf-hp { right: 17.6%; }
+/* a servant's: bigger, centred under the swords (frame pixels: ATK sword 92–192, HP sword 320–420, band 818–858) */
+.cf-f > .cf-n { bottom: auto; top: 95.8%; transform: translate(-50%, -50%); font-size: 5.9cqw; }
+.cf-f > .cf-atk { left: 27.7%; }
+.cf-f > .cf-hp { left: 72.3%; }
 .cf-o > .cf-n { bottom: 6.9%; }
 .cf-o > .cf-atk { left: 25.2%; }
 .cf-o > .cf-hp { right: 26%; }

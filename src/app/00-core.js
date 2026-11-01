@@ -243,6 +243,14 @@ const imgStore = {
     return out;
   }
 };
+// (decoded by hand: the website's Content Security Policy doesn't let fetch() read data: URLs)
+function dataUrlToBlob(u) {
+  const m = /^data:([^;,]+)(;base64)?,(.*)$/s.exec(String(u || "")); if (!m) throw new Error("not a data URL");
+  if (!m[2]) return new Blob([decodeURIComponent(m[3])], {type: m[1]});
+  const bin = atob(m[3]), bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], {type: m[1]});
+}
 function blobToDataURL(blob) { return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => rej(fr.error); fr.readAsDataURL(blob); }); }
 const localAssets = {
   async upload(blob) {

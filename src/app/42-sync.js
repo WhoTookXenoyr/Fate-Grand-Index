@@ -42,6 +42,18 @@ localDb.collection = function (col) {
   };
   return q;
 };
+// 0.28.0: Undo import puts the list back without going through localDb, so every entry it changed is noted here
+// (before, an undone import stayed in the account and came back with the next sync)
+const importUndo26 = importUndo;
+importUndo = async function () {
+  const before = {}; COLS.forEach((c) => { before[c] = new Map(store[c].map((x) => [x.id, stableJSON(x)])); });
+  const r = await importUndo26.apply(this, arguments);
+  COLS.forEach((c) => {
+    const now = new Map(store[c].map((x) => [x.id, stableJSON(x)]));
+    new Set([...before[c].keys(), ...now.keys()]).forEach((id) => { if (before[c].get(id) !== now.get(id)) syncMark(c, id); });
+  });
+  return r;
+};
 // and the remembered things are noted when the page saves them
 Storage.prototype.setItem = function (k, v) { stSet.call(this, k, v); if (this === localStorage && EXTRA_BY_KEY.has(k)) syncMark("extras", EXTRA_BY_KEY.get(k)); };
 Storage.prototype.removeItem = function (k) { stDel.call(this, k); if (this === localStorage && EXTRA_BY_KEY.has(k)) syncMark("extras", EXTRA_BY_KEY.get(k)); };
@@ -164,7 +176,8 @@ async function imgGet(id) {
   try {
     const db = await imgStore.open();
     if (db) { const b = await new Promise((res) => { const t = db.transaction("img", "readonly"), rq = t.objectStore("img").get(id); rq.onsuccess = () => res(rq.result || null); rq.onerror = () => res(null); }); if (b) return typeof b === "string" ? (await fetch(b)).blob() : b; }
-    if (v && /^(blob|data):/.test(v)) return (await fetch(v)).blob();
+    if (v && /^data:/.test(v)) return dataUrlToBlob(v);
+    if (v && /^blob:/.test(v)) return (await fetch(v)).blob();
   } catch (e) {}
   return null;
 }

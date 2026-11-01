@@ -104,6 +104,21 @@ def run(base):
         d.click('#dossier [data-action="stage"][data-slot="fan"]'); d.wait_for_timeout(1200)
         src = d.locator("#dossier .art-frame img").first.get_attribute("src") if d.locator("#dossier .art-frame img").count() else ""
         check(f"and the phone shows it ({src[:40]})", src.startswith("/api/pics/") or src.startswith("blob:"))
+        # 0.28.0: a servant from a .servant.json (say, made in the offline file) syncs like one made here, picture too
+        sv = {"app": "spirit-origin-list", "version": 1, "kind": "servant", "exportedAt": "2026-11-01T18:00:00Z", "parties": [], "guests": [],
+              "servants": [{"id": "camellya", "name": "Camellya", "cls": "Foreigner", "rarity": 5, "level": 90, "custom": True, "art": {"1": "img_offline1"}, "artStage": "1"}],
+              "images": {"img_offline1": "data:image/png;base64," + base64.b64encode(PNG).decode()}}
+        sfp = os.path.join(tempfile.mkdtemp(), "Camellya.servant.json"); open(sfp, "w").write(json.dumps(sv))
+        a.set_input_files("#f-import", sfp); a.wait_for_timeout(600); a.click('#notice [data-action="import-go"]')
+        cpic, st = None, {}
+        for _ in range(20):
+            a.wait_for_timeout(500)
+            cam = next((x for x in a.evaluate(LS)["servants"] if x["name"] == "Camellya"), None); cpic = cam and cam.get("art", {}).get("1"); st = a.evaluate(SYNCST) or {}
+            if cpic and (st.get("up") or {}).get(cpic) == 1: break
+        check(f"a servant imported from a .servant.json syncs up with its picture ({cpic})", cpic and cpic != "img_offline1" and (st.get("up") or {}).get(cpic) == 1)
+        # (Undo import takes her away again, so the counts below stay as they were)
+        a.click('#notice [data-action="import-undo"]'); a.wait_for_timeout(2500)
+        check("and Undo import takes her away again", not any(x["name"] == "Camellya" for x in a.evaluate(LS)["servants"]))
         # ---------- a browser with a roster of its own: combine ----------
         own = {"servants": [{"id": "only-here", "name": "Only Here", "cls": "Saber", "rarity": 3, "level": 50, "order": 1}], "parties": [], "guests": []}
         c3, g = browser_ctx(b, roster=own)

@@ -4696,6 +4696,14 @@ const imgStore = {
     return out;
   }
 };
+// (decoded by hand: the website's Content Security Policy doesn't let fetch() read data: URLs)
+function dataUrlToBlob(u) {
+  const m = /^data:([^;,]+)(;base64)?,(.*)$/s.exec(String(u || "")); if (!m) throw new Error("not a data URL");
+  if (!m[2]) return new Blob([decodeURIComponent(m[3])], {type: m[1]});
+  const bin = atob(m[3]), bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], {type: m[1]});
+}
 function blobToDataURL(blob) { return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => rej(fr.error); fr.readAsDataURL(blob); }); }
 const localAssets = {
   async upload(blob) {
@@ -8028,7 +8036,7 @@ async function importBackup(d, snap) {
   for (const id of Object.keys(d.images || {})) {
     const url = d.images[id];
     if (typeof url !== "string" || !url.startsWith("data:image/") || !/^[A-Za-z0-9_\-.~:@+]{1,200}$/.test(id)) continue;
-    try { const blob = await (await fetch(url)).blob(); await imgStore.put(id, blob); S.urlCache[id] = URL.createObjectURL(blob); imgs++; } catch (e) {}
+    try { const blob = dataUrlToBlob(url); await imgStore.put(id, blob); S.urlCache[id] = URL.createObjectURL(blob); imgs++; } catch (e) {}
   }
   let n = 0;
   for (const col of COLS) {
@@ -10933,7 +10941,9 @@ const CHANGES = [
     "<b>Fate/Grand Order passed 100 million downloads</b> across its Japanese, English, Chinese and Korean versions. Home now has an announcement about it with a countdown, in your own time, to the worldwide stream on Saturday 7 November (20:00 JST), where the campaign for every server gets revealed. It also lists the Japanese server's 7-day countdown login bonus day by day, with today's marked. Watch on YouTube opens FGO's official channel, and the official announcements are linked. You can hide it.",
     "<b>Card frame</b> on a servant's page, under the stages: turn it on and their picture sits in the game's Saint Graph frame: bronze, silver or gold by rarity with their stars, the class in the diamond, and their ATK and HP under the swords (the same numbers as the Stats section, Fou and an equipped Craft Essence included). Grails upgrade the frame like in the game: a ★1 or ★2 turns silver with its first grail and gold with its third, a ★3 gold with its second. The numbers follow the level, and a click on the picture still goes to the next stage.",
     "Past Chaldea has its own <b>Card frame</b> switch. Servants get the same frame with NA's ATK and HP at their max level; Craft Essences get the game's Craft Essence frame with the vines and their ATK and HP at the max level.",
-    "Both switches are remembered in this browser, each on its own."]},
+    "Both switches are remembered in this browser, each on its own.",
+    "<b>Export one servant</b>: Export on a servant's page saves just them, with their pictures, as a small file. Import (the same button as for backups) adds them to any copy of Fate/Grand Index: the offline file, another browser or the website. If they're already there you pick Add as a copy or Replace, and Undo import takes it back.",
+    "On the website, importing a backup now brings its pictures along (they were left out), and Undo import also undoes it in your account (before, the imported entries came back with the next sync)."]},
   {v: "0.27.1", d: "1 Nov 2026", t: "Workshop servants keep your edits and say Custom everywhere", i: [
     "A servant made in the Workshop has a <b>Custom</b> tag next to their name wherever they show up: your roster and Guests, Ranking, Home, Versus, parties (the party picture too), Summoning, the Story page, the damage calculator and its support picker, and friends' supports and activity. Lists to pick from say (Custom). That way nobody takes them for a servant from the game. A name that already ends in (Custom) doesn't get a second one.",
     "A servant made in the Workshop keeps what you change in <b>Edit details</b> or on their page: skills and their values, the Noble Phantasm's name, card and target, passives, traits, deck and growth. Before, the Workshop had its own copy, so it opened with the old skills and saving there put them back. Skills you already changed this way come along the next time you open the Workshop.",
@@ -16323,6 +16333,18 @@ localDb.collection = function (col) {
   };
   return q;
 };
+// 0.28.0: Undo import puts the list back without going through localDb, so every entry it changed is noted here
+// (before, an undone import stayed in the account and came back with the next sync)
+const importUndo26 = importUndo;
+importUndo = async function () {
+  const before = {}; COLS.forEach((c) => { before[c] = new Map(store[c].map((x) => [x.id, stableJSON(x)])); });
+  const r = await importUndo26.apply(this, arguments);
+  COLS.forEach((c) => {
+    const now = new Map(store[c].map((x) => [x.id, stableJSON(x)]));
+    new Set([...before[c].keys(), ...now.keys()]).forEach((id) => { if (before[c].get(id) !== now.get(id)) syncMark(c, id); });
+  });
+  return r;
+};
 // and the remembered things are noted when the page saves them
 Storage.prototype.setItem = function (k, v) { stSet.call(this, k, v); if (this === localStorage && EXTRA_BY_KEY.has(k)) syncMark("extras", EXTRA_BY_KEY.get(k)); };
 Storage.prototype.removeItem = function (k) { stDel.call(this, k); if (this === localStorage && EXTRA_BY_KEY.has(k)) syncMark("extras", EXTRA_BY_KEY.get(k)); };
@@ -16445,7 +16467,8 @@ async function imgGet(id) {
   try {
     const db = await imgStore.open();
     if (db) { const b = await new Promise((res) => { const t = db.transaction("img", "readonly"), rq = t.objectStore("img").get(id); rq.onsuccess = () => res(rq.result || null); rq.onerror = () => res(null); }); if (b) return typeof b === "string" ? (await fetch(b)).blob() : b; }
-    if (v && /^(blob|data):/.test(v)) return (await fetch(v)).blob();
+    if (v && /^data:/.test(v)) return dataUrlToBlob(v);
+    if (v && /^blob:/.test(v)) return (await fetch(v)).blob();
   } catch (e) {}
   return null;
 }
@@ -18853,6 +18876,117 @@ document.addEventListener("click", (e) => {
   const id = b.dataset.id, h = anHidden(); if (!h.includes(id)) anSetHidden(h.concat([id]));
   anPaint();
   toastAction("Announcement hidden.", "Undo", () => { anSetHidden(anHidden().filter((x) => x !== id)); anPaint(); });
+});
+/* ================= 0.28.0: one servant to a file and back =================
+   Export on the SERVANTPAGE saves that one servant, with their uploaded pictures, as a small .json file
+   (<name>.servant.json: a backup with kind "servant" and one entry). Import, the same button as for backups, adds it
+   to any copy of the page: the offline file, another browser, or the website (where it syncs like anything else).
+   Pictures get new IDs here, so nothing already here is touched. A servant whose ID is already on the list is added
+   as a copy unless Replace is picked, and the import can be undone like any other. */
+const SV1_KIND = "servant";
+const SV1_PIC = /^img_[a-z0-9]+$/;
+// one picture as a data: URL, from this browser's store or wherever it's shown from (an account's picture)
+async function sv1Pic(id) {
+  try { const b = typeof imgGet === "function" ? await imgGet(id) : null; if (b) return await blobToDataURL(b); } catch (e) {}
+  try { const all = await imgStore.all(), v = all[id]; if (v) return typeof v === "string" ? v : await blobToDataURL(v); } catch (e) {}
+  const u = S.urlCache[id]; if (!u) return null; if (/^data:image\//.test(u)) return u;
+  try { return await blobToDataURL(await (await fetch(u)).blob()); } catch (e) { return null; }
+}
+async function exportServant(id) {
+  const s = S.servants.find((x) => x.id === id); if (!s || !S.downloads) return;
+  const images = {};
+  for (const v of Object.values(s.art || {})) if (typeof v === "string" && SV1_PIC.test(v) && !images[v]) { const d = await sv1Pic(v); if (d) images[v] = d; }
+  const data = JSON.stringify({app: "spirit-origin-list", version: 1, kind: SV1_KIND, exportedAt: new Date().toISOString(), appVersion: APP_VER, servants: [s], parties: [], guests: [], images: images});
+  const name = String(s.name || "").replace(/[\\/:*?"<>|\u0000-\u001f]+/g, "").replace(/\s+/g, " ").trim().slice(0, 60) || "servant";
+  await S.downloads.save({filename: name + ".servant.json", data: data});
+  const n = Object.keys(images).length;
+  toast(s.name + " saved to your downloads" + (n ? " with " + plural(n, "picture") : "") + ". Add them anywhere with Import.");
+}
+
+/* ---------- Import: a .servant.json gets its own preview ---------- */
+const sv1Ok = (d) => d && typeof d === "object" && d.kind === SV1_KIND && Array.isArray(d.servants) && d.servants.length === 1 && d.servants[0] && typeof d.servants[0] === "object" && String(d.servants[0].name || "").trim();
+const readImport28 = readImport;
+readImport = function (file) {
+  const fr = new FileReader();
+  fr.onload = () => {
+    let d = null; try { d = JSON.parse(String(fr.result || "")); } catch (e) {}
+    if (!sv1Ok(d)) { readImport28(file); return; }
+    const s = d.servants[0], images = d.images && typeof d.images === "object" ? d.images : {};
+    // (servants/parties/guests filled in so anything that reads a backup's preview finds what it expects)
+    S.importData = {kind: SV1_KIND, s: s, images: images, servants: [s], parties: [], guests: [], changed: [], when: Date.parse(d.exportedAt) || 0,
+      clash: S.servants.find((x) => x.id === s.id) || null, twin: S.servants.find((x) => x.id !== s.id && normName(x.name) === normName(s.name)) || null, mode: ""};
+    renderChrome(); window.scrollTo({top: 0});
+  };
+  fr.readAsText(file);
+};
+function sv1NoticeHTML(d) {
+  const s = d.s, r = clamp(Math.round(num(s.rarity) || 0), 0, 5), pics = Object.values(s.art || {}).filter((v) => typeof v === "string" && (d.images[v] || /^https?:\/\//.test(v))).length;
+  const what = [s.custom ? "Custom servant" : s.wish ? "Guest" : "", [s.cls, r ? "★" + r : ""].filter(Boolean).join(" "), s.level ? "Lv " + s.level : "", pics ? plural(pics, "picture") : ""].filter(Boolean).join(" · ");
+  const made = d.when ? " Exported " + dayStr(d.when) + "." : "";
+  const c = d.clash;
+  return `<p>Add <b>${esc(s.name)}</b> from this file? <span class="muted">${esc(what)}.</span>${made}${c
+      ? ` <b>${esc(c.name === s.name ? "You already have this servant" : "This file's servant has the same ID as your " + c.name)}</b>${c.level ? " (Lv " + esc(c.level) + ")" : ""}: Add as a copy keeps both, Replace puts the file's version in its place.`
+      : d.twin ? ` You already have a ${esc(d.twin.name)}; this adds a second one.` : ""} You can undo it afterwards.</p>
+    ${c ? `<button class="btn primary sm" data-action="import-go" data-mode="copy">Add as a copy</button><button class="btn sm" data-action="import-go" data-mode="replace">Replace yours</button>`
+      : `<button class="btn primary sm" data-action="import-go" data-mode="add">Add ${esc(s.name)}</button>`}<button class="btn ghost sm" data-action="import-cancel">Cancel</button>`;
+}
+const renderChrome28 = renderChrome;
+renderChrome = function () {
+  const r = renderChrome28.apply(this, arguments);
+  const d = S.importData, n = document.getElementById("notice");
+  if (d && d.kind === SV1_KIND && n) { n.hidden = false; n.innerHTML = sv1NoticeHTML(d); }
+  return r;
+};
+// which button was pressed (the click itself runs the import)
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest('[data-action="import-go"][data-mode]');
+  if (b && S.importData && S.importData.kind === SV1_KIND) S.importData.mode = b.dataset.mode;
+}, true);
+const runImport28 = runImport;
+runImport = async function () {
+  const d = S.importData; if (!d || d.kind !== SV1_KIND) return runImport28.apply(this, arguments);
+  S.importData = null; S.importUndo = null; renderChrome();
+  const snap = importSnap(); importBusy = true;
+  try { await sv1Import(d, snap); } finally { importBusy = false; }
+};
+async function sv1Import(d, snap) {
+  const src = d.s, replace = d.mode === "replace" && d.clash && S.servants.some((x) => x.id === d.clash.id);
+  const okId = typeof src.id === "string" && /^[A-Za-z0-9_\-.~:@+]{1,200}$/.test(src.id) && !/^\.\.?$/.test(src.id);
+  const id = replace ? d.clash.id : okId && !S.servants.some((x) => x.id === src.id) ? src.id : slug(src.name, S.servants);
+  // pictures: stored here under new IDs
+  const map = {}; let imgs = 0;
+  for (const [old, url] of Object.entries(d.images || {})) {
+    if (!SV1_PIC.test(old) || typeof url !== "string" || !/^data:image\/(png|jpeg|webp|gif);base64,/.test(url)) continue;
+    try { const blob = dataUrlToBlob(url); const up = await (S.assets || localAssets).upload(blob); S.urlCache[up.id] = up.url; map[old] = up.id; imgs++; } catch (e) {}
+  }
+  const o = JSON.parse(JSON.stringify(src)); o.id = id;
+  const art = {};
+  Object.entries(o.art && typeof o.art === "object" ? o.art : {}).forEach(([k, v]) => {
+    if (map[v]) art[k] = map[v];
+    else if (typeof v === "string" && /^https:\/\//.test(v)) { art[k] = v; if (!S.urlCache[v]) S.urlCache[v] = v; }
+  });
+  o.art = art; if (o.artStage && !art[o.artStage]) o.artStage = Object.keys(art)[0] || null;
+  o.order = replace ? d.clash.order : nextOrder(S.servants);
+  if (!(await putDoc("servants", id, bodyOf(o)))) { if (imgs) Object.values(map).forEach((pid) => (S.assets || localAssets).delete(pid).catch(() => {})); return; }
+  S.tab = "servants"; S.selected = id; S.lastSel = id; S.editing = null;
+  importDone(snap, (replace ? "Replaced " : "Added ") + o.name + (imgs ? " with " + plural(imgs, "picture") : "") + ".");
+  renderAll();
+}
+
+/* ---------- Export on the SERVANTPAGE ---------- */
+const renderDossier28f = renderDossier;
+renderDossier = function () {
+  const r = renderDossier28f.apply(this, arguments);
+  try {
+    const d = document.getElementById("dossier"), s = d && !S.editing && !S.readOnly && S.downloads ? S.servants.find((x) => x.id === shownId()) : null;
+    const acts = s && d.querySelector(".d-head-actions");
+    if (acts && !acts.querySelector('[data-action="sv-export"]')) acts.insertAdjacentHTML("beforeend", `<button class="btn sm" data-action="sv-export" data-id="${esc(s.id)}" title="Save ${esc(s.name)} as a file you can add with Import in another browser, the offline file or the website">Export</button>`);
+  } catch (e) {}
+  return r;
+};
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest('[data-action="sv-export"]'); if (!b) return;
+  e.preventDefault(); exportServant(b.dataset.id);
 });
 // Where the page is scrolled when it opens (0.23.1):
 // - While the page builds itself, the browser's scroll anchoring followed the footer down as the views filled in, so a

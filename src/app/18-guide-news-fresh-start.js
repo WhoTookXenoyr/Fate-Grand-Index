@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.27.1";
+const APP_VER = "0.28.0";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -163,6 +163,10 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.28.0", d: "1 Nov 2026", t: "Card frames", i: [
+    "<b>Card frame</b> on a servant's page, under the stages: turn it on and their picture sits in the game's Saint Graph frame. It's gold, silver or bronze by rarity with their stars, the class in the diamond, and their ATK and HP at the bottom, the same numbers as the Stats section (Fou and an equipped Craft Essence included). The numbers follow the level, and a click on the picture still goes to the next stage.",
+    "Past Chaldea has its own <b>Card frame</b> switch. Servants get the same frame with NA's ATK and HP at their max level; Craft Essences get the game's Craft Essence frame with the vines and their ATK and HP at the max level.",
+    "Both switches are remembered in this browser, each on its own."]},
   {v: "0.27.1", d: "1 Nov 2026", t: "Workshop servants keep your edits and say Custom everywhere", i: [
     "A servant made in the Workshop has a <b>Custom</b> tag next to their name wherever they show up: your roster and Guests, Ranking, Home, Versus, parties (the party picture too), Summoning, the Story page, the damage calculator and its support picker, and friends' supports and activity. Lists to pick from say (Custom). That way nobody takes them for a servant from the game. A name that already ends in (Custom) doesn't get a second one.",
     "A servant made in the Workshop keeps what you change in <b>Edit details</b> or on their page: skills and their values, the Noble Phantasm's name, card and target, passives, traits, deck and growth. Before, the Workshop had its own copy, so it opened with the old skills and saving there put them back. Skills you already changed this way come along the next time you open the Workshop.",

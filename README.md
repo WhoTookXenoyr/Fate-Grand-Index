@@ -109,6 +109,12 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
 - **The Workshop** (`src/app/45-workshop.js`, `src/styles/28-workshop.css`): eight steps and a live card; parts flagged in `kit.auto` follow the class and rarity (`typicalOf`: NA's median stats, most used curve, deck, NP card, passives) until changed. The draft is `spirit-origin-list:v1:workshop`. Share codes are `FGI2.` + the kit as deflated base64url (`FGI1.` without deflate where `CompressionStream` is missing), cleaned by `wsClean` when opened.
 - **Versus with NA**: picks like `na:<number>` are NA servants at max level, NP1 and skills at 10, built on the fly (`vnaGet`), never saved.
 
+## Card frames (0.28.0)
+- **Card frame** (Off / On) on the SERVANTPAGE and in Past Chaldea's windows, each remembered on its own in `spirit-origin-list:v1:cardframe` (`{mine, pc}`).
+- Servants get the game's Saint Graph frame (`src/assets/cardframe-f0…f5.webp`, ★0 made from the ★1 frame without its star) with the class in the diamond and ATK/HP by the plates. On the SERVANTPAGE those are the Stats section's numbers; in Past Chaldea, NA's at the max level.
+- Craft Essences in Past Chaldea get the game's Craft Essence frame (`cardframe-o1…o5.webp`) with their max-level ATK/HP.
+- The overlay is added after each render (`src/app/46-card-frames.js`, `src/styles/29-card-frames.css`) and never saved with the servant.
+
 ## Your data
 
 Your roster is stored in your browser: `localStorage` key `spirit-origin-list:v1`, pictures in IndexedDB `spirit-origin-list-images`. These names never change, so existing saves keep working with every new version. Signed in on the hosted site, the same data is also kept in your account (0.26.0); the file opened from your computer never talks to a server.

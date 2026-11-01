@@ -424,3 +424,14 @@ input.gr-auto { background: var(--sunken) !important; color: var(--muted); }
   .ws-step, .ws-fx, .ws-pane, .ws-pal-p, .ws-card.roll { animation: none; }
   .ws-shine, .ws-summon::after { animation: none; opacity: 0; }
 }
+
+/* ---------- 0.27.1: Custom after a Workshop servant's name wherever it's listed (nmHTML, cuTag in 00-core.js) ---------- */
+/* a long name is cut short and the tag stays */
+.cu-w { display: inline-flex; align-items: center; gap: .45em; max-width: 100%; min-width: 0; }
+.cu-n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.cu-tag { flex: none; display: inline-block; margin-left: .4em; padding: 0 .55em; border-radius: 99px; font-style: normal; font-weight: 700; font-size: clamp(8.5px, .62em, 11px); line-height: 1.6; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; vertical-align: .14em;
+  background: color-mix(in srgb, var(--gold) 22%, transparent); color: var(--warn-ink); }
+.cu-w > .cu-tag { margin-left: 0; }
+.tr-name .cu-n { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--ink) 30%, transparent); text-underline-offset: 3px; }
+/* on art and on the summon reveal */
+.fc-name .cu-tag, .sm-info .cu-tag, .smh-title .cu-tag { background: rgba(242, 211, 145, .92); color: #3a2a0c; }

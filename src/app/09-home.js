@@ -58,7 +58,7 @@ function homeCardHTML(s, i, n) {
   const art = k ? `<img class="hm-art" src="${esc(artSrc(artOf(s, k)))}" alt="" data-art="1">` : (CLASS_MARK[s.cls] ? `<img class="hm-art mark" src="${CLASS_MARK[s.cls]}" alt="">` : "");
   const rk = rankOf(s.id);
   return `<button type="button" class="hm-card ${metal}${grTier(s)}" data-action="goto" data-id="${esc(s.id)}" style="--o:${off};--a:${Math.abs(off)};--d:${i}"
-      data-cap="${esc(s.name)}" data-sub="${esc([s.cls, s.level ? "Lv " + s.level : "", s.npLevel ? "NP" + s.npLevel : "", rk ? "Rank #" + rk.rank : ""].filter(Boolean).join(" · "))}" aria-label="Open ${esc(s.name)}">
+      data-cap="${esc(nmText(s))}" data-sub="${esc([s.cls, s.level ? "Lv " + s.level : "", s.npLevel ? "NP" + s.npLevel : "", rk ? "Rank #" + rk.rank : ""].filter(Boolean).join(" · "))}" aria-label="Open ${esc(s.name)}">
       ${grTier(s) === " gr102" ? `<i class="hm-rb" aria-hidden="true"><b></b></i>` : ""}<span class="hm-face">${art}<span class="hm-plate">${CLASS_LOGO[s.cls] ? `<img src="${CLASS_LOGO[s.cls]}" alt="">` : ""}<span class="hm-stars">${"★".repeat(r)}</span></span></span>
     </button>`;
 }
@@ -94,7 +94,7 @@ function homeHeroHTML(own, guests) {
 }
 function homeNextHTML(own) {
   const rows = own.map((s) => ({s: s, r: roiOf(s)})).filter((x) => x.r && x.r.gain > 0.05).sort((a, b) => b.r.gain - a.r.gain).slice(0, 5);
-  const body = rows.length ? `<ol class="hm-next">${rows.map((x) => `<li><button type="button" class="hm-row" data-action="goto" data-id="${esc(x.s.id)}">${miniAva(x.s)}<span class="hm-main"><b>${esc(x.s.name)}</b><small>${esc(roiText(x.r))}</small></span><span class="hm-gain" title="Rank score gained">+${x.r.gain.toFixed(1)}</span></button></li>`).join("")}</ol>`
+  const body = rows.length ? `<ol class="hm-next">${rows.map((x) => `<li><button type="button" class="hm-row" data-action="goto" data-id="${esc(x.s.id)}">${miniAva(x.s)}<span class="hm-main"><b>${nmHTML(x.s)}</b><small>${esc(roiText(x.r))}</small></span><span class="hm-gain" title="Rank score gained">+${x.r.gain.toFixed(1)}</span></button></li>`).join("")}</ol>`
     : `<p class="tr-none">${own.length ? "Every servant is at their best. Nothing left to level." : "Add servants and the upgrades worth doing first show up here."}</p>`;
   return `<section class="d-sec hm-block hm-b-next"><h3>Next upgrades <small>the steps that raise your rank scores most</small></h3>${body}</section>`;
 }
@@ -116,7 +116,7 @@ function homeRosterHTML(own) {
 }
 function homeGuestsHTML(guests) {
   const list = guests.slice(0, 6);
-  const body = list.length ? `<ul class="hm-guests">${list.map((s) => `<li>${miniAva(s)}<button type="button" class="tr-name" data-action="goto" data-id="${esc(s.id)}">${esc(s.name)}</button><small>${esc(s.cls || "")}</small>${S.readOnly ? "" : `<button type="button" class="btn sm summon-btn" data-action="summon" data-id="${esc(s.id)}" aria-label="Summon ${esc(s.name)}">Summon</button>`}</li>`).join("")}</ul>${guests.length > list.length ? `<button type="button" class="btn ghost sm" data-action="home-guests">See all ${guests.length}</button>` : ""}`
+  const body = list.length ? `<ul class="hm-guests">${list.map((s) => `<li>${miniAva(s)}<button type="button" class="tr-name" data-action="goto" data-id="${esc(s.id)}">${nmHTML(s)}</button><small>${esc(s.cls || "")}</small>${S.readOnly ? "" : `<button type="button" class="btn sm summon-btn" data-action="summon" data-id="${esc(s.id)}" aria-label="Summon ${esc(s.name)}">Summon</button>`}</li>`).join("")}</ul>${guests.length > list.length ? `<button type="button" class="btn ghost sm" data-action="home-guests">See all ${guests.length}</button>` : ""}`
     : `<p class="tr-none">The supports you borrow and the servants you hope to summon go here.</p>${S.readOnly ? "" : `<button type="button" class="btn sm" data-action="add-wish-home">+ Add guest</button>`}`;
   return `<section class="d-sec hm-block hm-b-guests"><h3>Guests <small>${guests.length ? guests.length + " waiting" : "nobody yet"}</small></h3>${body}</section>`;
 }

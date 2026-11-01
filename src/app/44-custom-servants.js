@@ -286,7 +286,8 @@ const KIT_CACHE = new WeakMap();
 function customKit(s) {
   if (!s || !s.custom || !s.kit || typeof s.kit !== "object") return null;
   const hit = KIT_CACHE.get(s.kit); if (hit && hit.s === s) return hit.a;
-  const k = s.kit, card = CARDS.includes(k.np && k.np.card) ? k.np.card : "Buster", pm = [0, 0, 0, 0, 0];
+  // (with anything changed on their page since the Workshop last saved them)
+  const k = kitNow(s) || s.kit, card = CARDS.includes(k.np && k.np.card) ? k.np.card : "Buster", pm = [0, 0, 0, 0, 0];
   (k.ps || []).forEach((p) => { const v = psValue(p); if (v) pm[v.slot] += v.v; });
   const t = (s.traits || []).slice(), g = t.includes("Female") ? "Female" : t.includes("Male") ? "Male" : "Unknown";
   const a = {n: s.name, c: s.cls, r: num(s.rarity) || 5, a: s.attr || "", g: g, o: (s.lawOrder || []).slice(), m: (s.moral || []).slice(), t: t, pm: pm, custom: true,
@@ -387,7 +388,7 @@ const servantForm26 = servantForm;
 servantForm = function (s) {
   let h = servantForm26.apply(this, arguments);
   // custom servants are made in the Workshop: their skills, NP and growth are best changed there
-  if (s && s.custom) h = h.replace(/(<fieldset><legend>Basics<\/legend>)/, `<div class="ws-formnote"><p><b>Made in the Servant Workshop.</b> Change their skills, Noble Phantasm, cards and growth there; this form keeps everything else.</p><button type="button" class="btn sm" data-action="ws-open" data-id="${esc(s.id)}">Open in the Workshop</button></div>$1`);
+  if (s && s.custom) h = h.replace(/(<fieldset><legend>Basics<\/legend>)/, `<div class="ws-formnote"><p><b>Made in the Servant Workshop.</b> What you change here goes into the Workshop too. Skills, the Noble Phantasm, cards and growth have more options there.</p><button type="button" class="btn sm" data-action="ws-open" data-id="${esc(s.id)}">Open in the Workshop</button></div>$1`);
   return h.replace(/(<fieldset><legend>Noble Phantasm<\/legend>)/, growthFieldHTML(s) + "$1");
 };
 const readServantForm26 = readServantForm;

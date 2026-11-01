@@ -21,6 +21,16 @@ const S = {
 
 const $ = (s) => document.querySelector(s);
 const esc = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+/* ---------- 0.27.1: a servant made in the Servant Workshop says Custom wherever it's listed ---------- */
+// so nobody takes them for a servant from the game (yours, a friend's, in a picture). Not when the name already ends
+// in "(Custom)", as a Remix starts out.
+function isCu(s) { return !!(s && s.custom && !/\(custom\)\s*$/i.test(String(s.name || ""))); }
+// the tag on its own, to put after a name
+function cuTag(s) { return isCu(s) ? `<i class="cu-tag" title="Made in the Servant Workshop: not a servant from the game">Custom</i>` : ""; }
+// the name as HTML with the tag after it; a long name is cut short, the tag stays
+function nmHTML(s) { const n = esc(s && s.name != null ? s.name : ""); return isCu(s) ? `<span class="cu-w"><span class="cu-n">${n}</span>${cuTag(s)}</span>` : n; }
+// as plain text: lists to pick from, captions
+function nmText(s) { const n = String(s && s.name != null ? s.name : ""); return isCu(s) ? n + " (Custom)" : n; }
 const num = (v) => (v === null || v === undefined || v === "" || isNaN(Number(v))) ? null : Number(v);
 const fmt = (n) => n == null ? "—" : Number(n).toLocaleString("en-US");
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -1057,7 +1067,7 @@ function tierBoardHTML(rows) {
   return TIERS.map((t, i) => {
     const items = rows.filter((r) => tierOf(r.s.id, r.sc.total) === t.k);
     const range = i === 0 ? t.min + "+" : t.min === -Infinity ? "under " + TIERS[i - 1].min : t.min + "–" + TIERS[i - 1].min;
-    const cards = items.map((r) => `<button type="button" class="tier-card${ov[r.s.id] ? " pinned" : ""}" data-action="tier-card" data-id="${esc(r.s.id)}" aria-haspopup="menu" aria-label="${esc(r.s.name)}, ${r.sc.total.toFixed(1)}${ov[r.s.id] ? ", placed here by you" : ""}. Press to move">${iconHTML(r.s, "")}<span class="tc-n">${esc(r.s.name)}</span><span class="tc-s">${r.sc.total.toFixed(1)}${ov[r.s.id] ? PIN : ""}</span></button>`).join("");
+    const cards = items.map((r) => `<button type="button" class="tier-card${ov[r.s.id] ? " pinned" : ""}" data-action="tier-card" data-id="${esc(r.s.id)}" aria-haspopup="menu" aria-label="${esc(r.s.name)}, ${r.sc.total.toFixed(1)}${ov[r.s.id] ? ", placed here by you" : ""}. Press to move">${iconHTML(r.s, "")}<span class="tc-n">${nmHTML(r.s)}</span><span class="tc-s">${r.sc.total.toFixed(1)}${ov[r.s.id] ? PIN : ""}</span></button>`).join("");
     return `<section class="tier-row t-${t.k.toLowerCase()}" data-tier-drop="${t.k}" aria-label="Tier ${tierName(t.k)}, score ${range}"><div class="tier-lab"><b>${tierName(t.k)}</b><small>${range}</small></div><div class="tier-cards">${cards || `<span class="tier-empty">Nobody here yet</span>`}</div></section>`;
   }).join("");
 }
@@ -1065,7 +1075,7 @@ function renderRoiTop(rows) {
   const box = $("#roi-top"); if (!box) return;
   const flagged = rows.map((r) => ({s: r.s, roi: roiOf(r.s)})).filter((x) => x.roi && x.roi.flag).sort((a, b) => b.roi.gain - a.roi.gain);
   if (!flagged.length) { box.innerHTML = `<p class="roi-none">No servant is one upgrade away from a big jump right now. Skills at 9 or 5, or one level below max, show up here.</p>`; return; }
-  const chip = (x) => `<button type="button" class="roi-chip ${x.roi.flag}" data-action="goto" data-id="${esc(x.s.id)}"><b>${esc(x.s.name)}</b><span>${esc(roiText(x.roi))}</span><em>+${x.roi.gain.toFixed(1)}</em></button>`;
+  const chip = (x) => `<button type="button" class="roi-chip ${x.roi.flag}" data-action="goto" data-id="${esc(x.s.id)}"><b>${nmHTML(x.s)}</b><span>${esc(roiText(x.roi))}</span><em>+${x.roi.gain.toFixed(1)}</em></button>`;
   const top = flagged.filter((x) => x.roi.flag === "top"), good = flagged.filter((x) => x.roi.flag === "good");
   box.innerHTML = (top.length ? `<div class="roi-line"><span class="roi-flag top">Highest ROI</span>${top.map(chip).join("")}</div>` : "") + (good.length ? `<div class="roi-line"><span class="roi-flag good">Good value</span>${good.map(chip).join("")}</div>` : "");
 }
@@ -1088,7 +1098,7 @@ function renderRanking() {
     const mv = prev == null ? `<span class="mv">new</span>` : prev > rank ? `<span class="mv up" title="Up ${prev - rank}">▲${prev - rank}</span>` : prev < rank ? `<span class="mv down" title="Down ${rank - prev}">▼${rank - prev}</span>` : `<span class="mv" title="No change">–</span>`;
     const parts = "Stats " + q.stats.toFixed(1) + " · Skills " + q.skills.toFixed(1) + " · NP " + q.np.toFixed(1) + " · Bond " + (q.bond || 0).toFixed(1) + " · Level " + q.level.toFixed(1) + " · Rarity " + q.rarity.toFixed(1);
     const roiLine = roi ? `<span class="rk-roi${roi.flag ? " " + roi.flag : ""}">${roi.flag === "top" ? "<b>Highest ROI</b> · " : roi.flag === "good" ? "<b>Good value</b> · " : "Next: "}${esc(roiText(roi))} (+${roi.gain.toFixed(1)})</span>` : "";
-    return `<li class="rank-row${rank <= 3 ? " top" : ""}${roi && roi.flag ? " has-roi-" + roi.flag : ""}"><span class="rk">${rank}</span>${mv}${iconHTML(r.s, "")}<span class="rk-main"><button class="rk-name" data-action="goto" data-id="${esc(r.s.id)}">${esc(r.s.name)}</button><span class="rk-parts">${r.sc.missing ? "Stats not filled in · " : ""}${parts}</span>${roiLine}</span><span class="rk-bar" title="${esc(r.s.name)}: ${r.sc.total.toFixed(1)} of 100 (${esc(parts)})"><i style="width:${Math.min(100, r.sc.total).toFixed(1)}%"></i></span><b class="rk-score">${r.sc.total.toFixed(1)}</b></li>`;
+    return `<li class="rank-row${rank <= 3 ? " top" : ""}${roi && roi.flag ? " has-roi-" + roi.flag : ""}"><span class="rk">${rank}</span>${mv}${iconHTML(r.s, "")}<span class="rk-main"><button class="rk-name" data-action="goto" data-id="${esc(r.s.id)}">${nmHTML(r.s)}</button><span class="rk-parts">${r.sc.missing ? "Stats not filled in · " : ""}${parts}</span>${roiLine}</span><span class="rk-bar" title="${esc(r.s.name)}: ${r.sc.total.toFixed(1)} of 100 (${esc(parts)})"><i style="width:${Math.min(100, r.sc.total).toFixed(1)}%"></i></span><b class="rk-score">${r.sc.total.toFixed(1)}</b></li>`;
   }).join("");
 }
 /* tier menu: press a card to move it with buttons (works with touch and keyboard) */
@@ -1100,7 +1110,7 @@ function closeTierMenu(refocus) {
 function openTierMenu(card) {
   const m = document.getElementById("tier-menu"), id = card.dataset.id, r = rankRows().find((x) => x.s.id === id); if (!m || !r) return;
   const cur = tierOf(id, r.sc.total), auto = autoTier(r.sc.total), manual = !!tierOverrides()[id];
-  m.innerHTML = `<p class="tm-h"><b>${esc(r.s.name)}</b><small>Score ${r.sc.total.toFixed(1)} · by score: ${tierName(auto)}</small></p>
+  m.innerHTML = `<p class="tm-h"><b>${nmHTML(r.s)}</b><small>Score ${r.sc.total.toFixed(1)} · by score: ${tierName(auto)}</small></p>
     <div class="tm-tiers" role="group" aria-label="Move to tier">${TIERS.map((t) => `<button type="button" role="menuitemradio" aria-checked="${t.k === cur}" class="t-${t.k.toLowerCase()}" data-action="tier-set" data-id="${esc(id)}" data-k="${t.k}">${tierName(t.k)}</button>`).join("")}</div>
     ${manual ? `<button type="button" role="menuitem" class="btn ghost sm" data-action="tier-set" data-id="${esc(id)}" data-k="">Back to automatic (${tierName(auto)})</button>` : ""}
     <button type="button" role="menuitem" class="btn ghost sm" data-action="goto" data-id="${esc(id)}">Open ${esc(r.s.name)}</button>`;
@@ -1515,7 +1525,7 @@ const VS_METRICS = [
 ];
 
 function vsHeroHTML(s, i, ids) {
-  const optFor = (x) => `<option value="${esc(x.id)}"${x.id === s.id ? " selected" : ""}${x.id !== s.id && ids.includes(x.id) ? " disabled" : ""}>${esc(x.name)}</option>`;
+  const optFor = (x) => `<option value="${esc(x.id)}"${x.id === s.id ? " selected" : ""}${x.id !== s.id && ids.includes(x.id) ? " disabled" : ""}>${esc(nmText(x))}</option>`;
   const own = owned(), wish = wished();
   const opts = (own.length ? `<optgroup label="Your servants">${own.map(optFor).join("")}</optgroup>` : "") + (wish.length ? `<optgroup label="Guests">${wish.map(optFor).join("")}</optgroup>` : "");
   const k = iconSlot(s), r = clamp(num(s.rarity) || 0, 0, 5), x = EXTRA_ACC[s.cls];
@@ -1530,8 +1540,8 @@ function vsHeroHTML(s, i, ids) {
 }
 
 function vsMatchHTML(picks) {
-  const head = picks.map((s, j) => `<th scope="col">${vsKey(j)}<span class="vs-th-n">${esc(s.name)}</span></th>`).join("");
-  const rows = picks.map((a, i) => `<tr><th scope="row">${vsKey(i)}<span class="vs-th-n">${esc(a.name)}</span><small>${esc(a.cls || "No class")}</small></th>${picks.map((d, j) => {
+  const head = picks.map((s, j) => `<th scope="col">${vsKey(j)}<span class="vs-th-n">${nmHTML(s)}</span></th>`).join("");
+  const rows = picks.map((a, i) => `<tr><th scope="row">${vsKey(i)}<span class="vs-th-n">${nmHTML(a)}</span><small>${esc(a.cls || "No class")}</small></th>${picks.map((d, j) => {
     if (i === j) return `<td class="vs-self">—</td>`;
     if (!a.cls || !d.cls) return `<td class="aff-c a1"><b>?</b><small>class not set</small></td>`;
     const v = aff(a.cls, d.cls);
@@ -1557,7 +1567,7 @@ function vsStatsHTML(picks) {
       const v = vals[i], w = v == null ? 0 : clamp(v / max * 100, 0, 100);
       let tip = s.name + ": " + m.t + " " + (v == null ? (m.k === "score" && s.wish ? "not ranked (wishlist)" : "not filled in") : m.f(v));
       if (v != null && (m.k === "hp" || m.k === "atk")) tip += " (base " + fmt(num(s[m.k])) + " + Fou " + fmt(num(s[m.k === "hp" ? "fouHp" : "fouAtk"]) || 0) + ")";
-      return `<div class="vs-bar-row k${i + 1}" data-tip="${esc(tip)}"><span class="vs-bar-n">${vsKey(i)}<span>${esc(s.name)}</span></span><span class="vs-track" aria-hidden="true">${v == null ? "" : `<i class="vs-fill" style="width:${w.toFixed(1)}%"></i>`}</span><span class="vs-val">${v == null ? `<span class="muted">${m.k === "score" && s.wish ? "Not ranked" : "Not filled in"}</span>` : esc(m.f(v))}${best != null && v === best ? `<em class="vs-best">Best</em>` : ""}</span></div>`;
+      return `<div class="vs-bar-row k${i + 1}" data-tip="${esc(tip)}"><span class="vs-bar-n">${vsKey(i)}<span>${nmHTML(s)}</span></span><span class="vs-track" aria-hidden="true">${v == null ? "" : `<i class="vs-fill" style="width:${w.toFixed(1)}%"></i>`}</span><span class="vs-val">${v == null ? `<span class="muted">${m.k === "score" && s.wish ? "Not ranked" : "Not filled in"}</span>` : esc(m.f(v))}${best != null && v === best ? `<em class="vs-best">Best</em>` : ""}</span></div>`;
     }).join("")}</div></div>`;
   }).join("")}</div>`;
 }
@@ -1569,7 +1579,7 @@ function vsNpHTML(s, i) {
   const oc = V.ocRows.find((r) => r.vals.some(Boolean));
   const meta = [s.npTarget, V.rank ? "Rank " + V.rank : "", V.type].filter(Boolean).join(" · ");
   const lab = row && row.label ? row.label.replace(/[\s+]+$/, "") : "Damage";
-  return `<article class="vs-col k${i + 1}"><header class="vs-col-h">${vsKey(i)}<b>${esc(s.name)}</b></header>
+  return `<article class="vs-col k${i + 1}"><header class="vs-col-h">${vsKey(i)}<b>${nmHTML(s)}</b></header>
     <div class="vs-np">${CARD_IMG[card] ? `<img class="vs-np-card" src="${CARD_IMG[card]}" alt="${esc(card)}">` : `<span class="vs-np-card none" title="Card not set">?</span>`}<div><b class="vs-np-name">${esc(name || "NP name not filled in")}</b>${meta ? `<span class="muted">${esc(meta)}</span>` : ""}</div></div>
     <dl class="vs-kv">
       <div><dt>${esc(lab)} at NP${npl}${s.npLevel ? "" : " (NP level not set)"}</dt><dd>${dmg ? esc(dmg) : "—"}</dd></div>
@@ -1590,7 +1600,7 @@ function vsSkillsHTML(s, i) {
   const psl = ps.length ? `<ul class="vs-sk-list">${ps.map((x) => { const nr = skNameRank(x.name || "Unnamed passive", x.rank), t = rankTier(nr.rank); return `<li class="vs-sk ps${t ? " tier-" + t : ""}"><span class="vs-sk-n">${rankNameHTML(nr)}</span></li>`; }).join("")}</ul>` : `<p class="d-empty vs-none">No passive skills yet.</p>`;
   const d = deckOf(s), counts = ["Quick", "Arts", "Buster"].map((c) => [c, d.filter((x) => x === c).length]).filter((x) => x[1]);
   const deck = `<div class="vs-deck" role="img" aria-label="Deck: ${esc(d.some(Boolean) ? counts.map((x) => x[1] + " " + x[0]).join(", ") : "not set")}">${d.map((c) => c && CARD_IMG[c] ? `<img src="${CARD_IMG[c]}" alt="">` : `<span class="vs-deck-q">?</span>`).join("")}</div>`;
-  return `<article class="vs-col k${i + 1}"><header class="vs-col-h">${vsKey(i)}<b>${esc(s.name)}</b></header>
+  return `<article class="vs-col k${i + 1}"><header class="vs-col-h">${vsKey(i)}<b>${nmHTML(s)}</b></header>
     <h4 class="vs-sub">Skills</h4><ul class="vs-sk-list">${sk}</ul>
     <h4 class="vs-sub">Passive skills</h4>${psl}
     <h4 class="vs-sub">Deck${counts.length ? ` <small>${counts.map((x) => x[1] + " " + x[0]).join(" · ")}</small>` : ""}</h4>${deck}

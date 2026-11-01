@@ -192,6 +192,11 @@ def run(base, mport, d1_pics):
     s, r, _ = B.get("/api/feed")
     kinds = sorted(i["kind"] for i in r.get("items", []))
     check(f"friends see what happened: max level (from before), summoned, grailed, NP up, skills maxed ({kinds})", s == 200 and kinds == ["grail", "maxlevel", "np", "skills", "summoned"] and all(i["user"]["name"] == "Noyr" for i in r["items"]))
+    # 0.27.1: a servant made in the Servant Workshop says so in the feed
+    A.post("/api/sync", {"changes": [{"col": "servants", "id": "s10", "data": sv(10, name="Camellya", custom=True, atlas=None)}]})
+    s, r, _ = B.get("/api/feed")
+    cu = [i for i in r.get("items", []) if i["data"].get("name") == "Camellya"]
+    check("a servant made in the Workshop is marked custom in the feed (the others aren't)", len(cu) == 1 and cu[0]["kind"] == "summoned" and cu[0]["data"].get("custom") is True and not any(i["data"].get("custom") for i in r["items"] if i is not cu[0]))
     A.post("/api/account", {"feed": False})
     A.post("/api/sync", {"changes": [{"col": "servants", "id": "s10", "data": sv(10)}]})
     s, r, _ = B.get("/api/feed")

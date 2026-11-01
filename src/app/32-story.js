@@ -222,10 +222,10 @@ function waveHTML(w, ph) {
 let storyBorrowFriends = () => [];
 function storyBorrow(topCls) {
   const seen = new Set(), out = [];
-  const add = (name, cls, who) => { const k = normName(name) + "|" + (who || ""); if (!name || !topCls.has(cls) || seen.has(k)) return; seen.add(k); out.push({name: name, cls: cls, who: who}); };
-  S.servants.filter((s) => s.wish).forEach((s) => add(s.name, s.cls));
+  const add = (name, cls, who, cu) => { const k = normName(name) + "|" + (who || ""); if (!name || !topCls.has(cls) || seen.has(k)) return; seen.add(k); out.push({name: name, cls: cls, who: who, custom: !!cu}); };
+  S.servants.filter((s) => s.wish).forEach((s) => add(s.name, s.cls, "", s.custom));
   (S.guests || []).forEach((g) => { if (g && !g.movedTo) add(g.name, g.cls); });
-  storyBorrowFriends().forEach((f) => add(f.name, f.cls, f.who));
+  storyBorrowFriends().forEach((f) => add(f.name, f.cls, f.who, f.custom));
   return out.slice(0, 6);
 }
 function adviceHTML(ph, q, p, war) {
@@ -237,10 +237,10 @@ function adviceHTML(ph, q, p, war) {
   return `<section class="st-next" aria-labelledby="st-next-h"><header><p class="st-k">${stWho("Your next fight", "{n}'s next fight")}</p><h3 id="st-next-h">${esc(secLabel(q))} · ${esc(q.n)} <small>battle ${q.pe.indexOf(p) + 1} of ${q.pe.length}</small></h3></header>
     <div class="st-cls-row">${cls.map((x) => `<div class="st-ccard${x.off > 1.2 ? " good" : ""}">${clsChip(x.c)}<div><b>${esc(x.c)}</b><span>${x.strong ? `strong against ${pct(x.strong)} of the HP` : "no advantage"}; takes ${x.inc > 1.2 ? "<em>more</em>" : x.inc < 0.9 ? "less" : "normal"} damage</span></div></div>`).join("")}</div>
     ${sv.length ? `<h4 class="st-sub">${stWho("Best from your list", "Best from {n}'s list")}</h4><ol class="st-best">${sv.map((x, i) => `<li><button type="button" class="st-sv" data-action="goto" data-id="${esc(x.s.id)}">${iconHTML(x.s, "sm")}
-        <span class="st-sv-m"><b>${esc(x.s.name)}</b>${x.s.wish ? `<i class="tag">Guest</i>` : ""}<span>${esc(x.s.cls || "")} · ${x.aoe ? "AoE" : "single target"} NP${num(x.s.npLevel) || 1}</span></span>
+        <span class="st-sv-m"><b>${nmHTML(x.s)}</b>${x.s.wish ? `<i class="tag">Guest</i>` : ""}<span>${esc(x.s.cls || "")} · ${x.aoe ? "AoE" : "single target"} NP${num(x.s.npLevel) || 1}</span></span>
         <span class="st-sv-n"><b>${pct(Math.min(1, x.frac))}</b><small>of the fight's HP with one NP a wave</small>${x.boss ? `<small>≈ ${fmt(Math.round(x.boss.dmg))} on ${esc(x.boss.e.n)} (${fmt(x.boss.e.tot)} HP)</small>` : ""}</span></button></li>`).join("")}</ol>`
       : `<p class="tr-none">${stWho("No servant on your list has ATK and an NP Damage row filled in yet, so there's nothing to compare. Fill in from NA on the servant page.", "No servant on {n}'s list has ATK and an NP Damage row filled in yet, so there's nothing to compare.")}</p>`}
-    ${borrow.length ? `<p class="st-borrow">Worth borrowing: ${borrow.map((g) => `<b>${esc(g.name)}</b> <small>(${esc(g.cls)}${g.who ? ", " + esc(g.who) + "'s support" : ""})</small>`).join(", ")}</p>` : ""}
+    ${borrow.length ? `<p class="st-borrow">Worth borrowing: ${borrow.map((g) => `<b>${nmHTML(g)}</b> <small>(${esc(g.cls)}${g.who ? ", " + esc(g.who) + "'s support" : ""})</small>`).join(", ")}</p>` : ""}
     <p class="st-note">One NP a wave with no buffs, against each enemy's class and attribute, with class passives and your equipped Craft Essence. Buffs and the order you fire NPs in change it.</p></section>`;
 }
 function chipHTML(c) {

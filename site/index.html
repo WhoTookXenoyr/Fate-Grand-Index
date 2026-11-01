@@ -4212,6 +4212,17 @@ input.gr-auto { background: var(--sunken) !important; color: var(--muted); }
   .ws-step, .ws-fx, .ws-pane, .ws-pal-p, .ws-card.roll { animation: none; }
   .ws-shine, .ws-summon::after { animation: none; opacity: 0; }
 }
+
+/* ---------- 0.27.1: Custom after a Workshop servant's name wherever it's listed (nmHTML, cuTag in 00-core.js) ---------- */
+/* a long name is cut short and the tag stays */
+.cu-w { display: inline-flex; align-items: center; gap: .45em; max-width: 100%; min-width: 0; }
+.cu-n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.cu-tag { flex: none; display: inline-block; margin-left: .4em; padding: 0 .55em; border-radius: 99px; font-style: normal; font-weight: 700; font-size: clamp(8.5px, .62em, 11px); line-height: 1.6; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; vertical-align: .14em;
+  background: color-mix(in srgb, var(--gold) 22%, transparent); color: var(--warn-ink); }
+.cu-w > .cu-tag { margin-left: 0; }
+.tr-name .cu-n { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--ink) 30%, transparent); text-underline-offset: 3px; }
+/* on art and on the summon reveal */
+.fc-name .cu-tag, .sm-info .cu-tag, .smh-title .cu-tag { background: rgba(242, 211, 145, .92); color: #3a2a0c; }
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#1c1624">
@@ -4376,6 +4387,16 @@ const S = {
 
 const $ = (s) => document.querySelector(s);
 const esc = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+/* ---------- 0.27.1: a servant made in the Servant Workshop says Custom wherever it's listed ---------- */
+// so nobody takes them for a servant from the game (yours, a friend's, in a picture). Not when the name already ends
+// in "(Custom)", as a Remix starts out.
+function isCu(s) { return !!(s && s.custom && !/\(custom\)\s*$/i.test(String(s.name || ""))); }
+// the tag on its own, to put after a name
+function cuTag(s) { return isCu(s) ? `<i class="cu-tag" title="Made in the Servant Workshop: not a servant from the game">Custom</i>` : ""; }
+// the name as HTML with the tag after it; a long name is cut short, the tag stays
+function nmHTML(s) { const n = esc(s && s.name != null ? s.name : ""); return isCu(s) ? `<span class="cu-w"><span class="cu-n">${n}</span>${cuTag(s)}</span>` : n; }
+// as plain text: lists to pick from, captions
+function nmText(s) { const n = String(s && s.name != null ? s.name : ""); return isCu(s) ? n + " (Custom)" : n; }
 const num = (v) => (v === null || v === undefined || v === "" || isNaN(Number(v))) ? null : Number(v);
 const fmt = (n) => n == null ? "—" : Number(n).toLocaleString("en-US");
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -5412,7 +5433,7 @@ function tierBoardHTML(rows) {
   return TIERS.map((t, i) => {
     const items = rows.filter((r) => tierOf(r.s.id, r.sc.total) === t.k);
     const range = i === 0 ? t.min + "+" : t.min === -Infinity ? "under " + TIERS[i - 1].min : t.min + "–" + TIERS[i - 1].min;
-    const cards = items.map((r) => `<button type="button" class="tier-card${ov[r.s.id] ? " pinned" : ""}" data-action="tier-card" data-id="${esc(r.s.id)}" aria-haspopup="menu" aria-label="${esc(r.s.name)}, ${r.sc.total.toFixed(1)}${ov[r.s.id] ? ", placed here by you" : ""}. Press to move">${iconHTML(r.s, "")}<span class="tc-n">${esc(r.s.name)}</span><span class="tc-s">${r.sc.total.toFixed(1)}${ov[r.s.id] ? PIN : ""}</span></button>`).join("");
+    const cards = items.map((r) => `<button type="button" class="tier-card${ov[r.s.id] ? " pinned" : ""}" data-action="tier-card" data-id="${esc(r.s.id)}" aria-haspopup="menu" aria-label="${esc(r.s.name)}, ${r.sc.total.toFixed(1)}${ov[r.s.id] ? ", placed here by you" : ""}. Press to move">${iconHTML(r.s, "")}<span class="tc-n">${nmHTML(r.s)}</span><span class="tc-s">${r.sc.total.toFixed(1)}${ov[r.s.id] ? PIN : ""}</span></button>`).join("");
     return `<section class="tier-row t-${t.k.toLowerCase()}" data-tier-drop="${t.k}" aria-label="Tier ${tierName(t.k)}, score ${range}"><div class="tier-lab"><b>${tierName(t.k)}</b><small>${range}</small></div><div class="tier-cards">${cards || `<span class="tier-empty">Nobody here yet</span>`}</div></section>`;
   }).join("");
 }
@@ -5420,7 +5441,7 @@ function renderRoiTop(rows) {
   const box = $("#roi-top"); if (!box) return;
   const flagged = rows.map((r) => ({s: r.s, roi: roiOf(r.s)})).filter((x) => x.roi && x.roi.flag).sort((a, b) => b.roi.gain - a.roi.gain);
   if (!flagged.length) { box.innerHTML = `<p class="roi-none">No servant is one upgrade away from a big jump right now. Skills at 9 or 5, or one level below max, show up here.</p>`; return; }
-  const chip = (x) => `<button type="button" class="roi-chip ${x.roi.flag}" data-action="goto" data-id="${esc(x.s.id)}"><b>${esc(x.s.name)}</b><span>${esc(roiText(x.roi))}</span><em>+${x.roi.gain.toFixed(1)}</em></button>`;
+  const chip = (x) => `<button type="button" class="roi-chip ${x.roi.flag}" data-action="goto" data-id="${esc(x.s.id)}"><b>${nmHTML(x.s)}</b><span>${esc(roiText(x.roi))}</span><em>+${x.roi.gain.toFixed(1)}</em></button>`;
   const top = flagged.filter((x) => x.roi.flag === "top"), good = flagged.filter((x) => x.roi.flag === "good");
   box.innerHTML = (top.length ? `<div class="roi-line"><span class="roi-flag top">Highest ROI</span>${top.map(chip).join("")}</div>` : "") + (good.length ? `<div class="roi-line"><span class="roi-flag good">Good value</span>${good.map(chip).join("")}</div>` : "");
 }
@@ -5443,7 +5464,7 @@ function renderRanking() {
     const mv = prev == null ? `<span class="mv">new</span>` : prev > rank ? `<span class="mv up" title="Up ${prev - rank}">▲${prev - rank}</span>` : prev < rank ? `<span class="mv down" title="Down ${rank - prev}">▼${rank - prev}</span>` : `<span class="mv" title="No change">–</span>`;
     const parts = "Stats " + q.stats.toFixed(1) + " · Skills " + q.skills.toFixed(1) + " · NP " + q.np.toFixed(1) + " · Bond " + (q.bond || 0).toFixed(1) + " · Level " + q.level.toFixed(1) + " · Rarity " + q.rarity.toFixed(1);
     const roiLine = roi ? `<span class="rk-roi${roi.flag ? " " + roi.flag : ""}">${roi.flag === "top" ? "<b>Highest ROI</b> · " : roi.flag === "good" ? "<b>Good value</b> · " : "Next: "}${esc(roiText(roi))} (+${roi.gain.toFixed(1)})</span>` : "";
-    return `<li class="rank-row${rank <= 3 ? " top" : ""}${roi && roi.flag ? " has-roi-" + roi.flag : ""}"><span class="rk">${rank}</span>${mv}${iconHTML(r.s, "")}<span class="rk-main"><button class="rk-name" data-action="goto" data-id="${esc(r.s.id)}">${esc(r.s.name)}</button><span class="rk-parts">${r.sc.missing ? "Stats not filled in · " : ""}${parts}</span>${roiLine}</span><span class="rk-bar" title="${esc(r.s.name)}: ${r.sc.total.toFixed(1)} of 100 (${esc(parts)})"><i style="width:${Math.min(100, r.sc.total).toFixed(1)}%"></i></span><b class="rk-score">${r.sc.total.toFixed(1)}</b></li>`;
+    return `<li class="rank-row${rank <= 3 ? " top" : ""}${roi && roi.flag ? " has-roi-" + roi.flag : ""}"><span class="rk">${rank}</span>${mv}${iconHTML(r.s, "")}<span class="rk-main"><button class="rk-name" data-action="goto" data-id="${esc(r.s.id)}">${nmHTML(r.s)}</button><span class="rk-parts">${r.sc.missing ? "Stats not filled in · " : ""}${parts}</span>${roiLine}</span><span class="rk-bar" title="${esc(r.s.name)}: ${r.sc.total.toFixed(1)} of 100 (${esc(parts)})"><i style="width:${Math.min(100, r.sc.total).toFixed(1)}%"></i></span><b class="rk-score">${r.sc.total.toFixed(1)}</b></li>`;
   }).join("");
 }
 /* tier menu: press a card to move it with buttons (works with touch and keyboard) */
@@ -5455,7 +5476,7 @@ function closeTierMenu(refocus) {
 function openTierMenu(card) {
   const m = document.getElementById("tier-menu"), id = card.dataset.id, r = rankRows().find((x) => x.s.id === id); if (!m || !r) return;
   const cur = tierOf(id, r.sc.total), auto = autoTier(r.sc.total), manual = !!tierOverrides()[id];
-  m.innerHTML = `<p class="tm-h"><b>${esc(r.s.name)}</b><small>Score ${r.sc.total.toFixed(1)} · by score: ${tierName(auto)}</small></p>
+  m.innerHTML = `<p class="tm-h"><b>${nmHTML(r.s)}</b><small>Score ${r.sc.total.toFixed(1)} · by score: ${tierName(auto)}</small></p>
     <div class="tm-tiers" role="group" aria-label="Move to tier">${TIERS.map((t) => `<button type="button" role="menuitemradio" aria-checked="${t.k === cur}" class="t-${t.k.toLowerCase()}" data-action="tier-set" data-id="${esc(id)}" data-k="${t.k}">${tierName(t.k)}</button>`).join("")}</div>
     ${manual ? `<button type="button" role="menuitem" class="btn ghost sm" data-action="tier-set" data-id="${esc(id)}" data-k="">Back to automatic (${tierName(auto)})</button>` : ""}
     <button type="button" role="menuitem" class="btn ghost sm" data-action="goto" data-id="${esc(id)}">Open ${esc(r.s.name)}</button>`;
@@ -5870,7 +5891,7 @@ const VS_METRICS = [
 ];
 
 function vsHeroHTML(s, i, ids) {
-  const optFor = (x) => `<option value="${esc(x.id)}"${x.id === s.id ? " selected" : ""}${x.id !== s.id && ids.includes(x.id) ? " disabled" : ""}>${esc(x.name)}</option>`;
+  const optFor = (x) => `<option value="${esc(x.id)}"${x.id === s.id ? " selected" : ""}${x.id !== s.id && ids.includes(x.id) ? " disabled" : ""}>${esc(nmText(x))}</option>`;
   const own = owned(), wish = wished();
   const opts = (own.length ? `<optgroup label="Your servants">${own.map(optFor).join("")}</optgroup>` : "") + (wish.length ? `<optgroup label="Guests">${wish.map(optFor).join("")}</optgroup>` : "");
   const k = iconSlot(s), r = clamp(num(s.rarity) || 0, 0, 5), x = EXTRA_ACC[s.cls];
@@ -5885,8 +5906,8 @@ function vsHeroHTML(s, i, ids) {
 }
 
 function vsMatchHTML(picks) {
-  const head = picks.map((s, j) => `<th scope="col">${vsKey(j)}<span class="vs-th-n">${esc(s.name)}</span></th>`).join("");
-  const rows = picks.map((a, i) => `<tr><th scope="row">${vsKey(i)}<span class="vs-th-n">${esc(a.name)}</span><small>${esc(a.cls || "No class")}</small></th>${picks.map((d, j) => {
+  const head = picks.map((s, j) => `<th scope="col">${vsKey(j)}<span class="vs-th-n">${nmHTML(s)}</span></th>`).join("");
+  const rows = picks.map((a, i) => `<tr><th scope="row">${vsKey(i)}<span class="vs-th-n">${nmHTML(a)}</span><small>${esc(a.cls || "No class")}</small></th>${picks.map((d, j) => {
     if (i === j) return `<td class="vs-self">—</td>`;
     if (!a.cls || !d.cls) return `<td class="aff-c a1"><b>?</b><small>class not set</small></td>`;
     const v = aff(a.cls, d.cls);
@@ -5912,7 +5933,7 @@ function vsStatsHTML(picks) {
       const v = vals[i], w = v == null ? 0 : clamp(v / max * 100, 0, 100);
       let tip = s.name + ": " + m.t + " " + (v == null ? (m.k === "score" && s.wish ? "not ranked (wishlist)" : "not filled in") : m.f(v));
       if (v != null && (m.k === "hp" || m.k === "atk")) tip += " (base " + fmt(num(s[m.k])) + " + Fou " + fmt(num(s[m.k === "hp" ? "fouHp" : "fouAtk"]) || 0) + ")";
-      return `<div class="vs-bar-row k${i + 1}" data-tip="${esc(tip)}"><span class="vs-bar-n">${vsKey(i)}<span>${esc(s.name)}</span></span><span class="vs-track" aria-hidden="true">${v == null ? "" : `<i class="vs-fill" style="width:${w.toFixed(1)}%"></i>`}</span><span class="vs-val">${v == null ? `<span class="muted">${m.k === "score" && s.wish ? "Not ranked" : "Not filled in"}</span>` : esc(m.f(v))}${best != null && v === best ? `<em class="vs-best">Best</em>` : ""}</span></div>`;
+      return `<div class="vs-bar-row k${i + 1}" data-tip="${esc(tip)}"><span class="vs-bar-n">${vsKey(i)}<span>${nmHTML(s)}</span></span><span class="vs-track" aria-hidden="true">${v == null ? "" : `<i class="vs-fill" style="width:${w.toFixed(1)}%"></i>`}</span><span class="vs-val">${v == null ? `<span class="muted">${m.k === "score" && s.wish ? "Not ranked" : "Not filled in"}</span>` : esc(m.f(v))}${best != null && v === best ? `<em class="vs-best">Best</em>` : ""}</span></div>`;
     }).join("")}</div></div>`;
   }).join("")}</div>`;
 }
@@ -5924,7 +5945,7 @@ function vsNpHTML(s, i) {
   const oc = V.ocRows.find((r) => r.vals.some(Boolean));
   const meta = [s.npTarget, V.rank ? "Rank " + V.rank : "", V.type].filter(Boolean).join(" · ");
   const lab = row && row.label ? row.label.replace(/[\s+]+$/, "") : "Damage";
-  return `<article class="vs-col k${i + 1}"><header class="vs-col-h">${vsKey(i)}<b>${esc(s.name)}</b></header>
+  return `<article class="vs-col k${i + 1}"><header class="vs-col-h">${vsKey(i)}<b>${nmHTML(s)}</b></header>
     <div class="vs-np">${CARD_IMG[card] ? `<img class="vs-np-card" src="${CARD_IMG[card]}" alt="${esc(card)}">` : `<span class="vs-np-card none" title="Card not set">?</span>`}<div><b class="vs-np-name">${esc(name || "NP name not filled in")}</b>${meta ? `<span class="muted">${esc(meta)}</span>` : ""}</div></div>
     <dl class="vs-kv">
       <div><dt>${esc(lab)} at NP${npl}${s.npLevel ? "" : " (NP level not set)"}</dt><dd>${dmg ? esc(dmg) : "—"}</dd></div>
@@ -5945,7 +5966,7 @@ function vsSkillsHTML(s, i) {
   const psl = ps.length ? `<ul class="vs-sk-list">${ps.map((x) => { const nr = skNameRank(x.name || "Unnamed passive", x.rank), t = rankTier(nr.rank); return `<li class="vs-sk ps${t ? " tier-" + t : ""}"><span class="vs-sk-n">${rankNameHTML(nr)}</span></li>`; }).join("")}</ul>` : `<p class="d-empty vs-none">No passive skills yet.</p>`;
   const d = deckOf(s), counts = ["Quick", "Arts", "Buster"].map((c) => [c, d.filter((x) => x === c).length]).filter((x) => x[1]);
   const deck = `<div class="vs-deck" role="img" aria-label="Deck: ${esc(d.some(Boolean) ? counts.map((x) => x[1] + " " + x[0]).join(", ") : "not set")}">${d.map((c) => c && CARD_IMG[c] ? `<img src="${CARD_IMG[c]}" alt="">` : `<span class="vs-deck-q">?</span>`).join("")}</div>`;
-  return `<article class="vs-col k${i + 1}"><header class="vs-col-h">${vsKey(i)}<b>${esc(s.name)}</b></header>
+  return `<article class="vs-col k${i + 1}"><header class="vs-col-h">${vsKey(i)}<b>${nmHTML(s)}</b></header>
     <h4 class="vs-sub">Skills</h4><ul class="vs-sk-list">${sk}</ul>
     <h4 class="vs-sub">Passive skills</h4>${psl}
     <h4 class="vs-sub">Deck${counts.length ? ` <small>${counts.map((x) => x[1] + " " + x[0]).join(" · ")}</small>` : ""}</h4>${deck}
@@ -6120,15 +6141,15 @@ const tagChip = (tag, extra) => `<button type="button" class="tr-tag k-${tagKind
 
 function worksHTML(hits) {
   if (!hits.length) return `<p class="tr-none">No servant in your roster has a buff aimed at these traits yet. A support shows up here once its skill text names who it's for (like "ATK up for Divine allies") or you add a buff target in its Edit details.</p>`;
-  return `<ul class="tr-people">${hits.map((h) => `<li>${miniAva(h.s)}<span><button type="button" class="tr-name" data-action="goto" data-id="${esc(h.s.id)}">${esc(h.s.name)}</button>${h.s.wish ? ` <span class="tag">Guest</span>` : ""}<small>${h.items.map((b) => `<b>${esc(tagLabel(b.tag))}:</b> ${esc(b.what || "buff")}`).join("<br>")}</small></span></li>`).join("")}</ul>`;
+  return `<ul class="tr-people">${hits.map((h) => `<li>${miniAva(h.s)}<span><button type="button" class="tr-name" data-action="goto" data-id="${esc(h.s.id)}">${esc(h.s.name)}</button>${cuTag(h.s)}${h.s.wish ? ` <span class="tag">Guest</span>` : ""}<small>${h.items.map((b) => `<b>${esc(tagLabel(b.tag))}:</b> ${esc(b.what || "buff")}`).join("<br>")}</small></span></li>`).join("")}</ul>`;
 }
 function boostsHTML(boosts) {
   if (!boosts.length) return "";
-  return boosts.map((b) => `<p class="tr-line"><b>${esc(tagLabel(b.tag))}</b> in your roster: ${b.list.length ? b.list.map((x, i, a) => `<span class="nowrap"><button type="button" class="tr-name" data-action="goto" data-id="${esc(x.id)}">${esc(x.name)}</button>${i < a.length - 1 ? "," : ""}</span>`).join(" ") : `<span class="muted">nobody yet</span>`}</p>`).join("");
+  return boosts.map((b) => `<p class="tr-line"><b>${esc(tagLabel(b.tag))}</b> in your roster: ${b.list.length ? b.list.map((x, i, a) => `<span class="nowrap"><button type="button" class="tr-name" data-action="goto" data-id="${esc(x.id)}">${esc(x.name)}</button>${cuTag(x)}${i < a.length - 1 ? "," : ""}</span>`).join(" ") : `<span class="muted">nobody yet</span>`}</p>`).join("");
 }
 function similarHTML(sim) {
   if (!sim.length) return `<p class="tr-none">No one else in your roster shares these yet.</p>`;
-  return `<ul class="tr-people">${sim.map((r) => `<li>${miniAva(r.s)}<span><button type="button" class="tr-name" data-action="goto" data-id="${esc(r.s.id)}">${esc(r.s.name)}</button>${r.s.wish ? ` <span class="tag">Guest</span>` : ""}<small>${r.shared.length} shared: ${r.shared.map((t) => esc(tagShort(t))).join(", ")}</small></span></li>`).join("")}</ul>`;
+  return `<ul class="tr-people">${sim.map((r) => `<li>${miniAva(r.s)}<span><button type="button" class="tr-name" data-action="goto" data-id="${esc(r.s.id)}">${esc(r.s.name)}</button>${cuTag(r.s)}${r.s.wish ? ` <span class="tag">Guest</span>` : ""}<small>${r.shared.length} shared: ${r.shared.map((t) => esc(tagShort(t))).join(", ")}</small></span></li>`).join("")}</ul>`;
 }
 // Which traits this servant shares with the servants most like it
 function overlapMatrixHTML(s, tags, sim) {
@@ -6225,7 +6246,7 @@ function fillTraitFilter() {
 function traitBannerHTML() {
   if (!S.trait) return "";
   const all = S.servants.filter((x) => tagsOf(x).includes(S.trait)), hits = buffHits([S.trait], null);
-  return `<div class="tr-banner"><p><b>${esc(tagLabel(S.trait))}</b> · ${all.length} servant${all.length === 1 ? "" : "s"}${hits.length ? `<br><span>Boosted by ${hits.map((h) => `<button type="button" class="tr-name" data-action="goto" data-id="${esc(h.s.id)}">${esc(h.s.name)}</button> <small>(${esc(h.items.map((b) => b.what).join("; "))})</small>`).join(", ")}</span>` : `<br><span class="muted">No support in your roster has a buff aimed at this yet.</span>`}</p><button type="button" class="btn ghost sm" data-action="trait-clear">Show everyone</button></div>`;
+  return `<div class="tr-banner"><p><b>${esc(tagLabel(S.trait))}</b> · ${all.length} servant${all.length === 1 ? "" : "s"}${hits.length ? `<br><span>Boosted by ${hits.map((h) => `<button type="button" class="tr-name" data-action="goto" data-id="${esc(h.s.id)}">${esc(h.s.name)}</button>${cuTag(h.s)} <small>(${esc(h.items.map((b) => b.what).join("; "))})</small>`).join(", ")}</span>` : `<br><span class="muted">No support in your roster has a buff aimed at this yet.</span>`}</p><button type="button" class="btn ghost sm" data-action="trait-clear">Show everyone</button></div>`;
 }
 function setTraitFilter(tag) {
   S.trait = tag || ""; traitOptKey = ""; fillTraitFilter();
@@ -6246,7 +6267,7 @@ function vsTraitsHTML(picks) {
   const sup = [];
   S.servants.forEach((x) => buffsOf(x).forEach((b) => { const who = tagsBy.map((ts, i) => ts.includes(b.tag) ? i : -1).filter((i) => i >= 0); if (who.length) sup.push({s: x, b: b, who: who}); }));
   sup.sort((a, b) => b.who.length - a.who.length);
-  const supHTML = sup.length ? `<ul class="tr-people">${sup.map((r) => `<li>${miniAva(r.s)}<span><button type="button" class="tr-name" data-action="goto" data-id="${esc(r.s.id)}">${esc(r.s.name)}</button>${r.who.length === n ? ` <span class="tr-all">Boosts ${n === 2 ? "both" : "all " + n}</span>` : ""}<small><b>${esc(tagLabel(r.b.tag))}:</b> ${esc(r.b.what || "buff")} · reaches ${r.who.map((i) => VS_K[i]).join(", ")}</small></span></li>`).join("")}</ul>` : `<p class="tr-none">No support in your roster has a buff aimed at their traits.</p>`;
+  const supHTML = sup.length ? `<ul class="tr-people">${sup.map((r) => `<li>${miniAva(r.s)}<span><button type="button" class="tr-name" data-action="goto" data-id="${esc(r.s.id)}">${esc(r.s.name)}</button>${cuTag(r.s)}${r.who.length === n ? ` <span class="tr-all">Boosts ${n === 2 ? "both" : "all " + n}</span>` : ""}<small><b>${esc(tagLabel(r.b.tag))}:</b> ${esc(r.b.what || "buff")} · reaches ${r.who.map((i) => VS_K[i]).join(", ")}</small></span></li>`).join("")}</ul>` : `<p class="tr-none">No support in your roster has a buff aimed at their traits.</p>`;
   return `${allShared.length ? `<p class="tr-shared">${n === 2 ? "Both" : "All " + n} share: ${allShared.map((r) => `<b>${esc(tagShort(r.t))}</b>`).join(", ")}.</p>` : ""}
     ${table}${only}
     <h4 class="tr-h">Supports that buff these traits</h4>${supHTML}`;
@@ -6682,7 +6703,7 @@ function soloOf(s) {
   return {s: s, cover: cover, sus: sus, npT: npT, ce: ce, used: used, k: k, score: 0.55 * cover + 0.25 * Math.min(1, sus * 2) + 0.2 * Math.min(1, npT / 20)};
 }
 const pct = (v) => Math.round(v * 100) + "%";
-function dnaMember(s) { return `<span class="dna-m">${miniAva(s)}<span><button type="button" class="tr-name" data-action="goto" data-id="${esc(s.id)}">${esc(s.name)}</button><small>${esc(s.cls || "")}${s.wish ? " · guest" : ""}</small></span></span>`; }
+function dnaMember(s) { return `<span class="dna-m">${miniAva(s)}<span><button type="button" class="tr-name" data-action="goto" data-id="${esc(s.id)}">${esc(s.name)}</button>${cuTag(s)}<small>${esc(s.cls || "")}${s.wish ? " · guest" : ""}</small></span></span>`; }
 function pieceText(p) {
   const e = p.e, where = e.s === "np" ? "NP" : e.s === "p" ? "passive" : "skill " + (e.s + 1), who = e.who === "party" ? "party" : e.who === "ally" ? "one ally" : e.who === "enemy" ? "enemies" : "self";
   const often = e.s === "np" ? "on NP" : e.s === "p" ? "always" : (e.dur ? e.dur + " turn" + (e.dur > 1 ? "s" : "") + " every " : "every ") + Math.max(1, Math.round((e.cdNow || 7) / (1 + (p.rate || 0)))) + " turns";
@@ -6873,7 +6894,7 @@ function bestSupportsHTML(t) {
   const nums = (r) => [r.gain > 0.5 ? `<b>+${bsPct(r.gain)}%</b> NP damage` : "", r.chg ? `<b>+${bsPct(r.chg)}%</b> NP charge` : "", r.oc ? `<b>+${r.oc}</b> overcharge` : ""].filter(Boolean).join(" · ");
   const ready = (r) => self.known && r.chg && self.chg < 100 ? (r.ready ? ` <span class="bs-ready" title="Their own charge plus this reaches 100%">NP on turn 1</span>` : "") : "";
   const fit = (r) => r.fit.map((f) => ` <span class="bs-fit">For ${esc(f)}</span>`).join("");
-  const line = (r) => `<li>${miniAva(r.s)}<span><span class="bs-top"><button type="button" class="tr-name" data-action="goto" data-id="${esc(r.s.id)}">${esc(r.s.name)}</button>${r.s.wish ? ` <span class="tag">Guest</span>` : ""}${r.s.role ? ` <span class="bs-role">${esc(r.s.role)}</span>` : ""}<span class="bs-nums">${nums(r)}${ready(r)}${fit(r)}</span></span><small>${r.pieces.join(" · ")}</small></span></li>`;
+  const line = (r) => `<li>${miniAva(r.s)}<span><span class="bs-top"><button type="button" class="tr-name" data-action="goto" data-id="${esc(r.s.id)}">${esc(r.s.name)}</button>${cuTag(r.s)}${r.s.wish ? ` <span class="tag">Guest</span>` : ""}${r.s.role ? ` <span class="bs-role">${esc(r.s.role)}</span>` : ""}<span class="bs-nums">${nums(r)}${ready(r)}${fit(r)}</span></span><small>${r.pieces.join(" · ")}</small></span></li>`;
   const own_ = [self.atk ? `+${bsPct(self.atk)}% ATK` : "", self.card && card ? `+${bsPct(self.card)}% ${card}` : "", self.npd ? `+${bsPct(self.npd)}% NP damage` : ""].filter(Boolean).join(", ");
   const need = !self.known ? `<p class="bs-need">${esc(t.name)}'s own skills aren't filled in, so this assumes they bring no buffs or NP charge of their own. Add their skill text for a list that fits them.</p>`
     : `<p class="bs-need">On their own ${esc(t.name)} brings ${own_ || "no damage buffs"} and <b>${bsPct(Math.min(self.chg, 999))}%</b> NP charge${self.chg >= 100 ? ", enough for their NP on turn 1, so NP charge from supports barely counts" : `, so they need <b>${bsPct(100 - self.chg)}%</b> more for their NP on turn 1`}. Supports are ranked on what they add on top of that.</p>`;
@@ -7032,7 +7053,7 @@ function rosterRowHTML(s, sel) {
   const pips = [0, 1, 2].map((i) => { const v = (s.skills || [])[i]; return typeof v === "number" ? `<span class="pip${v === 10 ? " max" : ""}${skTierOf(s, i) ? " t-" + skTierOf(s, i) : ""}" style="--sk-p:${v / 10}">${v}</span>` : `<span class="pip locked" title="Locked">–</span>`; }).join("");
   return `<button class="row${sel === s.id ? " is-sel" : ""}${S.justSummoned === s.id ? " fresh" : ""}${grTier(s)}" data-action="select" data-id="${esc(s.id)}" aria-pressed="${sel === s.id}">
       ${grTier(s) ? grFX : ""}${iconHTML(s, "")}
-      <span class="row-main"><span class="row-name">${esc(s.name)}</span><span class="row-meta">${esc(s.cls || "No class")}<span class="row-r"> · <span class="stars" aria-label="${num(s.rarity) || 0} stars">${"★".repeat(clamp(num(s.rarity) || 0, 0, 5))}</span></span>${s.npLevel ? " · NP" + esc(s.npLevel) : ""}</span></span>
+      <span class="row-main"><span class="row-name">${nmHTML(s)}</span><span class="row-meta">${esc(s.cls || "No class")}<span class="row-r"> · <span class="stars" aria-label="${num(s.rarity) || 0} stars">${"★".repeat(clamp(num(s.rarity) || 0, 0, 5))}</span></span>${s.npLevel ? " · NP" + esc(s.npLevel) : ""}</span></span>
       <span class="row-side"><span class="row-lv${st && st.kind === "grail" ? " has-gr" : ""}">Lv ${esc(s.level ?? "—")}${st && st.kind === "grail" ? `<em>+${num(s.level) - CAPS[s.rarity]}<small> · ${plural(st.grails || 0, "grail")}</small></em>` : ""}</span><span class="pips" aria-label="Skill levels">${pips}</span>${cardLetter(s.npCard)}</span>
     </button>`;
 }
@@ -7041,7 +7062,7 @@ function wishListHTML(sel) {
   const head = `<div class="wish-head"><h2>Guests <small>${all.length}</small></h2><span class="wish-tools">${all.length ? `<button class="btn ghost sm" data-action="tab" data-tab="summon">Summoning</button>` : ""}${S.readOnly ? "" : `<button class="btn sm" data-action="add-wish">+ Add guest</button>`}</span></div>`;
   if (!all.length) return `<section class="wish" aria-label="Guests">${head}<p class="wish-empty">The supports you borrow from friends, and the servants you hope to summon. Fill them in like any servant, stage pictures included, then summon them on the Summoning page when one joins you.</p></section>`;
   const rows = list.length ? list.map((s) => `<div class="wish-row">
-      <button class="row wish-pick${sel === s.id ? " is-sel" : ""}" data-action="select" data-id="${esc(s.id)}" aria-pressed="${sel === s.id}">${iconHTML(s, "")}<span class="row-main"><span class="row-name">${esc(s.name)}</span><span class="row-meta">${esc(s.cls || "No class")} · <span class="stars" aria-label="${num(s.rarity) || 0} stars">${"★".repeat(clamp(num(s.rarity) || 0, 0, 5))}</span></span></span></button>
+      <button class="row wish-pick${sel === s.id ? " is-sel" : ""}" data-action="select" data-id="${esc(s.id)}" aria-pressed="${sel === s.id}">${iconHTML(s, "")}<span class="row-main"><span class="row-name">${nmHTML(s)}</span><span class="row-meta">${esc(s.cls || "No class")} · <span class="stars" aria-label="${num(s.rarity) || 0} stars">${"★".repeat(clamp(num(s.rarity) || 0, 0, 5))}</span></span></span></button>
     </div>`).join("") : `<p class="wish-empty">No Guests match these filters.</p>`;
   return `<section class="wish" aria-label="Guests">${head}<div class="wish-list">${rows}</div></section>`;
 }
@@ -7075,7 +7096,7 @@ function playSummon(s) {
           <div class="sm-face sm-front">${art ? `<img class="sm-art" src="${esc(art)}" alt="">` : (CLASS_MARK[s.cls] ? `<img class="sm-art mark" src="${CLASS_MARK[s.cls]}" alt="">` : "")}
             <div class="sm-plate">${logo ? `<img src="${logo}" alt="">` : ""}<span class="sm-stars">${"★".repeat(r)}</span></div></div>
         </div></div>
-        <div class="sm-info" role="status" aria-live="polite"><p class="sm-kicker">Summoned</p><h2>${esc(s.name)}</h2><p class="sm-sub">${esc(s.cls || "")}${r ? " · " + "★".repeat(r) : ""}</p><button type="button" class="btn primary sm-done">Continue</button></div>
+        <div class="sm-info" role="status" aria-live="polite"><p class="sm-kicker">Summoned</p><h2>${nmHTML(s)}</h2><p class="sm-sub">${esc(s.cls || "")}${r ? " · " + "★".repeat(r) : ""}</p><button type="button" class="btn primary sm-done">Continue</button></div>
       </div>
       <button type="button" class="btn ghost sm sm-skip">Skip</button>`;
     ov.dataset.tier = tier; ov.className = "summon"; ov.hidden = false;
@@ -7619,7 +7640,7 @@ function memberCard(name, i, ce) {
   const art = k ? `<img src="${esc(artSrc(artOf(s, k)))}" alt="" data-art="1" loading="lazy">` : (CLASS_LOGO[s.cls] ? `<img class="fc-biglogo" src="${CLASS_LOGO[s.cls]}" alt="">` : `<span class="fc-mono">${esc(ABBR[s.cls] || "—")}</span>`);
   return `<button type="button" class="fc ${metal}" data-action="goto" data-id="${esc(s.id)}" title="Open ${esc(s.name)}" aria-label="${esc(pos)}: ${esc(s.name)}, level ${esc(s.level ?? "not set")}. Open details">
     <span class="fc-in">
-      <span class="fc-art">${art}<span class="fc-name">${esc(s.name)}</span></span>
+      <span class="fc-art">${art}<span class="fc-name">${nmHTML(s)}</span></span>
       <span class="fc-cls">${CLASS_LOGO[s.cls] ? `<img class="fc-logo" src="${CLASS_LOGO[s.cls]}" alt="">` : `<span class="fc-gem"><i><b>${esc(ABBR[s.cls] || "—")}</b></i></span>`}<small>${esc(s.cls || "")}</small></span>
       ${badge}
       <span class="fc-ce${ce ? "" : " none"}"><span>${ce ? esc(ce) : "No Craft Essence"}</span></span>
@@ -8719,7 +8740,7 @@ playSummon = function (s) {
           <div class="sm-spin"><div class="sm-face sm-back"><img src="${CARD_BACK}" alt=""></div><div class="sm-face sm-back sm-back2"><img src="${CARD_BACK}" alt=""></div></div>
           <i class="sm-bloom"></i><i class="sm-ring"></i>
         </div>${r >= 3 ? `<i class="sm-halo"></i><i class="sm-edge"><b></b></i>` : ""}</div>
-        <div class="sm-info" role="status" aria-live="polite"><p class="sm-hss"><span class="vh">${hss}</span><span class="sm-hss-l" aria-hidden="true">${letters}</span></p><h2>${esc(s.name)}</h2><p class="sm-sub">${esc(s.cls || "")}${r ? " · " + "★".repeat(r) : ""}</p><button type="button" class="btn primary sm-done">Continue</button></div>
+        <div class="sm-info" role="status" aria-live="polite"><p class="sm-hss"><span class="vh">${hss}</span><span class="sm-hss-l" aria-hidden="true">${letters}</span></p><h2>${nmHTML(s)}</h2><p class="sm-sub">${esc(s.cls || "")}${r ? " · " + "★".repeat(r) : ""}</p><button type="button" class="btn primary sm-done">Continue</button></div>
       </div>
       <button type="button" class="btn ghost sm sm-skip">Skip</button>`;
     ov.dataset.tier = tier; ov.dataset.speed = r <= 2 ? "quick" : r === 3 ? "brisk" : "full"; ov.style.setProperty("--smk", (1 / sp).toFixed(3)); ov.className = "summon"; ov.hidden = false;
@@ -8920,7 +8941,7 @@ function homeCardHTML(s, i, n) {
   const art = k ? `<img class="hm-art" src="${esc(artSrc(artOf(s, k)))}" alt="" data-art="1">` : (CLASS_MARK[s.cls] ? `<img class="hm-art mark" src="${CLASS_MARK[s.cls]}" alt="">` : "");
   const rk = rankOf(s.id);
   return `<button type="button" class="hm-card ${metal}${grTier(s)}" data-action="goto" data-id="${esc(s.id)}" style="--o:${off};--a:${Math.abs(off)};--d:${i}"
-      data-cap="${esc(s.name)}" data-sub="${esc([s.cls, s.level ? "Lv " + s.level : "", s.npLevel ? "NP" + s.npLevel : "", rk ? "Rank #" + rk.rank : ""].filter(Boolean).join(" · "))}" aria-label="Open ${esc(s.name)}">
+      data-cap="${esc(nmText(s))}" data-sub="${esc([s.cls, s.level ? "Lv " + s.level : "", s.npLevel ? "NP" + s.npLevel : "", rk ? "Rank #" + rk.rank : ""].filter(Boolean).join(" · "))}" aria-label="Open ${esc(s.name)}">
       ${grTier(s) === " gr102" ? `<i class="hm-rb" aria-hidden="true"><b></b></i>` : ""}<span class="hm-face">${art}<span class="hm-plate">${CLASS_LOGO[s.cls] ? `<img src="${CLASS_LOGO[s.cls]}" alt="">` : ""}<span class="hm-stars">${"★".repeat(r)}</span></span></span>
     </button>`;
 }
@@ -8956,7 +8977,7 @@ function homeHeroHTML(own, guests) {
 }
 function homeNextHTML(own) {
   const rows = own.map((s) => ({s: s, r: roiOf(s)})).filter((x) => x.r && x.r.gain > 0.05).sort((a, b) => b.r.gain - a.r.gain).slice(0, 5);
-  const body = rows.length ? `<ol class="hm-next">${rows.map((x) => `<li><button type="button" class="hm-row" data-action="goto" data-id="${esc(x.s.id)}">${miniAva(x.s)}<span class="hm-main"><b>${esc(x.s.name)}</b><small>${esc(roiText(x.r))}</small></span><span class="hm-gain" title="Rank score gained">+${x.r.gain.toFixed(1)}</span></button></li>`).join("")}</ol>`
+  const body = rows.length ? `<ol class="hm-next">${rows.map((x) => `<li><button type="button" class="hm-row" data-action="goto" data-id="${esc(x.s.id)}">${miniAva(x.s)}<span class="hm-main"><b>${nmHTML(x.s)}</b><small>${esc(roiText(x.r))}</small></span><span class="hm-gain" title="Rank score gained">+${x.r.gain.toFixed(1)}</span></button></li>`).join("")}</ol>`
     : `<p class="tr-none">${own.length ? "Every servant is at their best. Nothing left to level." : "Add servants and the upgrades worth doing first show up here."}</p>`;
   return `<section class="d-sec hm-block hm-b-next"><h3>Next upgrades <small>the steps that raise your rank scores most</small></h3>${body}</section>`;
 }
@@ -8978,7 +8999,7 @@ function homeRosterHTML(own) {
 }
 function homeGuestsHTML(guests) {
   const list = guests.slice(0, 6);
-  const body = list.length ? `<ul class="hm-guests">${list.map((s) => `<li>${miniAva(s)}<button type="button" class="tr-name" data-action="goto" data-id="${esc(s.id)}">${esc(s.name)}</button><small>${esc(s.cls || "")}</small>${S.readOnly ? "" : `<button type="button" class="btn sm summon-btn" data-action="summon" data-id="${esc(s.id)}" aria-label="Summon ${esc(s.name)}">Summon</button>`}</li>`).join("")}</ul>${guests.length > list.length ? `<button type="button" class="btn ghost sm" data-action="home-guests">See all ${guests.length}</button>` : ""}`
+  const body = list.length ? `<ul class="hm-guests">${list.map((s) => `<li>${miniAva(s)}<button type="button" class="tr-name" data-action="goto" data-id="${esc(s.id)}">${nmHTML(s)}</button><small>${esc(s.cls || "")}</small>${S.readOnly ? "" : `<button type="button" class="btn sm summon-btn" data-action="summon" data-id="${esc(s.id)}" aria-label="Summon ${esc(s.name)}">Summon</button>`}</li>`).join("")}</ul>${guests.length > list.length ? `<button type="button" class="btn ghost sm" data-action="home-guests">See all ${guests.length}</button>` : ""}`
     : `<p class="tr-none">The supports you borrow and the servants you hope to summon go here.</p>${S.readOnly ? "" : `<button type="button" class="btn sm" data-action="add-wish-home">+ Add guest</button>`}`;
   return `<section class="d-sec hm-block hm-b-guests"><h3>Guests <small>${guests.length ? guests.length + " waiting" : "nobody yet"}</small></h3>${body}</section>`;
 }
@@ -9564,7 +9585,7 @@ function smCardHTML(x, i) {
   const tag = x.pity ? `<i class="smr-tag pity">Guaranteed</i>` : x.f ? `<i class="smr-tag up">Rate-up</i>` : s && s.wish ? `<i class="smr-tag new">Guest</i>` : "";
   return `<li class="smr ${sv ? "is-s" : "is-c"} r${x.r} ${x.r >= 4 ? "gold" : "silver"}${x.f ? " feat" : ""}${s ? "" : " anon"}" style="--i:${i}" data-glow="${glow}">
     <div class="smr-card"><div class="smr-in"><div class="smr-face smr-front">${front}${tag}</div><div class="smr-face smr-back"><img src="${CARD_BACK}" alt=""></div></div>${sv && x.r === 5 ? `<i class="smr-burst" aria-hidden="true"></i>` : ""}</div>
-    <span class="smr-n" title="${esc(name)} · summon ${x.p}">${s ? `<button type="button" data-action="goto" data-id="${esc(s.id)}">${esc(name)}</button>` : esc(name)}</span>
+    <span class="smr-n" title="${esc(name)} · summon ${x.p}">${s ? `<button type="button" data-action="goto" data-id="${esc(s.id)}">${esc(name)}</button>${cuTag(s)}` : esc(name)}</span>
   </li>`;
 }
 function smResultsHTML() {
@@ -9586,14 +9607,14 @@ function smHeroHTML() {
     : SM.got ? `${esc(f5.name)} came on summon ${SM.got}. The guarantee works once per banner.`
     : `Summon ${Math.min(SM.n, SM_PITY)} of ${SM_PITY}. If ${esc(f5.name)} hasn't come by summon ${SM_PITY}, that one is them.`;
   const fp = f5 ? Math.min(1, (SM.got || SM.n) / SM_PITY) : 0;
-  const mini = (s, r) => s ? `<span class="smh-f">${miniAva(s)}<span><b>${esc(s.name)}</b><small>★${r} rate-up · ${SM_FEAT[r]}%</small></span></span>` : "";
+  const mini = (s, r) => s ? `<span class="smh-f">${miniAva(s)}<span><b>${nmHTML(s)}</b><small>★${r} rate-up · ${SM_FEAT[r]}%</small></span></span>` : "";
   const can = !!f5, again = !!SM.got;
   return `<section class="smh${art ? " has-art" : ""}${f5 && f5.cls === "Beast" ? " beast" : ""}">
     <div class="smh-banner">
       ${art ? `<img class="smh-art" src="${esc(art)}" alt="" data-art="1">` : (f5 && CLASS_MARK[f5.cls] ? `<img class="smh-art mark" src="${CLASS_MARK[f5.cls]}" alt="">` : "")}
       <div class="smh-txt">
         <p class="smh-kick">${f5 ? "Pickup Summon" : "Summoning simulator"}</p>
-        <h2 class="smh-title">${f5 ? esc(f5.name) : "Your Spirit Origin List"}</h2>
+        <h2 class="smh-title">${f5 ? nmHTML(f5) : "Your Spirit Origin List"}</h2>
         <p class="smh-sub">${f5 ? `${esc(f5.cls || "")} · ★5 · ${SM_FEAT[5]}% each summon` : "Every servant on your list can answer. Feature one for a rate-up banner."}</p>
         ${f4 || f3 ? `<div class="smh-fs">${mini(f4, 4)}${mini(f3, 3)}</div>` : ""}
       </div>
@@ -9622,7 +9643,7 @@ function smHeroHTML() {
 function smSetupHTML() {
   const sel = (r) => {
     const pool = smPool(r), cur = smFeat(r), g = pool.filter((s) => s.wish), o = pool.filter((s) => !s.wish);
-    const op = (s) => `<option value="${esc(s.id)}"${cur && cur.id === s.id ? " selected" : ""}>${esc(s.name)}</option>`;
+    const op = (s) => `<option value="${esc(s.id)}"${cur && cur.id === s.id ? " selected" : ""}>${esc(nmText(s))}</option>`;
     return `<label class="sms-f"><span>Featured ★${r} <small>${SM_FEAT[r]}% of ${SM_RATE["s" + r]}%</small></span><select data-sm-feat="${r}"${pool.length ? "" : " disabled"}><option value="">${pool.length ? "No rate-up" : "No ★" + r + " servants on your list"}</option>${g.length ? `<optgroup label="Guests">${g.map(op).join("")}</optgroup>` : ""}${o.length ? `<optgroup label="Your servants">${o.map(op).join("")}</optgroup>` : ""}</select></label>`;
   };
   return `<section class="d-sec smb sm-setup"><h3>Banner <small>who's on rate-up</small></h3>
@@ -9650,13 +9671,13 @@ function smChancesHTML() {
   const body = [5, 4, 3].map((r) => {
     const rr = rows.filter((x) => x.r === r).sort((a, b) => b.p - a.p || a.s.name.localeCompare(b.s.name));
     if (!rr.length) return "";
-    return `<li class="smc-h">★${r} servants <small>${SM_RATE["s" + r]}% each summon in all</small></li>` + rr.map((x) => `<li class="smc${x.f ? " up" : ""}">${miniAva(x.s)}<span class="smc-n"><b>${esc(x.s.name)}</b><small>${x.f ? "Rate-up" : x.s.wish ? "Guest" : esc(x.s.cls || "")}</small></span><span class="smc-bar" aria-hidden="true"><i style="width:${(Math.sqrt(x.p / max) * 100).toFixed(1)}%"></i></span><b class="smc-p" title="Each summon">${smPct(x.p)}</b>${n ? `<span class="smc-y" title="With your ${plural(n, "summon")}">${smPct(smChance(x, n))}</span>` : ""}</li>`).join("");
+    return `<li class="smc-h">★${r} servants <small>${SM_RATE["s" + r]}% each summon in all</small></li>` + rr.map((x) => `<li class="smc${x.f ? " up" : ""}">${miniAva(x.s)}<span class="smc-n"><b>${nmHTML(x.s)}</b><small>${x.f ? "Rate-up" : x.s.wish ? "Guest" : esc(x.s.cls || "")}</small></span><span class="smc-bar" aria-hidden="true"><i style="width:${(Math.sqrt(x.p / max) * 100).toFixed(1)}%"></i></span><b class="smc-p" title="Each summon">${smPct(x.p)}</b>${n ? `<span class="smc-y" title="With your ${plural(n, "summon")}">${smPct(smChance(x, n))}</span>` : ""}</li>`).join("");
   }).join("");
   return `<section class="d-sec smb sm-ch"><h3>Drop chances <small>each summon${n ? ", and with your " + plural(n, "summon") : ""}</small></h3><ul class="smc-list">${body}</ul></section>`;
 }
 function smLogHTML() {
   const L = (SM.log || []).slice(0, 14);
-  const body = L.length ? `<ol class="sml">${L.map((x) => { const s = S.servants.find((v) => v.id === x.id); return s ? `<li class="${x.r === 5 ? "r5" : "r4"}${x.f ? " up" : ""}"><span class="sml-p">#${x.p}</span>${miniAva(s)}<span class="sml-n"><b>${esc(s.name)}</b><small>★${x.r}${x.pity ? " · the guarantee" : x.f ? " · rate-up" : ""}</small></span></li>` : ""; }).join("")}</ol>`
+  const body = L.length ? `<ol class="sml">${L.map((x) => { const s = S.servants.find((v) => v.id === x.id); return s ? `<li class="${x.r === 5 ? "r5" : "r4"}${x.f ? " up" : ""}"><span class="sml-p">#${x.p}</span>${miniAva(s)}<span class="sml-n"><b>${nmHTML(s)}</b><small>★${x.r}${x.pity ? " · the guarantee" : x.f ? " · rate-up" : ""}</small></span></li>` : ""; }).join("")}</ol>`
     : `<p class="tr-none">★4 and ★5 servants you pull on this banner are listed here.</p>`;
   const t = SM.t;
   return `<section class="d-sec smb sm-log"><h3>This banner <small>${plural(SM.n, "summon")}</small></h3>
@@ -9669,7 +9690,7 @@ function smGuestsHTML() {
     const r = clamp(num(s.rarity) || 0, 0, 5), art = smArt(s, true), on = smFeat(r) && smFeat(r).id === s.id;
     return `<li class="smg" id="smg-${esc(s.id)}">
       <button type="button" class="smg-face ${r >= 4 ? "gold" : r === 3 ? "silver" : "bronze"}" data-action="goto" data-id="${esc(s.id)}" aria-label="Open ${esc(s.name)}">${art ? `<img src="${esc(art)}" alt="" data-art="1">` : (CLASS_MARK[s.cls] ? `<img class="mark" src="${CLASS_MARK[s.cls]}" alt="">` : "")}<span class="smg-plate">${CLASS_LOGO[s.cls] ? `<img src="${CLASS_LOGO[s.cls]}" alt="">` : ""}${r ? smStars(r) : ""}</span></button>
-      <div class="smg-b"><b>${esc(s.name)}</b><small>${esc([s.cls, r ? "★" + r : "", s.level && num(s.level) > 1 ? "goal Lv " + s.level : ""].filter(Boolean).join(" · "))}</small>
+      <div class="smg-b"><b>${nmHTML(s)}</b><small>${esc([s.cls, r ? "★" + r : "", s.level && num(s.level) > 1 ? "goal Lv " + s.level : ""].filter(Boolean).join(" · "))}</small>
         <div class="smg-act">${S.readOnly ? "" : `<button type="button" class="btn sm summon-btn" data-action="summon" data-id="${esc(s.id)}" aria-label="Summon ${esc(s.name)}">Summon</button>`}${r >= 3 ? `<button type="button" class="btn ghost sm" data-action="sm-feature" data-id="${esc(s.id)}" aria-pressed="${!!on}">${on ? "On the banner" : "Feature"}</button>` : ""}</div></div>
     </li>`; }).join("")}</ul>`
     : `<p class="tr-none">Guests are the supports you borrow and the servants you hope to summon.</p>`;
@@ -9793,7 +9814,7 @@ function homeVsHTML(own) {
   const best = rows.length ? rows[0].out : 1;
   const hurt = own.filter((s) => aff(e, s.cls) >= 2).length;
   const tag = (v, word) => `<span class="hv-x ${affCls(v)}" title="${esc(word)}">${affTxt(v)}</span>`;
-  const body = rows.length ? `<ol class="hv-list">${rows.map((x) => `<li><button type="button" class="hm-row" data-action="goto" data-id="${esc(x.s.id)}">${miniAva(x.s)}<span class="hm-main"><b>${esc(x.s.name)}</b><small>${esc(x.s.cls || "No class")}${x.inn !== 1 ? ` · takes ${affTxt(x.inn)} from them` : ""}</small></span>${tag(x.out, "Damage dealt to " + e)}</button></li>`).join("")}</ol>` : `<p class="tr-none">Add servants and the best answer to each class shows up here.</p>`;
+  const body = rows.length ? `<ol class="hv-list">${rows.map((x) => `<li><button type="button" class="hm-row" data-action="goto" data-id="${esc(x.s.id)}">${miniAva(x.s)}<span class="hm-main"><b>${nmHTML(x.s)}</b><small>${esc(x.s.cls || "No class")}${x.inn !== 1 ? ` · takes ${affTxt(x.inn)} from them` : ""}</small></span>${tag(x.out, "Damage dealt to " + e)}</button></li>`).join("")}</ol>` : `<p class="tr-none">Add servants and the best answer to each class shows up here.</p>`;
   const lead = !rows.length ? "" : best >= 2 ? `Your best answers to ${esc(e)} enemies.` : best > 1 ? `Nobody hits ${esc(e)} for double damage; these come closest.` : `Nobody on your roster has the advantage over ${esc(e)}; these are your strongest.`;
   return `<section class="d-sec hm-block hm-b-vs"><h3>Up against <small>pick an enemy class</small></h3>
     <div class="hv-cls" role="group" aria-label="Enemy class">${chips}</div>
@@ -9859,7 +9880,7 @@ function logText(e, s) {
 function homeLogHTML() {
   const log = readLog().slice(0, 7);
   const body = log.length ? `<ol class="hl-list">${log.map((e) => { const s = S.servants.find((x) => x.id === e.id);
-    return `<li class="hl-${esc(e.k)}">${s ? `<button type="button" class="hm-row" data-action="goto" data-id="${esc(s.id)}">` : `<span class="hm-row">`}${s ? miniAva(s) : `<span class="tr-ava"></span>`}<span class="hm-main"><b>${esc(s ? s.name : e.name)}</b><small>${esc(logText(e, s))}</small></span><time class="hl-t" datetime="${new Date(e.t).toISOString()}">${esc(ago(e.t))}</time>${s ? `</button>` : `</span>`}</li>`; }).join("")}</ol>`
+    return `<li class="hl-${esc(e.k)}">${s ? `<button type="button" class="hm-row" data-action="goto" data-id="${esc(s.id)}">` : `<span class="hm-row">`}${s ? miniAva(s) : `<span class="tr-ava"></span>`}<span class="hm-main"><b>${s ? nmHTML(s) : esc(e.name)}</b><small>${esc(logText(e, s))}</small></span><time class="hl-t" datetime="${new Date(e.t).toISOString()}">${esc(ago(e.t))}</time>${s ? `</button>` : `</span>`}</li>`; }).join("")}</ol>`
     : `<p class="tr-none">Level a skill, feed some Fou or summon a Guest, and it shows up here.</p>`;
   return `<section class="d-sec hm-block hm-b-log"><h3>Recent progress <small>saved in this browser</small></h3>${body}</section>`;
 }
@@ -9867,12 +9888,12 @@ function homeLogHTML() {
 /* ---------- Summoning, in short ---------- */
 function homeSummonHTML(guests) {
   const f5 = smFeat(5);
-  const ban = f5 ? `<button type="button" class="hm-row" data-action="tab" data-tab="summon">${miniAva(f5)}<span class="hm-main"><b>${esc(f5.name)} <span class="hs-up">rate-up</span></b><small>${SM.got ? "Came on summon " + SM.got + " of this banner" : SM.n ? SM.n + " of " + SM_PITY + " summons toward the guarantee" : "★5 · " + SM_FEAT[5] + "% each summon"}</small></span><span class="hs-sq">${SQ_SVG}${fmt(SM.sq)}</span></button>`
+  const ban = f5 ? `<button type="button" class="hm-row" data-action="tab" data-tab="summon">${miniAva(f5)}<span class="hm-main"><b>${nmHTML(f5)} <span class="hs-up">rate-up</span></b><small>${SM.got ? "Came on summon " + SM.got + " of this banner" : SM.n ? SM.n + " of " + SM_PITY + " summons toward the guarantee" : "★5 · " + SM_FEAT[5] + "% each summon"}</small></span><span class="hs-sq">${SQ_SVG}${fmt(SM.sq)}</span></button>`
     : `<p class="tr-none">No rate-up yet. Feature a ★5 on the Summoning page for a banner with the 330-summon guarantee.</p>`;
   const g = guests.slice(0, 8);
   return `<section class="d-sec hm-block hm-b-sum"><h3>Summoning <small>${guests.length ? plural(guests.length, "Guest") + " waiting" : "nobody waiting"}</small></h3>
     ${ban}
-    ${g.length ? `<div class="hs-guests">${g.map((s) => `<button type="button" class="hs-g" data-action="to-summon" data-id="${esc(s.id)}" title="${esc(s.name)}">${miniAva(s)}<span>${esc(s.name)}</span></button>`).join("")}</div>` : ""}
+    ${g.length ? `<div class="hs-guests">${g.map((s) => `<button type="button" class="hs-g" data-action="to-summon" data-id="${esc(s.id)}" title="${esc(nmText(s))}">${miniAva(s)}<span>${nmHTML(s)}</span></button>`).join("")}</div>` : ""}
     <div><button type="button" class="btn sm summon-btn" data-action="tab" data-tab="summon">Go to Summoning</button>${!guests.length && !S.readOnly ? ` <button type="button" class="btn ghost sm" data-action="add-wish">+ Add guest</button>` : ""}</div>
   </section>`;
 }
@@ -10152,7 +10173,7 @@ function pcReviewHTML() {
     const opts = `<option value="">${a && !fixed ? "Automatic: " + esc(a.n) : "Automatic"}</option><option value="0"${fixed && !atlasLinks[s.id] ? " selected" : ""}>Not on the NA list</option>` +
       `<optgroup label="${esc(s.cls || "All classes")}">${pool.filter((x) => !s.cls || x.c === s.cls).map((x) => `<option value="${x.no}"${fixed && num(atlasLinks[s.id]) === x.no ? " selected" : ""}>${esc(x.n)} · ${stars(x.r)} · No. ${x.no}</option>`).join("")}</optgroup>` +
       (s.cls ? `<optgroup label="Other classes">${pool.filter((x) => x.c !== s.cls).map((x) => `<option value="${x.no}"${fixed && num(atlasLinks[s.id]) === x.no ? " selected" : ""}>${esc(x.n)} (${esc(x.c)}) · No. ${x.no}</option>`).join("")}</optgroup>` : "");
-    return `<li class="pcr-row">${miniAva(s)}<span class="pcr-n"><b>${esc(s.name)}</b><small>${esc([s.cls, s.wish ? "Guest" : "Roster"].filter(Boolean).join(" · "))}</small></span><select data-pc-link="${esc(s.id)}" aria-label="NA servant for ${esc(s.name)}">${opts}</select></li>`;
+    return `<li class="pcr-row">${miniAva(s)}<span class="pcr-n"><b>${nmHTML(s)}</b><small>${esc([s.cls, s.wish ? "Guest" : "Roster"].filter(Boolean).join(" · "))}</small></span><select data-pc-link="${esc(s.id)}" aria-label="NA servant for ${esc(s.name)}">${opts}</select></li>`;
   }).join("");
   return `<div class="pcr"><div class="pcr-h"><p>${PC.all ? "Every servant on your list and the NA servant it counts as." : "These couldn't be matched to an NA servant by name. Pick the right one, or say they aren't on the NA list."} Your choice is kept in this browser; your servants themselves aren't changed.</p>
     <label class="pcr-all"><input type="checkbox" data-pc-all${PC.all ? " checked" : ""}> Show all my servants</label></div>${rows ? `<ul class="pcr-list">${rows}</ul>` : `<p class="tr-none">Everyone on your list is matched.</p>`}</div>`;
@@ -10659,7 +10680,7 @@ renderAll = function () { renderAll13(); renderFillNote(); };
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.27.0";
+const APP_VER = "0.27.1";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -10821,6 +10842,11 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.27.1", d: "1 Nov 2026", t: "Workshop servants keep your edits and say Custom everywhere", i: [
+    "A servant made in the Workshop has a <b>Custom</b> tag next to their name wherever they show up: your roster and Guests, Ranking, Home, Versus, parties (the party picture too), Summoning, the Story page, the damage calculator and its support picker, and friends' supports and activity. Lists to pick from say (Custom). That way nobody takes them for a servant from the game. A name that already ends in (Custom) doesn't get a second one.",
+    "A servant made in the Workshop keeps what you change in <b>Edit details</b> or on their page: skills and their values, the Noble Phantasm's name, card and target, passives, traits, deck and growth. Before, the Workshop had its own copy, so it opened with the old skills and saving there put them back. Skills you already changed this way come along the next time you open the Workshop.",
+    "<b>Open in the Workshop</b> in Edit details takes what you've typed with it instead of throwing it away. Nothing is saved until you press Save changes there.",
+    "A skill line you wrote yourself shows up in the Workshop as a <b>Write your own</b> effect with the same words, and a unit of your own (like hits) stays."]},
   {v: "0.27.0", d: "31 Oct 2026", t: "The Servant Workshop: servants of your own", i: [
     "<b>The Servant Workshop</b>: press <b>Create</b> next to Add servant and make a servant of your own, step by step, with their Saint Graph card beside you the whole way. Start from scratch, from any NA servant's kit (<b>Remix in the Workshop</b> in Past Chaldea does the same), from a made-up one with <b>Surprise me</b>, or from a friend's share code.",
     "Every step starts at what NA's servants of that class and rarity usually have: HP and ATK, growth curve, deck, Noble Phantasm card and passives. Those keep following the class and rarity until you change them, so they can be summoned after any step.",
@@ -11540,7 +11566,7 @@ function smRingsHTML(tier) {
 function smItemOf(s) {
   if (s && s._item) return s;
   const k = iconSlot(s);
-  return {k: "s", r: clamp(num(s.rarity) || 0, 0, 5), name: s.name, sub: s.cls || "", art: k ? artSrc(artOf(s, k)) : "", logo: CLASS_LOGO[s.cls] || "", mark: CLASS_MARK[s.cls] || ""};
+  return {k: "s", r: clamp(num(s.rarity) || 0, 0, 5), name: s.name, custom: !!s.custom, sub: s.cls || "", art: k ? artSrc(artOf(s, k)) : "", logo: CLASS_LOGO[s.cls] || "", mark: CLASS_MARK[s.cls] || ""};
 }
 playSummon = function (who) {
   return new Promise((resolve) => {
@@ -11562,7 +11588,7 @@ playSummon = function (who) {
             <div class="s2-cover"><i class="s2-band"></i><img src="${backOf(it.k, r)}" alt=""></div></div>
           ${r >= 3 ? `<i class="sm-halo"></i><i class="sm-edge"><b></b></i>` : ""}
         </div>
-        <div class="sm-info" role="status" aria-live="polite"><p class="sm-hss"><span class="vh">${hss}</span><span class="sm-hss-l" aria-hidden="true">${letters}</span></p><h2>${esc(it.name)}</h2><p class="sm-sub">${esc(it.sub || "")}${r ? " · " + "★".repeat(r) : ""}</p><button type="button" class="btn sm sm-done">Done</button></div>
+        <div class="sm-info" role="status" aria-live="polite"><p class="sm-hss"><span class="vh">${hss}</span><span class="sm-hss-l" aria-hidden="true">${letters}</span></p><h2>${nmHTML(it)}</h2><p class="sm-sub">${esc(it.sub || "")}${r ? " · " + "★".repeat(r) : ""}</p><button type="button" class="btn sm sm-done">Done</button></div>
       </div>
       <button type="button" class="btn ghost sm sm-skip">Skip</button>`;
     ov.dataset.tier = tier === "rainbow" ? "gold5" : tier === "none" ? "bronze" : tier; ov.dataset.look = tier; ov.dataset.k = it.k;
@@ -14098,7 +14124,7 @@ function npcSupSel(i, cur) {
   return `<label class="npc-f npc-sup"><span>Support ${i + 1}</span><select data-npc-sup="${i}">${o("", "None")}
     ${guestsForSup().length ? `<optgroup label="Your Guests">${guestsForSup().map((g) => o(g.key, g.n + (g.cls ? " · " + g.cls : ""))).join("")}</optgroup>` : ""}
     <optgroup label="Often borrowed">${pop.map((a) => o("a:" + a.no, a.n + " · " + a.c)).join("")}</optgroup>
-    ${mine.length ? `<optgroup label="Your servants">${mine.map((x) => o("r:" + x.id, x.name)).join("")}</optgroup>` : ""}
+    ${mine.length ? `<optgroup label="Your servants">${mine.map((x) => o("r:" + x.id, nmText(x))).join("")}</optgroup>` : ""}
     <optgroup label="Every NA servant">${ATLAS_S.slice().sort((a, b) => a.n.localeCompare(b.n)).map((a) => o("a:" + a.no, a.n + " · " + a.c)).join("")}</optgroup></select></label>`;
 }
 function npcTeamHTML(s, np, I) {
@@ -14110,7 +14136,7 @@ function npcTeamHTML(s, np, I) {
       return `<label class="npc-sk${on ? "" : " off"}"><input type="checkbox" data-npc-sk="${esc(key)}"${on ? " checked" : ""}>${icHTML(k.ic, "npc-ic")}<span class="npc-skm"><b>${esc(k.n)}</b><span>${k.fx.map((b) => npcFxText(b, k.lv, np, me, I)).join("")}</span></span><i class="npc-lv">Lv ${k.lv}</i></label>`; }).join("")}</div>`;
   };
   const face = (a) => a && a.f ? `<img class="npc-face" src="${esc(aimg(a.f))}" alt="" loading="lazy">` : "";
-  return `<div class="npc-who"><div class="npc-wh">${face(me)}<b>${esc(s.name)}</b><small>own skills</small></div>
+  return `<div class="npc-who"><div class="npc-wh">${face(me)}<b>${nmHTML(s)}</b><small>own skills</small></div>
       ${me ? list("me:" + s.id, me, skLevels(s), true, s.name) : `<p class="npc-none">Fill in ${esc(s.name)} from NA to use its skills here.</p>`}</div>
     ${[0, 1].map((i) => { const src = npcSrc(sup[i]);
       return `<div class="npc-who sup"><div class="npc-wh">${src ? face(src.a) : ""}${npcSupSel(i, src ? src.key : "")}</div>${src ? (src.a ? list(src.key, src.a, src.lv, false, src.n) : `<p class="npc-none">${esc(src.n)} isn't in NA's data here.</p>`) : ""}</div>`; }).join("")}`;
@@ -14380,6 +14406,8 @@ async function pimgDraw(p, theme) {
       if (logos[i]) ctx.drawImage(logos[i], x + 12, y + 12, 30, 30);
       if (sl.support) { ctx.save(); ctx.font = `600 11px ${fM}`; const tw = ctx.measureText("SUPPORT").width + 14; rr(ctx, x + cw - tw - 12, y + 14, tw, 20, 10); ctx.fillStyle = P.gold; ctx.fill(); ctx.fillStyle = "#1c1814"; ctx.fillText("SUPPORT", x + cw - tw - 5, y + 28); ctx.restore(); }
       else if (i === 0) { ctx.save(); ctx.font = `600 11px ${fM}`; const tw = ctx.measureText("LEADER").width + 14; rr(ctx, x + cw - tw - 12, y + 14, tw, 20, 10); ctx.fillStyle = "rgba(0,0,0,.55)"; ctx.fill(); ctx.fillStyle = "#fff"; ctx.fillText("LEADER", x + cw - tw - 5, y + 28); ctx.restore(); }
+      // a servant made in the Servant Workshop says so in the picture too (under SUPPORT or LEADER)
+      if (isCu(sl.s)) { const ty0 = sl.support || i === 0 ? 40 : 14; ctx.save(); ctx.font = `600 11px ${fM}`; const tw = ctx.measureText("CUSTOM").width + 14; rr(ctx, x + cw - tw - 12, y + ty0, tw, 20, 10); ctx.fillStyle = "rgba(242,211,145,.92)"; ctx.fill(); ctx.fillStyle = "#3a2a0c"; ctx.fillText("CUSTOM", x + cw - tw - 5, y + ty0 + 14); ctx.restore(); }
       ctx.fillStyle = "#fff"; ctx.font = `700 16px ${fD}`;
       const nl = wrapText(ctx, sl.name, cw - 28, 2);
       nl.forEach((l, j) => ctx.fillText(l, x + 14, y + ah - 8 - (nl.length - 1 - j) * 19));
@@ -14693,10 +14721,10 @@ function waveHTML(w, ph) {
 let storyBorrowFriends = () => [];
 function storyBorrow(topCls) {
   const seen = new Set(), out = [];
-  const add = (name, cls, who) => { const k = normName(name) + "|" + (who || ""); if (!name || !topCls.has(cls) || seen.has(k)) return; seen.add(k); out.push({name: name, cls: cls, who: who}); };
-  S.servants.filter((s) => s.wish).forEach((s) => add(s.name, s.cls));
+  const add = (name, cls, who, cu) => { const k = normName(name) + "|" + (who || ""); if (!name || !topCls.has(cls) || seen.has(k)) return; seen.add(k); out.push({name: name, cls: cls, who: who, custom: !!cu}); };
+  S.servants.filter((s) => s.wish).forEach((s) => add(s.name, s.cls, "", s.custom));
   (S.guests || []).forEach((g) => { if (g && !g.movedTo) add(g.name, g.cls); });
-  storyBorrowFriends().forEach((f) => add(f.name, f.cls, f.who));
+  storyBorrowFriends().forEach((f) => add(f.name, f.cls, f.who, f.custom));
   return out.slice(0, 6);
 }
 function adviceHTML(ph, q, p, war) {
@@ -14708,10 +14736,10 @@ function adviceHTML(ph, q, p, war) {
   return `<section class="st-next" aria-labelledby="st-next-h"><header><p class="st-k">${stWho("Your next fight", "{n}'s next fight")}</p><h3 id="st-next-h">${esc(secLabel(q))} · ${esc(q.n)} <small>battle ${q.pe.indexOf(p) + 1} of ${q.pe.length}</small></h3></header>
     <div class="st-cls-row">${cls.map((x) => `<div class="st-ccard${x.off > 1.2 ? " good" : ""}">${clsChip(x.c)}<div><b>${esc(x.c)}</b><span>${x.strong ? `strong against ${pct(x.strong)} of the HP` : "no advantage"}; takes ${x.inc > 1.2 ? "<em>more</em>" : x.inc < 0.9 ? "less" : "normal"} damage</span></div></div>`).join("")}</div>
     ${sv.length ? `<h4 class="st-sub">${stWho("Best from your list", "Best from {n}'s list")}</h4><ol class="st-best">${sv.map((x, i) => `<li><button type="button" class="st-sv" data-action="goto" data-id="${esc(x.s.id)}">${iconHTML(x.s, "sm")}
-        <span class="st-sv-m"><b>${esc(x.s.name)}</b>${x.s.wish ? `<i class="tag">Guest</i>` : ""}<span>${esc(x.s.cls || "")} · ${x.aoe ? "AoE" : "single target"} NP${num(x.s.npLevel) || 1}</span></span>
+        <span class="st-sv-m"><b>${nmHTML(x.s)}</b>${x.s.wish ? `<i class="tag">Guest</i>` : ""}<span>${esc(x.s.cls || "")} · ${x.aoe ? "AoE" : "single target"} NP${num(x.s.npLevel) || 1}</span></span>
         <span class="st-sv-n"><b>${pct(Math.min(1, x.frac))}</b><small>of the fight's HP with one NP a wave</small>${x.boss ? `<small>≈ ${fmt(Math.round(x.boss.dmg))} on ${esc(x.boss.e.n)} (${fmt(x.boss.e.tot)} HP)</small>` : ""}</span></button></li>`).join("")}</ol>`
       : `<p class="tr-none">${stWho("No servant on your list has ATK and an NP Damage row filled in yet, so there's nothing to compare. Fill in from NA on the servant page.", "No servant on {n}'s list has ATK and an NP Damage row filled in yet, so there's nothing to compare.")}</p>`}
-    ${borrow.length ? `<p class="st-borrow">Worth borrowing: ${borrow.map((g) => `<b>${esc(g.name)}</b> <small>(${esc(g.cls)}${g.who ? ", " + esc(g.who) + "'s support" : ""})</small>`).join(", ")}</p>` : ""}
+    ${borrow.length ? `<p class="st-borrow">Worth borrowing: ${borrow.map((g) => `<b>${nmHTML(g)}</b> <small>(${esc(g.cls)}${g.who ? ", " + esc(g.who) + "'s support" : ""})</small>`).join(", ")}</p>` : ""}
     <p class="st-note">One NP a wave with no buffs, against each enemy's class and attribute, with class passives and your equipped Craft Essence. Buffs and the order you fire NPs in change it.</p></section>`;
 }
 function chipHTML(c) {
@@ -15353,7 +15381,7 @@ function spkCardHTML(x) {
   const on = x.key === SPK.cur;
   return `<li><button type="button" class="pc-card r${clamp(r || 1, 1, 5)}${on ? " is-on" : ""}" data-spk="${esc(x.key)}" aria-pressed="${on}" aria-label="${esc(x.n)}${cls ? ", " + esc(cls) : ""}">
     <span class="pc-face">${face ? `<img src="${esc(face)}" alt="" loading="lazy" decoding="async">` : `<i class="spk-none">${esc((x.n || "?").slice(0, 1))}</i>`}${CLASS_LOGO[cls] ? `<img class="pc-cls" src="${CLASS_LOGO[cls]}" alt="">` : ""}${r ? `<span class="pc-st">${stars(r)}</span>` : ""}</span>
-    <span class="pc-n">${esc(x.n)}</span><span class="pc-m">${esc(cls || "not in NA's data")}${x.m ? " · " + esc(x.m) : x.s ? (x.s.wish ? " · Guest" : " · your levels") : ""}</span></button></li>`;
+    <span class="pc-n">${x.s ? nmHTML(Object.assign({}, x.s, {name: x.n})) : esc(x.n)}</span><span class="pc-m">${esc(cls || "not in NA's data")}${x.m ? " · " + esc(x.m) : x.s ? (x.s.wish ? " · Guest" : " · your levels") : ""}</span></button></li>`;
 }
 function spkBody() {
   const all = spkList(), searching = !!(SPK.q.trim() || SPK.c);
@@ -16547,7 +16575,7 @@ async function frLoad(quiet) {
 function frBadge() { const b = document.getElementById("tab-friends"); if (b) b.classList.toggle("has-req", FR.incoming.length > 0); }
 const frAgo = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " d ago"; };
 function feedLine(it) {
-  const d = it.data || {}, who = `<b>${esc(it.user.name)}</b>`, sv = `<b>${esc(d.name || "a servant")}</b>`;
+  const d = it.data || {}, who = `<b>${esc(it.user.name)}</b>`, sv = `<b>${esc(d.name || "a servant")}</b>${cuTag(d)}`;
   return {summoned: `${who} summoned ${sv}${d.rarity ? " " + "★".repeat(clamp(d.rarity, 1, 5)) : ""}`, grail: `${who} grailed ${sv} to Lv ${d.to}`,
     maxlevel: `${who} got ${sv} to max level (Lv ${d.to})`, np: `${who} raised ${sv} to NP${d.to}`, skills: `${who} maxed ${sv}'s skills`,
     bond: `${who} reached Bond ${d.to} with ${sv}`}[it.kind] || `${who} did something with ${sv}`;
@@ -16579,7 +16607,7 @@ function renderFriends() {
          <button type="button" class="btn sm" data-action="fr-sup" data-id="${f.id}" aria-expanded="${open}">${f.supports ? "Supports " + f.supports : "No supports"}</button>
          ${rm ? `<span class="fr-rm">Remove ${esc(f.name)}? <button type="button" class="btn danger solid sm" data-action="fr-remove" data-id="${f.id}">Remove</button><button type="button" class="btn ghost sm" data-action="fr-rm-no">Keep</button></span>`
            : `<button type="button" class="btn ghost sm fr-x" data-action="fr-rm-ask" data-id="${f.id}" aria-label="Remove ${esc(f.name)} from your friends">Remove</button>`}`;
-    const sup = open ? `<div class="fr-sups">${FR.sup.list ? (FR.sup.list.length ? FR.sup.list.map((s) => `<div class="fr-sv">${frFaceHTML(s)}<span><b>${esc(s.name)}</b><small>${esc(s.cls || "")} · ${esc(supStats(s))}</small></span>
+    const sup = open ? `<div class="fr-sups">${FR.sup.list ? (FR.sup.list.length ? FR.sup.list.map((s) => `<div class="fr-sv">${frFaceHTML(s)}<span><b>${nmHTML(s)}</b><small>${esc(s.cls || "")} · ${esc(supStats(s))}</small></span>
         <span class="fr-sv-b"><button type="button" class="btn ghost sm" data-action="fr-vs" data-k="${esc(s.id)}">Versus</button>${mineHas(s) ? "" : `<button type="button" class="btn ghost sm" data-action="fr-guest" data-k="${esc(s.id)}" title="Add ${esc(s.name)} to your Guests with ${esc(f.name)}'s levels">+ Guest</button>`}</span></div>`).join("") : `<p class="muted">${esc(f.name)} hasn't picked supports yet.</p>`) : `<p class="muted">Loading…</p>`}</div>` : "";
     const sc = kind === "friend" && f.story ? STORY_BY.get(f.story.w) : null;
     return `<li class="fr-card"><span class="acct-av" aria-hidden="true">${esc(f.name.slice(0, 1).toUpperCase())}</span><div class="fr-who"><b>${esc(f.name)}</b><small>${fmtCode(f.code)}${f.seen && kind === "friend" ? " · seen " + frAgo(f.seen) : ""}</small>${sc ? `<small class="fr-story" style="${palVars(sc)}">Story: <b>${esc(sc.n)}</b></small>` : ""}</div><div class="fr-acts">${acts}</div>${sup}</li>`;
@@ -16597,7 +16625,7 @@ function renderFriends() {
     </div>
     <div class="fr-col">
       <section class="fr-box"><h3>Your supports <small>${mine.length} of 10</small></h3><p class="acct-note">Friends can borrow these in the damage calculator and compare them in Versus, whoever can see your roster.</p>
-        <ul class="fr-mysup">${mine.map((s) => `<li>${frFaceHTML(s)}<span><b>${esc(s.name)}</b><small>${esc(supStats(s))}</small></span><button type="button" class="fr-unsup" data-action="fr-unsup" data-id="${esc(s.id)}" aria-label="Stop lending ${esc(s.name)}">×</button></li>`).join("")}</ul>
+        <ul class="fr-mysup">${mine.map((s) => `<li>${frFaceHTML(s)}<span><b>${nmHTML(s)}</b><small>${esc(supStats(s))}</small></span><button type="button" class="fr-unsup" data-action="fr-unsup" data-id="${esc(s.id)}" aria-label="Stop lending ${esc(s.name)}">×</button></li>`).join("")}</ul>
         ${mine.length < 10 && S.servants.some((x) => !x.wish) ? `<button type="button" class="btn sm" data-action="fr-addsup">+ Add a support</button>` : ""}</section>
       <section class="fr-box"><h3>What your friends are up to</h3>${FR.feed.length ? `<ul class="fr-feed">${FR.feed.map((it) => `<li>${frFaceHTML({atlas: it.data && it.data.atlas, name: it.data && it.data.name, cls: it.data && it.data.cls})}<p>${feedLine(it)}<small>${frAgo(it.at)}</small></p></li>`).join("")}</ul>`
         : `<p class="muted">${FR.loaded ? "Nothing yet. When friends summon, grail or max out a servant, it shows here." : "Loading…"}</p>`}
@@ -16696,7 +16724,7 @@ vsHeroHTML = function (s, i, ids) {
   let h = vsHeroHTML26.apply(this, arguments).replace(/<option value="f:[^"]*"[^>]*>[^<]*<\/option>/g, "").replace(/<optgroup label="[^"]*"><\/optgroup>/g, "");
   const fr = Array.from(FSV.values());
   if (fr.length) {
-    const opt = (x) => `<option value="${esc(x.id)}"${x.id === s.id ? " selected" : ""}${x.id !== s.id && ids.includes(x.id) ? " disabled" : ""}>${esc(x.name)}</option>`;
+    const opt = (x) => `<option value="${esc(x.id)}"${x.id === s.id ? " selected" : ""}${x.id !== s.id && ids.includes(x.id) ? " disabled" : ""}>${esc(nmText(x))}</option>`;
     const by = new Map(); fr.forEach((x) => { if (!by.has(x.fr.name)) by.set(x.fr.name, []); by.get(x.fr.name).push(x); });
     const groups = Array.from(by.keys()).map((n) => `<optgroup label="${esc(n)}'s">${by.get(n).map(opt).join("")}</optgroup>`).join("");
     h = h.replace(/(<select class="vs-sel"[^>]*>[\s\S]*?)(<\/select>)/, "$1" + groups + "$2");
@@ -16836,7 +16864,7 @@ async function vsFriendRestore() {
 const renderVersus261 = renderVersus;
 renderVersus = function () { const r = renderVersus261.apply(this, arguments); vsFriendRestore(); return r; };
 // the Story page's "worth borrowing" counts your friends' supports too
-storyBorrowFriends = () => FV.on ? [] : FSUP.flatMap((f) => f.supports.map((s) => ({name: s.name, cls: s.cls, who: f.user.name})));
+storyBorrowFriends = () => FV.on ? [] : FSUP.flatMap((f) => f.supports.map((s) => ({name: s.name, cls: s.cls, who: f.user.name, custom: !!s.custom})));
 const frSupLoad26 = frSupLoad;
 frSupLoad = async function () { const r = await frSupLoad26.apply(this, arguments); if (S.tab === "story" && !FV.on) renderStory(); return r; };
 
@@ -17180,7 +17208,8 @@ const KIT_CACHE = new WeakMap();
 function customKit(s) {
   if (!s || !s.custom || !s.kit || typeof s.kit !== "object") return null;
   const hit = KIT_CACHE.get(s.kit); if (hit && hit.s === s) return hit.a;
-  const k = s.kit, card = CARDS.includes(k.np && k.np.card) ? k.np.card : "Buster", pm = [0, 0, 0, 0, 0];
+  // (with anything changed on their page since the Workshop last saved them)
+  const k = kitNow(s) || s.kit, card = CARDS.includes(k.np && k.np.card) ? k.np.card : "Buster", pm = [0, 0, 0, 0, 0];
   (k.ps || []).forEach((p) => { const v = psValue(p); if (v) pm[v.slot] += v.v; });
   const t = (s.traits || []).slice(), g = t.includes("Female") ? "Female" : t.includes("Male") ? "Male" : "Unknown";
   const a = {n: s.name, c: s.cls, r: num(s.rarity) || 5, a: s.attr || "", g: g, o: (s.lawOrder || []).slice(), m: (s.moral || []).slice(), t: t, pm: pm, custom: true,
@@ -17281,7 +17310,7 @@ const servantForm26 = servantForm;
 servantForm = function (s) {
   let h = servantForm26.apply(this, arguments);
   // custom servants are made in the Workshop: their skills, NP and growth are best changed there
-  if (s && s.custom) h = h.replace(/(<fieldset><legend>Basics<\/legend>)/, `<div class="ws-formnote"><p><b>Made in the Servant Workshop.</b> Change their skills, Noble Phantasm, cards and growth there; this form keeps everything else.</p><button type="button" class="btn sm" data-action="ws-open" data-id="${esc(s.id)}">Open in the Workshop</button></div>$1`);
+  if (s && s.custom) h = h.replace(/(<fieldset><legend>Basics<\/legend>)/, `<div class="ws-formnote"><p><b>Made in the Servant Workshop.</b> What you change here goes into the Workshop too. Skills, the Noble Phantasm, cards and growth have more options there.</p><button type="button" class="btn sm" data-action="ws-open" data-id="${esc(s.id)}">Open in the Workshop</button></div>$1`);
   return h.replace(/(<fieldset><legend>Noble Phantasm<\/legend>)/, growthFieldHTML(s) + "$1");
 };
 const readServantForm26 = readServantForm;
@@ -17606,7 +17635,8 @@ function wsClean(k0) {
     if (def.n != null || f.n != null) { const t = nn(f.n, 0, 99, def.n || 0); if (t) o.n = t; else delete o.n; }
     if (def.card) o.card = CARDS.includes(f.card) ? f.card : "Buster";
     if (def.vsPick) o.vs = str(f.vs, 40);
-    if (def.k === "own") { o.txt = str(f.txt, 200); o.l = str(f.l, 40); if (!np) { o.v1 = nn(f.v1, -1e6, 1e6, null); o.v10 = nn(f.v10, -1e6, 1e6, null); o.u = UNITS.concat([""]).includes(f.u) ? f.u : ""; } }
+    // (any short unit: one typed in Edit details stays)
+    if (def.k === "own") { o.txt = str(f.txt, 300); o.l = str(f.l, 40); if (!np) { o.v1 = nn(f.v1, -1e6, 1e6, null); o.v10 = nn(f.v10, -1e6, 1e6, null); o.u = str(f.u, 12).trim(); } }
     return o;
   };
   const np = k.np && typeof k.np === "object" ? k.np : {};
@@ -17628,6 +17658,109 @@ function wsClean(k0) {
   if (num(k.from)) o.from = num(k.from);
   return o;
 }
+
+/* ---------- changes made outside the Workshop go into the kit too ---------- */
+// A custom servant's skills, NP, class and the rest are worked out from s.kit. Edit details, the passive and deck editors
+// on their page and anything else that saves them change those fields directly, so before every save the kit is brought
+// in step with them: the Workshop then opens what their page shows, the damage calculator uses it, and the next Workshop
+// save keeps it. Only fields that no longer read as the kit says are taken over, so a Workshop save changes nothing here.
+// A skill whose lines or values were changed by hand keeps each line that is still one of its effects word for word (so
+// it still counts in the calculator); every other line and value becomes a "Write your own" effect with the same words.
+// (If kitDerive's wording ever changes, stored servants read as changed by hand: re-derive them first.)
+// (keys in any order: a stored NP table comes back with its keys reordered)
+const ksKey = (x) => Array.isArray(x) ? "[" + x.map(ksKey).join(",") + "]" : x && typeof x === "object" ? "{" + Object.keys(x).filter((k) => x[k] !== undefined).sort().map((k) => JSON.stringify(k) + ":" + ksKey(x[k])).join(",") + "}" : JSON.stringify(x === undefined ? null : x);
+const ksSame = (a, b) => ksKey(a) === ksKey(b);
+const ksRows = (info) => scalesOf(info).map((r) => [String(r.label || "").trim(), num(r.v1), num(r.v10), String(r.unit || "").trim()]);
+const ksPsName = (p) => (String(p.name || "").trim() + (p.rank ? " " + String(p.rank).trim() : "")).trim();
+function ksSkillFx(sk, lines, rows, card) {
+  const old = (sk.fx || []).map((f) => {
+    const def = FX_BY[f.e]; if (!def) return null;
+    const own = def.k === "own", v1 = num(own ? f.v1 : (f.v || [])[0]), v10 = num(own ? f.v10 : (f.v || [])[1]);
+    const row = (own ? String(f.l || "").trim() : def.v) && v1 != null && v10 != null ? [fxLabel(f, card), v1, v10, own ? String(f.u || "").trim() : def.u || ""] : null;
+    return {f: f, line: fxLine(f, card), row: row};
+  }).filter(Boolean);
+  const usedOld = new Set(), usedRow = new Set(), out = [];
+  const rowOf = (want) => rows.findIndex((r, i) => !usedRow.has(i) && ksSame(r, want));
+  lines.forEach((l) => {
+    const j = old.findIndex((x, i) => !usedOld.has(i) && x.line === l && (!x.row || rowOf(x.row) >= 0));
+    if (j >= 0) { usedOld.add(j); if (old[j].row) usedRow.add(rowOf(old[j].row)); out.push(old[j].f); return; }
+    out.push(Object.assign(wsFx("own"), {txt: l, u: ""}));
+  });
+  // values with no line of their own; if that's too many effects, they go onto the hand-written lines in order
+  const left = rows.filter((r, i) => !usedRow.has(i)), val = (f, r) => Object.assign(f, {l: r[0] || "Value", v1: r[1], v10: r[2], u: r[3]});
+  if (out.length + left.length > 10) { const bare = out.filter((f) => f.e === "own" && !String(f.l || "").trim()); while (left.length && bare.length) val(bare.shift(), left.shift()); }
+  left.forEach((r) => out.push(val(Object.assign(wsFx("own"), {txt: ""}), r)));
+  return out.slice(0, 10);
+}
+function kitSync(o) {
+  if (!o || !o.custom || !o.kit || typeof o.kit !== "object") return false;
+  const k = wsClean(o.kit), was = kitDerive(k), A = k.auto, np = k.np; let ch = false;
+  const nm = String(o.name || "").trim(); if (nm && nm !== k.name) { k.name = nm; ch = true; }
+  if (CLASSES.includes(o.cls) && o.cls !== k.cls) { k.cls = o.cls; ch = true; }
+  const r = Math.round(num(o.rarity) || 0); if (r >= 1 && r <= 5 && r !== k.r) { k.r = r; ch = true; }
+  if (ATTRS.includes(o.attr) && o.attr !== was.attr) { k.attr = o.attr; A.attr = false; ch = true; }
+  if (Array.isArray(o.lawOrder) && !ksSame(o.lawOrder.filter((v) => ORDERS.includes(v)), was.lawOrder)) { k.order = o.lawOrder.filter((v) => ORDERS.includes(v)); ch = true; }
+  if (Array.isArray(o.moral) && !ksSame(o.moral.filter((v) => MORALS.includes(v)), was.moral)) { k.moral = o.moral.filter((v) => MORALS.includes(v)); ch = true; }
+  if (Array.isArray(o.traits)) {
+    const t = Array.from(new Set(o.traits.map(normTrait).filter(Boolean)));
+    if (!ksSame(t.slice().sort(), was.traits.slice().sort())) { k.gender = t.includes("Female") ? "Female" : t.includes("Male") ? "Male" : "Unknown"; k.traits = t.filter((x) => x !== "Female" && x !== "Male"); ch = true; }
+  }
+  if (Array.isArray(o.deck)) {
+    const L = o.deck.map((c) => String(c || "").charAt(0).toUpperCase()), d = ["Q", "A", "B"].map((c) => c.repeat(L.filter((x) => x === c).length)).join("");
+    if (DECKS.includes(d) && d !== k.deck) { k.deck = d; A.deck = false; ch = true; }
+  }
+  const g = o.growth;
+  if (g && typeof g === "object" && GROWTH_BY[g.type] && Array.isArray(g.hp) && Array.isArray(g.atk)) {
+    const hp = g.hp.slice(0, 2).map(num), atk = g.atk.slice(0, 2).map(num);
+    if (hp.length === 2 && atk.length === 2 && hp.concat(atk).every((v) => v != null) && !ksSame([g.type, hp, atk], [was.growth.type, was.growth.hp, was.growth.atk])) {
+      k.growth = g.type; k.hp = hp; k.atk = atk; k.feel = null; A.stats = false; A.growth = false; ch = true;
+    }
+  }
+  // the NP's name, card and target (the rest of the NP is the Workshop's)
+  if (String(o.npName || "").trim() !== (was.npName || "")) { np.name = String(o.npName || "").trim(); ch = true; }
+  let npCh = false;
+  if (CARDS.includes(o.npCard) && o.npCard !== was.npCard) { np.card = o.npCard; A.card = false; npCh = true; }
+  if (["AoE", "Single Target", "Support"].includes(o.npTarget) && o.npTarget !== was.npTarget) {
+    // what changing the target in the Workshop does
+    np.tg = o.npTarget; np.type = np.tg === "AoE" ? "Anti-Army" : np.tg === "Support" ? "Barrier" : "Anti-Unit"; np.hits = np.tg === "AoE" ? 3 : 5;
+    if (np.tg === "Support") np.se = null; else if (!np.dmg || np.mode === "own") np.mode = "std";
+    npCh = true;
+  }
+  if (npCh) { if (np.tg !== "Support" && np.mode !== "own") np.dmg = npStdDmg(np.tg, np.card, np.mode === "up") || np.dmg; ch = true; }
+  if (Array.isArray(o.skillInfo)) [0, 1, 2].forEach((i) => {
+    const f = o.skillInfo[i] || {}, w = was.skillInfo[i] || {}, sk = k.sk[i];
+    const n = String(f.name || "").trim(), rk = String(f.rank || "").trim();
+    if (n !== (w.name || "") || rk !== (w.rank || "")) { sk.name = n; sk.rank = rk; ch = true; }
+    const cd = num(f.cd); if (cd != null && cd !== num(w.cd)) { sk.cd = clamp(Math.round(cd), 1, 20); ch = true; }
+    // (values in another order are the same values: the kit lists the Workshop's effects' values first)
+    const lines = effectLines(f.effect), rows = ksRows(f), srt = (x) => x.map((r) => JSON.stringify(r)).sort();
+    if (!ksSame(lines, effectLines(w.effect)) || !ksSame(srt(rows), srt(ksRows(w)))) { sk.fx = ksSkillFx(sk, lines, rows, was.npCard); ch = true; }
+  });
+  if (Array.isArray(o.passives)) {
+    const mine = o.passives.filter((p) => p && typeof p === "object" && ksPsName(p));
+    const key = (p) => [ksPsName(p), effectLines(p.effect)];
+    if (!ksSame(mine.map(key), was.passives.map(key))) {
+      const ic = new Map(k.ps.map((p) => [p.name, p.ic]));
+      k.ps = mine.map((p) => {
+        const full = ksPsName(p), m = PS_RANK_RE.exec(full), name = m ? m[1] : full, rank = m ? m[2] : "", e = effectLines(p.effect);
+        // the value added to the first line for passives that count in NP damage is put back on by the kit
+        if (PS_CALC[name] && e.length) e[0] = e[0].replace(/\s*\(\+[\d.]+%?\)\s*$/, "");
+        return {name: name, rank: rank, e: e, ic: ic.get(name) || ""};
+      });
+      A.ps = false; ch = true;
+    }
+  }
+  if (!ch) return false;
+  const nk = wsClean(k), now = kitDerive(nk);
+  // their NP table follows a new name, card or target unless it was changed by hand
+  if (ksSame(o.npTable, was.npTable)) o.npTable = now.npTable;
+  o.kit = nk;
+  return true;
+}
+// the kit as their page shows them now (what the Workshop opens and the calculator uses)
+function kitNow(s) { if (!s || !s.custom || !s.kit) return s && s.kit; const c = Object.assign({}, s); kitSync(c); return c.kit; }
+const writeDoc27 = writeDoc;
+writeDoc = function (col, obj) { if (col === "servants") { try { kitSync(obj); } catch (e) {} } return writeDoc27(col, obj); };
 
 /* ---------- share codes: a kit as text to paste anywhere (packed small when the browser can) ---------- */
 const b64e = (bytes) => { let t = ""; bytes.forEach((c) => { t += String.fromCharCode(c); }); return btoa(t).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); };
@@ -17690,8 +17823,11 @@ function wsOpen(opts) {
   const d = wsDraft();
   if (opts.id) {
     const s = S.servants.find((x) => x.id === opts.id); if (!s) return;
-    if (d && d.id === s.id) { wsLoad(d); toast("Picked up your changes where you left off."); }
-    else { W.k = wsClean(s.kit || {}); W.k.name = s.name; W.id = s.id; W.copy = null; W.art = null; W.artNew = []; W.step = 1; W.sk = 0; W.seen = WS_STEPS.map((x, i) => i); }
+    const mine = d && d.id === s.id, typed = opts.typed ? wsTyped(s, opts.typed, mine ? d.k : null) : null;
+    if (mine) { wsLoad(d); if (!typed) toast("Picked up your changes where you left off."); }
+    // (with anything changed on their page since, see kitSync)
+    else { W.k = wsClean(kitNow(s) || {}); W.k.name = s.name; W.id = s.id; W.copy = null; W.art = null; W.artNew = []; W.step = 1; W.sk = 0; W.seen = WS_STEPS.map((x, i) => i); }
+    if (typed) { W.k = typed; wsSaveSoon(); toast(mine ? "Picked up your changes here, with what you just typed in Edit details. Save changes to keep them." : "What you typed in Edit details came along. Save changes to keep it."); }
   } else if (opts.no) { W.k = wsFromNa(opts.no); W.id = null; W.copy = wsCopyDefault(W.k); W.art = null; W.artNew = []; W.step = 1; W.sk = 0; W.seen = WS_STEPS.map((x, i) => i); }
   else if (d && !d.id) { wsLoad(d); W.step = 0; }
   else { W.k = null; W.id = null; W.copy = null; W.art = null; W.artNew = []; W.step = 0; W.sk = 0; }
@@ -17701,6 +17837,20 @@ function wsOpen(opts) {
   wsRender(true);
   if (opts.no) wsSaveSoon();
   const f = ws.querySelector(W.step === 1 ? "#ws-name" : ".ws-step [data-ws], .ws-step input") || ws.querySelector(".ws-x"); if (f) f.focus({preventScroll: true});
+}
+// the kit with what's typed in Edit details (readServantForm) on top of what the Workshop would open: theirs, or your
+// unsaved changes here (then only the fields changed in the form go over them); null when nothing was changed
+function wsTyped(s, typed, draftK) {
+  const k0 = wsClean(draftK || kitNow(s) || {});
+  let o;
+  if (!draftK) o = Object.assign({}, typed, {kit: k0});
+  else {
+    const d = kitDerive(k0), sk = (x) => x ? [String(x.name || "").trim(), String(x.rank || "").trim(), num(x.cd), effectLines(x.effect), ksRows(x)] : null;
+    o = Object.assign({}, s, d, {custom: true, kit: k0});
+    ["name", "cls", "rarity", "attr", "lawOrder", "moral", "traits", "deck", "growth", "npName", "npCard", "npTarget", "npTable", "passives"].forEach((f) => { if (!ksSame(typed[f], s[f])) o[f] = typed[f]; });
+    o.skillInfo = [0, 1, 2].map((i) => { const t = (typed.skillInfo || [])[i]; return !ksSame(sk(t), sk((s.skillInfo || [])[i])) ? t : d.skillInfo[i]; });
+  }
+  return kitSync(o) && !ksSame(o.kit, k0) ? o.kit : null;
 }
 function wsLoad(d) {
   W.k = wsClean(d.k); if (d.k && d.k.feel === null) W.k.feel = null;
@@ -18036,9 +18186,9 @@ function wsFxRowHTML(f, w, si, i) {
   if (def.tgs) ctl.push(seg(base + ".tg", def.tgs.split("").map((t) => [t, esc(FX_TG[t].t)]), f.tg, "Who it's for", "sm"));
   if (def.card) ctl.push(seg(base + ".card", CARDS, f.card, "Card", "sm"));
   if (def.vsPick) ctl.push(`<label class="ws-mini wide"><span>Against</span><input type="text" list="ws-vs" data-wk="${base}.vs" value="${esc(f.vs || "")}" placeholder="Dragon, Saber, Earth…" autocomplete="off"></label>`);
-  if (def.k === "own") ctl.push(`<label class="ws-mini wide"><span>It reads</span><input type="text" data-wk="${base}.txt" value="${esc(f.txt || "")}" maxlength="200" placeholder="Increase your … (3 turns)" autocomplete="off"></label><label class="ws-mini"><span>Value's name</span><input type="text" data-wk="${base}.l" value="${esc(f.l || "")}" maxlength="40" placeholder="optional" autocomplete="off"></label>`);
+  if (def.k === "own") ctl.push(`<label class="ws-mini wide"><span>It reads</span><input type="text" data-wk="${base}.txt" value="${esc(f.txt || "")}" maxlength="300" placeholder="Increase your … (3 turns)" autocomplete="off"></label><label class="ws-mini"><span>Value's name</span><input type="text" data-wk="${base}.l" value="${esc(f.l || "")}" maxlength="40" placeholder="optional" autocomplete="off"></label>`);
   if (w === "sk" && def.v) ctl.push(`<span class="ws-lv1">${wsNumIn(base + ".v.0", f.v[0], "Lv 1")}<span class="ws-arrow" aria-hidden="true">→</span>${wsNumIn(base + ".v.1", f.v[1], "Lv 10")}<span class="ws-unit">${esc(unit.trim())}</span></span>`);
-  if (w === "sk" && def.k === "own") ctl.push(`<span class="ws-lv1">${wsNumIn(base + ".v1", f.v1, "Lv 1")}<span class="ws-arrow" aria-hidden="true">→</span>${wsNumIn(base + ".v10", f.v10, "Lv 10")}<select data-wk="${base}.u" aria-label="Unit">${["", "%", "HP", "stars", "turns", "times", "damage"].map((u) => `<option value="${u}"${(f.u || "") === u ? " selected" : ""}>${u || "no unit"}</option>`).join("")}</select></span>`);
+  if (w === "sk" && def.k === "own") ctl.push(`<span class="ws-lv1">${wsNumIn(base + ".v1", f.v1, "Lv 1")}<span class="ws-arrow" aria-hidden="true">→</span>${wsNumIn(base + ".v10", f.v10, "Lv 10")}<select data-wk="${base}.u" aria-label="Unit">${["", "%", "HP", "stars", "turns", "times", "damage"].concat(f.u && !["%", "HP", "stars", "turns", "times", "damage"].includes(f.u) ? [f.u] : []).map((u) => `<option value="${esc(u)}"${(f.u || "") === u ? " selected" : ""}>${esc(u || "no unit")}</option>`).join("")}</select></span>`);
   if (w === "np") {
     ctl.push(seg(base + ".when", [["pre", "Before damage"], ["post", "After damage"]], f.when, "When", "sm"));
     if (def.v || def.k === "own") ctl.push(seg(base + ".by", [["np", "Grows with NP level"], ["oc", "Grows with Overcharge"], ["fix", "Always the same"]], f.by, "What it grows with", "sm"));
@@ -18310,6 +18460,8 @@ async function wsSave(thenVs) {
   k.name = nm;
   const base = W.id ? S.servants.find((x) => x.id === W.id) : null, prev = base ? wsClone(base) : null;
   const d = kitDerive(k), o = Object.assign({}, base || {}, d, {name: nm, custom: true, kit: k});
+  // an NP table changed by hand on their page stays, unless the NP was changed here
+  if (base && base.kit && base.npTable) { const was = kitDerive(wsClean(kitNow(base))); if (!ksSame(base.npTable, was.npTable) && ksSame(d.npTable, was.npTable)) o.npTable = base.npTable; }
   delete o.atlas; delete o.skUpKeep;
   if (!base) {
     const c = W.copy || wsCopyDefault(k);
@@ -18341,7 +18493,13 @@ async function wsSave(thenVs) {
 document.addEventListener("click", (e) => {
   const b = e.target.closest && e.target.closest('[data-action="ws-new"], [data-action="ws-open"], [data-action="ws-remix"]'); if (!b) return;
   e.preventDefault();
-  if (b.dataset.action === "ws-open") { if (S.editing) { dropFormArt(); S.editing = null; renderDossier(true); } wsOpen({id: b.dataset.id}); return; }
+  if (b.dataset.action === "ws-open") {
+    // from Edit details: what's typed there comes along into the Workshop (saved when the Workshop saves)
+    let typed = null;
+    if (S.editing && S.editing === b.dataset.id) { const s0 = S.servants.find((x) => x.id === S.editing); if (s0 && s0.custom && document.getElementById("servant-form")) { try { typed = readServantForm(s0); } catch (e2) {} } }
+    if (S.editing) { dropFormArt(); S.editing = null; renderDossier(true); }
+    wsOpen({id: b.dataset.id, typed: typed}); return;
+  }
   if (b.dataset.action === "ws-remix") { if (typeof pcClose === "function") pcClose(); wsOpen({no: num(b.dataset.no)}); return; }
   wsOpen({});
 });

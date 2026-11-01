@@ -2,8 +2,9 @@
    Shown at the top of Home, under the greeting, from `from` until `until`, whatever live updates are set to (they're
    part of the page, nothing is fetched). One with a stream counts down to it in the reader's own time, says it's on
    for `live` minutes, then says it has aired. Hide puts one away in this browser (spirit-origin-list:v1:announce =
-   [ids]), with Undo. Everything written here comes from the official announcement, which is linked; when the
-   official stream links come out, `stream.url` is the one line to change. */
+   [ids]), with Undo. One with a login bonus lists its days, today's marked, until the bonus ends. Everything written
+   here comes from the official announcements, which are linked; when the official stream links come out, `stream.url`
+   is the one line to change. */
 const AN_KEY = "spirit-origin-list:v1:announce";
 const ANNOUNCE = [{
   id: "100mdl-2026",
@@ -21,9 +22,13 @@ const ANNOUNCE = [{
     url: "https://www.youtube.com/channel/UCXBgKqFxSjKADEuMLkc1Bpg/live", label: "YouTube",
     note: "The official stream links come out closer to the day. Until then YouTube opens FGO's official channel, where the stream goes live."
   },
-  // [text, shown until]
-  notes: [["On the Japanese server a 7-day countdown login bonus runs until 8 November, 03:59 JST. NA hasn't said yet whether it gets one too.", Date.UTC(2026, 10, 7, 18, 59)]],
-  links: [["Official announcement", "https://news.fate-go.jp/2026/10/1031nico/"]]
+  // a daily login bonus: from `start`, one reward a day, each day changing at the same time
+  bonus: {
+    name: "Countdown login bonus", server: "Japanese server", start: Date.UTC(2026, 9, 31, 19, 0),
+    who: "For Masters who have cleared the Fuyuki prologue. One reward a day; NA hasn't said yet whether it gets one too.",
+    days: ["10 Golden Fruit", "10 ★3 HP Fou and 10 ★3 ATK Fou", "100 Mana Prisms and 20 ★5 EXP cards", "1 Rare Prism", "1 ★4 HP Fou and 1 ★4 ATK Fou", "1 Legend Crystal", "100 million QP"]
+  },
+  links: [["Stream announcement", "https://news.fate-go.jp/2026/10/1031nico/"], ["Login bonus", "https://news.fate-go.jp/2026/10/100mdl/"]]
 }];
 
 function anHidden() { try { const d = JSON.parse(localStorage.getItem(AN_KEY) || "[]"); return Array.isArray(d) ? d.filter((x) => typeof x === "string") : []; } catch (e) { return []; } }
@@ -31,6 +36,10 @@ function anSetHidden(list) { try { localStorage.setItem(AN_KEY, JSON.stringify(l
 const anNow = () => Date.now();
 function anShown(now) { const h = anHidden(); return ANNOUNCE.filter((a) => now >= a.from && now < a.until && !h.includes(a.id)); }
 function anState(a, now) { const s = a.stream; return !s ? "" : now < s.at ? "soon" : now < s.at + s.live * 60e3 ? "live" : "aired"; }
+// which day of the login bonus it is (0 = the first), -1 before, days.length after
+function anDay(b, now) { return b ? (now < b.start ? -1 : Math.min(b.days.length, Math.floor((now - b.start) / 864e5))) : -1; }
+// (the card redraws when either changes)
+const anKey = (a, now) => anState(a, now) + "|" + anDay(a.bonus, now);
 const anFmt = (ms, o) => { try { return new Date(ms).toLocaleString("en-GB", o); } catch (e) { return new Date(ms).toUTCString(); } };
 const an2 = (n) => String(n).padStart(2, "0");
 // 5d 19:14:03, or 19:14:03 on the day
@@ -49,15 +58,23 @@ function anStreamHTML(a, now) {
     <p class="an-when"><b>${esc(day)}, ${esc(mine)}</b> your time<br><span>${esc(jst)} JST · ${esc(pt)} in NA (Pacific)</span></p>
     <a class="btn sm${st === "aired" ? "" : " primary"} an-watch" href="${esc(s.url)}" target="_blank" rel="noopener">${st === "live" ? "Watch now" : st === "aired" ? "FGO's YouTube channel" : "Watch on " + esc(s.label)} ↗</a></div>`;
 }
+function anBonusHTML(b, now) {
+  const today = anDay(b, now), n = b.days.length, end = b.start + n * 864e5; if (today >= n) return "";
+  const jstDay = (i) => anFmt(b.start + i * 864e5 + 864e5 / 2, {timeZone: "Asia/Tokyo", weekday: "short", day: "numeric", month: "short"});
+  const flip = anFmt(b.start, {hour: "2-digit", minute: "2-digit"}), flipJ = anFmt(b.start, {timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit"});
+  return `<div class="an-bonus"><p class="an-bh"><b>${esc(b.name)}</b><span class="an-btag">${esc(b.server)}</span><small>until ${esc(anFmt(end - 6e4, {timeZone: "Asia/Tokyo", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}))} JST</small></p>
+    <ol class="an-days">${b.days.map((d, i) => `<li class="${i < today ? "past" : i === today ? "today" : ""}"${i === today ? ' aria-current="date"' : ""}><span class="an-dn">${i === today ? "Today" : "Day " + (i + 1)}<small>${esc(jstDay(i))}</small></span><span class="an-dr">${esc(d)}</span></li>`).join("")}</ol>
+    <p class="an-note">${esc(b.who)} A new day starts at ${esc(flipJ)} JST (${esc(flip)} your time).</p></div>`;
+}
 function anHTML(a, now) {
   const s = a.stream, st = anState(a, now);
-  return `<article class="an" data-an="${esc(a.id)}" data-an-state="${st}" aria-labelledby="an-t-${esc(a.id)}">
+  return `<article class="an" data-an="${esc(a.id)}" data-an-state="${anKey(a, now)}" aria-labelledby="an-t-${esc(a.id)}">
     <div class="an-main">
       <p class="an-kick"><span class="an-tag">Announcement</span>${esc(a.kick)}</p>
       <h3 class="an-title" id="an-t-${esc(a.id)}">${esc(a.title)}</h3>
       <p class="an-body">${esc(st === "aired" && a.after ? a.after : a.body)}</p>
       ${s ? `<p class="an-show"><b>${esc(s.name)}</b><small lang="ja">${esc(s.jp)}</small><span>${esc(s.where)}${st === "soon" && s.note ? " " + esc(s.note) : ""}</span></p>` : ""}
-      ${(a.notes || []).filter((n) => now < n[1]).map((n) => `<p class="an-note">${esc(n[0])}</p>`).join("")}
+      ${a.bonus ? anBonusHTML(a.bonus, now) : ""}
       <p class="an-links">${(a.links || []).map(([t, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)} ↗</a>`).join("")}<button type="button" class="linkish an-hide" data-action="an-hide" data-id="${esc(a.id)}">Hide</button></p>
     </div>
     ${s ? anStreamHTML(a, now) : ""}
@@ -77,7 +94,7 @@ function anTick() {
   const home = document.getElementById("home"), now = anNow(); if (!home) return;
   for (const el of home.querySelectorAll(".an[data-an]")) {
     const a = ANNOUNCE.find((x) => x.id === el.dataset.an);
-    if (!a || now >= a.until || anState(a, now) !== el.dataset.anState) { anPaint(); return; }
+    if (!a || now >= a.until || anKey(a, now) !== el.dataset.anState) { anPaint(); return; }
   }
   home.querySelectorAll("[data-an-at]").forEach((el) => { el.textContent = anCount(+el.dataset.anAt - now); });
 }

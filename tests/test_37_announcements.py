@@ -43,7 +43,13 @@ with sync_playwright() as p:
     w = pg.locator(".an-watch")
     check("Watch on YouTube opens FGO's channel's live page in a new tab", w.get_attribute("href") == "https://www.youtube.com/channel/UCXBgKqFxSjKADEuMLkc1Bpg/live" and w.get_attribute("target") == "_blank")
     check("the official announcement is linked", pg.locator('.an-links a[href="https://news.fate-go.jp/2026/10/1031nico/"]').count() == 1)
-    check("and the stream's name, where it's shown, and the JP login bonus", "Worldwide Simultaneous Stream SP" in txt(pg, ".an-show") and "YouTube Live, Niconico Live and X" in txt(pg, ".an-show") and "countdown login bonus" in txt(pg, ".an-note"))
+    check("and the stream's name and where it's shown", "Worldwide Simultaneous Stream SP" in txt(pg, ".an-show") and "YouTube Live, Niconico Live and X" in txt(pg, ".an-show"))
+    # the JP countdown login bonus: seven days, today marked (1 Nov 15:46 UTC is still 1 Nov's day in JST, which ends at 04:00 JST)
+    days = pg.locator(".an-days li")
+    check(f"the Japanese server's countdown login bonus, day by day ({days.count()} days)", "Countdown login bonus" in txt(pg, ".an-bh") and "japanese server" in txt(pg, ".an-bh").lower() and days.count() == 7)
+    check(f"today is marked ({txt(pg, '.an-days li.today')!r})", pg.locator(".an-days li.today").count() == 1 and "10 Golden Fruit" in txt(pg, ".an-days li.today") and "Sun 1 Nov" in txt(pg, ".an-days li.today"))
+    check(f"with when a new day starts in your time ({txt(pg, '.an-bonus .an-note')!r})", "04:00 JST (20:00 your time)" in txt(pg, ".an-bonus .an-note"))
+    check("and the login bonus announcement is linked", pg.locator('.an-links a[href="https://news.fate-go.jp/2026/10/100mdl/"]').count() == 1)
     # Hide, Undo, and Hide remembered
     pg.click('.an [data-action="an-hide"]'); pg.wait_for_timeout(300)
     check("Hide puts it away", pg.locator(".an").count() == 0 and pg.evaluate("JSON.parse(localStorage.getItem('spirit-origin-list:v1:announce'))") == ["100mdl-2026"])
@@ -60,9 +66,17 @@ with sync_playwright() as p:
     pg.clock.run_for(3000); pg.wait_for_timeout(300)
     check("when it starts the card says On now and Watch now", "on now" in txt(pg, ".an-stream").lower() and txt(pg, ".an-watch").startswith("Watch now"))
     ctx.close()
+    # ---------- a new login bonus day starts while Home is open ----------
+    ctx, pg = page(b, T(2026, 11, 1, 18, 59, 48), fixed=False)
+    pg.clock.pause_at(T(2026, 11, 1, 18, 59, 58)); pg.wait_for_timeout(200)
+    before = txt(pg, ".an-days li.today")
+    pg.clock.run_for(3000); pg.wait_for_timeout(300)
+    after = txt(pg, ".an-days li.today")
+    check(f"at 04:00 JST the next day is today ({before.splitlines()[-1]!r} → {after.splitlines()[-1]!r})", "Golden Fruit" in before and "★3 HP Fou" in after and pg.locator(".an-days li.past").count() == 1)
+    ctx.close()
     # ---------- after ----------
     ctx, pg = page(b, T(2026, 11, 9, 9, 0))
-    check("after the stream: it has aired, in the past tense", "has aired" in txt(pg, ".an-stream").lower() and "was revealed on 7 November" in txt(pg, ".an-body") and pg.locator(".an-note").count() == 0)
+    check("after the stream: it has aired, in the past tense", "has aired" in txt(pg, ".an-stream").lower() and "was revealed on 7 November" in txt(pg, ".an-body") and pg.locator(".an-bonus").count() == 0)
     ctx.close()
     for t, label in ((T(2026, 11, 21, 0, 1), "gone after 21 November"), (T(2026, 10, 30, 12, 0), "not there before it was announced")):
         ctx, pg = page(b, t)

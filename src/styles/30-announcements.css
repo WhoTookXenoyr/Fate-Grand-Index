@@ -1,0 +1,36 @@
+/* ===== 0.28.0: announcements at the top of Home (47-announcements.js) ===== */
+.an-list { display: flex; flex-direction: column; gap: 12px; margin: 6px 0 16px; }
+.an { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(250px, 300px); gap: 0; overflow: hidden; border-radius: 20px;
+  background: linear-gradient(120deg, color-mix(in srgb, var(--gold) 12%, var(--panel)), var(--panel) 55%); border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line)); }
+.an-main { display: flex; flex-direction: column; gap: 8px; padding: 18px 20px; min-width: 0; }
+.an-kick { margin: 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font: 500 11.5px var(--f-data); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.an-tag { padding: 2px 8px; border-radius: 6px; background: color-mix(in srgb, var(--gold) 24%, transparent); color: var(--warn-ink); font-weight: 600; letter-spacing: .06em; }
+.an-title { margin: 0; font: 700 clamp(1.25rem, 2.4vw, 1.6rem)/1.15 var(--f-display); letter-spacing: -.01em; }
+.an-body { margin: 0; font-size: 14px; line-height: 1.5; max-width: 70ch; }
+.an-show { margin: 2px 0 0; display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--sunken) 70%, transparent); font-size: 13px; }
+.an-show b { font-weight: 650; }
+.an-show small { color: var(--muted); font-size: 12px; }
+.an-show span { color: var(--muted); font-size: 12.5px; }
+.an-note { margin: 0; font-size: 12.5px; color: var(--muted); }
+.an-links { margin: 2px 0 0; display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; font-size: 13px; }
+.an-links a { color: var(--ink); font-weight: 600; }
+.an-hide { margin-left: auto; font-size: 12.5px; color: var(--muted); }
+/* the stream: a broadcast card in FGO's blue and gold, the same in light and dark */
+.an-stream { display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 18px 20px; color: #f3ead8;
+  background: radial-gradient(120% 90% at 100% 0%, rgba(214, 176, 98, .28), transparent 60%), linear-gradient(160deg, #1d2a5c, #0f1531 70%); border-left: 1px solid rgba(214, 176, 98, .55); }
+.an-k { margin: 0; display: flex; gap: 8px; align-items: center; font: 600 11px var(--f-data); letter-spacing: .12em; text-transform: uppercase; color: #d6b062; }
+.an-k.an-on { color: #ff9a9a; font-size: 13px; }
+.an-cd { margin: 0; font: 700 30px/1.05 var(--f-data); font-variant-numeric: tabular-nums; letter-spacing: .01em; color: #fff; }
+.an-cd.sm { font-size: 18px; }
+.an-when { margin: 0; font-size: 13px; line-height: 1.45; }
+.an-when b { color: #fff; }
+.an-when span { color: rgba(243, 234, 216, .72); font-size: 12px; }
+.an-stream .an-watch { align-self: flex-start; margin-top: 2px; }
+.an-stream .an-watch.primary { background: #d6b062; border-color: #d6b062; color: #1c1814; }
+.an-stream .an-watch.primary:hover { background: #e4c27a; border-color: #e4c27a; }
+.an-stream .an-watch:not(.primary) { background: transparent; color: #f3ead8; border-color: rgba(243, 234, 216, .45); }
+@media (max-width: 760px) {
+  .an { grid-template-columns: minmax(0, 1fr); }
+  .an-stream { border-left: 0; border-top: 1px solid rgba(214, 176, 98, .55); }
+  .an-main, .an-stream { padding: 16px; }
+}

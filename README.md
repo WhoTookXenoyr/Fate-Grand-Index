@@ -115,6 +115,11 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
 - Craft Essences in Past Chaldea get the game's Craft Essence frame (`cardframe-o1…o5.webp`) with their max-level ATK/HP.
 - The overlay is added after each render (`src/app/46-card-frames.js`, `src/styles/29-card-frames.css`) and never saved with the servant.
 
+## Announcements (0.28.0)
+- News from FGO itself that matters on every server, shown at the top of Home between `from` and `until`, live updates on or off: `ANNOUNCE` in `src/app/47-announcements.js` (styles `src/styles/30-announcements.css`).
+- An entry with a `stream` counts down to it in the reader's time zone, says On now for `live` minutes, then that it has aired (`after` replaces the text). Each `notes` line has its own end time. Hide (with Undo) is kept in `spirit-origin-list:v1:announce`.
+- The first one: the 100M Worldwide Downloads stream, 7 Nov 2026 20:00 JST (from news.fate-go.jp, 31 Oct 2026). When the official stream links come out, change `stream.url`.
+
 ## Your data
 
 Your roster is stored in your browser: `localStorage` key `spirit-origin-list:v1`, pictures in IndexedDB `spirit-origin-list-images`. These names never change, so existing saves keep working with every new version. Signed in on the hosted site, the same data is also kept in your account (0.26.0); the file opened from your computer never talks to a server.

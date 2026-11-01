@@ -163,7 +163,8 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
-  {v: "0.28.0", d: "1 Nov 2026", t: "Card frames", i: [
+  {v: "0.28.0", d: "1 Nov 2026", t: "Card frames, and the 100 million downloads stream", i: [
+    "<b>Fate/Grand Order passed 100 million downloads</b> across its Japanese, English, Chinese and Korean versions. Home now has an announcement about it with a countdown, in your own time, to the worldwide stream on Saturday 7 November (20:00 JST), where the campaign for every server gets revealed. Watch on YouTube opens FGO's official channel, and the official announcement is linked. You can hide it.",
     "<b>Card frame</b> on a servant's page, under the stages: turn it on and their picture sits in the game's Saint Graph frame. It's gold, silver or bronze by rarity with their stars, the class in the diamond, and their ATK and HP at the bottom, the same numbers as the Stats section (Fou and an equipped Craft Essence included). The numbers follow the level, and a click on the picture still goes to the next stage.",
     "Past Chaldea has its own <b>Card frame</b> switch. Servants get the same frame with NA's ATK and HP at their max level; Craft Essences get the game's Craft Essence frame with the vines and their ATK and HP at the max level.",
     "Both switches are remembered in this browser, each on its own."]},

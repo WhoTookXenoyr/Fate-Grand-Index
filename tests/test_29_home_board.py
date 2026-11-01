@@ -76,7 +76,8 @@ with sync_playwright() as p:
     # live updates off: clocks only, nobody asked
     ctx, pg = page(p, INIT)
     pg.goto(SEEDED + "#home"); pg.wait_for_timeout(2200)
-    check("the board sits right under the greeting", pg.evaluate("(() => { const h = document.querySelector('#home .hm-hero'); return !!h && h.nextElementSibling && h.nextElementSibling.classList.contains('hb'); })()"))
+    # (0.28.0: an announcement may sit between them)
+    check("the board sits right under the greeting", pg.evaluate("(() => { const h = document.querySelector('#home .hm-hero'); let n = h && h.nextElementSibling; if (n && n.classList.contains('an-list')) n = n.nextElementSibling; return !!n && n.classList.contains('hb'); })()"))
     clk = pg.evaluate("[...document.querySelectorAll('[data-hb-clk]')].map(e => e.textContent)")
     check(f"the sidebar's clocks run ({clk})", len(clk) == 3 and all(re.match(r"^\d\d:\d\d:\d\d$", c) for c in clk))
     t1 = pg.evaluate("document.querySelector('[data-hb-clk=\"Asia/Tokyo\"]').textContent")

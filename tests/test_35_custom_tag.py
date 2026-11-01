@@ -79,7 +79,11 @@ with sync_playwright() as p:
     check("and its list of who to feature says (Custom)", pg.evaluate("Array.from(document.querySelectorAll('select[data-sm-feat=\"5\"] option')).some((o) => o.textContent === 'Camellya (Custom)')"))
     # the damage calculator's support picker
     tab(pg, "servants"); pg.click(f'#list [data-id="{ulr["id"]}"]'); soon(pg, "#dossier [data-npc-for]")
-    pg.evaluate("() => { const d = document.querySelector('#dossier [data-npc-for]'); if (d) { d.open = true; d.dispatchEvent(new Event('toggle')); } }"); soon(pg, '#dossier [data-npc-pick="0"]')
+    # (a late render can close it again on a busy machine: open it until it stays)
+    for _ in range(4):
+        pg.evaluate("() => { const d = document.querySelector('#dossier [data-npc-for]'); if (d && !d.open) { d.open = true; d.dispatchEvent(new Event('toggle')); } }")
+        try: pg.wait_for_selector('#dossier [data-npc-pick="0"]', timeout=4000); break
+        except Exception: pass
     check("the damage calculator tags them", pg.locator("#dossier .npc-wh .cu-tag").count() == 1)
     pg.click('#dossier [data-npc-pick="0"]'); pg.wait_for_selector(".spk:not([hidden]) [data-spk]", timeout=5000)
     pg.fill(".spk [data-spk-q]", "Camellya"); pg.wait_for_timeout(400)

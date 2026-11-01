@@ -5,6 +5,7 @@ A Fate/Grand Order index of every NA servant and Craft Essence (Past Chaldea), p
 **Online: [fategrandindex.com](https://fategrandindex.com)** (the site and the installable app, with accounts and friends).
 
 Status: **alpha** (`0.x`). Version 1.0.0 will be the full website and app.
+[fategrandindex.com](https://fategrandindex.com) will usually be ahead of the app and offline HTML in releases.
 
 ## Layout
 

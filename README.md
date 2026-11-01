@@ -123,6 +123,11 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
 - An entry with a `stream` counts down to it in the reader's time zone, says On now for `live` minutes, then that it has aired (`after` replaces the text). One with a `bonus` lists its days from `start` (one per 24 h), today's marked, until the last day ends. Hide (with Undo) is kept in `spirit-origin-list:v1:announce`.
 - The first one: the 100M Worldwide Downloads stream, 7 Nov 2026 20:00 JST, and JP's countdown login bonus (1–8 Nov, from news.fate-go.jp, 31 Oct 2026). When the official stream links come out, change `stream.url`.
 
+## One servant to a file (0.28.0)
+- **Export** on the SERVANTPAGE saves that servant and their uploaded pictures as `<name>.servant.json`: a backup with `kind: "servant"` and one entry (`src/app/48-servant-file.js`).
+- **Import** (the backup button) shows its own preview for such a file. A servant whose ID is already on the list can be added as a copy (new ID) or replaced. Pictures get new IDs. Undo import works as for backups.
+- On the website, data: URLs are turned into pictures by hand (`dataUrlToBlob`), because the Content Security Policy stops `fetch()` reading them. Undo import marks every entry it changed for sync.
+
 ## Your data
 
 Your roster is stored in your browser: `localStorage` key `spirit-origin-list:v1`, pictures in IndexedDB `spirit-origin-list-images`. These names never change, so existing saves keep working with every new version. Signed in on the hosted site, the same data is also kept in your account (0.26.0); the file opened from your computer never talks to a server.

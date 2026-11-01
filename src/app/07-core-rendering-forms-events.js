@@ -992,7 +992,7 @@ async function importBackup(d, snap) {
   for (const id of Object.keys(d.images || {})) {
     const url = d.images[id];
     if (typeof url !== "string" || !url.startsWith("data:image/") || !/^[A-Za-z0-9_\-.~:@+]{1,200}$/.test(id)) continue;
-    try { const blob = await (await fetch(url)).blob(); await imgStore.put(id, blob); S.urlCache[id] = URL.createObjectURL(blob); imgs++; } catch (e) {}
+    try { const blob = dataUrlToBlob(url); await imgStore.put(id, blob); S.urlCache[id] = URL.createObjectURL(blob); imgs++; } catch (e) {}
   }
   let n = 0;
   for (const col of COLS) {

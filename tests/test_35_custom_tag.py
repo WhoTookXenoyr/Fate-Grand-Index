@@ -19,6 +19,10 @@ def typ(pg, sel, v):
 def quiet(pg): pg.evaluate("document.getElementById('toast').classList.remove('show', 'has-btn')")
 def go(pg, i): pg.click(f".ws-rail [data-i='{i}']"); pg.wait_for_timeout(250)
 def tab(pg, t): pg.evaluate(f"location.hash = '#{t}'"); pg.wait_for_timeout(900)
+# waits for something that a busy machine can draw late (the whole suite at once), without failing on its own
+def soon(pg, sel, t=8000):
+    try: pg.wait_for_selector(sel, timeout=t, state="attached")
+    except Exception: pass
 def tags(pg, sel): return pg.evaluate("(s) => Array.from(document.querySelectorAll(s)).filter((e) => e.offsetParent !== null || e.closest('option')).map((e) => (e.closest('[data-id]') || e.parentElement).innerText.replace(/\\s+/g, ' ').trim())", sel)
 def make(pg, name):
     pg.evaluate(f"localStorage.removeItem('{KEY}:workshop')")
@@ -59,7 +63,7 @@ with sync_playwright() as p:
     check(f"Ranking ({tags(pg, '#view-ranking .cu-tag')})", len(tags(pg, "#view-ranking .rk-name .cu-tag")) == 2)
     tab(pg, "home")
     check(f"Home ({len(tags(pg, '#view-home .cu-tag'))} tags)", len(tags(pg, "#view-home .cu-tag")) >= 2 and pg.locator('#view-home [data-cap="Camellya (Custom)"]').count() + pg.locator("#view-home .hm-row", has_text="Camellya").locator(".cu-tag").count() >= 1)
-    tab(pg, "versus")
+    tab(pg, "versus"); soon(pg, "#view-versus .vs-th-n .cu-tag")
     opts = pg.evaluate("Array.from(document.querySelectorAll('#view-versus option')).map((o) => o.textContent)")
     check("Versus lists to pick from say (Custom)", "Camellya (Custom)" in opts and f"{LONG} (Custom)" in opts and "Morgan (Custom)" in opts and "Morgan (Custom) (Custom)" not in opts)
     check("and its tables tag them", pg.locator("#view-versus .vs-th-n .cu-tag").count() == 2)
@@ -74,8 +78,13 @@ with sync_playwright() as p:
     check("Summoning: the featured ★5 banner tags them", pg.locator(".smh-title .cu-tag").count() == 1 and pg.locator(".smh-title").inner_text().startswith("Camellya"))
     check("and its list of who to feature says (Custom)", pg.evaluate("Array.from(document.querySelectorAll('select[data-sm-feat=\"5\"] option')).some((o) => o.textContent === 'Camellya (Custom)')"))
     # the damage calculator's support picker
-    tab(pg, "servants"); pg.click(f'#list [data-id="{ulr["id"]}"]'); pg.wait_for_timeout(500)
-    pg.evaluate("() => { const d = document.querySelector('#dossier [data-npc-for]'); if (d) { d.open = true; d.dispatchEvent(new Event('toggle')); } }"); pg.wait_for_timeout(500)
+    # (their own calculator: on a busy machine the page before can still be showing, so wait for theirs by id)
+    npc = f'#dossier details.npc[data-npc-for="{ulr["id"]}"]'
+    tab(pg, "servants"); pg.click(f'#list [data-id="{ulr["id"]}"]'); soon(pg, npc, 15000)
+    for _ in range(4):
+        pg.evaluate("(sel) => { const d = document.querySelector(sel); if (d && !d.open) { d.open = true; d.dispatchEvent(new Event('toggle')); } }", npc)
+        try: pg.wait_for_selector(npc + ' [data-npc-pick="0"]', timeout=4000); break
+        except Exception: pass
     check("the damage calculator tags them", pg.locator("#dossier .npc-wh .cu-tag").count() == 1)
     pg.click('#dossier [data-npc-pick="0"]'); pg.wait_for_selector(".spk:not([hidden]) [data-spk]", timeout=5000)
     pg.fill(".spk [data-spk-q]", "Camellya"); pg.wait_for_timeout(400)

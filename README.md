@@ -110,6 +110,19 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
 - **The Workshop** (`src/app/45-workshop.js`, `src/styles/28-workshop.css`): eight steps and a live card; parts flagged in `kit.auto` follow the class and rarity (`typicalOf`: NA's median stats, most used curve, deck, NP card, passives) until changed. The draft is `spirit-origin-list:v1:workshop`. Share codes are `FGI2.` + the kit as deflated base64url (`FGI1.` without deflate where `CompressionStream` is missing), cleaned by `wsClean` when opened.
 - **Versus with NA**: picks like `na:<number>` are NA servants at max level, NP1 and skills at 10, built on the fly (`vnaGet`), never saved.
 
+## Card frames (0.28.0)
+- **Card frame** (Off / On) on the SERVANTPAGE and in Past Chaldea's windows, each remembered on its own in `spirit-origin-list:v1:cardframe` (`{mine, pc}`).
+- Servants get the game's Saint Graph frame with the class in the diamond and ATK/HP under the swords. On the SERVANTPAGE those are the Stats section's numbers; in Past Chaldea, NA's at the max level.
+- The frame's metal follows the rarity and, on the SERVANTPAGE, grails, by NA's grail table (Atlas Academy's `export/NA/NiceSvtGrailCost.json`, copied into `CF_ADD`/`CF_STEP`): ★1–2 silver from the 1st grail and gold from the 3rd, ★3 gold from the 2nd. Past Lv 100 the game's frame is gold and red; we don't have that picture yet, so those keep gold (with `cf-red` on the box). ★0 stays bronze.
+- Pictures: `cardframe-f0…f5.webp` are Noyr's (★0 is the ★1 frame without its star). `cardframe-fs1/fs2` (silver ★1–2) and `fg1/fg2/fg3` (gold ★1–3) are put together from them: the star area redrawn from the starless bronze frame recoloured to the metal, then the stars of the frame with that many laid on (bronze ★1/★2's; gold ★3 is the ★5 frame's middle three). Atlas Academy has the grail rules but doesn't publish the frame pictures.
+- Craft Essences in Past Chaldea get the game's Craft Essence frame (`cardframe-o1…o5.webp`) with their max-level ATK/HP.
+- The overlay is added after each render (`src/app/46-card-frames.js`, `src/styles/29-card-frames.css`) and never saved with the servant.
+
+## Announcements (0.28.0)
+- News from FGO itself that matters on every server, shown at the top of Home between `from` and `until`, live updates on or off: `ANNOUNCE` in `src/app/47-announcements.js` (styles `src/styles/30-announcements.css`).
+- An entry with a `stream` counts down to it in the reader's time zone, says On now for `live` minutes, then that it has aired (`after` replaces the text). One with a `bonus` lists its days from `start` (one per 24 h), today's marked, until the last day ends. Hide (with Undo) is kept in `spirit-origin-list:v1:announce`.
+- The first one: the 100M Worldwide Downloads stream, 7 Nov 2026 20:00 JST, and JP's countdown login bonus (1–8 Nov, from news.fate-go.jp, 31 Oct 2026). When the official stream links come out, change `stream.url`.
+
 ## Your data
 
 Your roster is stored in your browser: `localStorage` key `spirit-origin-list:v1`, pictures in IndexedDB `spirit-origin-list-images`. These names never change, so existing saves keep working with every new version. Signed in on the hosted site, the same data is also kept in your account (0.26.0); the file opened from your computer never talks to a server.

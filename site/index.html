@@ -10945,7 +10945,7 @@ function traitPanelHTML() {
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
   {v: "0.28.0", d: "1 Nov 2026", t: "Card frames, and the 100 million downloads stream", i: [
-    "<b>Fate/Grand Order passed 100 million downloads</b> across its Japanese, English, Chinese and Korean versions. Home now has an announcement about it with a countdown, in your own time, to the worldwide stream on Saturday 7 November (20:00 JST), where the campaign for every server gets revealed. It also lists the Japanese server's 7-day countdown login bonus day by day, with today's marked. Watch on YouTube opens FGO's official channel, and the official announcements are linked. You can hide it.",
+    "<b>Fate/Grand Order passed 100 million downloads</b> across its Japanese, English, Chinese and Korean versions. Home now has an announcement about it with a countdown, in your own time, to the worldwide stream on Saturday 7 November (20:00 JST), where the campaign for every server gets revealed. It also lists the 7-day countdown login bonus every server has, day by day with today's marked, on NA's days (a new day at 20:00 PST; JP's start 9 hours earlier). Watch on YouTube opens FGO's official channel, and the official announcements are linked. You can hide it.",
     "<b>Card frame</b> on a servant's page, under the stages: turn it on and their picture sits in the game's Saint Graph frame: bronze, silver or gold by rarity with their stars, the class in the diamond, and their ATK and HP under the swords (the same numbers as the Stats section, Fou and an equipped Craft Essence included). Grails upgrade the frame like in the game: a ★1 or ★2 turns silver with its first grail and gold with its third, a ★3 gold with its second. The numbers follow the level, and a click on the picture still goes to the next stage.",
     "Past Chaldea has its own <b>Card frame</b> switch. Servants get the same frame with NA's ATK and HP at their max level; Craft Essences get the game's Craft Essence frame with the vines and their ATK and HP at the max level.",
     "Both switches are remembered in this browser, each on its own.",
@@ -18798,13 +18798,15 @@ const ANNOUNCE = [{
     url: "https://www.youtube.com/channel/UCXBgKqFxSjKADEuMLkc1Bpg/live", label: "YouTube",
     note: "The official stream links come out closer to the day. Until then YouTube opens FGO's official channel, where the stream goes live."
   },
-  // a daily login bonus: from `start`, one reward a day, each day changing at the same time
+  // a daily login bonus: from `start`, one reward a day, each day changing at the same time; the days are shown in
+  // `tz` (`zone` names it). Every server has this one with the same rewards: NA's days (NA's item names) are shown,
+  // JP's start 9 hours earlier (news.fate-go.jp/2026/10/100mdl/: 1 Nov 04:00 to 8 Nov 03:59 JST).
   bonus: {
-    name: "Countdown login bonus", server: "Japanese server", start: Date.UTC(2026, 9, 31, 19, 0),
-    who: "For Masters who have cleared the Fuyuki prologue. One reward a day; NA hasn't said yet whether it gets one too.",
-    days: ["10 Golden Fruit", "10 ★3 HP Fou and 10 ★3 ATK Fou", "100 Mana Prisms and 20 ★5 EXP cards", "1 Rare Prism", "1 ★4 HP Fou and 1 ★4 ATK Fou", "1 Legend Crystal", "100 million QP"]
+    name: "Countdown login bonus", server: "Every server", start: Date.UTC(2026, 10, 1, 4, 0), tz: "America/Los_Angeles", zone: "PST", whose: "NA's days",
+    who: "For Masters who have cleared the Fuyuki prologue, one reward a day. On JP each day starts 9 hours earlier, at 04:00 JST.",
+    days: ["10 Golden Fruit", "10 Star Fou ★3 (HP) and 10 Sun Fou ★3 (ATK)", "20 Hellfire of Wisdom ★5 and 100 Mana Prisms", "1 Rare Prism", "1 Meteor Fou ★4 (HP) and 1 Corona Fou ★4 (ATK)", "1 Crystallized Lore", "100,000,000 QP"]
   },
-  links: [["Stream announcement", "https://news.fate-go.jp/2026/10/1031nico/"], ["Login bonus", "https://news.fate-go.jp/2026/10/100mdl/"]]
+  links: [["Stream announcement", "https://news.fate-go.jp/2026/10/1031nico/"], ["Login bonus (NA)", "https://webview.fate-go.us/iframe/2026/1031_100million_cd/"], ["Login bonus (JP)", "https://news.fate-go.jp/2026/10/100mdl/"]]
 }];
 
 function anHidden() { try { const d = JSON.parse(localStorage.getItem(AN_KEY) || "[]"); return Array.isArray(d) ? d.filter((x) => typeof x === "string") : []; } catch (e) { return []; } }
@@ -18836,11 +18838,13 @@ function anStreamHTML(a, now) {
 }
 function anBonusHTML(b, now) {
   const today = anDay(b, now), n = b.days.length, end = b.start + n * 864e5; if (today >= n) return "";
-  const jstDay = (i) => anFmt(b.start + i * 864e5 + 864e5 / 2, {timeZone: "Asia/Tokyo", weekday: "short", day: "numeric", month: "short"});
-  const flip = anFmt(b.start, {hour: "2-digit", minute: "2-digit"}), flipJ = anFmt(b.start, {timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit"});
-  return `<div class="an-bonus"><p class="an-bh"><b>${esc(b.name)}</b><span class="an-btag">${esc(b.server)}</span><small>until ${esc(anFmt(end - 6e4, {timeZone: "Asia/Tokyo", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}))} JST</small></p>
-    <ol class="an-days">${b.days.map((d, i) => `<li class="${i < today ? "past" : i === today ? "today" : ""}"${i === today ? ' aria-current="date"' : ""}><span class="an-dn">${i === today ? "Today" : "Day " + (i + 1)}<small>${esc(jstDay(i))}</small></span><span class="an-dr">${esc(d)}</span></li>`).join("")}</ol>
-    <p class="an-note">${esc(b.who)} A new day starts at ${esc(flipJ)} JST (${esc(flip)} your time).</p></div>`;
+  const tz = b.tz || "Asia/Tokyo", zone = b.zone || "JST";
+  const dayOf = (i) => anFmt(b.start + i * 864e5 + 864e5 / 2, {timeZone: tz, weekday: "short", day: "numeric", month: "short"});
+  // (the second day's start: the first can begin on summer time)
+  const flip = anFmt(b.start + 864e5, {hour: "2-digit", minute: "2-digit"}), flipZ = anFmt(b.start + 864e5, {timeZone: tz, hour: "2-digit", minute: "2-digit"});
+  return `<div class="an-bonus"><p class="an-bh"><b>${esc(b.name)}</b><span class="an-btag">${esc(b.server)}</span><small>${b.whose ? esc(b.whose) + ", " : ""}until ${esc(anFmt(end - 6e4, {timeZone: tz, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}))} ${esc(zone)}</small></p>
+    <ol class="an-days">${b.days.map((d, i) => `<li class="${i < today ? "past" : i === today ? "today" : ""}"${i === today ? ' aria-current="date"' : ""}><span class="an-dn">${i === today ? "Today" : "Day " + (i + 1)}<small>${esc(dayOf(i))}</small></span><span class="an-dr">${esc(d)}</span></li>`).join("")}</ol>
+    <p class="an-note">${esc(b.who)} ${esc(b.whose ? b.whose.replace(/^\w/, (c) => c.toUpperCase()) : "A new day")} start at ${esc(flipZ)} ${esc(zone)} (${esc(flip)} your time).</p></div>`;
 }
 function anHTML(a, now) {
   const s = a.stream, st = anState(a, now);

@@ -120,7 +120,7 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
 ## Announcements (0.28.0)
 - News from FGO itself that matters on every server, shown at the top of Home between `from` and `until`, live updates on or off: `ANNOUNCE` in `src/app/47-announcements.js` (styles `src/styles/30-announcements.css`).
 - An entry with a `stream` counts down to it in the reader's time zone, says On now for `live` minutes, then that it has aired (`after` replaces the text). One with a `bonus` lists its days from `start` (one per 24 h), today's marked, until the last day ends. Hide (with Undo) is kept in `spirit-origin-list:v1:announce`.
-- The first one: the 100M Worldwide Downloads stream, 7 Nov 2026 20:00 JST, and JP's countdown login bonus (1–8 Nov, from news.fate-go.jp, 31 Oct 2026). When the official stream links come out, change `stream.url`.
+- The first one: the 100M Worldwide Downloads stream, 7 Nov 2026 20:00 JST, and the countdown login bonus every server has, shown on NA's days (31 Oct 21:00 PDT to 7 Nov 19:59 PST, from webview.fate-go.us; JP's from news.fate-go.jp run 9 hours earlier). A bonus's `tz`/`zone` say which clock its days are shown in. When the official stream links come out, change `stream.url`.
 
 ## One servant to a file (0.28.0)
 - **Export** on the SERVANTPAGE saves that servant and their uploaded pictures as `<name>.servant.json`: a backup with `kind: "servant"` and one entry (`src/app/48-servant-file.js`).

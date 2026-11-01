@@ -10659,7 +10659,7 @@ renderAll = function () { renderAll13(); renderFillNote(); };
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.27.0";
+const APP_VER = "0.27.1";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -10821,6 +10821,10 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.27.1", d: "1 Nov 2026", t: "Workshop servants keep what you change in Edit details", i: [
+    "A servant made in the Workshop keeps what you change in <b>Edit details</b> or on their page: skills and their values, the Noble Phantasm's name, card and target, passives, traits, deck and growth. Before, the Workshop had its own copy, so it opened with the old skills and saving there put them back. Skills you already changed this way come along the next time you open the Workshop.",
+    "<b>Open in the Workshop</b> in Edit details takes what you've typed with it instead of throwing it away. Nothing is saved until you press Save changes there.",
+    "A skill line you wrote yourself shows up in the Workshop as a <b>Write your own</b> effect with the same words, and a unit of your own (like hits) stays."]},
   {v: "0.27.0", d: "31 Oct 2026", t: "The Servant Workshop: servants of your own", i: [
     "<b>The Servant Workshop</b>: press <b>Create</b> next to Add servant and make a servant of your own, step by step, with their Saint Graph card beside you the whole way. Start from scratch, from any NA servant's kit (<b>Remix in the Workshop</b> in Past Chaldea does the same), from a made-up one with <b>Surprise me</b>, or from a friend's share code.",
     "Every step starts at what NA's servants of that class and rarity usually have: HP and ATK, growth curve, deck, Noble Phantasm card and passives. Those keep following the class and rarity until you change them, so they can be summoned after any step.",
@@ -17180,7 +17184,8 @@ const KIT_CACHE = new WeakMap();
 function customKit(s) {
   if (!s || !s.custom || !s.kit || typeof s.kit !== "object") return null;
   const hit = KIT_CACHE.get(s.kit); if (hit && hit.s === s) return hit.a;
-  const k = s.kit, card = CARDS.includes(k.np && k.np.card) ? k.np.card : "Buster", pm = [0, 0, 0, 0, 0];
+  // (with anything changed on their page since the Workshop last saved them)
+  const k = kitNow(s) || s.kit, card = CARDS.includes(k.np && k.np.card) ? k.np.card : "Buster", pm = [0, 0, 0, 0, 0];
   (k.ps || []).forEach((p) => { const v = psValue(p); if (v) pm[v.slot] += v.v; });
   const t = (s.traits || []).slice(), g = t.includes("Female") ? "Female" : t.includes("Male") ? "Male" : "Unknown";
   const a = {n: s.name, c: s.cls, r: num(s.rarity) || 5, a: s.attr || "", g: g, o: (s.lawOrder || []).slice(), m: (s.moral || []).slice(), t: t, pm: pm, custom: true,
@@ -17281,7 +17286,7 @@ const servantForm26 = servantForm;
 servantForm = function (s) {
   let h = servantForm26.apply(this, arguments);
   // custom servants are made in the Workshop: their skills, NP and growth are best changed there
-  if (s && s.custom) h = h.replace(/(<fieldset><legend>Basics<\/legend>)/, `<div class="ws-formnote"><p><b>Made in the Servant Workshop.</b> Change their skills, Noble Phantasm, cards and growth there; this form keeps everything else.</p><button type="button" class="btn sm" data-action="ws-open" data-id="${esc(s.id)}">Open in the Workshop</button></div>$1`);
+  if (s && s.custom) h = h.replace(/(<fieldset><legend>Basics<\/legend>)/, `<div class="ws-formnote"><p><b>Made in the Servant Workshop.</b> What you change here goes into the Workshop too. Skills, the Noble Phantasm, cards and growth have more options there.</p><button type="button" class="btn sm" data-action="ws-open" data-id="${esc(s.id)}">Open in the Workshop</button></div>$1`);
   return h.replace(/(<fieldset><legend>Noble Phantasm<\/legend>)/, growthFieldHTML(s) + "$1");
 };
 const readServantForm26 = readServantForm;
@@ -17606,7 +17611,8 @@ function wsClean(k0) {
     if (def.n != null || f.n != null) { const t = nn(f.n, 0, 99, def.n || 0); if (t) o.n = t; else delete o.n; }
     if (def.card) o.card = CARDS.includes(f.card) ? f.card : "Buster";
     if (def.vsPick) o.vs = str(f.vs, 40);
-    if (def.k === "own") { o.txt = str(f.txt, 200); o.l = str(f.l, 40); if (!np) { o.v1 = nn(f.v1, -1e6, 1e6, null); o.v10 = nn(f.v10, -1e6, 1e6, null); o.u = UNITS.concat([""]).includes(f.u) ? f.u : ""; } }
+    // (any short unit: one typed in Edit details stays)
+    if (def.k === "own") { o.txt = str(f.txt, 300); o.l = str(f.l, 40); if (!np) { o.v1 = nn(f.v1, -1e6, 1e6, null); o.v10 = nn(f.v10, -1e6, 1e6, null); o.u = str(f.u, 12).trim(); } }
     return o;
   };
   const np = k.np && typeof k.np === "object" ? k.np : {};
@@ -17628,6 +17634,109 @@ function wsClean(k0) {
   if (num(k.from)) o.from = num(k.from);
   return o;
 }
+
+/* ---------- changes made outside the Workshop go into the kit too ---------- */
+// A custom servant's skills, NP, class and the rest are worked out from s.kit. Edit details, the passive and deck editors
+// on their page and anything else that saves them change those fields directly, so before every save the kit is brought
+// in step with them: the Workshop then opens what their page shows, the damage calculator uses it, and the next Workshop
+// save keeps it. Only fields that no longer read as the kit says are taken over, so a Workshop save changes nothing here.
+// A skill whose lines or values were changed by hand keeps each line that is still one of its effects word for word (so
+// it still counts in the calculator); every other line and value becomes a "Write your own" effect with the same words.
+// (If kitDerive's wording ever changes, stored servants read as changed by hand: re-derive them first.)
+// (keys in any order: a stored NP table comes back with its keys reordered)
+const ksKey = (x) => Array.isArray(x) ? "[" + x.map(ksKey).join(",") + "]" : x && typeof x === "object" ? "{" + Object.keys(x).filter((k) => x[k] !== undefined).sort().map((k) => JSON.stringify(k) + ":" + ksKey(x[k])).join(",") + "}" : JSON.stringify(x === undefined ? null : x);
+const ksSame = (a, b) => ksKey(a) === ksKey(b);
+const ksRows = (info) => scalesOf(info).map((r) => [String(r.label || "").trim(), num(r.v1), num(r.v10), String(r.unit || "").trim()]);
+const ksPsName = (p) => (String(p.name || "").trim() + (p.rank ? " " + String(p.rank).trim() : "")).trim();
+function ksSkillFx(sk, lines, rows, card) {
+  const old = (sk.fx || []).map((f) => {
+    const def = FX_BY[f.e]; if (!def) return null;
+    const own = def.k === "own", v1 = num(own ? f.v1 : (f.v || [])[0]), v10 = num(own ? f.v10 : (f.v || [])[1]);
+    const row = (own ? String(f.l || "").trim() : def.v) && v1 != null && v10 != null ? [fxLabel(f, card), v1, v10, own ? String(f.u || "").trim() : def.u || ""] : null;
+    return {f: f, line: fxLine(f, card), row: row};
+  }).filter(Boolean);
+  const usedOld = new Set(), usedRow = new Set(), out = [];
+  const rowOf = (want) => rows.findIndex((r, i) => !usedRow.has(i) && ksSame(r, want));
+  lines.forEach((l) => {
+    const j = old.findIndex((x, i) => !usedOld.has(i) && x.line === l && (!x.row || rowOf(x.row) >= 0));
+    if (j >= 0) { usedOld.add(j); if (old[j].row) usedRow.add(rowOf(old[j].row)); out.push(old[j].f); return; }
+    out.push(Object.assign(wsFx("own"), {txt: l, u: ""}));
+  });
+  // values with no line of their own; if that's too many effects, they go onto the hand-written lines in order
+  const left = rows.filter((r, i) => !usedRow.has(i)), val = (f, r) => Object.assign(f, {l: r[0] || "Value", v1: r[1], v10: r[2], u: r[3]});
+  if (out.length + left.length > 10) { const bare = out.filter((f) => f.e === "own" && !String(f.l || "").trim()); while (left.length && bare.length) val(bare.shift(), left.shift()); }
+  left.forEach((r) => out.push(val(Object.assign(wsFx("own"), {txt: ""}), r)));
+  return out.slice(0, 10);
+}
+function kitSync(o) {
+  if (!o || !o.custom || !o.kit || typeof o.kit !== "object") return false;
+  const k = wsClean(o.kit), was = kitDerive(k), A = k.auto, np = k.np; let ch = false;
+  const nm = String(o.name || "").trim(); if (nm && nm !== k.name) { k.name = nm; ch = true; }
+  if (CLASSES.includes(o.cls) && o.cls !== k.cls) { k.cls = o.cls; ch = true; }
+  const r = Math.round(num(o.rarity) || 0); if (r >= 1 && r <= 5 && r !== k.r) { k.r = r; ch = true; }
+  if (ATTRS.includes(o.attr) && o.attr !== was.attr) { k.attr = o.attr; A.attr = false; ch = true; }
+  if (Array.isArray(o.lawOrder) && !ksSame(o.lawOrder.filter((v) => ORDERS.includes(v)), was.lawOrder)) { k.order = o.lawOrder.filter((v) => ORDERS.includes(v)); ch = true; }
+  if (Array.isArray(o.moral) && !ksSame(o.moral.filter((v) => MORALS.includes(v)), was.moral)) { k.moral = o.moral.filter((v) => MORALS.includes(v)); ch = true; }
+  if (Array.isArray(o.traits)) {
+    const t = Array.from(new Set(o.traits.map(normTrait).filter(Boolean)));
+    if (!ksSame(t.slice().sort(), was.traits.slice().sort())) { k.gender = t.includes("Female") ? "Female" : t.includes("Male") ? "Male" : "Unknown"; k.traits = t.filter((x) => x !== "Female" && x !== "Male"); ch = true; }
+  }
+  if (Array.isArray(o.deck)) {
+    const L = o.deck.map((c) => String(c || "").charAt(0).toUpperCase()), d = ["Q", "A", "B"].map((c) => c.repeat(L.filter((x) => x === c).length)).join("");
+    if (DECKS.includes(d) && d !== k.deck) { k.deck = d; A.deck = false; ch = true; }
+  }
+  const g = o.growth;
+  if (g && typeof g === "object" && GROWTH_BY[g.type] && Array.isArray(g.hp) && Array.isArray(g.atk)) {
+    const hp = g.hp.slice(0, 2).map(num), atk = g.atk.slice(0, 2).map(num);
+    if (hp.length === 2 && atk.length === 2 && hp.concat(atk).every((v) => v != null) && !ksSame([g.type, hp, atk], [was.growth.type, was.growth.hp, was.growth.atk])) {
+      k.growth = g.type; k.hp = hp; k.atk = atk; k.feel = null; A.stats = false; A.growth = false; ch = true;
+    }
+  }
+  // the NP's name, card and target (the rest of the NP is the Workshop's)
+  if (String(o.npName || "").trim() !== (was.npName || "")) { np.name = String(o.npName || "").trim(); ch = true; }
+  let npCh = false;
+  if (CARDS.includes(o.npCard) && o.npCard !== was.npCard) { np.card = o.npCard; A.card = false; npCh = true; }
+  if (["AoE", "Single Target", "Support"].includes(o.npTarget) && o.npTarget !== was.npTarget) {
+    // what changing the target in the Workshop does
+    np.tg = o.npTarget; np.type = np.tg === "AoE" ? "Anti-Army" : np.tg === "Support" ? "Barrier" : "Anti-Unit"; np.hits = np.tg === "AoE" ? 3 : 5;
+    if (np.tg === "Support") np.se = null; else if (!np.dmg || np.mode === "own") np.mode = "std";
+    npCh = true;
+  }
+  if (npCh) { if (np.tg !== "Support" && np.mode !== "own") np.dmg = npStdDmg(np.tg, np.card, np.mode === "up") || np.dmg; ch = true; }
+  if (Array.isArray(o.skillInfo)) [0, 1, 2].forEach((i) => {
+    const f = o.skillInfo[i] || {}, w = was.skillInfo[i] || {}, sk = k.sk[i];
+    const n = String(f.name || "").trim(), rk = String(f.rank || "").trim();
+    if (n !== (w.name || "") || rk !== (w.rank || "")) { sk.name = n; sk.rank = rk; ch = true; }
+    const cd = num(f.cd); if (cd != null && cd !== num(w.cd)) { sk.cd = clamp(Math.round(cd), 1, 20); ch = true; }
+    // (values in another order are the same values: the kit lists the Workshop's effects' values first)
+    const lines = effectLines(f.effect), rows = ksRows(f), srt = (x) => x.map((r) => JSON.stringify(r)).sort();
+    if (!ksSame(lines, effectLines(w.effect)) || !ksSame(srt(rows), srt(ksRows(w)))) { sk.fx = ksSkillFx(sk, lines, rows, was.npCard); ch = true; }
+  });
+  if (Array.isArray(o.passives)) {
+    const mine = o.passives.filter((p) => p && typeof p === "object" && ksPsName(p));
+    const key = (p) => [ksPsName(p), effectLines(p.effect)];
+    if (!ksSame(mine.map(key), was.passives.map(key))) {
+      const ic = new Map(k.ps.map((p) => [p.name, p.ic]));
+      k.ps = mine.map((p) => {
+        const full = ksPsName(p), m = PS_RANK_RE.exec(full), name = m ? m[1] : full, rank = m ? m[2] : "", e = effectLines(p.effect);
+        // the value added to the first line for passives that count in NP damage is put back on by the kit
+        if (PS_CALC[name] && e.length) e[0] = e[0].replace(/\s*\(\+[\d.]+%?\)\s*$/, "");
+        return {name: name, rank: rank, e: e, ic: ic.get(name) || ""};
+      });
+      A.ps = false; ch = true;
+    }
+  }
+  if (!ch) return false;
+  const nk = wsClean(k), now = kitDerive(nk);
+  // their NP table follows a new name, card or target unless it was changed by hand
+  if (ksSame(o.npTable, was.npTable)) o.npTable = now.npTable;
+  o.kit = nk;
+  return true;
+}
+// the kit as their page shows them now (what the Workshop opens and the calculator uses)
+function kitNow(s) { if (!s || !s.custom || !s.kit) return s && s.kit; const c = Object.assign({}, s); kitSync(c); return c.kit; }
+const writeDoc27 = writeDoc;
+writeDoc = function (col, obj) { if (col === "servants") { try { kitSync(obj); } catch (e) {} } return writeDoc27(col, obj); };
 
 /* ---------- share codes: a kit as text to paste anywhere (packed small when the browser can) ---------- */
 const b64e = (bytes) => { let t = ""; bytes.forEach((c) => { t += String.fromCharCode(c); }); return btoa(t).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); };
@@ -17690,8 +17799,11 @@ function wsOpen(opts) {
   const d = wsDraft();
   if (opts.id) {
     const s = S.servants.find((x) => x.id === opts.id); if (!s) return;
-    if (d && d.id === s.id) { wsLoad(d); toast("Picked up your changes where you left off."); }
-    else { W.k = wsClean(s.kit || {}); W.k.name = s.name; W.id = s.id; W.copy = null; W.art = null; W.artNew = []; W.step = 1; W.sk = 0; W.seen = WS_STEPS.map((x, i) => i); }
+    const mine = d && d.id === s.id, typed = opts.typed ? wsTyped(s, opts.typed, mine ? d.k : null) : null;
+    if (mine) { wsLoad(d); if (!typed) toast("Picked up your changes where you left off."); }
+    // (with anything changed on their page since, see kitSync)
+    else { W.k = wsClean(kitNow(s) || {}); W.k.name = s.name; W.id = s.id; W.copy = null; W.art = null; W.artNew = []; W.step = 1; W.sk = 0; W.seen = WS_STEPS.map((x, i) => i); }
+    if (typed) { W.k = typed; wsSaveSoon(); toast(mine ? "Picked up your changes here, with what you just typed in Edit details. Save changes to keep them." : "What you typed in Edit details came along. Save changes to keep it."); }
   } else if (opts.no) { W.k = wsFromNa(opts.no); W.id = null; W.copy = wsCopyDefault(W.k); W.art = null; W.artNew = []; W.step = 1; W.sk = 0; W.seen = WS_STEPS.map((x, i) => i); }
   else if (d && !d.id) { wsLoad(d); W.step = 0; }
   else { W.k = null; W.id = null; W.copy = null; W.art = null; W.artNew = []; W.step = 0; W.sk = 0; }
@@ -17701,6 +17813,20 @@ function wsOpen(opts) {
   wsRender(true);
   if (opts.no) wsSaveSoon();
   const f = ws.querySelector(W.step === 1 ? "#ws-name" : ".ws-step [data-ws], .ws-step input") || ws.querySelector(".ws-x"); if (f) f.focus({preventScroll: true});
+}
+// the kit with what's typed in Edit details (readServantForm) on top of what the Workshop would open: theirs, or your
+// unsaved changes here (then only the fields changed in the form go over them); null when nothing was changed
+function wsTyped(s, typed, draftK) {
+  const k0 = wsClean(draftK || kitNow(s) || {});
+  let o;
+  if (!draftK) o = Object.assign({}, typed, {kit: k0});
+  else {
+    const d = kitDerive(k0), sk = (x) => x ? [String(x.name || "").trim(), String(x.rank || "").trim(), num(x.cd), effectLines(x.effect), ksRows(x)] : null;
+    o = Object.assign({}, s, d, {custom: true, kit: k0});
+    ["name", "cls", "rarity", "attr", "lawOrder", "moral", "traits", "deck", "growth", "npName", "npCard", "npTarget", "npTable", "passives"].forEach((f) => { if (!ksSame(typed[f], s[f])) o[f] = typed[f]; });
+    o.skillInfo = [0, 1, 2].map((i) => { const t = (typed.skillInfo || [])[i]; return !ksSame(sk(t), sk((s.skillInfo || [])[i])) ? t : d.skillInfo[i]; });
+  }
+  return kitSync(o) && !ksSame(o.kit, k0) ? o.kit : null;
 }
 function wsLoad(d) {
   W.k = wsClean(d.k); if (d.k && d.k.feel === null) W.k.feel = null;
@@ -18036,9 +18162,9 @@ function wsFxRowHTML(f, w, si, i) {
   if (def.tgs) ctl.push(seg(base + ".tg", def.tgs.split("").map((t) => [t, esc(FX_TG[t].t)]), f.tg, "Who it's for", "sm"));
   if (def.card) ctl.push(seg(base + ".card", CARDS, f.card, "Card", "sm"));
   if (def.vsPick) ctl.push(`<label class="ws-mini wide"><span>Against</span><input type="text" list="ws-vs" data-wk="${base}.vs" value="${esc(f.vs || "")}" placeholder="Dragon, Saber, Earth…" autocomplete="off"></label>`);
-  if (def.k === "own") ctl.push(`<label class="ws-mini wide"><span>It reads</span><input type="text" data-wk="${base}.txt" value="${esc(f.txt || "")}" maxlength="200" placeholder="Increase your … (3 turns)" autocomplete="off"></label><label class="ws-mini"><span>Value's name</span><input type="text" data-wk="${base}.l" value="${esc(f.l || "")}" maxlength="40" placeholder="optional" autocomplete="off"></label>`);
+  if (def.k === "own") ctl.push(`<label class="ws-mini wide"><span>It reads</span><input type="text" data-wk="${base}.txt" value="${esc(f.txt || "")}" maxlength="300" placeholder="Increase your … (3 turns)" autocomplete="off"></label><label class="ws-mini"><span>Value's name</span><input type="text" data-wk="${base}.l" value="${esc(f.l || "")}" maxlength="40" placeholder="optional" autocomplete="off"></label>`);
   if (w === "sk" && def.v) ctl.push(`<span class="ws-lv1">${wsNumIn(base + ".v.0", f.v[0], "Lv 1")}<span class="ws-arrow" aria-hidden="true">→</span>${wsNumIn(base + ".v.1", f.v[1], "Lv 10")}<span class="ws-unit">${esc(unit.trim())}</span></span>`);
-  if (w === "sk" && def.k === "own") ctl.push(`<span class="ws-lv1">${wsNumIn(base + ".v1", f.v1, "Lv 1")}<span class="ws-arrow" aria-hidden="true">→</span>${wsNumIn(base + ".v10", f.v10, "Lv 10")}<select data-wk="${base}.u" aria-label="Unit">${["", "%", "HP", "stars", "turns", "times", "damage"].map((u) => `<option value="${u}"${(f.u || "") === u ? " selected" : ""}>${u || "no unit"}</option>`).join("")}</select></span>`);
+  if (w === "sk" && def.k === "own") ctl.push(`<span class="ws-lv1">${wsNumIn(base + ".v1", f.v1, "Lv 1")}<span class="ws-arrow" aria-hidden="true">→</span>${wsNumIn(base + ".v10", f.v10, "Lv 10")}<select data-wk="${base}.u" aria-label="Unit">${["", "%", "HP", "stars", "turns", "times", "damage"].concat(f.u && !["%", "HP", "stars", "turns", "times", "damage"].includes(f.u) ? [f.u] : []).map((u) => `<option value="${esc(u)}"${(f.u || "") === u ? " selected" : ""}>${esc(u || "no unit")}</option>`).join("")}</select></span>`);
   if (w === "np") {
     ctl.push(seg(base + ".when", [["pre", "Before damage"], ["post", "After damage"]], f.when, "When", "sm"));
     if (def.v || def.k === "own") ctl.push(seg(base + ".by", [["np", "Grows with NP level"], ["oc", "Grows with Overcharge"], ["fix", "Always the same"]], f.by, "What it grows with", "sm"));
@@ -18310,6 +18436,8 @@ async function wsSave(thenVs) {
   k.name = nm;
   const base = W.id ? S.servants.find((x) => x.id === W.id) : null, prev = base ? wsClone(base) : null;
   const d = kitDerive(k), o = Object.assign({}, base || {}, d, {name: nm, custom: true, kit: k});
+  // an NP table changed by hand on their page stays, unless the NP was changed here
+  if (base && base.kit && base.npTable) { const was = kitDerive(wsClean(kitNow(base))); if (!ksSame(base.npTable, was.npTable) && ksSame(d.npTable, was.npTable)) o.npTable = base.npTable; }
   delete o.atlas; delete o.skUpKeep;
   if (!base) {
     const c = W.copy || wsCopyDefault(k);
@@ -18341,7 +18469,13 @@ async function wsSave(thenVs) {
 document.addEventListener("click", (e) => {
   const b = e.target.closest && e.target.closest('[data-action="ws-new"], [data-action="ws-open"], [data-action="ws-remix"]'); if (!b) return;
   e.preventDefault();
-  if (b.dataset.action === "ws-open") { if (S.editing) { dropFormArt(); S.editing = null; renderDossier(true); } wsOpen({id: b.dataset.id}); return; }
+  if (b.dataset.action === "ws-open") {
+    // from Edit details: what's typed there comes along into the Workshop (saved when the Workshop saves)
+    let typed = null;
+    if (S.editing && S.editing === b.dataset.id) { const s0 = S.servants.find((x) => x.id === S.editing); if (s0 && s0.custom && document.getElementById("servant-form")) { try { typed = readServantForm(s0); } catch (e2) {} } }
+    if (S.editing) { dropFormArt(); S.editing = null; renderDossier(true); }
+    wsOpen({id: b.dataset.id, typed: typed}); return;
+  }
   if (b.dataset.action === "ws-remix") { if (typeof pcClose === "function") pcClose(); wsOpen({no: num(b.dataset.no)}); return; }
   wsOpen({});
 });

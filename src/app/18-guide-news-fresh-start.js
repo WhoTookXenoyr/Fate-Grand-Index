@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.27.0";
+const APP_VER = "0.27.1";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -163,6 +163,10 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.27.1", d: "1 Nov 2026", t: "Workshop servants keep what you change in Edit details", i: [
+    "A servant made in the Workshop keeps what you change in <b>Edit details</b> or on their page: skills and their values, the Noble Phantasm's name, card and target, passives, traits, deck and growth. Before, the Workshop had its own copy, so it opened with the old skills and saving there put them back. Skills you already changed this way come along the next time you open the Workshop.",
+    "<b>Open in the Workshop</b> in Edit details takes what you've typed with it instead of throwing it away. Nothing is saved until you press Save changes there.",
+    "A skill line you wrote yourself shows up in the Workshop as a <b>Write your own</b> effect with the same words, and a unit of your own (like hits) stays."]},
   {v: "0.27.0", d: "31 Oct 2026", t: "The Servant Workshop: servants of your own", i: [
     "<b>The Servant Workshop</b>: press <b>Create</b> next to Add servant and make a servant of your own, step by step, with their Saint Graph card beside you the whole way. Start from scratch, from any NA servant's kit (<b>Remix in the Workshop</b> in Past Chaldea does the same), from a made-up one with <b>Surprise me</b>, or from a friend's share code.",
     "Every step starts at what NA's servants of that class and rarity usually have: HP and ATK, growth curve, deck, Noble Phantasm card and passives. Those keep following the class and rarity until you change them, so they can be summoned after any step.",

@@ -89,7 +89,8 @@ board = lambda pg: pg.evaluate("[...document.querySelectorAll('#home .hb-ev .hb-
 card = lambda pg, name: pg.locator("#home .hb-ev").filter(has=pg.locator(f'xpath=.//b[contains(@class, "hb-n") and normalize-space(.)="{name}"]'))
 camp = lambda pg, name: pg.locator("#home .hb-camp").filter(has=pg.locator(f'xpath=./span/b[normalize-space(.)="{name}"]'))
 names = lambda pg, h4: pg.evaluate("""(h) => { const t = [...document.querySelectorAll('.hm-b-live h4')].find(x => x.firstChild.textContent.trim() === h); if (!t) return null;
-  const ul = t.nextElementSibling; return ul && ul.matches('ul') ? [...ul.querySelectorAll('li > b')].map(b => b.textContent) : []; }""", h4)
+  const ul = t.nextElementSibling; return ul && ul.matches('ul') ? [...ul.querySelectorAll('li:not(.lv-na) > b')].map(b => b.textContent) : []; }""", h4)
+# (NA's own login bonuses come with the page and depend on today's date; test_37 checks those)
 
 with sync_playwright() as p:
     # ================= off until turned on (in the test copies), and then it fills in =================

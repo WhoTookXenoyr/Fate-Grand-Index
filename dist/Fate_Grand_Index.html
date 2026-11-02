@@ -2590,6 +2590,9 @@ html.cep-open, html.cep-open body { overflow: hidden; }
 @media (max-width: 1100px) { .lv-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } .lv-rel { grid-column: 1 / -1; } }
 @media (max-width: 640px) { .hm-b-live { padding: 14px 14px 12px; } .lv-cols { grid-template-columns: minmax(0, 1fr); } .lv-act { margin-left: 0; } }
 @media (prefers-reduced-motion: reduce) { .lv-face { transition: none; } }
+/* 0.28.1: NA's login bonuses (from NA's news) open their announcement */
+.lv-ev.lv-na .lv-go::after { content: " \2197"; font-size: .85em; color: var(--muted); text-decoration: none; display: inline-block; margin-left: 2px; }
+.lv-col.lv-only { max-width: 560px; }
 
 /* ===== 0.22.0: the Event page and NA banners in the simulator (tabs since 0.22.2). Nothing here moves on its own. ===== */
 .evp:focus { outline: none; }
@@ -2993,6 +2996,9 @@ html.cep-open, html.cep-open body { overflow: hidden; }
 .pimg-acts .spacer { flex: 1; }
 .pimg-theme { display: flex; gap: 6px; }
 .pimg-msg:empty { display: none; }
+/* 0.28.1: the third append of a servant of your own is picked from a list */
+.ap-n .ap-pick { min-width: 0; max-width: 100%; font-weight: 650; }
+.ap-row.locked .ap-n .ap-pick { color: var(--muted); }
 /* ================= 0.24.0: the Story page and the chapter looks (32-story.js) ================= */
 .stp { display: flex; flex-direction: column; gap: 18px; }
 .st-head { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: flex-end; justify-content: space-between; }
@@ -4317,6 +4323,8 @@ input.gr-auto { background: var(--sunken) !important; color: var(--muted); }
 /* all seven days in one row when there's room */
 .an-main { container-type: inline-size; }
 @container (min-width: 700px) { .an-days { grid-template-columns: repeat(7, minmax(0, 1fr)); } }
+/* 0.28.1: a present for logging in: the reward itself, big */
+.an-gr { margin: 0; font: 700 20px/1.2 var(--f-display); letter-spacing: -.005em; }
 </style>
 </head>
 <body>
@@ -10775,7 +10783,7 @@ renderAll = function () { renderAll13(); renderFillNote(); };
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.28.0";
+const APP_VER = "0.28.1";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -10937,6 +10945,10 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.28.1", d: "2 Nov 2026", t: "Append skills for your own servants, NA's login bonuses and the Discord campaign", i: [
+    "<b>Append skills for servants you made</b>: the Append skills section on a servant from the Workshop used to show five blank rows. It now names the four every NA servant has (Extra Attack Boost, Load Magical Energy, Special Attack Boost and Skill Reload) with their effects at the level you set. The third one is different for every servant in the game, so it's a list you pick from: ATK Up or Critical Resistance Up against a class. Picking has Undo, and the pick stays with the servant in backups and in the single-servant file.",
+    "On NA now's <b>Login bonuses</b> list was always empty: Atlas Academy's NA data has no login bonuses at all. It now lists NA's, from NA's news, each linked to its announcement and saying what it gives: the GUDAGUDA revival's 21-day bonus, the Lostbelt No.6 Clear Support Leyline Stones, the countdown bonus with today's reward, and the Discord Saint Quartz. They show even when Atlas Academy can't be reached, and move to the next day on their own.",
+    "<b>FGO's English community Discord passed 20,000 members</b>, and every NA Master gets 10 Saint Quartz for it: they land in your Present Box the first time you log in between 3 November 20:00 and 10 November 19:59 PST (once per account, Fuyuki cleared). Home has an announcement for it that counts down to the start, then to the end, in your own time."]},
   {v: "0.28.0", d: "1 Nov 2026", t: "Card frames, and the 100 million downloads stream", i: [
     "<b>Fate/Grand Order passed 100 million downloads</b> across its Japanese, English, Chinese and Korean versions. Home now has an announcement about it with a countdown, in your own time, to the worldwide stream on Saturday 7 November (20:00 JST), where the campaign for every server gets revealed. It also lists the 7-day countdown login bonus every server has, day by day with today's marked, on NA's days (a new day at 20:00 PST; JP's start 9 hours earlier). Watch on YouTube opens FGO's official channel, and the official announcements are linked. You can hide it.",
     "<b>Card frame</b> on a servant's page, under the stages: turn it on and their picture sits in the game's Saint Graph frame: bronze, silver or gold by rarity with their stars, the class in the diamond, and their ATK and HP under the swords (the same numbers as the Stats section, Fou and an equipped Craft Essence included). Grails upgrade the frame like in the game: a ★1 or ★2 turns silver with its first grail and gold with its third, a ★3 gold with its second. The numbers follow the level, and a click on the picture still goes to the next stage.",
@@ -12325,7 +12337,8 @@ renderDossier = function (force) {
 // (servants, Craft Essences, events, summons: about 2.3 MB) and keep the few hundred lines shown on Home. That summary is
 // cached in this browser, so Home still shows it offline. Your roster is never touched.
 // Since 0.24.0 the events and summon banners are on Home's event board (33-home-board.js); this block keeps the login
-// bonuses, the other campaigns and the newest servants and Craft Essences.
+// bonuses, the other campaigns and the newest servants and Craft Essences. Atlas's NA data has no login bonuses, so since
+// 0.28.1 NA's come with the page, from NA's news (NA_LOGIN in 47-announcements.js).
 const LIVE_KEY = "spirit-origin-list:v1:live";
 const LIVE_API = "https://api.atlasacademy.io/export/NA/";
 const LIVE_DB = "https://apps.atlasacademy.io/db/NA/";
@@ -12486,10 +12499,15 @@ function liveHTML() {
   const d = live.data, now = Date.now() / 1000;
   const checked = liveBusy ? "checking Atlas Academy…" : live.checkedAt ? "from Atlas Academy · checked " + ago(live.checkedAt) : "from Atlas Academy";
   const btn = `<button type="button" class="btn ghost sm" data-action="live-check"${liveBusy ? " disabled" : ""}>Check now</button>`;
-  if (!d) return `<section class="d-sec hm-block hm-b-live">${head(esc(checked), btn)}
-    <p class="tr-none">${liveBusy ? "Getting NA's login bonuses, campaigns and newest servants…" : esc(liveErr || "Nothing loaded yet.") + (liveErr ? " Home shows NA's news here once it can reach Atlas Academy." : "")}</p></section>`;
-  const live1 = (x) => x.e > now && (x.s <= now || x.a <= now);
-  const evs = d.ev.filter(live1), pick = (k) => evs.filter((x) => x.k === k).sort((a, b) => (a.s > now) - (b.s > now) || (a.s > now ? a.s - b.s : a.e - b.e));
+  const live1 = (x) => x.e > now && (x.s <= now || x.a <= now), order = (a, b) => (a.s > now) - (b.s > now) || (a.s > now ? a.s - b.s : a.e - b.e);
+  // NA's login bonuses aren't in Atlas Academy's data; they come with the page, from NA's news (0.28.1, 47-announcements.js)
+  let naL = [], naK = ""; try { naL = naLogin(now).filter(live1); naK = naLoginKey(now); } catch (e) {}
+  // (theirs link to their announcement and say what they give)
+  const naRow = (x) => `<li class="lv-ev lv-na${x.s > now ? " up" : x.e - now < 86400 ? " soon" : ""}"><b><a class="lv-go" href="${esc(x.url)}" target="_blank" rel="noopener" title="Opens NA's announcement">${esc(x.n)}</a></b>${liveTime(x)}${x.what ? `<small>${esc(x.what)}</small>` : ""}</li>`;
+  if (!d) return `<section class="d-sec hm-block hm-b-live" data-lv-k="${esc(naK)}">${head(esc(checked), btn)}
+    <p class="tr-none">${liveBusy ? "Getting NA's campaigns and newest servants…" : esc(liveErr || "Nothing loaded yet.") + (liveErr ? " Home shows NA's news here once it can reach Atlas Academy." : "")}</p>
+    ${naL.length ? `<div class="lv-col lv-only">${liveList("login", "Login bonuses", naL.sort(order), naRow, "")}</div>` : ""}</section>`;
+  const evs = d.ev.filter(live1), pick = (k) => evs.filter((x) => x.k === k).sort(order);
   // a campaign or login bonus on the same dates as an event (or ending with the only event that ends then) belongs to it
   const evs1 = evs.filter((y) => y.k === "event"), near = (a, b) => Math.abs(a - b) < 3600;
   const withEv = (x) => { if (x.k === "event") return null; const both = evs1.find((y) => near(y.s, x.s) && near(y.e, x.e)); if (both) return both;
@@ -12498,13 +12516,13 @@ function liveHTML() {
   const evRow = (x) => { const w = withEv(x); return `<li class="lv-ev${x.s > now ? " up" : x.e - now < 86400 ? " soon" : ""}"><b>${evName(x)}</b>${liveTime(x)}${w ? `<small>with ${w.id ? `<button type="button" class="lv-go sub" data-action="ev-open" data-ev="${w.id}">${esc(liveText(w.n))}</button>` : esc(liveText(w.n))}</small>` : ""}</li>`; };
   // events and summon banners are on Home's board above (0.24.0); this block keeps the rest of what's on
   const note = liveErr ? `<p class="lv-warn">${esc(liveErr)} Showing what came in ${esc(ago(live.checkedAt || Date.now()))}.</p>` : "";
-  return `<section class="d-sec hm-block hm-b-live">${head(esc(checked), btn)}${note}
+  return `<section class="d-sec hm-block hm-b-live" data-lv-k="${esc(naK)}">${head(esc(checked), btn)}${note}
     <div class="lv-cols">
-      <div class="lv-col">${liveList("login", "Login bonuses", pick("login"), evRow, "No login bonus right now.")}${liveList("camp", "Campaigns", pick("camp"), evRow, "No campaign right now.")}</div>
+      <div class="lv-col">${liveList("login", "Login bonuses", pick("login").concat(naL).sort(order), (x) => x.na ? naRow(x) : evRow(x), "No login bonus right now.")}${liveList("camp", "Campaigns", pick("camp"), evRow, "No campaign right now.")}</div>
       <div class="lv-col lv-rel"><h4>Newest servants</h4><div class="lv-grid">${d.sv.map((x) => liveFace(x)).join("")}</div></div>
       <div class="lv-col lv-rel"><h4>Newest Craft Essences</h4><div class="lv-grid">${d.ce.map((x) => liveFace(x)).join("")}</div></div>
     </div>
-    <p class="lv-foot">Times are in your time zone. <b>NEW</b> means it isn't in this file's NA data yet; it opens on Atlas Academy. <button type="button" class="linkish" data-action="live-off">Turn off live updates</button></p>
+    <p class="lv-foot">Times are in your time zone. Login bonuses come from NA's news (Atlas Academy's data doesn't have them) and open their announcement. <b>NEW</b> means it isn't in this file's NA data yet; it opens on Atlas Academy. <button type="button" class="linkish" data-action="live-off">Turn off live updates</button></p>
   </section>`;
 }
 function liveRefresh() {
@@ -13718,6 +13736,27 @@ const MAT_BY_ID = new Map(ATLAS_MATS.map((m) => [m[0], m]));
 const apLevels = (s) => [0, 1, 2, 3, 4].map((i) => clamp(Math.round(num((s.appends || [])[i]) || 0), 0, 10));
 const skLevels = (s) => [0, 1, 2].map((i) => { const v = (s.skills || [])[i]; return typeof v === "number" ? clamp(v, 1, 10) : 0; });
 const appendOf = (a, i) => (a && a.ap && ATLAS_APPENDS[a.ap[i]]) || null;
+/* 0.28.1: append skills for servants of your own (the Workshop's). In NA's data four of the five are the same on every
+   servant (Extra Attack Boost, Load Magical Energy, Special Attack Boost, Skill Reload), so they come with the slot; the
+   third is what differs (ATK Up or Critical Resistance Up against one class), so it's picked, and kept on the servant as
+   `appendPick` (the append's name). Which slots are fixed and which can be picked is read from NA's servants. */
+const AP_SLOT = (() => { const m = [0, 1, 2, 3, 4].map(() => new Set()); ATLAS_S.forEach((x) => (x.ap || []).forEach((v, i) => { if (m[i] && ATLAS_APPENDS[v]) m[i].add(v); })); return m.map((x) => [...x]); })();
+const apPickable = (i) => (AP_SLOT[i] || []).length > 1;
+function appendFor(s, a, i) {
+  if (a || !s || !s.custom) return appendOf(a, i);
+  const opts = AP_SLOT[i] || [];
+  if (opts.length === 1) return ATLAS_APPENDS[opts[0]] || null;
+  const k = typeof s.appendPick === "string" && i === 2 ? ATLAS_APPENDS.find((x) => x.n === s.appendPick) : null;
+  return k && opts.includes(ATLAS_APPENDS.indexOf(k)) ? k : null;
+}
+// the picker: against a class (ATK Up) first, then Critical Resistance, then the rest
+function apPickHTML(s, i) {
+  const cur = typeof s.appendPick === "string" ? s.appendPick : "";
+  const ks = (AP_SLOT[i] || []).map((v) => ATLAS_APPENDS[v]).sort((x, y) => x.n.localeCompare(y.n));
+  const grp = (label, f) => { const l = ks.filter(f); return l.length ? `<optgroup label="${label}">${l.map((k) => `<option value="${esc(k.n)}"${k.n === cur ? " selected" : ""}>${esc(k.n)}</option>`).join("")}</optgroup>` : ""; };
+  const atk = (k) => /\(ATK Up\)/.test(k.n), crit = (k) => /\(Crit\. Res\. Up\)/.test(k.n);
+  return `<select class="pl-sel ap-pick" data-ap-pick aria-label="Append skill ${i + 1} for ${esc(s.name)}"><option value=""${cur ? "" : " selected"}>Choose one…</option>${grp("ATK Up against a class", atk)}${grp("Critical Resistance Up against a class", crit)}${grp("Other", (k) => !atk(k) && !crit(k))}</select>`;
+}
 // append values move like skills: a tenth of the gap per level up to Lv 9, the full value at Lv 10
 const apVal = (v, lv) => { const l = Math.max(1, lv); return l >= 10 ? v[2] : v[1] + (v[2] - v[1]) * (l - 1) / 10; };
 function apEffect(k, lv) {
@@ -13804,10 +13843,10 @@ const shortHTML = (k, need) => { const s = Math.max(0, need - haveOf(k)); return
 function apSecHTML(s, a) {
   const lv = apLevels(s), ro = S.readOnly, n = lv.filter((v) => v > 0).length;
   const rows = lv.map((l, i) => {
-    const k = appendOf(a, i);
+    const k = appendFor(s, a, i), pick = s.custom && !a && apPickable(i);
     const ctl = `<div class="stepper ap-step">${ro ? "" : `<button type="button" data-action="bump" data-f="ap${i}" data-d="-1" aria-label="Lower append ${i + 1}"${l ? "" : " disabled"}>−</button>`}<output>${l ? l : "—"}</output>${ro ? "" : `<button type="button" data-action="bump" data-f="ap${i}" data-d="1" aria-label="${l ? "Raise" : "Unlock"} append ${i + 1}"${l >= 10 ? " disabled" : ""}>+</button>`}</div>`;
     return `<article class="ap-row${l ? "" : " locked"}${l >= 10 ? " max" : ""}">${apIcon(k)}
-      <div class="ap-main"><span class="ap-n"><i>${i + 1}</i><b>${esc(k ? k.n : "Append skill " + (i + 1))}</b>${l ? (l >= 10 ? `<span class="status grail">Maxed</span>` : `<span class="status">Lv ${l}</span>`) : `<span class="status">Locked</span>`}</span>
+      <div class="ap-main"><span class="ap-n"><i>${i + 1}</i>${pick && !ro ? apPickHTML(s, i) : `<b>${esc(k ? k.n : pick ? "Not picked yet" : "Append skill " + (i + 1))}</b>`}${l ? (l >= 10 ? `<span class="status grail">Maxed</span>` : `<span class="status">Lv ${l}</span>`) : `<span class="status">Locked</span>`}</span>
         ${k ? `<span class="ap-eff">${esc(apEffect(k, l || 1))}${l ? "" : ` <em>(at Lv 1)</em>`}</span>` : ""}</div>${ctl}</article>`;
   }).join("");
   const coin = a && a.ci ? `<img class="ap-coin" src="${esc(aimg(a.ci))}" alt="" loading="lazy" decoding="async">` : `<i class="ap-coin none" aria-hidden="true"></i>`;
@@ -13939,6 +13978,21 @@ bump = function (f, d) {
   renderDossier(); scheduleWrite("servants", s);
   const b = document.querySelector(`#dossier [data-action="bump"][data-f="${f}"][data-d="${d}"]`); if (b && !b.disabled) b.focus({preventScroll: true});
 };
+
+/* ---------- the third append of a servant of your own (0.28.1): picked, with Undo ---------- */
+document.addEventListener("change", (e) => {
+  const sel = e.target.closest && e.target.closest("select[data-ap-pick]"); if (!sel || S.readOnly) return;
+  const s = S.servants.find((x) => x.id === shownId()); if (!s || !s.custom) return;
+  const before = s.appendPick, v = sel.value;
+  if ((before || "") === v) return;
+  if (v) s.appendPick = v; else delete s.appendPick;
+  scheduleWrite("servants", s); plRedraw("select[data-ap-pick]");
+  toastAction(v ? "Append skill 3 is " + v + "." : "Append skill 3 cleared.", "Undo", () => {
+    const x = S.servants.find((y) => y.id === s.id); if (!x) return;
+    if (before === undefined) delete x.appendPick; else x.appendPick = before;
+    scheduleWrite("servants", x); plRedraw("select[data-ap-pick]");
+  });
+});
 
 /* ---------- Servant Coins follow the + and − (0.24.0 fixes) ----------
    A copy (NP up) adds the coins a summon of this servant gives (none for event servants), and a Bond level adds 5 (Bond
@@ -18799,7 +18853,19 @@ const ANNOUNCE = [{
     who: "For Masters who have cleared the Fuyuki prologue, one reward a day. On JP each day starts 9 hours earlier, at 04:00 JST.",
     days: ["10 Golden Fruit", "10 Star Fou ★3 (HP) and 10 Sun Fou ★3 (ATK)", "20 Hellfire of Wisdom ★5 and 100 Mana Prisms", "1 Rare Prism", "1 Meteor Fou ★4 (HP) and 1 Corona Fou ★4 (ATK)", "1 Crystallized Lore", "100,000,000 QP"]
   },
-  links: [["Stream announcement", "https://news.fate-go.jp/2026/10/1031nico/"], ["Login bonus (NA)", "https://webview.fate-go.us/iframe/2026/1031_100million_cd/"], ["Login bonus (JP)", "https://news.fate-go.jp/2026/10/100mdl/"]]
+  links: [["Stream announcement", "https://news.fate-go.jp/2026/10/1031nico/"], ["Login bonus (NA)", "https://webview.fate-go.us/2026/1031_100million_cd/"], ["Login bonus (JP)", "https://news.fate-go.jp/2026/10/100mdl/"]]
+}, {
+  // (0.28.1) a present for logging in once between `start` and `end`: counts down to the start, then to the end; gone after it
+  id: "discord20k-2026",
+  from: Date.UTC(2026, 10, 1, 7, 0), until: Date.UTC(2026, 10, 11, 4, 0),
+  kick: "NA",
+  title: "FGO's English community Discord passed 20,000 members",
+  body: "Announced on 1 November 2026: to celebrate 20,000 Masters in the FGO (English) Community Discord, every NA Master gets 10 Saint Quartz. You don't need to be on the Discord, only to log in to the game while the campaign runs.",
+  gift: {
+    name: "Discord 20,000 Members Celebration", server: "NA", what: "10 Saint Quartz", start: Date.UTC(2026, 10, 4, 4, 0), end: Date.UTC(2026, 10, 11, 3, 59), tz: "America/Los_Angeles", zone: "PST",
+    who: "Sent to your Present Box the first time you log in during the campaign, once per account. For Masters who have cleared Singularity F: Fuyuki by the end; clearing it during the campaign counts. No login during it, no Saint Quartz."
+  },
+  links: [["Campaign announcement (NA)", "https://webview.fate-go.us/2026/1103_discord_20000_cp/"]]
 }];
 
 function anHidden() { try { const d = JSON.parse(localStorage.getItem(AN_KEY) || "[]"); return Array.isArray(d) ? d.filter((x) => typeof x === "string") : []; } catch (e) { return []; } }
@@ -18809,8 +18875,11 @@ function anShown(now) { const h = anHidden(); return ANNOUNCE.filter((a) => now 
 function anState(a, now) { const s = a.stream; return !s ? "" : now < s.at ? "soon" : now < s.at + s.live * 60e3 ? "live" : "aired"; }
 // which day of the login bonus it is (0 = the first), -1 before, days.length after
 function anDay(b, now) { return b ? (now < b.start ? -1 : Math.min(b.days.length, Math.floor((now - b.start) / 864e5))) : -1; }
-// (the card redraws when either changes)
-const anKey = (a, now) => anState(a, now) + "|" + anDay(a.bonus, now);
+// a present: before it ("soon"), while it runs ("on"), after ("over")
+// (`end` is the last minute, as the news writes it: 19:59 means until 20:00)
+function anGiftState(g, now) { return !g ? "" : now < g.start ? "soon" : now < g.end + 6e4 ? "on" : "over"; }
+// (the card redraws when any of these changes)
+const anKey = (a, now) => anState(a, now) + "|" + anDay(a.bonus, now) + "|" + anGiftState(a.gift, now);
 const anFmt = (ms, o) => { try { return new Date(ms).toLocaleString("en-GB", o); } catch (e) { return new Date(ms).toUTCString(); } };
 const an2 = (n) => String(n).padStart(2, "0");
 // 5d 19:14:03, or 19:14:03 on the day
@@ -18839,6 +18908,21 @@ function anBonusHTML(b, now) {
     <ol class="an-days">${b.days.map((d, i) => `<li class="${i < today ? "past" : i === today ? "today" : ""}"${i === today ? ' aria-current="date"' : ""}><span class="an-dn">${i === today ? "Today" : "Day " + (i + 1)}<small>${esc(dayOf(i))}</small></span><span class="an-dr">${esc(d)}</span></li>`).join("")}</ol>
     <p class="an-note">${esc(b.who)} ${esc(b.whose ? b.whose.replace(/^\w/, (c) => c.toUpperCase()) : "A new day")} start at ${esc(flipZ)} ${esc(zone)} (${esc(flip)} your time).</p></div>`;
 }
+// a present: what it is and who gets it, with its dates in the game's time
+function anGiftHTML(g, now) {
+  const tz = g.tz || "Asia/Tokyo", zone = g.zone || "JST", z = (ms) => anFmt(ms, {timeZone: tz, weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"});
+  return `<div class="an-bonus an-gift"><p class="an-bh"><b>${esc(g.name)}</b><span class="an-btag">${esc(g.server)}</span><small>${esc(z(g.start))} to ${esc(z(g.end))} ${esc(zone)}</small></p>
+    <p class="an-gr">${esc(g.what)}</p>
+    <p class="an-note">${esc(g.who)}</p></div>`;
+}
+// its countdown: to the start, then to the end
+function anGiftSide(g, now) {
+  const st = anGiftState(g, now), at = st === "soon" ? g.start : g.end + 6e4;
+  const mine = (ms) => anFmt(ms, {weekday: "short", day: "numeric", month: "short"}) + ", " + anFmt(ms, {hour: "2-digit", minute: "2-digit"});
+  return `<div class="an-stream an-gside">${st === "soon" ? `<p class="an-k">Starts in</p>` : `<p class="an-k an-on"><i class="hb-dot" aria-hidden="true"></i>On now · log in within</p>`}
+    <p class="an-cd" data-an-at="${at}">${anCount(at - now)}</p>
+    <p class="an-when"><b>${esc(mine(g.start))}</b> to <b>${esc(mine(g.end))}</b> your time<br><span>${esc(g.what)}, once per account</span></p></div>`;
+}
 function anHTML(a, now) {
   const s = a.stream, st = anState(a, now);
   return `<article class="an" data-an="${esc(a.id)}" data-an-state="${anKey(a, now)}" aria-labelledby="an-t-${esc(a.id)}">
@@ -18848,9 +18932,10 @@ function anHTML(a, now) {
       <p class="an-body">${esc(st === "aired" && a.after ? a.after : a.body)}</p>
       ${s ? `<p class="an-show"><b>${esc(s.name)}</b><small lang="ja">${esc(s.jp)}</small><span>${esc(s.where)}${st === "soon" && s.note ? " " + esc(s.note) : ""}</span></p>` : ""}
       ${a.bonus ? anBonusHTML(a.bonus, now) : ""}
+      ${a.gift ? anGiftHTML(a.gift, now) : ""}
       <p class="an-links">${(a.links || []).map(([t, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)} ↗</a>`).join("")}<button type="button" class="linkish an-hide" data-action="an-hide" data-id="${esc(a.id)}">Hide</button></p>
     </div>
-    ${s ? anStreamHTML(a, now) : ""}
+    ${s ? anStreamHTML(a, now) : a.gift && anGiftState(a.gift, now) !== "over" ? anGiftSide(a.gift, now) : ""}
   </article>`;
 }
 // under the greeting, above the event board
@@ -18865,6 +18950,8 @@ function anPaint() {
 function anTick() {
   if (document.hidden || S.tab !== "home") return;
   const home = document.getElementById("home"), now = anNow(); if (!home) return;
+  // On NA now's login bonuses: one that starts, ends or moves to its next day redraws the block
+  const lv = home.querySelector(".hm-b-live[data-lv-k]"); if (lv && lv.dataset.lvK !== naLoginKey(now / 1000) && typeof liveRefresh === "function") liveRefresh();
   for (const el of home.querySelectorAll(".an[data-an]")) {
     const a = ANNOUNCE.find((x) => x.id === el.dataset.an);
     if (!a || now >= a.until || anKey(a, now) !== el.dataset.anState) { anPaint(); return; }
@@ -18872,6 +18959,42 @@ function anTick() {
   home.querySelectorAll("[data-an-at]").forEach((el) => { el.textContent = anCount(+el.dataset.anAt - now); });
 }
 setInterval(anTick, 1000);
+
+/* ---------- 0.28.1: NA's login bonuses, for On NA now (24-live-na.js) ----------
+   Atlas Academy's NA data has no login bonuses at all (its event list never includes them), so On NA now's list of them
+   was always empty. These are NA's, from NA's news, each linked to its announcement; one that's part of an
+   announcement above takes its dates and rewards from there. `end` is the last minute, as the news writes it. */
+const NA_LOGIN = [
+  {n: "Revival: GUDAGUDA Ryouma's Narrow Escape! accrued login bonus", start: Date.UTC(2026, 9, 16, 9, 0), end: Date.UTC(2026, 10, 6, 3, 59),
+    what: "Log in on 21 days: a Golden Fruit on the 1st, 8th and 15th, a Silver Fruit on the others. For Masters who have cleared Fuyuki.", url: "https://webview.fate-go.us/2026/1013_re_gudaguda/"},
+  {n: "Lostbelt No.6 Clear Support: Leyline Stones", start: Date.UTC(2026, 10, 1, 4, 0), end: Date.UTC(2026, 10, 30, 3, 59),
+    what: "3 Leyline Stones on your first login, to revive your party in Main Quests (they disappear after 30 Nov, 19:59 PST). Every Master.", url: "https://webview.fate-go.us/2026/1029_lb6_clear_cp/"},
+  {an: "100mdl-2026", n: "Countdown to 100 Million Downloads login bonus", url: "https://webview.fate-go.us/2026/1031_100million_cd/"},
+  {an: "discord20k-2026", n: "Community Discord 20,000 Members Celebration", url: "https://webview.fate-go.us/2026/1103_discord_20000_cp/"}
+];
+// as On NA now lists Atlas's (times in seconds; `a` is when it was announced), today's reward for a daily one
+function naLogin(now) {
+  const ms = now * 1000, out = [];
+  for (const x of NA_LOGIN) {
+    let s = x.start, e = x.end, a = x.start, what = x.what, d = "";
+    const an = x.an && ANNOUNCE.find((y) => y.id === x.an);
+    if (x.an && !an) continue;
+    if (an && an.bonus) {
+      const b = an.bonus, n = b.days.length; d = anDay(b, ms);
+      s = b.start; e = b.start + n * 864e5 - 6e4; a = an.from;
+      what = d < 0 ? "One reward a day for " + n + " days, from " + b.days[0] + " to " + b.days[n - 1] + "." : d < n ? "Today, day " + (d + 1) + " of " + n + ": " + b.days[d] + "." + (d + 1 < n ? " Next: " + b.days[d + 1] + "." : "") : "";
+    } else if (an && an.gift) {
+      const g = an.gift; s = g.start; e = g.end; a = an.from; what = g.what + " in your Present Box on your first login, once per account. For Masters who have cleared Fuyuki.";
+    }
+    // (ending at 03:59:00 like Atlas's, which is how "ends" reads 19:59 PST)
+    out.push({k: "login", na: 1, n: x.n, s: Math.round(s / 1000), e: Math.round(e / 1000), a: Math.round(a / 1000), what: what, url: x.url, d: d});
+  }
+  return out;
+}
+// changes when one is announced, starts, ends or moves to its next day
+function naLoginKey(now) {
+  return naLogin(now).map((x) => (x.a > now ? "-" : x.s > now ? "u" : x.e > now ? "o" : "x") + x.d).join(",");
+}
 const renderHome28 = renderHome;
 renderHome = function () { const r = renderHome28.apply(this, arguments); try { anPaint(); } catch (e) {} return r; };
 document.addEventListener("click", (e) => {

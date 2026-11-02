@@ -11,6 +11,27 @@ const MAT_BY_ID = new Map(ATLAS_MATS.map((m) => [m[0], m]));
 const apLevels = (s) => [0, 1, 2, 3, 4].map((i) => clamp(Math.round(num((s.appends || [])[i]) || 0), 0, 10));
 const skLevels = (s) => [0, 1, 2].map((i) => { const v = (s.skills || [])[i]; return typeof v === "number" ? clamp(v, 1, 10) : 0; });
 const appendOf = (a, i) => (a && a.ap && ATLAS_APPENDS[a.ap[i]]) || null;
+/* 0.28.1: append skills for servants of your own (the Workshop's). In NA's data four of the five are the same on every
+   servant (Extra Attack Boost, Load Magical Energy, Special Attack Boost, Skill Reload), so they come with the slot; the
+   third is what differs (ATK Up or Critical Resistance Up against one class), so it's picked, and kept on the servant as
+   `appendPick` (the append's name). Which slots are fixed and which can be picked is read from NA's servants. */
+const AP_SLOT = (() => { const m = [0, 1, 2, 3, 4].map(() => new Set()); ATLAS_S.forEach((x) => (x.ap || []).forEach((v, i) => { if (m[i] && ATLAS_APPENDS[v]) m[i].add(v); })); return m.map((x) => [...x]); })();
+const apPickable = (i) => (AP_SLOT[i] || []).length > 1;
+function appendFor(s, a, i) {
+  if (a || !s || !s.custom) return appendOf(a, i);
+  const opts = AP_SLOT[i] || [];
+  if (opts.length === 1) return ATLAS_APPENDS[opts[0]] || null;
+  const k = typeof s.appendPick === "string" && i === 2 ? ATLAS_APPENDS.find((x) => x.n === s.appendPick) : null;
+  return k && opts.includes(ATLAS_APPENDS.indexOf(k)) ? k : null;
+}
+// the picker: against a class (ATK Up) first, then Critical Resistance, then the rest
+function apPickHTML(s, i) {
+  const cur = typeof s.appendPick === "string" ? s.appendPick : "";
+  const ks = (AP_SLOT[i] || []).map((v) => ATLAS_APPENDS[v]).sort((x, y) => x.n.localeCompare(y.n));
+  const grp = (label, f) => { const l = ks.filter(f); return l.length ? `<optgroup label="${label}">${l.map((k) => `<option value="${esc(k.n)}"${k.n === cur ? " selected" : ""}>${esc(k.n)}</option>`).join("")}</optgroup>` : ""; };
+  const atk = (k) => /\(ATK Up\)/.test(k.n), crit = (k) => /\(Crit\. Res\. Up\)/.test(k.n);
+  return `<select class="pl-sel ap-pick" data-ap-pick aria-label="Append skill ${i + 1} for ${esc(s.name)}"><option value=""${cur ? "" : " selected"}>Choose one…</option>${grp("ATK Up against a class", atk)}${grp("Critical Resistance Up against a class", crit)}${grp("Other", (k) => !atk(k) && !crit(k))}</select>`;
+}
 // append values move like skills: a tenth of the gap per level up to Lv 9, the full value at Lv 10
 const apVal = (v, lv) => { const l = Math.max(1, lv); return l >= 10 ? v[2] : v[1] + (v[2] - v[1]) * (l - 1) / 10; };
 function apEffect(k, lv) {
@@ -97,10 +118,10 @@ const shortHTML = (k, need) => { const s = Math.max(0, need - haveOf(k)); return
 function apSecHTML(s, a) {
   const lv = apLevels(s), ro = S.readOnly, n = lv.filter((v) => v > 0).length;
   const rows = lv.map((l, i) => {
-    const k = appendOf(a, i);
+    const k = appendFor(s, a, i), pick = s.custom && !a && apPickable(i);
     const ctl = `<div class="stepper ap-step">${ro ? "" : `<button type="button" data-action="bump" data-f="ap${i}" data-d="-1" aria-label="Lower append ${i + 1}"${l ? "" : " disabled"}>−</button>`}<output>${l ? l : "—"}</output>${ro ? "" : `<button type="button" data-action="bump" data-f="ap${i}" data-d="1" aria-label="${l ? "Raise" : "Unlock"} append ${i + 1}"${l >= 10 ? " disabled" : ""}>+</button>`}</div>`;
     return `<article class="ap-row${l ? "" : " locked"}${l >= 10 ? " max" : ""}">${apIcon(k)}
-      <div class="ap-main"><span class="ap-n"><i>${i + 1}</i><b>${esc(k ? k.n : "Append skill " + (i + 1))}</b>${l ? (l >= 10 ? `<span class="status grail">Maxed</span>` : `<span class="status">Lv ${l}</span>`) : `<span class="status">Locked</span>`}</span>
+      <div class="ap-main"><span class="ap-n"><i>${i + 1}</i>${pick && !ro ? apPickHTML(s, i) : `<b>${esc(k ? k.n : pick ? "Not picked yet" : "Append skill " + (i + 1))}</b>`}${l ? (l >= 10 ? `<span class="status grail">Maxed</span>` : `<span class="status">Lv ${l}</span>`) : `<span class="status">Locked</span>`}</span>
         ${k ? `<span class="ap-eff">${esc(apEffect(k, l || 1))}${l ? "" : ` <em>(at Lv 1)</em>`}</span>` : ""}</div>${ctl}</article>`;
   }).join("");
   const coin = a && a.ci ? `<img class="ap-coin" src="${esc(aimg(a.ci))}" alt="" loading="lazy" decoding="async">` : `<i class="ap-coin none" aria-hidden="true"></i>`;
@@ -232,6 +253,21 @@ bump = function (f, d) {
   renderDossier(); scheduleWrite("servants", s);
   const b = document.querySelector(`#dossier [data-action="bump"][data-f="${f}"][data-d="${d}"]`); if (b && !b.disabled) b.focus({preventScroll: true});
 };
+
+/* ---------- the third append of a servant of your own (0.28.1): picked, with Undo ---------- */
+document.addEventListener("change", (e) => {
+  const sel = e.target.closest && e.target.closest("select[data-ap-pick]"); if (!sel || S.readOnly) return;
+  const s = S.servants.find((x) => x.id === shownId()); if (!s || !s.custom) return;
+  const before = s.appendPick, v = sel.value;
+  if ((before || "") === v) return;
+  if (v) s.appendPick = v; else delete s.appendPick;
+  scheduleWrite("servants", s); plRedraw("select[data-ap-pick]");
+  toastAction(v ? "Append skill 3 is " + v + "." : "Append skill 3 cleared.", "Undo", () => {
+    const x = S.servants.find((y) => y.id === s.id); if (!x) return;
+    if (before === undefined) delete x.appendPick; else x.appendPick = before;
+    scheduleWrite("servants", x); plRedraw("select[data-ap-pick]");
+  });
+});
 
 /* ---------- Servant Coins follow the + and − (0.24.0 fixes) ----------
    A copy (NP up) adds the coins a summon of this servant gives (none for event servants), and a Bond level adds 5 (Bond

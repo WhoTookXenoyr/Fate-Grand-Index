@@ -163,3 +163,6 @@
 .pimg-acts .spacer { flex: 1; }
 .pimg-theme { display: flex; gap: 6px; }
 .pimg-msg:empty { display: none; }
+/* 0.28.1: the third append of a servant of your own is picked from a list */
+.ap-n .ap-pick { min-width: 0; max-width: 100%; font-weight: 650; }
+.ap-row.locked .ap-n .ap-pick { color: var(--muted); }

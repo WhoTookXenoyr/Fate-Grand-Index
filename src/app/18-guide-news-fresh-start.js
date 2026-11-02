@@ -163,7 +163,8 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
-  {v: "0.28.1", d: "2 Nov 2026", t: "NA's login bonuses, and the Discord's 20,000 members", i: [
+  {v: "0.28.1", d: "2 Nov 2026", t: "Append skills for your own servants, NA's login bonuses and the Discord campaign", i: [
+    "<b>Append skills for servants you made</b>: the Append skills section on a servant from the Workshop used to show five blank rows. It now names the four every NA servant has (Extra Attack Boost, Load Magical Energy, Special Attack Boost and Skill Reload) with their effects at the level you set. The third one is different for every servant in the game, so it's a list you pick from: ATK Up or Critical Resistance Up against a class. Picking has Undo, and the pick stays with the servant in backups and in the single-servant file.",
     "On NA now's <b>Login bonuses</b> list was always empty: Atlas Academy's NA data has no login bonuses at all. It now lists NA's, from NA's news, each linked to its announcement and saying what it gives: the GUDAGUDA revival's 21-day bonus, the Lostbelt No.6 Clear Support Leyline Stones, the countdown bonus with today's reward, and the Discord Saint Quartz. They show even when Atlas Academy can't be reached, and move to the next day on their own.",
     "<b>FGO's English community Discord passed 20,000 members</b>, and every NA Master gets 10 Saint Quartz for it: they land in your Present Box the first time you log in between 3 November 20:00 and 10 November 19:59 PST (once per account, Fuyuki cleared). Home has an announcement for it that counts down to the start, then to the end, in your own time."]},
   {v: "0.28.0", d: "1 Nov 2026", t: "Card frames, and the 100 million downloads stream", i: [

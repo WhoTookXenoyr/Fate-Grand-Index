@@ -109,6 +109,11 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
 - **The Workshop** (`src/app/45-workshop.js`, `src/styles/28-workshop.css`): eight steps and a live card; parts flagged in `kit.auto` follow the class and rarity (`typicalOf`: NA's median stats, most used curve, deck, NP card, passives) until changed. The draft is `spirit-origin-list:v1:workshop`. Share codes are `FGI2.` + the kit as deflated base64url (`FGI1.` without deflate where `CompressionStream` is missing), cleaned by `wsClean` when opened.
 - **Versus with NA**: picks like `na:<number>` are NA servants at max level, NP1 and skills at 10, built on the fly (`vnaGet`), never saved.
 
+## Append skills for servants of your own (0.28.1)
+- The Append skills section (`src/app/29-planner.js`) names an NA servant's five appends from Atlas Academy's data. A servant made in the Workshop isn't in that data, so it used to show five blank rows. Now `appendFor(s, a, i)` gives them NA's real ones: in NA's data four slots hold the same append on every servant (Extra Attack Boost, Load Magical Energy, Special Attack Boost, Skill Reload), so they come with the slot. Which slots are fixed and which vary is read from `ATLAS_S` (`AP_SLOT`), not written down.
+- The third slot differs per servant (ATK Up or Critical Resistance Up against one class), so it's a list on their page: `select[data-ap-pick]`, grouped by kind, with Undo. The pick is kept on the servant as `appendPick` (the append's name, so it survives a reorder of the data), and nothing is guessed before it's picked. The levels are the same `appends` array as for any servant. Backups, the single-servant file, Edit details and the Workshop's save all keep it.
+- The Planner still needs NA's material data, so a servant of your own has no costs there (it says so, as before).
+
 ## Card frames (0.28.0)
 - **Card frame** (Off / On) on the SERVANTPAGE and in Past Chaldea's windows, each remembered on its own in `spirit-origin-list:v1:cardframe` (`{mine, pc}`).
 - Servants get the game's Saint Graph frame with the class in the diamond and ATK/HP under the swords. On the SERVANTPAGE those are the Stats section's numbers; in Past Chaldea, NA's at the max level.

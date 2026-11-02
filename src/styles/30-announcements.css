@@ -51,3 +51,5 @@
 /* all seven days in one row when there's room */
 .an-main { container-type: inline-size; }
 @container (min-width: 700px) { .an-days { grid-template-columns: repeat(7, minmax(0, 1fr)); } }
+/* a present for logging in: the reward itself, big */
+.an-gr { margin: 0; font: 700 20px/1.2 var(--f-display); letter-spacing: -.005em; }

@@ -2,7 +2,7 @@ import os
 # 0.28.0: announcements at the top of Home. The 100 million downloads stream (7 Nov 2026, 20:00 JST): a countdown in the
 # reader's own time, On now while it's on, then that it has aired (with the wording after it), gone after 21 Nov.
 # Hide (with Undo) is remembered. Shown with live updates off too.
-# Also 0.28.0: NA's Community Discord 20,000 members present (10 Saint Quartz for logging in once, 3 to 10 Nov PST): counts
+# 0.28.1: NA's Community Discord 20,000 members present (10 Saint Quartz for logging in once, 3 to 10 Nov PST): counts
 # down to the start, then to the end, gone after. And On NA now lists NA's login bonuses from NA's news (Atlas Academy's
 # data has none): today's reward for a daily one, linked announcements, the next day while Home is open.
 import sys, datetime

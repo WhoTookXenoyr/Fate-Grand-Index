@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until the full website and app: 1.0.0
-const APP_VER = "0.28.0";
+const APP_VER = "0.28.1";
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -163,10 +163,11 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
-  {v: "0.28.0", d: "2 Nov 2026", t: "Card frames, and the 100 million downloads stream", i: [
-    "<b>Fate/Grand Order passed 100 million downloads</b> across its Japanese, English, Chinese and Korean versions. Home now has an announcement about it with a countdown, in your own time, to the worldwide stream on Saturday 7 November (20:00 JST), where the campaign for every server gets revealed. It also lists the 7-day countdown login bonus every server has, day by day with today's marked, on NA's days (a new day at 20:00 PST; JP's start 9 hours earlier). Watch on YouTube opens FGO's official channel, and the official announcements are linked. You can hide it.",
-    "<b>FGO's English community Discord passed 20,000 members</b>, and every NA Master gets 10 Saint Quartz for it: they land in your Present Box the first time you log in between 3 November 20:00 and 10 November 19:59 PST (once per account, Fuyuki cleared). Home has an announcement for it that counts down to the start, then to the end, in your own time.",
+  {v: "0.28.1", d: "2 Nov 2026", t: "NA's login bonuses, and the Discord's 20,000 members", i: [
     "On NA now's <b>Login bonuses</b> list was always empty: Atlas Academy's NA data has no login bonuses at all. It now lists NA's, from NA's news, each linked to its announcement and saying what it gives: the GUDAGUDA revival's 21-day bonus, the Lostbelt No.6 Clear Support Leyline Stones, the countdown bonus with today's reward, and the Discord Saint Quartz. They show even when Atlas Academy can't be reached, and move to the next day on their own.",
+    "<b>FGO's English community Discord passed 20,000 members</b>, and every NA Master gets 10 Saint Quartz for it: they land in your Present Box the first time you log in between 3 November 20:00 and 10 November 19:59 PST (once per account, Fuyuki cleared). Home has an announcement for it that counts down to the start, then to the end, in your own time."]},
+  {v: "0.28.0", d: "1 Nov 2026", t: "Card frames, and the 100 million downloads stream", i: [
+    "<b>Fate/Grand Order passed 100 million downloads</b> across its Japanese, English, Chinese and Korean versions. Home now has an announcement about it with a countdown, in your own time, to the worldwide stream on Saturday 7 November (20:00 JST), where the campaign for every server gets revealed. It also lists the 7-day countdown login bonus every server has, day by day with today's marked, on NA's days (a new day at 20:00 PST; JP's start 9 hours earlier). Watch on YouTube opens FGO's official channel, and the official announcements are linked. You can hide it.",
     "<b>Card frame</b> on a servant's page, under the stages: turn it on and their picture sits in the game's Saint Graph frame: bronze, silver or gold by rarity with their stars, the class in the diamond, and their ATK and HP under the swords (the same numbers as the Stats section, Fou and an equipped Craft Essence included). Grails upgrade the frame like in the game: a ★1 or ★2 turns silver with its first grail and gold with its third, a ★3 gold with its second. The numbers follow the level, and a click on the picture still goes to the next stage.",
     "Past Chaldea has its own <b>Card frame</b> switch. Servants get the same frame with NA's ATK and HP at their max level; Craft Essences get the game's Craft Essence frame with the vines and their ATK and HP at the max level.",
     "Both switches are remembered in this browser, each on its own.",

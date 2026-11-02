@@ -5,7 +5,7 @@
 // cached in this browser, so Home still shows it offline. Your roster is never touched.
 // Since 0.24.0 the events and summon banners are on Home's event board (33-home-board.js); this block keeps the login
 // bonuses, the other campaigns and the newest servants and Craft Essences. Atlas's NA data has no login bonuses, so since
-// 0.28.0 NA's come with the page, from NA's news (NA_LOGIN in 47-announcements.js).
+// 0.28.1 NA's come with the page, from NA's news (NA_LOGIN in 47-announcements.js).
 const LIVE_KEY = "spirit-origin-list:v1:live";
 const LIVE_API = "https://api.atlasacademy.io/export/NA/";
 const LIVE_DB = "https://apps.atlasacademy.io/db/NA/";
@@ -167,7 +167,7 @@ function liveHTML() {
   const checked = liveBusy ? "checking Atlas Academy…" : live.checkedAt ? "from Atlas Academy · checked " + ago(live.checkedAt) : "from Atlas Academy";
   const btn = `<button type="button" class="btn ghost sm" data-action="live-check"${liveBusy ? " disabled" : ""}>Check now</button>`;
   const live1 = (x) => x.e > now && (x.s <= now || x.a <= now), order = (a, b) => (a.s > now) - (b.s > now) || (a.s > now ? a.s - b.s : a.e - b.e);
-  // NA's login bonuses aren't in Atlas Academy's data; they come with the page, from NA's news (0.28.0, 47-announcements.js)
+  // NA's login bonuses aren't in Atlas Academy's data; they come with the page, from NA's news (0.28.1, 47-announcements.js)
   let naL = [], naK = ""; try { naL = naLogin(now).filter(live1); naK = naLoginKey(now); } catch (e) {}
   // (theirs link to their announcement and say what they give)
   const naRow = (x) => `<li class="lv-ev lv-na${x.s > now ? " up" : x.e - now < 86400 ? " soon" : ""}"><b><a class="lv-go" href="${esc(x.url)}" target="_blank" rel="noopener" title="Opens NA's announcement">${esc(x.n)}</a></b>${liveTime(x)}${x.what ? `<small>${esc(x.what)}</small>` : ""}</li>`;

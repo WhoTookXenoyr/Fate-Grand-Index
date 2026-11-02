@@ -32,7 +32,7 @@ const ANNOUNCE = [{
   },
   links: [["Stream announcement", "https://news.fate-go.jp/2026/10/1031nico/"], ["Login bonus (NA)", "https://webview.fate-go.us/2026/1031_100million_cd/"], ["Login bonus (JP)", "https://news.fate-go.jp/2026/10/100mdl/"]]
 }, {
-  // a present for logging in once between `start` and `end`: counts down to the start, then to the end; gone after it
+  // (0.28.1) a present for logging in once between `start` and `end`: counts down to the start, then to the end; gone after it
   id: "discord20k-2026",
   from: Date.UTC(2026, 10, 1, 7, 0), until: Date.UTC(2026, 10, 11, 4, 0),
   kick: "NA",
@@ -137,7 +137,7 @@ function anTick() {
 }
 setInterval(anTick, 1000);
 
-/* ---------- NA's login bonuses, for On NA now (24-live-na.js) ----------
+/* ---------- 0.28.1: NA's login bonuses, for On NA now (24-live-na.js) ----------
    Atlas Academy's NA data has no login bonuses at all (its event list never includes them), so On NA now's list of them
    was always empty. These are NA's, from NA's news, each linked to its announcement; one that's part of an
    announcement above takes its dates and rewards from there. `end` is the last minute, as the news writes it. */

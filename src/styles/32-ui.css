@@ -1,0 +1,169 @@
+/* ===== 0.50.0-beta: the new look (the Chaldea terminal), the sidebar, moving between pages (51-ui.js) =====
+   New look: html[data-ui="beta"]. Navy and gold like the game's own menus; the sidebar is navy in light mode too, the one
+   loud thing on the page. Classic: html[data-ui="classic"], the 0.28 page, with the sidebar on phones only.
+   Only transform and opacity move. */
+
+/* ---------- the new look's colours ---------- */
+html[data-ui="beta"] {
+  --bg: #e5ebf6; --panel: #fbfcff; --sunken: #e8edf7; --raised: #ffffff; --line: #ccd4e5; --ink: #0f1a38; --muted: #54607e;
+  --accent: #14224b; --on-accent: #f4e8c8; --gold: #98762c; --focus: #2d6dd4; --term: #2d6dd4;
+  --warn-bg: #e8eefb; --warn-ink: #1b2d5e; --bar: #98762c;
+  --shadow: 0 1px 0 rgba(15, 26, 56, .04), 0 16px 36px -22px rgba(15, 26, 56, .5);
+  --g1: #dfe6f4; --g2: #d0daee; --g3: #eef2fa;
+  --page-muted: color-mix(in srgb, var(--ink) 82%, transparent);
+  --r-panel: 16px; --r-row: 10px;
+  /* the sidebar is the game's menu: navy in both modes */
+  --sd-bg1: #13204a; --sd-bg2: #0a1330; --sd-ink: #eef1fa; --sd-muted: #a6b1d1; --sd-gold: #e0c27a; --sd-line: rgba(224, 194, 122, .22);
+}
+@media (prefers-color-scheme: dark) {
+  html[data-ui="beta"]:not([data-theme="light"]) {
+    --bg: #0a1229; --panel: #111a36; --sunken: #0c1430; --raised: #172248; --line: #26345a; --ink: #ecf0fa; --muted: #94a1c2;
+    --accent: #e2c47e; --on-accent: #0c1430; --gold: #d9b86c; --focus: #7cc4ff; --term: #7cc4ff;
+    --warn-bg: #17244b; --warn-ink: #f0d690; --bar: #d9b86c;
+    --shadow: 0 16px 36px -20px rgba(0, 0, 0, .85);
+    --g1: #121d42; --g2: #0a1229; --g3: #1a2955;
+    --sd-bg1: #101b40; --sd-bg2: #070e25;
+  }
+}
+html[data-ui="beta"][data-theme="dark"] {
+  --bg: #0a1229; --panel: #111a36; --sunken: #0c1430; --raised: #172248; --line: #26345a; --ink: #ecf0fa; --muted: #94a1c2;
+  --accent: #e2c47e; --on-accent: #0c1430; --gold: #d9b86c; --focus: #7cc4ff; --term: #7cc4ff;
+  --warn-bg: #17244b; --warn-ink: #f0d690; --bar: #d9b86c;
+  --shadow: 0 16px 36px -20px rgba(0, 0, 0, .85);
+  --g1: #121d42; --g2: #0a1229; --g3: #1a2955;
+  --sd-bg1: #101b40; --sd-bg2: #070e25;
+}
+
+/* ---------- the new look's parts ---------- */
+/* buttons: plates with a light top edge; the main one is gold in dark mode, navy in light */
+html[data-ui="beta"] .btn { border-radius: 10px; background: linear-gradient(180deg, var(--raised), var(--panel)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07); font-weight: 600; }
+html[data-ui="beta"] .btn:hover { border-color: color-mix(in srgb, var(--gold) 70%, var(--line)); }
+html[data-ui="beta"] .btn.primary { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 84%, #fff), var(--accent)); border-color: var(--accent); color: var(--on-accent); }
+html[data-ui="beta"] .btn.ghost { background: transparent; box-shadow: none; }
+html[data-ui="beta"] .btn.sm { border-radius: 8px; }
+html[data-ui="beta"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]), html[data-ui="beta"] select, html[data-ui="beta"] textarea { border-radius: 9px; }
+html[data-ui="beta"] .seg { border-radius: 11px; }
+html[data-ui="beta"] .seg button { border-radius: 8px; }
+html[data-ui="beta"] .seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+html[data-ui="beta"] .seg button[aria-pressed="true"] .seg-card { filter: drop-shadow(0 0 1px rgba(0, 0, 0, .4)); }
+/* section titles are headings, not labels */
+html[data-ui="beta"] .d-sec > h3 { font-family: var(--f-display); font-variation-settings: "wdth" 82; font-size: 17px; font-weight: 700; letter-spacing: -.005em; text-transform: none; color: var(--ink); }
+html[data-ui="beta"] .d-sec > h3 small { color: var(--muted); font-weight: 500; }
+/* the roster's rows: the picked one gets a gold edge, like the game's selected card */
+html[data-ui="beta"] .row { border-radius: var(--r-row); }
+html[data-ui="beta"] .row.is-sel { background: color-mix(in srgb, var(--gold) 12%, var(--panel)); border-color: color-mix(in srgb, var(--gold) 75%, transparent); box-shadow: inset 3px 0 0 var(--gold); }
+/* notices read as Chaldea's announcements */
+html[data-ui="beta"] .notice { border: 1px solid color-mix(in srgb, var(--warn-ink) 18%, transparent); border-left: 3px solid var(--gold); border-radius: 12px; }
+html[data-ui="beta"] .summary { border-bottom-color: color-mix(in srgb, var(--gold) 35%, var(--line)); }
+
+/* ---------- the layout with the sidebar ---------- */
+html.has-side { --side-w: 248px; }
+html.has-side.side-mini { --side-w: 76px; }
+@media (min-width: 901px) {
+  html.has-side .shell { margin-left: var(--side-w); margin-right: auto; max-width: min(1320px, calc(100vw - var(--side-w))); padding-top: 22px; }
+  html.has-side .side-btn, html.has-side .top-logo { display: none; }
+  html.has-side .side-scrim { display: none; }
+}
+.side { position: fixed; z-index: 45; left: 0; top: 0; bottom: 0; width: var(--side-w); display: flex; flex-direction: column; gap: 16px; padding: 18px 14px 14px;
+  overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--panel) 97%, transparent), color-mix(in srgb, var(--sunken) 97%, transparent)); border-right: 1px solid var(--line); color: var(--ink); }
+html[data-ui="beta"] .side { background: linear-gradient(180deg, var(--sd-bg1), var(--sd-bg2)); border-right: 1px solid var(--sd-line); color: var(--sd-ink);
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, .03), 6px 0 28px -18px rgba(5, 10, 30, .7); --ink: var(--sd-ink); --muted: var(--sd-muted); --page-muted: var(--sd-muted); --line: var(--sd-line);
+  --panel: rgba(255, 255, 255, .05); --raised: rgba(255, 255, 255, .08); --sunken: rgba(255, 255, 255, .06); --gold: var(--sd-gold); --focus: #8fd0ff; color-scheme: dark; }
+/* a thin gold rule down the inside edge, like the trim on the game's panels */
+html[data-ui="beta"] .side::after { content: ""; position: fixed; top: 0; bottom: 0; left: calc(var(--side-w) - 4px); width: 1px; pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(224, 194, 122, .5) 18%, rgba(224, 194, 122, .5) 82%, transparent); }
+.side-top { display: flex; flex-direction: column; gap: 6px; padding: 0 4px; }
+.side .brand { margin: 0; }
+.side .brand-logo { width: 176px; height: auto; display: block; }
+/* (in the menu, of the line over the logo only the version is kept) */
+.side .eyebrow { order: 2; font-size: 0; line-height: 0; letter-spacing: 0; }
+.side .eyebrow .ver-chip { font-size: 11px; line-height: 1.5; margin: 2px 0 0 2px; }
+.side .story-plate-btn { margin-top: 4px; }
+/* the pages */
+.side-nav { position: relative; }
+.side .tabs { display: flex; flex-direction: column; gap: 2px; padding: 0; border-radius: 0; background: none; max-width: none; overflow: visible; align-self: stretch; }
+.side .tab { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 42px; padding: 8px 12px; border-radius: 10px; background: none; color: var(--muted); font-size: 14.5px; font-weight: 600; text-align: left; box-shadow: none; transition: color .18s ease, background-color .18s ease; }
+.side .tab:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 6%, transparent); }
+.side .tab[aria-selected="true"] { color: var(--ink); background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 24%, transparent), color-mix(in srgb, var(--gold) 3%, transparent)); box-shadow: none; }
+.tab-ic { display: none; }
+.side .tab-ic { display: grid; place-items: center; flex: none; width: 24px; height: 24px; }
+.side .tab-ic svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.side .tab[aria-selected="true"] .tab-ic { color: var(--gold); }
+.side .tab-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* the gold marker glides to the page you're on */
+.side-mark { position: absolute; left: -14px; top: 0; width: 3px; height: 42px; border-radius: 0 3px 3px 0; background: var(--gold); box-shadow: 0 0 12px 1px color-mix(in srgb, var(--gold) 60%, transparent);
+  opacity: 0; transition: transform .38s cubic-bezier(.3, .7, .2, 1), height .38s ease, opacity .2s ease; pointer-events: none; }
+/* the header's buttons, at the foot of the menu */
+.side-tools { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); }
+/* two to a row; the frame rate, the layout and light/dark switches sit together under them */
+.side .mast-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.side .mast-actions > .btn, .side .mast-actions > .menu-wrap, .side .mast-actions > label.btn { flex: 1 1 calc(50% - 3px); min-width: 0; }
+.side .mast-actions > .btn, .side .mast-actions > .menu-wrap > .btn, .side .mast-actions > label.btn { width: 100%; min-height: 34px; padding: 0 10px; font-size: 13px; justify-content: flex-start; }
+.side .mast-actions > .menu-wrap { position: relative; }
+.side .mast-actions > .acct-btn { flex-basis: 100%; }
+.side .mast-actions > .fps-btn, .side .mast-actions > .lay-tgl, .side .mast-actions > .theme-tgl { flex: none; }
+.side .pop-menu { top: auto; bottom: calc(100% + 6px); left: 0; right: auto; width: min(270px, calc(var(--side-w) + 40px)); }
+.side-foot { display: flex; flex-direction: column; gap: 8px; }
+.side-look { display: flex; align-items: center; gap: 4px; padding: 3px; border-radius: 10px; border: 1px solid var(--line); font-size: 12.5px; }
+.side-look span { padding: 0 6px 0 7px; color: var(--muted); }
+.side-look button { flex: 1; min-height: 28px; border: 0; border-radius: 7px; background: none; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer; }
+.side-look button[aria-pressed="true"] { background: color-mix(in srgb, var(--gold) 26%, transparent); color: var(--ink); }
+.side-mini-btn { display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 8px; border: 0; border-radius: 8px; background: none; color: var(--muted); font: inherit; font-size: 12.5px; cursor: pointer; }
+.side-mini-btn:hover { color: var(--ink); }
+.side-mini-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: transform .3s ease; }
+html[data-ui="classic"] .side-mini-btn { display: none; }
+/* folded: just the icons */
+html.side-mini .side { padding-inline: 12px; }
+html.side-mini .side .tab { justify-content: center; padding-inline: 0; }
+html.side-mini .side .tab-t, html.side-mini .side .eyebrow, html.side-mini .side-look, html.side-mini .side-mini-btn span, html.side-mini .side-tools { display: none; }
+html.side-mini .side .brand-logo { width: 50px; height: 50px; object-fit: cover; object-position: 30% 50%; }
+html.side-mini .side-mini-btn { justify-content: center; }
+html.side-mini .side-mini-btn svg { transform: rotate(180deg); }
+.side-mini-btn:focus-visible, .side-look button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* ---------- the top of the page: the page's name; on phones a bar with the menu button and the logo ---------- */
+html.has-side .masthead { display: block; }
+.top-bar { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.top-title { margin: 0; min-width: 0; font-family: var(--f-display); font-variation-settings: "wdth" 76; font-weight: 760; font-size: clamp(2rem, 3.4vw, 2.7rem); line-height: 1; letter-spacing: -.012em; color: var(--ink); }
+.side-btn { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 11px; background: var(--panel); color: var(--ink); cursor: pointer; }
+.side-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; }
+.side-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.top-logo img { display: block; height: 36px; width: auto; }
+@media (max-width: 900px) {
+  html.has-side .shell { padding-top: 0; }
+  html.has-side .masthead { position: sticky; top: 0; z-index: 25; margin: 0 calc(-1 * clamp(16px, 4vw, 40px)); padding: calc(env(safe-area-inset-top, 0px) + 8px) clamp(12px, 4vw, 40px) 8px;
+    background: color-mix(in srgb, var(--panel) 94%, transparent); border-bottom: 1px solid var(--line); }
+  html[data-ui="beta"].has-side .masthead { background: linear-gradient(180deg, var(--sd-bg1), color-mix(in srgb, var(--sd-bg2) 96%, transparent)); border-bottom-color: var(--sd-line); --ink: var(--sd-ink); --line: var(--sd-line); --panel: rgba(255, 255, 255, .06); color: var(--sd-ink); }
+  html.has-side .top-title { margin-left: auto; font-size: 15px; font-family: var(--f-body); font-weight: 600; letter-spacing: 0; color: var(--muted); }
+  html[data-ui="beta"].has-side .top-title { color: var(--sd-muted); }
+  /* the menu slides in from the left, over the page */
+  .side { width: min(300px, 86vw); z-index: 62; transform: translateX(-104%); transition: transform .32s cubic-bezier(.3, .7, .2, 1); padding-top: calc(env(safe-area-inset-top, 0px) + 18px); }
+  html.side-open .side { transform: none; box-shadow: 12px 0 40px -12px rgba(0, 0, 0, .55); }
+  html[data-ui="beta"] .side::after { display: none; }
+  .side-scrim { position: fixed; inset: 0; z-index: 61; background: rgba(6, 10, 26, .5); opacity: 0; pointer-events: none; transition: opacity .3s ease; }
+  html.side-open .side-scrim { opacity: 1; pointer-events: auto; }
+  .side-mini-btn { display: none; }
+  .side .tab { min-height: 46px; font-size: 15.5px; }
+}
+
+/* ---------- moving between pages: the new one slides in ---------- */
+section[id^="view-"].view-in { animation: uiViewIn .42s cubic-bezier(.2, .7, .2, 1) both; }
+@keyframes uiViewIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+/* ---------- Past Chaldea: the servant's window drops in ---------- */
+.pcd.pcd-drop { animation: uiFade .26s ease-out both; }
+.pcd.pcd-drop .pcd-panel { animation: uiDrop .52s cubic-bezier(.2, .9, .3, 1.12) both; }
+.pcd.pcd-drop .pcd-frame { animation: uiCard .7s cubic-bezier(.2, .85, .25, 1.12) both; animation-delay: .08s; }
+.pcd.pcd-drop .pcd-info > * { animation: uiViewIn .46s cubic-bezier(.2, .7, .2, 1) both; animation-delay: .18s; }
+.pcd.pcd-drop .pcd-info > :nth-child(2) { animation-delay: .22s; }
+.pcd.pcd-drop .pcd-info > :nth-child(3) { animation-delay: .26s; }
+.pcd.pcd-drop .pcd-info > :nth-child(n+4) { animation-delay: .3s; }
+@keyframes uiFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes uiDrop { from { opacity: 0; transform: translateY(-34px) scale(.965); } to { opacity: 1; transform: none; } }
+@keyframes uiCard { 0% { opacity: 0; transform: translateY(-70px) rotate(-4deg) scale(1.05); } 60% { opacity: 1; } 100% { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  section[id^="view-"].view-in, .pcd.pcd-drop, .pcd.pcd-drop .pcd-panel, .pcd.pcd-drop .pcd-frame, .pcd.pcd-drop .pcd-info > * { animation: none !important; }
+  .side, .side-mark, .side-scrim { transition: none !important; }
+}

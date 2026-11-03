@@ -440,7 +440,7 @@ function storyPaint() {
     bg.classList.toggle("on", !!c); bg.classList.toggle("lt", !isDark());
   }
   // the chapter's plate next to the logo
-  const brand = document.querySelector(".masthead .brand");
+  const brand = document.querySelector(".brand");
   let plate = document.getElementById("story-plate");
   if (c && brand) {
     if (!plate) { brand.insertAdjacentHTML("beforeend", `<button type="button" id="story-plate" class="story-plate-btn" data-action="tab" data-tab="story"></button>`); plate = document.getElementById("story-plate"); }

@@ -4627,6 +4627,159 @@ section[id^="view-"].view-in { animation: uiViewIn .42s cubic-bezier(.2, .7, .2,
   section[id^="view-"].view-in, .pcd.pcd-drop, .pcd.pcd-drop .pcd-panel, .pcd.pcd-drop .pcd-frame, .pcd.pcd-drop .pcd-info > * { animation: none !important; }
   .side, .side-mark, .side-scrim { transition: none !important; }
 }
+/* ===== 0.50.0-beta: the Battle page (49a-battle-engine.js, 49b-battle-ui.js) =====
+   Only transform and opacity move: the HP and NP bars scale, the acting fighter steps forward, the damage rises. */
+.bt { display: flex; flex-direction: column; gap: 18px; }
+.bt-note { margin: 0; font-size: 12.5px; color: var(--muted); }
+.bt-warn { margin: 0; font-size: 13px; color: var(--buster); }
+.bt-card { padding: 18px 20px; border-radius: var(--r-panel); background: var(--panel); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.bt-setup { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 18px; align-items: start; }
+.bt-setup > .bt-go { grid-column: 1 / -1; }
+@media (max-width: 1100px) { .bt-setup { grid-template-columns: minmax(0, 1fr); } }
+/* the party: six slots, three in front */
+.bt-slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.bt-slot { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--sunken); }
+.bt-slot.back { opacity: .92; border-style: dashed; }
+.bt-slot.empty .bt-face { opacity: .4; }
+.bt-face { display: block; width: 56px; height: 56px; border-radius: 10px; overflow: hidden; background: color-mix(in srgb, var(--ink) 10%, transparent); }
+.bt-face img, .bt-uf img:first-child, .bt-bk img, .bt-cd img, .bt-qe img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.bt-face img.bt-emb, .bt-uf img.bt-emb, .bt-qe img.bt-emb { object-fit: contain; padding: 14%; }
+.bt-noface { display: block; width: 100%; height: 100%; }
+.bt-slot-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.bt-slot select { width: 100%; min-width: 0; }
+.bt-slot small { font-size: 11.5px; color: var(--muted); line-height: 1.35; }
+.bt-np { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+@media (max-width: 640px) { .bt-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* the enemies */
+.bt-src { flex-wrap: wrap; align-self: flex-start; }
+.bt-made, .bt-pick, .bt-quest { display: flex; flex-direction: column; gap: 10px; }
+.bt-preset { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.bt-wave { margin: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.bt-wave legend { padding: 0 6px; font-weight: 700; font-size: 13px; display: flex; gap: 10px; align-items: baseline; }
+.bt-erows { display: flex; flex-direction: column; gap: 6px; }
+.bt-erow { display: grid; grid-template-columns: minmax(90px, 1.3fr) minmax(90px, 1fr) minmax(76px, .8fr) minmax(86px, 1fr) minmax(70px, .8fr) 62px 62px 30px; gap: 6px; align-items: end; }
+.bt-erow label { display: flex; flex-direction: column; gap: 2px; font-size: 11px; color: var(--muted); min-width: 0; }
+.bt-erow input, .bt-erow select { width: 100%; min-width: 0; min-height: 34px; }
+.bt-x { width: 30px; height: 34px; border: 1px solid var(--line); border-radius: 8px; background: none; color: var(--muted); font: inherit; font-size: 16px; cursor: pointer; }
+.bt-x:hover { color: var(--buster); border-color: var(--buster); }
+@media (max-width: 760px) { .bt-erow { grid-template-columns: repeat(4, minmax(0, 1fr)); } .bt-erow > input[type="text"] { grid-column: 1 / -2; } }
+.bt-prow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.bt-prow select { width: 100%; min-width: 0; }
+.bt-qrow { display: flex; flex-wrap: wrap; gap: 10px; }
+.bt-qrow label, .bt-qid label { display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: var(--muted); min-width: 0; flex: 1 1 240px; }
+.bt-qrow select { width: 100%; }
+.bt-qid { display: flex; gap: 8px; align-items: end; flex-wrap: wrap; }
+.bt-qid input { width: 100%; }
+.bt-qwaves { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border-radius: 12px; background: var(--sunken); }
+.bt-qwaves small { color: var(--muted); margin-left: 8px; }
+.bt-qw { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+.bt-qw > span:first-child { font-size: 12px; font-weight: 700; color: var(--muted); min-width: 58px; }
+.bt-qe { display: grid; grid-template-columns: 34px auto; grid-template-rows: auto auto; column-gap: 8px; align-items: center; }
+.bt-qe img, .bt-qe .bt-noface { grid-row: 1 / 3; width: 34px; height: 34px; border-radius: 8px; overflow: hidden; }
+.bt-qe b { font-size: 13px; }
+.bt-qe small { font-size: 11.5px; color: var(--muted); margin: 0; }
+.bt-hpm { align-self: flex-start; }
+.bt-go { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: center; }
+.bt-fight { min-width: 150px; min-height: 46px; font-size: 16px; }
+.bt-seed { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.bt-seed input { width: 130px; }
+
+/* ---------- the fight ---------- */
+.bt-run { display: flex; flex-direction: column; gap: 14px; }
+.bt-bar { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: space-between; }
+.bt-where { display: flex; flex-direction: column; }
+.bt-where b { font-family: var(--f-display); font-variation-settings: "wdth" 80; font-size: 24px; line-height: 1.1; }
+.bt-where span { font-size: 13px; color: var(--muted); }
+.bt-ctl { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.bt-ctl .btn { min-width: 40px; }
+.bt-acts { display: flex; gap: 6px; }
+.bt-say { margin: 0; min-height: 1.5em; font-size: 16px; font-weight: 600; }
+/* the field: navy in both modes, like the game's battle screen */
+.bt-stage { position: relative; display: flex; flex-direction: column; gap: 14px; padding: 18px; border-radius: 18px; overflow: hidden; color: #eef1fa; color-scheme: dark;
+  background: radial-gradient(120% 70% at 50% 0%, rgba(120, 150, 230, .28), transparent 60%), radial-gradient(100% 60% at 50% 100%, rgba(224, 194, 122, .18), transparent 60%), linear-gradient(180deg, #16234d, #0a1230);
+  border: 1px solid rgba(224, 194, 122, .35); --muted: #a6b1d1; }
+.bt-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; min-height: 40px; }
+.bt-u { position: relative; display: grid; grid-template-columns: 58px minmax(0, 1fr); grid-template-areas: "f n" "f hp" "f g" "b b"; column-gap: 10px; row-gap: 4px; align-items: center; padding: 10px; border-radius: 14px;
+  background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); transition: transform .25s cubic-bezier(.3, .7, .2, 1), opacity .3s ease; }
+.bt-u.act { transform: translateY(-6px) scale(1.02); border-color: rgba(224, 194, 122, .8); box-shadow: 0 0 18px -4px rgba(224, 194, 122, .7); }
+.bt-row.foes .bt-u.act { transform: translateY(6px) scale(1.02); border-color: rgba(255, 120, 120, .8); box-shadow: 0 0 18px -4px rgba(255, 110, 110, .7); }
+.bt-u.hit { animation: btShake .34s ease; }
+.bt-u.gone { opacity: .28; }
+.bt-u.stun { border-style: dashed; }
+@keyframes btShake { 0%, 100% { transform: none; } 25% { transform: translateX(-4px); } 50% { transform: translateX(4px); } 75% { transform: translateX(-2px); } }
+.bt-uf { grid-area: f; position: relative; width: 58px; height: 58px; border-radius: 12px; overflow: visible; }
+.bt-uf > img:first-child, .bt-uf > .bt-noface { border-radius: 12px; overflow: hidden; background: rgba(255, 255, 255, .08); }
+.bt-ucls { position: absolute; right: -6px; bottom: -6px; width: 24px; height: 24px; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .6)); }
+.bt-pop { position: absolute; left: 50%; top: -6px; z-index: 2; transform: translateX(-50%); padding: 1px 7px; border-radius: 7px; font: 800 15px var(--f-display); white-space: nowrap; color: #fff;
+  background: rgba(200, 40, 40, .92); box-shadow: 0 4px 12px -4px rgba(0, 0, 0, .7); animation: btPop .7s cubic-bezier(.2, .7, .2, 1) both; pointer-events: none; }
+.bt-pop.miss { background: rgba(60, 90, 160, .92); }
+.bt-row.allies .bt-pop { background: rgba(150, 30, 60, .92); }
+@keyframes btPop { from { opacity: 0; transform: translate(-50%, 8px) scale(.8); } 30% { opacity: 1; transform: translate(-50%, -6px) scale(1.08); } to { opacity: 1; transform: translate(-50%, -12px) scale(1); } }
+.bt-un { grid-area: n; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; font-size: 13.5px; }
+.bt-hp { grid-area: hp; position: relative; height: 8px; border-radius: 4px; overflow: hidden; background: rgba(255, 255, 255, .12); }
+.bt-hp i { position: absolute; inset: 0; transform-origin: 0 50%; background: linear-gradient(90deg, #4bd08b, #9be27a); transition: transform .45s cubic-bezier(.3, .7, .2, 1); }
+.bt-row.foes .bt-hp i { background: linear-gradient(90deg, #e05a5a, #f0a060); }
+.bt-hpn { grid-area: g; font: 600 12px var(--f-data); font-variant-numeric: tabular-nums; color: rgba(238, 241, 250, .86); display: none; }
+.bt-row.foes .bt-hpn { display: block; }
+.bt-hpn small { color: #f0c27a; }
+.bt-npg { grid-area: g; position: relative; height: 14px; border-radius: 7px; overflow: hidden; background: rgba(255, 255, 255, .1); }
+.bt-npg i { position: absolute; inset: 0; transform-origin: 0 50%; background: linear-gradient(90deg, #c99a3c, #f1d58f); transition: transform .45s cubic-bezier(.3, .7, .2, 1); }
+.bt-npg.full i { background: linear-gradient(90deg, #ff6f9a, #ffd36f, #6ff0b0, #6fc8ff, #b48cff); }
+.bt-npg b { position: relative; display: block; text-align: right; padding-right: 6px; font: 700 10.5px/14px var(--f-data); color: #fff; text-shadow: 0 0 3px rgba(0, 0, 0, .9); }
+.bt-ch { position: absolute; top: 12px; right: 12px; display: flex; gap: 4px; }
+.bt-row.foes .bt-un { padding-right: 62px; }
+/* (a fight scrolled into view isn't hidden under the phone's bar at the top) */
+#view-battle { scroll-margin-top: 76px; }
+.bt-ch i { width: 9px; height: 9px; border-radius: 50%; border: 1px solid rgba(255, 140, 140, .7); }
+.bt-ch i.on { background: #ff7b6b; box-shadow: 0 0 6px rgba(255, 110, 100, .9); }
+.bt-bfs { grid-area: b; display: flex; flex-wrap: wrap; gap: 3px; min-height: 0; }
+.bt-bf { font-style: normal; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 5px; background: rgba(120, 200, 255, .18); color: #bfe3ff; }
+.bt-bf.de { background: rgba(255, 110, 110, .2); color: #ffc0c0; }
+/* the cards of the turn */
+.bt-hand { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; min-height: 76px; }
+.bt-cd { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 64px; height: 76px; padding-bottom: 6px; border-radius: 10px; overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, .2); transition: transform .3s cubic-bezier(.3, .7, .2, 1); }
+.bt-cd > img, .bt-cd > .bt-emb { position: absolute; inset: 0; opacity: .55; }
+.bt-cd b { position: relative; font: 800 11px var(--f-display); letter-spacing: .02em; text-shadow: 0 1px 3px rgba(0, 0, 0, .9); }
+.bt-cd small { position: relative; font-size: 9.5px; max-width: 58px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bt-cd.B { background: linear-gradient(180deg, #8c1f1f, #3a0c0c); border-color: rgba(255, 120, 100, .6); }
+.bt-cd.A { background: linear-gradient(180deg, #1f3f8c, #0b173a); border-color: rgba(120, 170, 255, .6); }
+.bt-cd.Q { background: linear-gradient(180deg, #1f7a3a, #0a2e15); border-color: rgba(130, 230, 140, .6); }
+.bt-cd.np { background: linear-gradient(180deg, #b48a2c, #4a3510); border-color: rgba(255, 220, 140, .85); justify-content: center; }
+.bt-cd.pick { transform: translateY(-8px); box-shadow: 0 10px 20px -10px rgba(0, 0, 0, .8), 0 0 0 2px rgba(255, 226, 150, .7); }
+.bt-cd.crit::after { content: "★"; position: absolute; top: 3px; right: 5px; color: #ffe27a; font-size: 12px; text-shadow: 0 0 4px rgba(0, 0, 0, .8); }
+.bt-cd i { position: absolute; top: 4px; left: 5px; font: 800 12px var(--f-display); font-style: normal; color: #ffe8a8; text-shadow: 0 1px 3px rgba(0, 0, 0, .9); }
+.bt-back { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.bt-bk { width: 34px; height: 34px; border-radius: 8px; overflow: hidden; opacity: .8; background: rgba(255, 255, 255, .08); }
+@media (max-width: 640px) {
+  .bt-stage { padding: 12px; gap: 10px; }
+  .bt-row { gap: 6px; }
+  .bt-u { grid-template-columns: minmax(0, 1fr); grid-template-areas: "f" "n" "hp" "g" "b"; padding: 8px; justify-items: stretch; }
+  .bt-uf { width: 44px; height: 44px; justify-self: center; }
+  .bt-un { font-size: 12px; text-align: center; }
+  .bt-cd { width: 52px; height: 64px; }
+}
+/* the result */
+.bt-sum { padding: 16px 18px; border-radius: var(--r-panel); border: 1px solid var(--line); background: var(--panel); }
+.bt-sum.win { border-color: color-mix(in srgb, var(--quick) 55%, var(--line)); }
+.bt-sum.lose { border-color: color-mix(in srgb, var(--buster) 55%, var(--line)); }
+.bt-sum p { margin: 0; }
+.bt-tbw { overflow-x: auto; }
+.bt-tb { width: 100%; border-collapse: collapse; font-size: 13px; }
+.bt-tb th, .bt-tb td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+.bt-tb .n { text-align: right; font-variant-numeric: tabular-nums; }
+/* what happened */
+.bt-log summary { cursor: pointer; font-weight: 700; }
+.bt-log summary small { font-weight: 500; color: var(--muted); margin-left: 6px; }
+.bt-log ol { margin: 8px 0 0; padding: 0 0 0 4px; list-style: none; max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 1px; font-size: 13px; }
+.bt-log li .linkish { text-align: left; color: var(--ink); text-decoration: none; padding: 2px 6px; border-radius: 6px; width: 100%; }
+.bt-log li.later .linkish { color: var(--muted); }
+.bt-log li.cur .linkish { background: color-mix(in srgb, var(--gold) 22%, transparent); }
+.bt-log li.t-turn, .bt-log li.t-wave { margin-top: 6px; font-weight: 700; }
+.bt-log li.t-end { font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { .bt-u, .bt-u.hit, .bt-pop, .bt-hp i, .bt-npg i, .bt-cd { animation: none !important; transition: none !important; } }
+/* (the labels over the made-up enemies' fields only on the first row) */
+.bt-erow + .bt-erow label > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -19425,6 +19578,980 @@ document.addEventListener("click", (e) => {
   const b = e.target.closest && e.target.closest('[data-action="sv-export"]'); if (!b) return;
   e.preventDefault(); exportServant(b.dataset.id);
 });
+/* ================= 0.50.0-beta: the battle simulator, part 1: the engine =================
+   A fight is worked out turn by turn the way the game does it, as closely as the page's data allows, and written down
+   as a list of events (each with a snapshot of both sides) that the Battle page plays back (49b-battle-ui.js).
+   - Your side: up to three in front and three behind, who step in when someone falls. Your servants and Guests (NA's
+     data for them, or a custom servant's own kit from the Workshop), or any NA servant borrowed as a support.
+   - The other side: waves of enemies. Made-up ones, your Guests or servants, or the enemies of a real NA quest.
+   - Each turn: skills, then five cards dealt from the front three's decks (15 cards, shuffled, three turns to a
+     shuffle), three picked (Noble Phantasms first when the gauge is full), then the enemies act.
+   - Skills are read into one set of effects, the same ones the Workshop uses (ATK up, card up, NP charge, Invincible,
+     DEF down …): a custom servant's kit as it is, an NA servant's from the words of its skills.
+   - Damage, NP gain and stars use the game's formulas. What the page doesn't know (each servant's own NP gain and hit
+     counts) uses the usual values for the class and the card.
+   - The choices (which skills, which cards) are made by `BT_AUTO`, the auto-battle. A play-it-yourself mode only needs
+     another set of choices with the same two questions. A seed makes every fight repeatable. */
+
+/* ---------- the game's numbers ---------- */
+const BT_CARD = {B: [1.5, 1.8, 2.1], A: [1, 1.2, 1.4], Q: [0.8, 0.96, 1.12], E: [1, 1, 1]};
+const BT_NP_CARD = {B: 1.5, A: 1, Q: 0.8};
+const BT_GAIN = {A: [3, 4.5, 6], Q: [1, 1.5, 2], B: [0, 0, 0], E: [1, 1, 1]};
+const BT_GAIN_NP = {A: 3, Q: 1, B: 0};
+const BT_STAR = {Q: [0.8, 1.3, 1.8], A: [0, 0, 0], B: [0.1, 0.15, 0.2], E: [1, 1, 1]};
+const BT_HITS = {Q: 4, A: 3, B: 2, E: 5};
+// NP gained per hit, in %, the usual for each class (the page doesn't have each servant's own)
+const BT_NPRATE = {Saber: 0.84, Archer: 0.78, Lancer: 0.8, Rider: 0.86, Caster: 0.8, Assassin: 0.84, Berserker: 1.02, Shielder: 0.84, Ruler: 0.76, Avenger: 0.78,
+  "Moon Cancer": 0.8, "Alter Ego": 0.82, Foreigner: 0.8, Pretender: 0.8, Beast: 0.8};
+// how much NP a hit on an enemy of each class gives (the game's server rate)
+const BT_TDRATE = {Rider: 1.1, Caster: 1.2, Assassin: 0.9, Berserker: 0.8, "Moon Cancer": 1.2};
+const BT_LETTER = {Buster: "B", Arts: "A", Quick: "Q", B: "B", A: "A", Q: "Q"};
+const BT_WORD = {B: "Buster", A: "Arts", Q: "Quick", E: "Extra"};
+const BT_MAX_TURNS = 40;
+// effects that help (buffs) and ones that hurt (debuffs); immediate ones aren't kept on anyone
+const BT_NOW = new Set(["charge", "stars", "heal", "cleanse", "cd", "chargedown", "drain"]);
+const BT_DEBUFF = new Set(["defdown", "resdown", "atkdown", "stun", "charm", "burn"]);
+
+/* ---------- a seeded random number (the same seed plays the same fight) ---------- */
+function btRng(seed) {
+  let a = (seed >>> 0) || 1;
+  return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+
+/* ---------- reading an NA servant's skills into effects ---------- */
+// [effect, how the line reads, the value's label]; the first that fits wins, so the order matters
+const BT_READ = [
+  ["pierce", /ignore invincib|sure hit/i, null],
+  ["npturn", /np gauge each turn|np (?:gauge )?(?:charge )?each turn|charge .*np gauge each turn/i, /np per turn/i],
+  ["starturn", /c\. stars each turn|stars each turn/i, /stars per turn/i],
+  ["regen", /(?:recover|restore) .*hp each turn|hp (?:regen|recovery) each turn/i, /hp per turn/i],
+  ["charge", /(?:increase|charge) .*np gauge|np gauge .*increase/i, /^np charge/i],
+  ["drain", /(?:decrease|reduce|drain) .*np gauge/i, null],
+  ["gain", /np gain/i, /np gain up/i],
+  ["stars", /gain .*c\. stars|gain .*critical stars/i, /^c\. stars$/i],
+  ["drop", /c\. star drop rate|star generation/i, /drop rate up/i],
+  ["gather", /star gather|gather rate/i, /gather up/i],
+  ["cd", /cooldown/i, null],
+  ["vs", /(?:attack strength|strength|atk|damage) against \[|special attack/i, /str up vs|strength up vs|special attack/i],
+  ["crit", /increase .*critical (?:strength|damage)/i, /critical (?:up|str up|damage)/i],
+  ["card", /increase .*(?:buster|arts|quick)(?: card)? (?:card )?effectiveness|increase .*(?:buster|arts|quick) card performance/i, /(?:buster|arts|quick) up/i],
+  ["np", /increase .*np (?:strength|damage)/i, /np strength up/i],
+  ["dp", /damage plus|atk plus/i, /damage plus|atk plus/i],
+  ["invinc", /invincib/i, null],
+  ["evade", /evade|evasion/i, null],
+  ["guts", /guts/i, /guts hp/i],
+  ["taunt", /taunt|target focus/i, null],
+  ["cut", /damage cut|reduce damage (?:taken|received)/i, /damage cut/i],
+  ["maxhp", /max hp/i, /max hp/i],
+  ["heal", /(?:recover|restore|heal) .*hp|hp recovery/i, /hp recovery|heal/i],
+  ["immune", /debuff immunity/i, null],
+  ["cleanse", /remove .*debuff/i, null],
+  ["dres", /increase .*debuff resist/i, /debuff resist up/i],
+  ["defdown", /decrease .*\bdef\b/i, /def down/i],
+  ["resdown", /decrease .*(?:buster|arts|quick).* resist/i, /resist down/i],
+  ["atkdown", /decrease .*\batk\b/i, /atk down/i],
+  ["chargedown", /decrease .*charge|charge drain|reduce .*charge/i, null],
+  ["stun", /stun|paraly|sleep|pigify|petrif/i, /chance/i],
+  ["charm", /charm/i, /chance/i],
+  ["burn", /burn|poison|curse/i, /burn|poison|curse/i],
+  ["defup", /increase .*\bdef\b/i, /^def up/i],
+  ["atk", /increase .*\batk\b/i, /^atk up/i]
+];
+function btTarget(line, k) {
+  const l = line.toLowerCase();
+  if (/all allies except yourself|all other allies|allies \(excluding yourself\)|other party members/.test(l)) return "x";
+  if (/all allies|party|all servants on your side/.test(l)) return "a";
+  if (/a single ally|one ally|an ally/.test(l)) return "o";
+  if (/all enemies/.test(l)) return "E";
+  if (/a single enemy|one enemy|an enemy|the enemy/.test(l)) return "e";
+  return BT_DEBUFF.has(k) || k === "chargedown" || k === "drain" ? "e" : "s";
+}
+function btTurns(line) {
+  const m = /\((?:(\d+) times?)?(?:,\s*)?(?:(\d+) turns?)?\)/i.exec(line);
+  return m ? {d: num(m[2]) || 0, n: num(m[1]) || 0} : {d: 0, n: 0};
+}
+// a line can hold several effects for the same targets: "Increase ATK (3 turns) & NP Gauge for all allies" is two.
+// Each part gets the line's verb and its targets. A state that does something later ("Apply a state that …") isn't
+// worked out here.
+const BT_TAIL = /\s(?:for|to)\s(?:yourself|all allies(?:\s(?:except|excluding) yourself)?|all other allies|allies \(excluding yourself\)|a single ally|one ally|an ally|all enemies|a single enemy|one enemy|an enemy|the enemy|party)\b.*$/i;
+const BT_VERB = /^((?:greatly |slightly |significantly |highly |high chance to |low chance to |chance to )?(?:increase|decrease|apply|inflict|grant|gain|reduce|restore|recover|remove|charge))\s/i;
+function btClauses(line) {
+  const l = String(line || "").trim();
+  if (!l || /^apply a state|^grant a state|["“”]/i.test(l)) return [];
+  const m = BT_TAIL.exec(l), tail = m ? m[0] : "", body = m ? l.slice(0, m.index) : l;
+  const parts = body.split(/\s&\s/), vm = BT_VERB.exec(parts[0]), verb = vm ? vm[1] : "";
+  return parts.map((p, i) => (i && verb && !BT_VERB.test(p + " ") ? verb + " " + p : p) + tail);
+}
+// a part that takes something away isn't the same effect as one that gives it ("disable HP recovery" isn't a heal)
+const BT_GIVE = new Set(["heal", "regen", "atk", "defup", "card", "np", "crit", "gain", "drop", "gather", "charge", "dres", "maxhp", "npturn", "starturn"]);
+const btCardIn = (line) => { const m = /\b(Buster|Arts|Quick)\b/.exec(line); return m ? BT_LETTER[m[1]] : ""; };
+const btVsIn = (line) => { const m = /\[([^\]]{1,40})\]/.exec(line); return m ? m[1] : ""; };
+// one line of an NA skill; `rows` are its value rows ([label, Lv 1, Lv 10, unit]), each used once
+function btReadLine(line, rows) {
+  const r = BT_READ.find((x) => x[1].test(line)); if (!r) return null;
+  const k = r[0]; if (BT_GIVE.has(k) && /\b(?:decrease|reduce|disable|lose|drain|block|seal)\b/i.test(line)) return null;
+  const t = btTurns(line), def = FX_BY[k === "regen" ? "heal" : k] || {};
+  let v = null;
+  if (r[2]) { const i = rows.findIndex((x) => x && r[2].test(x[0])); if (i >= 0) { const x = rows[i]; rows[i] = null; v = skVals(num(x[1]) || 0, num(x[2]) || 0); } }
+  if (v == null && def.v) v = skVals(def.v[0], def.v[1]);
+  if (k === "stars" && v == null) v = skVals(10, 20);
+  const chance = /(\d+)% chance/i.exec(line);
+  // ("2 times" with no turns lasts until it's used)
+  return {k: k, tg: btTarget(line, k), v: v, d: t.d || (t.n || BT_NOW.has(k) ? 0 : def.d || 1), n: t.n || (["invinc", "evade", "guts"].includes(k) ? 1 : 0),
+    card: k === "card" || k === "resdown" ? btCardIn(line) || "B" : "", vs: k === "vs" ? btVsIn(line) : "", p: chance ? num(chance[1]) / 100 : 1, txt: line};
+}
+function btSkillNA(sk, lv) {
+  const rows = (sk.v || []).slice(), fx = (sk.e || []).flatMap(btClauses).map((l) => btReadLine(l, rows)).filter(Boolean);
+  return {n: sk.n || "Skill", ic: sk.ic || "", cd: clamp(num(sk.cd) || 7, 1, 12), lv: clamp(num(lv) || 10, 1, 10), fx: fx, lines: sk.e || []};
+}
+// an NA Noble Phantasm: its damage by NP level, what Overcharge adds, and its other effects
+const btPct = (v) => { const m = /(-?\d+(?:\.\d+)?)/.exec(String(v == null ? "" : v)); return m ? Number(m[1]) : null; };
+function btNpNA(np) {
+  if (!np) return null;
+  const card = BT_LETTER[np.k] || "B", tg = np.tg === "Support" ? "S" : np.tg === "Single Target" ? "ST" : "AoE";
+  const dmgRow = (np.r || []).find((r) => /^damage$/i.test(r[0]));
+  const rows = (np.r || []).filter((r) => r !== dmgRow).map((r) => ["np", r[0], (r[1] || []).map(btPct)]).concat((np.o || []).map((r) => ["oc", r[0], (r[1] || []).map(btPct)]));
+  const seRow = rows.find((r) => /special damage|super.?effective/i.test(r[1]));
+  const ocText = (np.oc || []).join(" ");
+  const fx = [], lines = [];
+  // each line, with its values by NP level or by Overcharge
+  const dmgAt = (np.e || []).findIndex((x) => /deal .*damage/i.test(x) && !/damage plus/i.test(x));
+  (np.e || []).map((l, i) => [l, "np", i]).concat((np.oc || []).map((l) => [l, "oc", 99])).flatMap(([l, from, i]) => /deal .*damage/i.test(l) && !/damage plus/i.test(l) ? [] : btClauses(l).map((c) => [c, from, i])).forEach(([l, from, i]) => {
+    const r = BT_READ.find((x) => x[1].test(l)); if (!r) { lines.push(l); return; }
+    const k = r[0]; if (BT_GIVE.has(k) && /\b(?:decrease|reduce|disable|lose|drain|block|seal)\b/i.test(l)) return;
+    const t = btTurns(l);
+    let vals = null, by = from;
+    if (r[2]) { const j = rows.findIndex((x) => x && x[0] !== "used" && r[2].test(x[1])); if (j >= 0) { vals = rows[j][2]; by = rows[j][0]; rows[j] = ["used"]; } }
+    const def = FX_BY[k] || {};
+    if (!vals) { const v = def.vs || def.v; vals = v ? [v[0], v[0], v[0], v[0], v[0]] : [0, 0, 0, 0, 0]; by = "fix"; }
+    fx.push({k: k, tg: btTarget(l, k), vals: vals, by: by, when: from === "np" && dmgAt >= 0 && i < dmgAt ? "pre" : "post", d: t.d || (t.n || BT_NOW.has(k) ? 0 : def.d || 1), n: t.n || (["invinc", "evade", "guts"].includes(k) ? 1 : 0),
+      card: k === "card" || k === "resdown" ? btCardIn(l) || card : "", vs: k === "vs" ? btVsIn(l) : "", p: 1, txt: l});
+  });
+  return {n: np.n || "Noble Phantasm", card: card, tg: tg, hits: clamp(num(np.h) || (tg === "S" ? 0 : 3), 0, 15), mult: dmgRow ? (dmgRow[1] || []).map(btPct) : null,
+    se: seRow && seRow[0] !== "used" ? {vals: seRow[2], byOc: seRow[0] === "oc", vs: btVsIn(ocText) || btVsIn((np.e || []).join(" "))} : null, fx: fx, lines: lines};
+}
+
+/* ---------- a custom servant's kit, as it is ---------- */
+function btSkillKit(sk, lv) {
+  const fx = (sk.fx || []).filter((f) => FX_BY[f.e] && f.e !== "own").map((f) => {
+    const def = FX_BY[f.e], tg = def.tgs ? (def.tgs.includes(f.tg) ? f.tg : def.tg) : "s";
+    const v = def.v ? skVals(num((f.v || [])[0]) != null ? num(f.v[0]) : def.v[0], num((f.v || [])[1]) != null ? num(f.v[1]) : def.v[1]) : null;
+    return {k: f.e, tg: tg === "" ? "s" : tg, v: v, d: num(f.d) != null ? num(f.d) : def.d || 0, n: num(f.n) || def.n || 0, card: f.card ? BT_LETTER[f.card] || "" : "", vs: f.vs || "", p: f.e === "stun" || f.e === "charm" ? null : 1, txt: fxLine(f)};
+  });
+  return {n: [sk.name, sk.rank].filter(Boolean).join(" ") || "Skill", ic: "", cd: clamp(num(sk.cd) || 7, 1, 20), lv: clamp(num(lv) || 10, 1, 10), fx: fx, lines: (sk.fx || []).map((f) => fxLine(f)).filter(Boolean)};
+}
+function btNpKit(np) {
+  const card = BT_LETTER[np.card] || "B", tg = np.tg === "Support" ? "S" : np.tg === "Single Target" ? "ST" : "AoE";
+  const fx = (np.fx || []).filter((f) => FX_BY[f.e] && f.e !== "own").map((f) => {
+    const def = FX_BY[f.e], t = def.tgs ? (def.tgs.includes(f.tg) ? f.tg : def.tg) : "s", vals = (f.vals || []).map(num);
+    const v0 = def.vs || def.v;
+    return {k: f.e, tg: t || "s", vals: vals.length === 5 && vals.every((x) => x != null) ? vals : v0 ? [v0[0], v0[0], v0[0], v0[0], v0[0]] : [0, 0, 0, 0, 0], by: f.by === "oc" ? "oc" : f.by === "fix" ? "fix" : "np",
+      when: f.when === "pre" ? "pre" : "post", d: num(f.d) != null ? num(f.d) : def.d || 0, n: num(f.n) || def.n || 0, card: f.card ? BT_LETTER[f.card] || card : card, vs: f.vs || "", p: 1, txt: fxLine(f, np.card)};
+  });
+  const se = tg !== "S" && np.se && String(np.se.vs || "").trim() ? {vals: (np.se.vals || []).map(num), byOc: true, vs: String(np.se.vs).trim()} : null;
+  return {n: np.name || "Noble Phantasm", card: card, tg: tg, hits: clamp(num(np.hits) || 1, tg === "S" ? 0 : 1, 15), mult: tg === "S" ? null : (np.dmg || []).map(num), se: se, fx: fx, lines: []};
+}
+
+/* ---------- who fights: one template per fighter ---------- */
+// the start of a battle's NP from a Craft Essence ("Begin battle with NP Gauge at 50%") and Append 2
+function btCeStart(c) {
+  const l = String(((c && (c.x && c.x.length ? c.x : c.e)) || [])[0] || "");
+  const m = /(?:begin|start)[^.]*?battle with (?:your )?np gauge (?:charged )?(?:at |by |to )?(\d+)%|np gauge (?:charged )?by (\d+)% at (?:the )?start/i.exec(l);
+  return m ? num(m[1] || m[2]) || 0 : 0;
+}
+function btBlankSkills() { return [0, 1, 2].map(() => null); }
+// one of your servants or Guests: NA's data for them (at their levels), a custom one's kit, or what's filled in
+function btFromServant(s, opts) {
+  opts = opts || {};
+  const a = atlasOf(s), k = s.custom ? kitNow(s) : null, lv = skLevels(s), ap = typeof apLevels === "function" ? apLevels(s) : [0, 0, 0, 0, 0];
+  const c = typeof favOn === "function" ? favOn(s) : null;
+  const hp = (total(s, "hp") || (a && a.hp ? a.hp[1] : 10000)) + (c && c.hp ? c.hp[1] || 0 : 0), atk = (total(s, "atk") || (a && a.atk ? a.atk[1] : 9000)) + (c && c.atk ? c.atk[1] || 0 : 0);
+  let sk = btBlankSkills(), np = null, deck = "", attr = s.attr || "", traits = (s.traits || []).slice(), pm = [0, 0, 0, 0, 0];
+  if (k) {
+    sk = [0, 1, 2].map((i) => (k.sk || [])[i] && (k.sk[i].fx || []).length ? btSkillKit(k.sk[i], lv[i]) : null);
+    np = btNpKit(k.np || {}); deck = String(k.deck || "QAABB"); attr = k.attr || attr;
+    (k.ps || []).forEach((p) => { const v = typeof psValue === "function" ? psValue(p) : null; if (v) pm[v.slot] += v.v; });
+  } else if (a) {
+    sk = (a.sk || []).slice(0, 3).map((x, i) => x ? btSkillNA(x, lv[i] || 10) : null);
+    np = btNpNA(a.np); deck = a.d || "QAABB"; attr = a.a || attr; traits = (a.t || []).concat(a.g ? [a.g] : []); pm = (a.pm || pm).slice();
+  } else {
+    const card = BT_LETTER[s.npCard] || "B", tg = s.npTarget === "Support" ? "S" : s.npTarget === "Single Target" ? "ST" : "AoE";
+    const std = typeof npStdDmg === "function" ? npStdDmg(tg === "ST" ? "Single Target" : "AoE", BT_WORD[card], false) : null;
+    np = {n: s.npName || "Noble Phantasm", card: card, tg: tg, hits: 3, mult: tg === "S" ? null : std || [300, 400, 450, 475, 500], se: null, fx: [], lines: []};
+    deck = (Array.isArray(s.deck) ? s.deck.map((x) => BT_LETTER[x] || "").join("") : "") || "QAABB";
+  }
+  const start = btCeStart(c) + (ap[1] ? [10, 11, 12, 13, 14, 15, 16, 17, 18, 20][ap[1] - 1] : 0);
+  return {key: opts.key || "r:" + s.id, name: nmText(s), cls: s.cls || (a && a.c) || "Saber", attr: attr, traits: traits, face: btFaceOf(s, a), hp: Math.round(hp), atk: Math.round(atk),
+    deck: btDeck(deck), npLv: clamp(num(s.npLevel) || 1, 1, 5), np: np, sk: sk, pm: pm, npStart: start, servant: true, custom: !!s.custom,
+    rate: BT_NPRATE[s.cls] || 0.8, sg: a ? (a.sg || 100) / 10 : 10, sa: a ? a.sa || 100 : 100, ce: c ? c.n : "", apVs: ap[2] ? btApVs(a, ap[2]) : null};
+}
+// Append 3: ATK against one class, from Lv 1 (20%) to Lv 10 (30%)
+function btApVs(a, lv) {
+  const k = a && a.ap && ATLAS_APPENDS[a.ap[2]]; if (!k) return null;
+  const m = /\[([^\]]+)\]/.exec((k.e || [])[0] || ""), v = k.v && k.v[0]; if (!m || !v) return null;
+  return {cls: m[1], v: lv >= 10 ? v[2] : v[1] + (v[2] - v[1]) * (lv - 1) / 10};
+}
+// any NA servant, borrowed: at its max level and its skills at 10, with the NP level picked
+function btFromNA(no, npLv) {
+  const a = ATLAS_BY_NO.get(num(no)); if (!a) return null;
+  return {key: "a:" + a.no, name: a.n, cls: a.c, attr: a.a || "", traits: (a.t || []).concat(a.g ? [a.g] : []), face: a.f ? aimg(a.f) : "", hp: (a.hp || [])[1] || 12000, atk: (a.atk || [])[1] || 10000,
+    deck: btDeck(a.d || "QAABB"), npLv: clamp(num(npLv) || 1, 1, 5), np: btNpNA(a.np), sk: (a.sk || []).slice(0, 3).map((x) => x ? btSkillNA(x, 10) : null), pm: (a.pm || [0, 0, 0, 0, 0]).slice(),
+    npStart: 0, servant: true, support: true, rate: BT_NPRATE[a.c] || 0.8, sg: (a.sg || 100) / 10, sa: a.sa || 100, ce: "", apVs: null};
+}
+function btFaceOf(s, a) {
+  try { const ic = typeof iconSlot === "function" ? iconSlot(s) : null, id = ic && artOf(s, ic); if (id) return artSrc(id); } catch (e) {}
+  return a && a.f ? aimg(a.f) : "";
+}
+const btDeck = (d) => { const x = String(d || "").toUpperCase().replace(/[^QAB]/g, "").slice(0, 5); return (x.length === 5 ? x : "QAABB").split(""); };
+// an enemy made up on the page
+function btFromMade(e) {
+  const cls = AFF_CLASSES.includes(e.cls) ? e.cls : "Saber";
+  return {key: "m:" + (e.name || cls), name: String(e.name || cls).slice(0, 40) || cls, cls: cls, attr: NPC_ATTRS.includes(e.attr) ? e.attr : "Earth", traits: [], face: "", hp: clamp(num(e.hp) || 30000, 1, 1e9), atk: clamp(num(e.atk) || 8000, 0, 1e6),
+    deck: ["Q", "A", "B"], npLv: 1, np: null, sk: btBlankSkills(), pm: [0, 0, 0, 0, 0], npStart: 0, servant: false, charge: clamp(num(e.charge) || 3, 1, 8), acts: clamp(num(e.acts) || 1, 1, 3), npMul: 3, npAoe: e.aoe !== false,
+    bars: (e.bars || []).map(num).filter((v) => v > 0), td: BT_TDRATE[cls] || 1};
+}
+// a servant as an enemy: its own kit, its charge filled by turns like the game's servant enemies
+function btAsFoe(t, hpMul) {
+  return Object.assign({}, t, {key: "f" + t.key, hp: Math.round(t.hp * (num(hpMul) || 1)), charge: 3, acts: 1, foeServant: true, td: BT_TDRATE[t.cls] || 1});
+}
+// an enemy of an NA quest (Atlas Academy's quest data, made small in 49b)
+function btFromQuest(e) {
+  const cls = AFF_CLASSES.includes(e.c) ? e.c : "Saber";
+  return {key: "q:" + e.n, name: e.n, cls: cls, attr: e.a || "Earth", traits: e.tr || [], face: e.f ? aimg(e.f) : "", hp: Math.max(1, e.hp | 0), atk: Math.max(0, e.atk | 0),
+    deck: ["Q", "A", "B"], npLv: 1, np: null, sk: btBlankSkills(), pm: [0, 0, 0, 0, 0], npStart: 0, servant: false, charge: clamp(e.ct || 3, 1, 8), acts: e.acts || 1, npMul: 3, npAoe: true,
+    bars: (e.bars || []).filter((v) => v > 0), td: e.td || BT_TDRATE[cls] || 1};
+}
+
+/* ---------- a fight ---------- */
+let btUid = 0;
+function btUnit(t, side) {
+  return {id: "u" + (++btUid), t: t, side: side, name: t.name, cls: t.cls, hp: t.hp, max: t.hp, atk: t.atk, np: side === "ally" ? clamp(t.npStart || 0, 0, 300) : 0,
+    charge: 0, chargeMax: t.charge || 3, bars: (t.bars || []).slice(), buffs: [], cd: [0, 0, 0], alive: true, stun: 0, stat: {dmg: 0, nps: 0, taken: 0, kills: 0, cards: 0, skills: 0}};
+}
+// what a fighter's buffs add up to, for one kind of effect (and a card, and who they're up against)
+function btMod(u, k, card, foe) {
+  let v = 0;
+  u.buffs.forEach((b) => {
+    if (b.k !== k) return;
+    if (b.card && card && b.card !== card) return;
+    if (b.vs && foe && !btVsOk(b.vs, foe)) return;
+    if (b.vs && !foe) return;
+    v += b.v;
+  });
+  return v;
+}
+// "ATK against [Rider]", "[Divine]", "[Male]": the class, the attribute or one of the traits
+function btVsOk(vs, foe) {
+  const w = String(vs).toLowerCase().replace(/\s+/g, " ").trim();
+  if (!w) return false;
+  if (String(foe.cls).toLowerCase() === w || String(foe.t.attr).toLowerCase() === w) return true;
+  return (foe.t.traits || []).some((x) => { const t = String(x).toLowerCase(); return t === w || t.replace(/ servant$/, "") === w; });
+}
+const btHas = (u, k) => u.buffs.some((b) => b.k === k);
+function btTakeOne(u, k) {
+  const b = u.buffs.find((x) => x.k === k); if (!b) return false;
+  if (b.n) { b.n -= 1; if (b.n <= 0) u.buffs.splice(u.buffs.indexOf(b), 1); }
+  return true;
+}
+
+function btBattle(setup, seed) {
+  btUid = 0;
+  const rng = btRng(seed), R = (a, b) => a + (b - a) * rng();
+  const B = {seed: seed, turn: 0, wave: 0, waves: setup.waves.map((w) => w.map((t) => btUnit(t, "foe"))), allies: setup.party.slice(0, 3).filter(Boolean).map((t) => btUnit(t, "ally")),
+    back: setup.party.slice(3).filter(Boolean).map((t) => btUnit(t, "ally")), foes: [], stars: 0, deck: [], hand: [], ev: [], over: false, result: "", target: null};
+  const all = B.allies.concat(B.back);
+  B.everyone = () => all.concat(...B.waves);
+  const snap = () => ({turn: B.turn, wave: B.wave, stars: Math.floor(B.stars), u: B.allies.concat(B.back, B.foes).map((u) => ({id: u.id, hp: Math.max(0, Math.round(u.hp)), max: u.max, np: Math.floor(u.np), charge: u.charge,
+    chargeMax: u.chargeMax, bars: u.bars.length, alive: u.alive, stun: u.stun > 0, buffs: u.buffs.map((b) => b.k + (b.card ? ":" + b.card : "")).filter((v, i, a) => a.indexOf(v) === i).slice(0, 10), front: B.allies.includes(u) || B.foes.includes(u)}))});
+  const emit = (t, d) => { B.ev.push(Object.assign({t: t}, d || {}, {s: snap()})); };
+
+  /* effects */
+  const others = (u) => (u.side === "ally" ? B.allies : B.foes).filter((x) => x.alive && x !== u);
+  const team = (u) => (u.side === "ally" ? B.allies : B.foes).filter((x) => x.alive);
+  const foesOf = (u) => (u.side === "ally" ? B.foes : B.allies).filter((x) => x.alive);
+  function targets(u, fx, pick) {
+    const tg = fx.tg || "s";
+    if (tg === "s") return [u];
+    if (tg === "a") return team(u);
+    if (tg === "x") return others(u);
+    if (tg === "o") return [pick && pick.alive && pick.side === u.side ? pick : u];
+    if (tg === "E") return foesOf(u);
+    const f = foesOf(u); return f.length ? [pick && pick.alive && pick.side !== u.side ? pick : (u.side === "ally" && B.target && B.target.alive ? B.target : f[0])] : [];
+  }
+  function apply(u, fx, v, pick, from) {
+    const ts = targets(u, fx, pick), done = [];
+    ts.forEach((t) => {
+      if (fx.p != null && fx.p < 1 && rng() > fx.p) { done.push({id: t.id, miss: true}); return; }
+      if (BT_DEBUFF.has(fx.k) && t.side !== u.side) {
+        if (btTakeOne(t, "immune")) { done.push({id: t.id, blocked: true}); return; }
+        if ((fx.k === "stun" || fx.k === "charm") && rng() > clamp((v || 80) / 100 - btMod(t, "dres") / 100, 0, 1)) { done.push({id: t.id, miss: true}); return; }
+      }
+      switch (fx.k) {
+        case "charge": t.np = clamp(t.np + (v || 0), 0, t.side === "ally" ? 300 : 300); break;
+        case "drain": if (t.side === "foe") t.charge = Math.max(0, t.charge - 1); else t.np = Math.max(0, t.np - (v || 0)); break;
+        case "stars": B.stars = Math.min(50, B.stars + (v || 0)); break;
+        case "heal": t.hp = Math.min(t.max, t.hp + (v || 0)); break;
+        case "cleanse": t.buffs = t.buffs.filter((b) => !BT_DEBUFF.has(b.k)); t.stun = 0; break;
+        case "cd": t.cd = t.cd.map((c) => Math.max(0, c - 1)); break;
+        case "chargedown": t.charge = Math.max(0, t.charge - 1); break;
+        case "maxhp": t.max += v || 0; t.hp += v || 0; t.buffs.push({k: "maxhp", v: v || 0, d: fx.d || 3, n: 0}); break;
+        case "stun": case "charm": t.stun = Math.max(t.stun, fx.d || 1); t.buffs.push({k: fx.k, v: 0, d: fx.d || 1, n: 0}); break;
+        // (a buff that only counts its uses, "1 time", stays until it's used)
+        default: t.buffs.push({k: fx.k, v: v || 0, d: fx.d || 0, n: fx.n || 0, keep: !(fx.d > 0) && fx.n > 0, card: fx.card || "", vs: fx.vs || "", from: from});
+      }
+      done.push({id: t.id});
+    });
+    return done;
+  }
+  function useSkill(u, i, pick) {
+    const sk = u.t.sk[i]; if (!sk || u.cd[i] > 0 || !u.alive || u.stun > 0) return false;
+    const fx = sk.fx.map((f) => ({k: f.k, to: apply(u, f, f.v ? f.v[sk.lv - 1] : null, pick, sk.n)}));
+    u.cd[i] = Math.max(1, sk.cd - (sk.lv >= 10 ? 2 : sk.lv >= 6 ? 1 : 0)); u.stat.skills++;
+    emit("skill", {who: u.id, i: i, n: sk.n, fx: fx, pick: pick ? pick.id : null});
+    return true;
+  }
+
+  /* damage */
+  const clsAtk = (c) => NPC_CLASS_ATK[c] || 1;
+  // one hit's damage from u to t; card is B/A/Q/E, pos 0–2, np: the NP's multiplier (%) or null
+  function dmgOf(u, t, card, pos, opts) {
+    const o = opts || {}, base = o.np ? BT_NP_CARD[card] : BT_CARD[card][pos];
+    const cardUp = (btMod(u, "card", card) + (u.t.pm[{B: 0, A: 1, Q: 2}[card]] || 0) - btMod(t, "resdown", card)) / 100;
+    const first = !o.np && card !== "E" && o.first === "B" ? 0.5 : 0;
+    const atkUp = (btMod(u, "atk") - btMod(u, "atkdown") - btMod(t, "defup") + btMod(t, "defdown")) / 100 + (u.t.apVs && String(t.cls) === u.t.apVs.cls ? u.t.apVs.v / 100 : 0);
+    const pow = (btMod(u, "vs", "", t) + (o.np ? btMod(u, "np") + (u.t.pm[3] || 0) : 0) + (o.crit ? btMod(u, "crit", card) : 0)) / 100;
+    let d = u.atk * 0.23 * (o.np ? o.np / 100 : 1) * (base * (1 + clamp(cardUp, -1, 4)) + first) * clsAtk(u.cls) * aff(u.cls, t.cls) * npcAttr(u.t.attr, t.t.attr)
+      * (o.rand != null ? o.rand : 1) * Math.max(0.001, 1 + clamp(atkUp, -1, 4)) * Math.max(0.001, 1 + clamp(pow, -1, 10)) * (o.crit ? 2 : 1) * (o.se || 1);
+    if (card === "E") d *= o.ex || 2;
+    if (o.busterChain && !o.np) d += u.atk * 0.2;
+    d += btMod(u, "dp") + (u.t.pm[4] || 0) - btMod(t, "cut");
+    return Math.max(0, d);
+  }
+  function hit(u, t, total, nh) {
+    // the damage lands over the card's hits; whoever is invincible or evades takes none (unless it's ignored)
+    if (t.side === "ally" || t.side === "foe") {
+      if (!btHas(u, "pierce") && (btTakeOne(t, "invinc") || btTakeOne(t, "evade"))) return {dmg: 0, dodged: true};
+    }
+    const dmg = Math.round(total);
+    t.hp -= dmg; u.stat.dmg += dmg; t.stat.taken += dmg;
+    return {dmg: dmg};
+  }
+  function fall(t, by) {
+    if (t.hp > 0 || !t.alive) return false;
+    if (t.bars.length) { t.max = t.bars.shift(); t.hp = t.max; t.charge = 0; emit("bar", {who: t.id}); return false; }
+    const g = t.buffs.find((b) => b.k === "guts");
+    if (g) { t.hp = Math.max(1, g.v || 1000); btTakeOne(t, "guts"); emit("guts", {who: t.id}); return false; }
+    t.alive = false; t.hp = 0; if (by) by.stat.kills++;
+    emit("fall", {who: t.id, by: by ? by.id : null});
+    return true;
+  }
+  const npGain = (u, t, card, pos, opts) => {
+    const o = opts || {}, v = o.np ? BT_GAIN_NP[card] : BT_GAIN[card][pos];
+    const cardUp = (btMod(u, "card", card) + (u.t.pm[{B: 0, A: 1, Q: 2}[card]] || 0)) / 100;
+    return u.t.rate * (v * (1 + clamp(cardUp, -1, 4)) + (!o.np && card !== "E" && o.first === "A" ? 1 : 0)) * (t.t.td || BT_TDRATE[t.cls] || 1) * (1 + btMod(u, "gain") / 100) * (o.crit ? 2 : 1);
+  };
+  const starsOf = (u, card, pos, opts) => {
+    const o = opts || {}, base = o.np ? (BT_STAR[card] || [0])[0] : BT_STAR[card][pos];
+    return clamp(u.t.sg / 100 + base + (!o.np && card !== "E" && o.first === "Q" ? 0.2 : 0) + btMod(u, "drop") / 100 + (o.crit ? 0.2 : 0), 0, 3);
+  };
+
+  /* a Noble Phantasm */
+  function useNp(u, chainAt, firstCard, ocBonus) {
+    const np = u.t.np; if (!np || u.np < 100 || !u.alive || u.stun > 0) return;
+    const oc = clamp(1 + (u.np >= 300 ? 2 : u.np >= 200 ? 1 : 0) + (ocBonus || 0), 1, 5), lvl = u.npLv;
+    u.np = 0; u.stat.nps++;
+    const val = (f) => { const vs = f.vals || [0]; return f.by === "oc" ? vs[oc - 1] : f.by === "fix" ? vs[0] : vs[lvl - 1]; };
+    const pre = np.fx.filter((f) => f.when === "pre").map((f) => ({k: f.k, to: apply(u, f, val(f), null, np.n)}));
+    const hits = [];
+    if (np.mult && np.tg !== "S") {
+      const ts = np.tg === "AoE" ? foesOf(u) : [B.target && B.target.alive && u.side === "ally" ? B.target : foesOf(u)[0]].filter(Boolean);
+      const mult = np.mult[lvl - 1] || np.mult.find((v) => v != null) || 0;
+      ts.forEach((t) => {
+        const se = np.se && btVsOk(np.se.vs, t) ? (np.se.vals[(np.se.byOc ? oc : lvl) - 1] || 150) / 100 : 1;
+        const d = dmgOf(u, t, np.card, chainAt, {np: mult, rand: R(0.9, 1.099), se: se});
+        const h = hit(u, t, d);
+        if (u.side === "ally" && !h.dodged) { u.np = clamp(u.np + npGain(u, t, np.card, 0, {np: true}) * Math.max(1, np.hits), 0, 300); B.stars = Math.min(50, B.stars + starsOf(u, np.card, 0, {np: true}) * Math.max(1, np.hits)); }
+        hits.push({id: t.id, dmg: h.dmg, dodged: !!h.dodged, se: se > 1});
+      });
+    }
+    emit("np", {who: u.id, n: np.n, card: np.card, oc: oc, pre: pre, hits: hits});
+    hits.forEach((h) => { const t = B.everyone().find((x) => x.id === h.id); if (t) fall(t, u); });
+    const post = np.fx.filter((f) => f.when !== "pre").map((f) => ({k: f.k, to: apply(u, f, val(f), null, np.n)}));
+    if (post.length) emit("np-after", {who: u.id, fx: post});
+  }
+
+  /* one card */
+  function useCard(c, pos, chain) {
+    const u = c.u; if (!u.alive || u.stun > 0) return;
+    let t = B.target && B.target.alive ? B.target : foesOf(u)[0]; if (!t) return;
+    const card = c.card, crit = card !== "E" && c.crit;
+    const opts = {first: chain.first, crit: crit, rand: R(0.9, 1.099), busterChain: chain.color === "B" && card !== "E", ex: chain.color && chain.color !== "mix" ? 3.5 : 2};
+    const d = dmgOf(u, t, card, Math.min(pos, 2), opts), h = hit(u, t, d);
+    let gain = 0, stars = 0;
+    if (!h.dodged) {
+      const nh = BT_HITS[card];
+      gain = npGain(u, t, card, Math.min(pos, 2), opts) * nh; stars = starsOf(u, card, Math.min(pos, 2), opts) * nh;
+      u.np = clamp(u.np + gain, 0, 300); B.stars = Math.min(50, B.stars + stars);
+    }
+    u.stat.cards++;
+    emit("card", {who: u.id, card: card, pos: pos, to: t.id, dmg: h.dmg, crit: !!crit, dodged: !!h.dodged, gain: Math.round(gain * 10) / 10});
+    fall(t, u);
+  }
+
+  /* the enemies' turn */
+  function foeAct(f) {
+    if (!f.alive) return;
+    if (f.stun > 0) { emit("stunned", {who: f.id}); return; }
+    const ally = B.allies.filter((x) => x.alive); if (!ally.length) return;
+    const pickTarget = () => { const tt = ally.filter((x) => x.alive && btHas(x, "taunt")); const pool = (tt.length ? tt : ally).filter((x) => x.alive); return pool[Math.floor(rng() * pool.length)]; };
+    // a full charge (or a full gauge, for a servant): the big attack
+    if (f.charge >= f.chargeMax) {
+      f.charge = 0;
+      const np = f.t.np, ts = !np ? (f.t.npAoe ? ally.slice() : [pickTarget()]) : np.tg === "AoE" ? ally.slice() : np.tg === "ST" ? [pickTarget()] : [];
+      const hits = [];
+      if (np && np.tg !== "S") np.fx.filter((x) => x.when === "pre").forEach((x) => apply(f, x, (x.vals || [0])[0], null, np.n));
+      ts.filter(Boolean).forEach((t) => {
+        if (!t.alive) return;
+        const d = np && np.mult ? dmgOf(f, t, np.card, 0, {np: np.mult[f.t.npLv - 1] || np.mult[0] || 300, rand: R(0.9, 1.099)}) : dmgOf(f, t, ["Q", "A", "B"][Math.floor(rng() * 3)], 0, {rand: R(0.9, 1.099)}) * f.t.npMul;
+        const h = hit(f, t, d); if (!h.dodged) t.np = clamp(t.np + 3 * (1 + btMod(t, "gain") / 100), 0, 300);
+        hits.push({id: t.id, dmg: h.dmg, dodged: !!h.dodged});
+      });
+      if (np && np.tg === "S") np.fx.forEach((x) => apply(f, x, (x.vals || [0])[0], null, np.n));
+      emit("foe-np", {who: f.id, n: np ? np.n : "Charge attack", hits: hits});
+      hits.forEach((h) => { const t = B.allies.find((x) => x.id === h.id); if (t) fall(t, f); });
+      return;
+    }
+    for (let a = 0; a < (f.t.acts || 1); a++) {
+      const t = pickTarget(); if (!t) break;
+      const card = f.t.servant ? f.t.deck[Math.floor(rng() * 5)] : ["Q", "A", "B"][Math.floor(rng() * 3)], crit = rng() < 0.08;
+      const h = hit(f, t, dmgOf(f, t, card, 0, {rand: R(0.9, 1.099), crit: crit}));
+      if (!h.dodged) t.np = clamp(t.np + 3 * (1 + btMod(t, "gain") / 100) * (t.t.servant ? 1 : 0), 0, 300);
+      emit("foe-hit", {who: f.id, to: t.id, card: card, dmg: h.dmg, crit: crit, dodged: !!h.dodged});
+      fall(t, f);
+      if (!B.allies.some((x) => x.alive)) break;
+    }
+    f.charge = Math.min(f.chargeMax, f.charge + 1);
+  }
+
+  /* turns */
+  function deal() {
+    const front = B.allies.filter((x) => x.alive);
+    if (B.deck.length < 5) { B.deck = []; front.forEach((u) => u.t.deck.forEach((c) => B.deck.push({u: u, card: c}))); for (let i = B.deck.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [B.deck[i], B.deck[j]] = [B.deck[j], B.deck[i]]; } }
+    B.hand = B.deck.splice(0, 5).filter((c) => c.u.alive);
+    // the stars go to the cards: more to servants who gather them, ten per cent of a critical each
+    const w = B.hand.map((c) => (c.u.t.sa || 100) * (1 + btMod(c.u, "gather") / 100) * (0.5 + rng()));
+    B.hand.forEach((c) => { c.stars = 0; });
+    for (let s = 0; s < Math.floor(B.stars); s++) { const sum = w.reduce((a, b) => a + b, 0) || 1; let r = rng() * sum, i = 0; while (i < w.length - 1 && r > w[i]) { r -= w[i]; i++; } if (B.hand[i] && B.hand[i].stars < 10) B.hand[i].stars++; }
+    B.hand.forEach((c) => { c.crit = rng() < c.stars / 10; });
+    B.stars = 0;
+  }
+  function nextWave() {
+    B.wave += 1; B.foes = B.waves[B.wave - 1] || []; B.target = null;
+    emit("wave", {n: B.wave, of: B.waves.length});
+  }
+  function turnStart() {
+    B.turn += 1;
+    B.allies.concat(B.foes).forEach((u) => {
+      if (!u.alive) return;
+      u.buffs.forEach((b) => {
+        if (b.k === "npturn" && u.side === "ally") u.np = clamp(u.np + b.v, 0, 300);
+        if (b.k === "starturn") B.stars = Math.min(50, B.stars + b.v);
+        if (b.k === "regen") u.hp = Math.min(u.max, u.hp + b.v);
+      });
+    });
+    emit("turn", {n: B.turn});
+    deal();
+  }
+  function turnEnd() {
+    B.allies.concat(B.foes).forEach((u) => {
+      if (!u.alive) return;
+      const burn = u.buffs.filter((b) => b.k === "burn").reduce((a, b) => a + b.v, 0);
+      if (burn) { u.hp -= burn; emit("burn", {who: u.id, dmg: Math.round(burn)}); fall(u, null); }
+      // buffs count down at the end of the turn ("3 turns": this one and the next two)
+      u.buffs.forEach((b) => { if (b.d > 0) b.d -= 1; });
+      u.buffs = u.buffs.filter((b) => b.d > 0 || b.keep);
+      if (u.stun > 0) u.stun -= 1;
+      u.cd = u.cd.map((c) => Math.max(0, c - 1));
+    });
+    // the fallen leave the front; whoever waits behind steps in
+    for (let i = 0; i < B.allies.length; i++) if (!B.allies[i].alive && B.back.length) { const n = B.back.shift(); emit("swap", {out: B.allies[i].id, in: n.id}); B.allies[i] = n; }
+  }
+
+  emit("start", {party: B.allies.concat(B.back).map((u) => u.id), waves: B.waves.map((w) => w.map((u) => u.id))});
+  nextWave();
+  const AI = setup.ai || BT_AUTO;
+  while (!B.over) {
+    turnStart();
+    AI.skills(B, {use: useSkill, mod: btMod});
+    if (!B.foes.some((x) => x.alive)) { if (B.wave >= B.waves.length) { B.over = true; B.result = "win"; break; } nextWave(); continue; }
+    const plan = AI.cards(B, {dmgOf: dmgOf, npGain: npGain});
+    emit("plan", {hand: B.hand.map((c) => ({who: c.u.id, card: c.card, crit: !!c.crit})), pick: plan.map((p) => p.np ? {who: p.u.id, np: true} : {who: p.u.id, card: p.card, h: B.hand.indexOf(p)}), target: B.target ? B.target.id : null});
+    const colors = plan.map((p) => p.np ? p.u.t.np.card : p.card);
+    const chain = {first: colors[0], color: plan.length === 3 && colors.every((c) => c === colors[0]) ? colors[0] : plan.length === 3 ? "mix" : ""};
+    // an Arts chain gives everyone in it 20% NP (once each), a Quick chain 10 stars
+    if (chain.color === "A") Array.from(new Set(plan.map((p) => p.u))).forEach((u) => { if (u.alive) u.np = clamp(u.np + 20, 0, 300); });
+    if (chain.color === "Q") B.stars = Math.min(50, B.stars + 10);
+    let npAt = 0;
+    plan.forEach((p, pos) => {
+      if (!B.foes.some((x) => x.alive)) return;
+      if (B.target && !B.target.alive) B.target = BT_AUTO.target(B);
+      if (p.np) { useNp(p.u, pos, chain.first, npAt); npAt++; }
+      else useCard(p, pos, chain);
+    });
+    // three cards from one servant: an Extra attack
+    if (plan.length === 3 && plan.every((p) => p.u === plan[0].u) && plan[0].u.alive && B.foes.some((x) => x.alive)) {
+      if (B.target && !B.target.alive) B.target = BT_AUTO.target(B);
+      useCard({u: plan[0].u, card: "E", crit: false}, 3, chain);
+    }
+    if (!B.foes.some((x) => x.alive)) {
+      turnEnd();
+      if (B.wave >= B.waves.length) { B.over = true; B.result = "win"; break; }
+      nextWave(); continue;
+    }
+    emit("foes-turn", {});
+    B.foes.forEach((f) => { if (B.allies.some((x) => x.alive)) foeAct(f); });
+    turnEnd();
+    if (!B.allies.some((x) => x.alive)) { B.over = true; B.result = "lose"; break; }
+    if (B.turn >= BT_MAX_TURNS) { B.over = true; B.result = "time"; break; }
+  }
+  emit("end", {result: B.result, turns: B.turn, wave: B.wave});
+  return {events: B.ev, result: B.result, turns: B.turn, wave: B.wave, waves: B.waves.length, units: B.everyone().map((u) => ({id: u.id, side: u.side, name: u.name, cls: u.cls, face: u.t.face, max: u.t.hp, stat: u.stat, t: u.t, chargeMax: u.chargeMax})), seed: seed};
+}
+
+/* ---------- the auto-battle: which skills, which target, which cards ---------- */
+const BT_HELP = new Set(["atk", "card", "np", "crit", "vs", "dp", "pierce", "defdown", "resdown"]);
+const BT_GUARD = new Set(["invinc", "evade", "defup", "cut", "taunt", "guts", "heal", "maxhp", "immune", "dres", "atkdown", "chargedown", "stun", "charm", "cleanse"]);
+const BT_AUTO = {
+  // the enemy that's about to use its big attack first, if any; else the one with the least HP left
+  target(B) {
+    const f = B.foes.filter((x) => x.alive); if (!f.length) return null;
+    const hot = f.filter((x) => x.charge >= x.chargeMax);
+    return (hot.length ? hot : f).slice().sort((a, b) => (a.hp + a.bars.reduce((s, v) => s + v, 0)) - (b.hp + b.bars.reduce((s, v) => s + v, 0)))[0];
+  },
+  // who hits hardest with their NP
+  nuker(B) {
+    const a = B.allies.filter((x) => x.alive && x.t.np && x.t.np.mult);
+    return a.slice().sort((x, y) => (y.atk * (y.t.np.mult[y.t.npLv - 1] || 0) * (BT_NP_CARD[y.t.np.card] || 1)) - (x.atk * (x.t.np.mult[x.t.npLv - 1] || 0) * (BT_NP_CARD[x.t.np.card] || 1)))[0] || null;
+  },
+  skills(B, api) {
+    B.target = BT_AUTO.target(B);
+    const allies = () => B.allies.filter((x) => x.alive), danger = B.foes.some((f) => f.alive && f.charge >= f.chargeMax - 0) || allies().some((x) => x.hp < x.max * 0.4);
+    const last = B.wave >= B.waves.length;
+    // the skills that charge NP first (they decide who can use their NP this turn), then the rest
+    for (let pass = 0; pass < 2; pass++) {
+      allies().forEach((u) => (u.t.sk || []).forEach((sk, i) => {
+        if (!sk || u.cd[i] > 0 || u.stun > 0) return;
+        const ks = sk.fx.map((f) => f.k), charges = ks.includes("charge");
+        if (pass === 0 && !charges) return;
+        if (pass === 1 && charges) return;
+        const nk = BT_AUTO.nuker(B);
+        let pick = null, use = false;
+        if (charges) {
+          const f = sk.fx.find((x) => x.k === "charge"), v = f.v ? f.v[sk.lv - 1] : 0;
+          if (f.tg === "o") { const cand = allies().filter((x) => x.t.np && x.t.np.mult && x.np < 100).sort((a, b) => b.np - a.np); pick = cand.find((x) => x.np + v >= 100) || cand[0] || null; use = !!pick; }
+          else { const who = f.tg === "s" ? [u] : allies(); use = who.some((x) => x.np < 100 && x.np + v >= 100) || who.some((x) => x.np < 100) && (last || B.turn === 1); }
+        } else {
+          const willNp = allies().some((x) => x.np >= 100 && x.t.np && x.t.np.mult);
+          const help = ks.some((k) => BT_HELP.has(k)), guard = ks.some((k) => BT_GUARD.has(k)), other = !help && !guard;
+          if (help && (willNp || (last && B.foes.filter((x) => x.alive).length === 1))) use = true;
+          if (guard && danger) use = true;
+          if (ks.includes("heal") && allies().some((x) => x.hp < x.max * 0.6)) use = true;
+          if (ks.includes("cleanse") && allies().some((x) => x.buffs.some((b) => BT_DEBUFF.has(b.k)))) use = true;
+          if (other || ks.every((k) => ["gain", "stars", "starturn", "drop", "gather", "npturn", "regen", "cd"].includes(k))) use = true;
+          if (sk.fx.some((f) => f.tg === "o")) pick = nk && sk.fx.some((f) => BT_HELP.has(f.k)) ? nk : allies().slice().sort((a, b) => a.hp / a.max - b.hp / b.max)[0];
+        }
+        if (use) api.use(u, i, pick);
+      }));
+    }
+  },
+  // NPs first (support ones before damage), then the face cards that do the most, with a bonus for chains
+  cards(B, api) {
+    const nps = B.allies.filter((u) => u.alive && u.stun <= 0 && u.t.np && u.np >= 100).sort((a, b) => (a.t.np.tg === "S" ? 0 : 1) - (b.t.np.tg === "S" ? 0 : 1)).slice(0, 3);
+    const plan = nps.map((u) => ({u: u, np: true}));
+    const n = 3 - plan.length; if (!n) return plan;
+    const hand = B.hand.filter((c) => c.u.alive && c.u.stun <= 0), t = B.target || BT_AUTO.target(B);
+    if (!t) return plan;
+    let best = null, bestS = -1;
+    const perm = (arr, k, pre, out) => { if (pre.length === k) { out.push(pre.slice()); return; } arr.forEach((x, i) => { if (pre.includes(x)) return; pre.push(x); perm(arr, k, pre, out); pre.pop(); }); return out; };
+    const tries = perm(hand, Math.min(n, hand.length), [], []);
+    tries.forEach((cs) => {
+      const all = plan.concat(cs), colors = all.map((p) => p.np ? p.u.t.np.card : p.card), first = colors[0];
+      const mono = all.length === 3 && colors.every((c) => c === colors[0]);
+      let s = 0;
+      cs.forEach((c, j) => {
+        const pos = plan.length + j;
+        s += api.dmgOf(c.u, t, c.card, Math.min(pos, 2), {first: first, crit: c.crit, busterChain: mono && colors[0] === "B"});
+        const g = api.npGain(c.u, t, c.card, Math.min(pos, 2), {first: first, crit: c.crit}) * BT_HITS[c.card];
+        if (c.u.t.np && c.u.np < 100) s += g * (c.u.atk * 0.6);
+      });
+      if (mono && colors[0] === "A") s += all.reduce((a, p) => a + (p.u.np < 100 ? 20 * p.u.atk * 0.6 : 0), 0);
+      if (mono && colors[0] === "Q") s += 2500;
+      if (all.length === 3 && all.every((p) => p.u === all[0].u)) s += api.dmgOf(all[0].u, t, "E", 0, {ex: mono ? 3.5 : 2});
+      if (s > bestS) { bestS = s; best = cs; }
+    });
+    return plan.concat(best || []);
+  }
+};
+
+// for the tests: the engine on its own, without the page around it (it changes nothing on its own)
+try { Object.defineProperty(window, "__fgiBattle", {value: Object.freeze({run: btBattle, fromServant: btFromServant, fromNA: btFromNA, made: btFromMade, asFoe: btAsFoe, servants: () => S.servants.slice()}), configurable: true}); } catch (e) {}
+/* ================= 0.50.0-beta: the battle simulator, part 2: the Battle page =================
+   Set up a fight (your party; the enemies: made up, your Guests, your servants, or a real NA quest), press Fight, and
+   watch it play out: the skills, the five cards and the three picked, the damage on each enemy, the enemies' turn, the
+   waves, the result. Play, pause, step through it, go faster, or jump to any moment from the list of what happened.
+   The setup is kept in this browser (spirit-origin-list:v1:battle); a fight changes nothing on your list. */
+const BT_KEY = "spirit-origin-list:v1:battle";
+let btPrefs = (() => { try { const v = JSON.parse(localStorage.getItem(BT_KEY) || "null"); return v && typeof v === "object" && !Array.isArray(v) ? v : {}; } catch (e) { return {}; } })();
+const btSave = () => { try { localStorage.setItem(BT_KEY, JSON.stringify(btPrefs)); } catch (e) {} };
+const BT = {run: null, at: 0, play: false, timer: 0, err: "", quest: null, questBusy: false, questErr: "", war: null, warBusy: false};
+
+/* ---------- the tab ---------- */
+TABS.push("battle");
+(function () {
+  const nav = document.querySelector("nav.tabs"), before = document.getElementById("tab-past");
+  const b = document.createElement("button");
+  b.className = "tab"; b.setAttribute("role", "tab"); b.id = "tab-battle"; b.dataset.action = "tab"; b.dataset.tab = "battle"; b.setAttribute("aria-selected", "false"); b.textContent = "Battle";
+  if (nav) nav.insertBefore(b, before);
+  const sec = document.createElement("section");
+  sec.id = "view-battle"; sec.setAttribute("aria-labelledby", "tab-battle"); sec.hidden = true; sec.innerHTML = `<div id="battle" class="bt"></div>`;
+  const after = document.getElementById("view-versus") || document.getElementById("view-ranking"); if (after) after.after(sec); else document.querySelector(".shell").appendChild(sec);
+  if ((location.hash || "").slice(1) === "battle") S.tab = "battle";
+})();
+// (the footer was drawn before this page existed: it's drawn again with Battle in its list)
+if (typeof FOOT_TABS !== "undefined") {
+  const i = FOOT_TABS.findIndex((x) => x[0] === "past"); FOOT_TABS.splice(i >= 0 ? i : FOOT_TABS.length, 0, ["battle", "Battle"]);
+  try { if (typeof foot !== "undefined" && foot) { foot.innerHTML = footHTML(); renderFoot(); } } catch (e) {}
+}
+
+/* ---------- who can fight ---------- */
+const BT_PRESETS = {
+  farm: {t: "Three waves, like a 90++ quest", w: [[["Lancer", "Spearman", 38000, 7800], ["Lancer", "Spearman", 41000, 7800], ["Archer", "Archer", 36000, 8200]],
+    [["Rider", "Knight", 58000, 8800], ["Caster", "Magus", 52000, 8400], ["Rider", "Knight", 61000, 8800]], [["Saber", "Guardian", 310000, 11200, 3, 2], ["Lancer", "Spearman", 62000, 8000], ["Archer", "Archer", 58000, 8200]]]},
+  boss: {t: "One big boss", w: [[["Saber", "Heroic Spirit", 1000000, 14500, 3, 2]]]},
+  guards: {t: "A boss and two guards", w: [[["Berserker", "Guard", 70000, 9000], ["Caster", "Sorcerer", 420000, 12000, 4, 2], ["Berserker", "Guard", 70000, 9000]]]},
+  dummy: {t: "Training dummies", w: [[["Saber", "Dummy", 12000, 900], ["Archer", "Dummy", 12000, 900], ["Lancer", "Dummy", 12000, 900]], [["Rider", "Dummy", 15000, 900], ["Caster", "Dummy", 15000, 900], ["Assassin", "Dummy", 15000, 900]], [["Berserker", "Big dummy", 60000, 1200]]]}
+};
+const btPreset = (k) => (BT_PRESETS[k] || BT_PRESETS.farm).w.map((w) => w.map(([cls, n, hp, atk, ch, acts]) => ({cls: cls, name: n, attr: "Earth", hp: hp, atk: atk, charge: ch || 3, acts: acts || 1})));
+function btSetup() {
+  const P = btPrefs;
+  if (!Array.isArray(P.party)) P.party = S.servants.filter((s) => !s.wish).slice(0, 3).map((s) => "r:" + s.id).concat(["", "", ""]).slice(0, 6);
+  if (!P.np || typeof P.np !== "object") P.np = {};
+  if (!["made", "guests", "mine", "quest"].includes(P.src)) P.src = "made";
+  if (!Array.isArray(P.made) || !P.made.length) { P.made = btPreset("farm"); P.preset = "farm"; }
+  if (!Array.isArray(P.pick)) P.pick = [["", "", ""], ["", "", ""], ["", "", ""]];
+  if (![1, 3, 10].includes(num(P.hpMul))) P.hpMul = 3;
+  return P;
+}
+// a fighter from a key: "r:<id>" one of yours (a Guest too), "a:<no>" any NA servant
+function btFighter(key, foe) {
+  const k = String(key || ""), v = k.slice(2);
+  if (k.startsWith("r:")) { const s = S.servants.find((x) => x.id === v); if (!s) return null; const t = btFromServant(s); return foe ? btAsFoe(t, btPrefs.hpMul) : t; }
+  if (k.startsWith("a:")) { const t = btFromNA(v, (btPrefs.np || {})[k] || 1); return t ? (foe ? btAsFoe(t, btPrefs.hpMul) : t) : null; }
+  return null;
+}
+function btEnemies() {
+  const P = btSetup();
+  if (P.src === "made") return P.made.map((w) => w.map(btFromMade)).filter((w) => w.length);
+  if (P.src === "quest") return BT.quest && BT.quest.st ? BT.quest.st.map((w) => w.e.map(btFromQuest)).filter((w) => w.length) : [];
+  return P.pick.map((w) => w.map((k) => btFighter(k, true)).filter(Boolean)).filter((w) => w.length);
+}
+
+/* ---------- a real NA quest's enemies (Atlas Academy; the Story page's chapters, or any quest by its number) ---------- */
+function btPhaseSmall(d) {
+  const st = (d.stages || []).map((sg) => {
+    const all = sg.enemies || [], shift = all.filter((e) => e.deck === "shift");
+    const one = (e) => {
+      const sv = e.svt || {}, sh = e.enemyScript && Array.isArray(e.enemyScript.shift) ? e.enemyScript.shift : [];
+      const td = e.serverMod && num(e.serverMod.tdRate) ? num(e.serverMod.tdRate) / 1000 : 0;
+      return {n: liveText(e.name || sv.name), c: liveCls(sv.className), a: ATTR_N[sv.attribute] || "", hp: e.hp | 0, atk: e.atk | 0, f: sv.face || "", ct: e.chargeTurn | 0, td: td,
+        bars: shift.filter((x) => sh.includes(x.npcId)).map((x) => x.hp | 0), tr: (e.traits || []).map((t) => t && t.name).filter((t) => t && !TRAIT_SKIP.test(t)).slice(0, 14).map(traitWords)};
+    };
+    return {w: sg.wave | 0, e: all.filter((e) => e.deck === "enemy").sort((a, b) => (a.deckId | 0) - (b.deckId | 0)).slice(0, 6).map(one)};
+  }).filter((x) => x.e.length);
+  return {v: 1, n: liveText(d.name || ""), lv: d.recommendLv || "", st: st};
+}
+async function btLoadQuest(q, ph) {
+  const key = "battle:phase:" + q + "-" + ph;
+  BT.questBusy = true; BT.questErr = ""; btRender();
+  try {
+    let d = await kv.get(key);
+    if (!d || d.v !== 1) { d = btPhaseSmall(await storyFetch(ATLAS_NICE + "quest/" + q + "/" + ph)); await kv.set(key, d); }
+    BT.quest = Object.assign({q: q, ph: ph}, d); btPrefs.quest = {q: q, ph: ph, w: btPrefs.quest && btPrefs.quest.w}; btSave();
+    if (!d.st.length) BT.questErr = "This quest has no enemies listed on Atlas Academy.";
+  } catch (e) { BT.quest = null; BT.questErr = navigator.onLine === false ? "You're offline: NA's quests come from Atlas Academy." : "Couldn't load that quest from Atlas Academy. Check the number and try again."; }
+  finally { BT.questBusy = false; btRender(); }
+}
+async function btLoadWar(id) {
+  BT.warBusy = true; BT.war = null; btRender();
+  try { BT.war = await storyWar(id); } catch (e) { BT.war = null; }
+  BT.warBusy = false; btRender();
+}
+
+/* ---------- the setup ---------- */
+const btFace = (src, cls) => src ? `<img src="${esc(src)}" alt="" loading="lazy" decoding="async">` : CLASS_LOGO[cls] ? `<img class="bt-emb" src="${CLASS_LOGO[cls]}" alt="" loading="lazy">` : `<i class="bt-noface" aria-hidden="true"></i>`;
+function btSlotOptions(cur) {
+  const mine = S.servants.filter((s) => !s.wish).slice().sort((a, b) => a.name.localeCompare(b.name)), guests = S.servants.filter((s) => s.wish);
+  const pop = (typeof NPC_POP !== "undefined" ? NPC_POP : []).map((n) => ATLAS_BY_NO.get(n)).filter(Boolean);
+  const o = (v, t) => `<option value="${esc(v)}"${v === cur ? " selected" : ""}>${esc(t)}</option>`;
+  return o("", "Empty") + (mine.length ? `<optgroup label="Your servants">${mine.map((s) => o("r:" + s.id, nmText(s) + " · " + (s.cls || "") + (s.level ? " · Lv " + s.level : ""))).join("")}</optgroup>` : "")
+    + (guests.length ? `<optgroup label="Your Guests">${guests.map((s) => o("r:" + s.id, nmText(s) + " · " + (s.cls || ""))).join("")}</optgroup>` : "")
+    + `<optgroup label="Borrow a support (max level, skills 10/10/10)">${pop.map((a) => o("a:" + a.no, a.n + " · " + a.c)).join("")}</optgroup>`
+    + `<optgroup label="Any NA servant">${ATLAS_S.slice().sort((a, b) => a.n.localeCompare(b.n)).map((a) => o("a:" + a.no, a.n + " · " + a.c)).join("")}</optgroup>`;
+}
+function btSlotHTML(i, key) {
+  const t = key ? btFighter(key) : null, P = btPrefs;
+  const meta = t ? [t.cls, "ATK " + fmt(t.atk), "HP " + fmt(t.hp), "NP" + t.npLv, t.custom ? "Custom" : t.support ? "Support" : ""].filter(Boolean).join(" · ") : i < 3 ? "In front" : "Waits behind, steps in when someone falls";
+  return `<div class="bt-slot${t ? "" : " empty"}${i < 3 ? " front" : " back"}">
+    <span class="bt-face">${t ? btFace(t.face, t.cls) : ""}</span>
+    <div class="bt-slot-main"><label class="sr" for="bt-p${i}">${i < 3 ? "Front " + (i + 1) : "Back " + (i - 2)}</label>
+      <select id="bt-p${i}" data-bt-slot="${i}">${btSlotOptions(key)}</select>
+      <small>${esc(meta)}</small>
+      ${key && key.startsWith("a:") ? `<label class="bt-np">NP level <select data-bt-np="${esc(key)}">${[1, 2, 3, 4, 5].map((n) => `<option value="${n}"${(P.np[key] || 1) === n ? " selected" : ""}>NP${n}</option>`).join("")}</select></label>` : ""}
+    </div></div>`;
+}
+const BT_SRC = [["made", "Made-up enemies"], ["guests", "Your Guests"], ["mine", "Your servants"], ["quest", "An NA quest"]];
+function btMadeHTML(P) {
+  const clsO = (c) => AFF_CLASSES.map((x) => `<option${x === c ? " selected" : ""}>${x}</option>`).join(""), attO = (a) => NPC_ATTRS.map((x) => `<option${x === a ? " selected" : ""}>${x}</option>`).join("");
+  return `<div class="bt-made">
+    <label class="bt-preset">Start from <select data-bt-preset>${Object.entries(BT_PRESETS).map(([k, v]) => `<option value="${k}"${P.preset === k ? " selected" : ""}>${esc(v.t)}</option>`).join("")}<option value="own"${P.preset === "own" ? " selected" : ""}>Your own (as below)</option></select></label>
+    ${P.made.map((w, wi) => `<fieldset class="bt-wave"><legend>Wave ${wi + 1}${P.made.length > 1 ? ` <button type="button" class="linkish" data-bt-act="wave-del" data-w="${wi}">Remove</button>` : ""}</legend>
+      <div class="bt-erows">${w.map((e, ei) => `<div class="bt-erow">
+        <input type="text" value="${esc(e.name)}" data-bt-e="${wi}.${ei}.name" aria-label="Wave ${wi + 1}, enemy ${ei + 1}: name" maxlength="40">
+        <select data-bt-e="${wi}.${ei}.cls" aria-label="Class">${clsO(e.cls)}</select>
+        <select data-bt-e="${wi}.${ei}.attr" aria-label="Attribute">${attO(e.attr)}</select>
+        <label><span>HP</span><input type="number" min="1" step="1000" value="${esc(e.hp)}" data-bt-e="${wi}.${ei}.hp" inputmode="numeric"></label>
+        <label><span>ATK</span><input type="number" min="0" step="100" value="${esc(e.atk)}" data-bt-e="${wi}.${ei}.atk" inputmode="numeric"></label>
+        <label title="Turns until its big attack"><span>Charge</span><input type="number" min="1" max="8" value="${esc(e.charge || 3)}" data-bt-e="${wi}.${ei}.charge" inputmode="numeric"></label>
+        <label title="Attacks each turn"><span>Attacks</span><input type="number" min="1" max="3" value="${esc(e.acts || 1)}" data-bt-e="${wi}.${ei}.acts" inputmode="numeric"></label>
+        <button type="button" class="bt-x" data-bt-act="enemy-del" data-w="${wi}" data-e="${ei}" aria-label="Remove this enemy" title="Remove">×</button></div>`).join("")}</div>
+      ${w.length < 3 ? `<button type="button" class="btn ghost sm" data-bt-act="enemy-add" data-w="${wi}">Add an enemy</button>` : ""}</fieldset>`).join("")}
+    ${P.made.length < 3 ? `<button type="button" class="btn ghost sm" data-bt-act="wave-add">Add a wave</button>` : ""}</div>`;
+}
+function btPickHTML(P, guests) {
+  const list = S.servants.filter((s) => guests ? s.wish : !s.wish).slice().sort((a, b) => a.name.localeCompare(b.name));
+  if (!list.length) return `<p class="tr-none">${guests ? "You have no Guests yet. Add some on the Servants page (Add servant → as a Guest)." : "Your roster is empty."}</p>`;
+  const o = (cur) => `<option value="">Nobody</option>` + list.map((s) => `<option value="r:${esc(s.id)}"${"r:" + s.id === cur ? " selected" : ""}>${esc(nmText(s))} · ${esc(s.cls || "")}</option>`).join("");
+  return `<div class="bt-pick">${[0, 1, 2].map((wi) => `<fieldset class="bt-wave"><legend>Wave ${wi + 1}</legend><div class="bt-prow">${[0, 1, 2].map((ei) => `<select data-bt-pick="${wi}.${ei}" aria-label="Wave ${wi + 1}, enemy ${ei + 1}">${o((P.pick[wi] || [])[ei] || "")}</select>`).join("")}</div></fieldset>`).join("")}
+    <div class="seg bt-hpm" role="group" aria-label="Their HP">${[1, 3, 10].map((m) => `<button type="button" data-bt-hpm="${m}" aria-pressed="${P.hpMul === m}">HP ×${m}</button>`).join("")}</div>
+    <p class="bt-note">Servants as enemies use their own skills' damage, their NP every three turns, and the HP you pick (the game's enemy servants have far more than a playable one).</p></div>`;
+}
+function btQuestHTML(P) {
+  const ev = live && live.data ? live.data.ev.filter((x) => x.k === "event" && x.w && x.w.length && x.e > Date.now() / 1000 - 30 * 86400) : [];
+  const wid = (P.quest && P.quest.w) || "";
+  const fights = BT.war ? fightsOf(BT.war) : [];
+  const q = BT.quest;
+  return `<div class="bt-quest">
+    <div class="bt-qrow"><label>Chapter or event <select data-bt-war><option value="">Pick one…</option>
+      <optgroup label="Main story">${STORY_CH.map((c) => `<option value="${c[0]}"${String(c[0]) === String(wid) ? " selected" : ""}>${esc(c[3])}</option>`).join("")}</optgroup>
+      ${ev.length ? `<optgroup label="Events on NA">${ev.map((x) => `<option value="${x.w[0]}"${String(x.w[0]) === String(wid) ? " selected" : ""}>${esc(liveText(x.n))}</option>`).join("")}</optgroup>` : ""}</select></label>
+    ${BT.warBusy ? `<p class="bt-note">Getting its quests from Atlas Academy…</p>` : fights.length ? `<label>Battle <select data-bt-fight><option value="">Pick one…</option>${fights.map(([qq, ph]) => `<option value="${qq.id}/${ph}"${q && q.q === qq.id && q.ph === ph ? " selected" : ""}>${esc(secLabel(qq))}${qq.pe.length > 1 ? " · battle " + ph : ""}</option>`).join("")}</select></label>` : wid ? `<p class="bt-note">No battles found for it.</p>` : ""}</div>
+    <form class="bt-qid" data-bt-qid><label>Or a quest's number <input type="text" inputmode="numeric" placeholder="94086601/3, or a link from Atlas Academy" value="${q ? esc(q.q + "/" + q.ph) : ""}"></label><button type="submit" class="btn sm">Load</button></form>
+    ${BT.questBusy ? `<p class="bt-note">Loading the enemies…</p>` : BT.questErr ? `<p class="bt-warn">${esc(BT.questErr)}</p>` : q && q.st && q.st.length ? `<div class="bt-qwaves"><b>${esc(q.n || "Quest " + q.q)}</b>${q.lv ? `<small>Recommended Lv ${esc(q.lv)}</small>` : ""}
+      ${q.st.map((w) => `<div class="bt-qw"><span>Wave ${w.w}</span>${w.e.map((e) => `<span class="bt-qe" title="${esc(e.n)}">${btFace(e.f ? aimg(e.f) : "", e.c)}<b>${esc(e.n)}</b><small>${esc(e.c)} · ${fmt(e.hp + e.bars.reduce((a, v) => a + v, 0))} HP${e.bars.length ? " (" + (e.bars.length + 1) + " bars)" : ""}</small></span>`).join("")}</div>`).join("")}</div>`
+      : `<p class="bt-note">The enemies come from Atlas Academy's NA data, with their real HP, ATK, classes and charge.</p>`}</div>`;
+}
+function btSetupHTML() {
+  const P = btSetup(), waves = btEnemies();
+  const ready = P.party.slice(0, 3).some(Boolean) && waves.length;
+  return `<div class="bt-setup">
+    <section class="d-sec bt-card"><h3>Your party <small>three in front, three behind</small></h3>
+      <div class="bt-slots">${P.party.map((k, i) => btSlotHTML(i, k)).join("")}</div>
+      <p class="bt-note">Your servants fight at their levels, skill levels and NP levels on your list, with Fou, their equipped Craft Essence and Append 2 and 3. Custom servants use their own kit from the Workshop.</p></section>
+    <section class="d-sec bt-card"><h3>The enemies</h3>
+      <div class="seg bt-src" role="group" aria-label="The enemies">${BT_SRC.map(([k, t]) => `<button type="button" data-bt-src="${k}" aria-pressed="${P.src === k}">${t}</button>`).join("")}</div>
+      ${P.src === "made" ? btMadeHTML(P) : P.src === "quest" ? btQuestHTML(P) : btPickHTML(P, P.src === "guests")}</section>
+    <div class="bt-go">
+      <button type="button" class="btn primary bt-fight" data-bt-act="fight"${ready ? "" : " disabled"}>Fight</button>
+      <label class="bt-seed">Seed <input type="text" inputmode="numeric" value="${esc(P.seed || "")}" placeholder="new each time" data-bt-seed maxlength="10"></label>
+      <span class="bt-note">${ready ? "Auto-battle: they use their skills, NPs and cards on their own." : !P.party.slice(0, 3).some(Boolean) ? "Put someone in front first." : "Add some enemies first."}</span>
+    </div></div>`;
+}
+
+/* ---------- the fight, played back ---------- */
+const BT_PACE = {start: 300, wave: 900, turn: 700, skill: 800, plan: 900, card: 520, np: 1300, "np-after": 500, "foes-turn": 450, "foe-hit": 520, "foe-np": 1300, fall: 600, guts: 700, bar: 700, burn: 400, swap: 700, stunned: 450, end: 0};
+const btWho = (id) => BT.run && BT.run.units.find((u) => u.id === id);
+const btName = (id) => { const u = btWho(id); return u ? u.name : "?"; };
+function btLine(e) {
+  const n = btName, c = (k) => BT_WORD[k] || k;
+  switch (e.t) {
+    case "start": return "The battle begins.";
+    case "wave": return `Wave ${e.n} of ${e.of}.`;
+    case "turn": return `Turn ${e.n}.`;
+    case "skill": return `${n(e.who)} uses ${e.n}${e.pick && e.pick !== e.who ? " on " + n(e.pick) : ""}.`;
+    case "plan": return `Cards: ${e.pick.map((p) => p.np ? n(p.who) + "'s NP" : n(p.who) + " " + c(p.card)).join(", ")}.`;
+    case "card": return e.dodged ? `${n(e.to)} avoids ${n(e.who)}'s ${c(e.card)}.` : `${n(e.who)}: ${c(e.card)}${e.crit ? " critical" : ""}, ${fmt(e.dmg)} to ${n(e.to)}.`;
+    case "np": return `${n(e.who)}: ${e.n}${e.oc > 1 ? " (Overcharge " + e.oc * 100 + "%)" : ""}${e.hits.length ? ", " + e.hits.map((h) => (h.dodged ? "avoided by " : fmt(h.dmg) + " to ") + n(h.id) + (h.se ? " (super effective)" : "")).join(", ") : ""}.`;
+    case "np-after": return `${n(e.who)}'s Noble Phantasm takes effect.`;
+    case "foes-turn": return "The enemies' turn.";
+    case "foe-hit": return e.dodged ? `${n(e.to)} avoids ${n(e.who)}'s attack.` : `${n(e.who)} hits ${n(e.to)} for ${fmt(e.dmg)}${e.crit ? " (critical)" : ""}.`;
+    case "foe-np": return `${n(e.who)} unleashes ${e.n}: ${e.hits.map((h) => (h.dodged ? "avoided by " : fmt(h.dmg) + " to ") + n(h.id)).join(", ") || "no one is hit"}.`;
+    case "fall": return `${n(e.who)} falls.`;
+    case "guts": return `${n(e.who)} holds on (Guts).`;
+    case "bar": return `${n(e.who)} rises again with another HP bar.`;
+    case "burn": return `${n(e.who)} takes ${fmt(e.dmg)} from a lasting effect.`;
+    case "swap": return `${n(e.in)} steps in for ${n(e.out)}.`;
+    case "stunned": return `${n(e.who)} can't move.`;
+    case "end": return e.result === "win" ? `Victory in ${e.turns} turns.` : e.result === "lose" ? `Defeat on wave ${e.wave}, turn ${e.turns}.` : `Out of time after ${e.turns} turns.`;
+  }
+  return "";
+}
+const BT_BUFF_WORD = {atk: "ATK↑", card: "Card↑", np: "NP↑", crit: "Crit↑", vs: "Special", dp: "Dmg+", pierce: "Pierce", npturn: "NP/turn", gain: "Gain↑", starturn: "Stars/turn", drop: "Stars↑", gather: "Gather↑",
+  defup: "DEF↑", cut: "Cut", invinc: "Invincible", evade: "Evade", guts: "Guts", taunt: "Taunt", maxhp: "Max HP↑", immune: "Immune", dres: "Resist↑", regen: "Regen", defdown: "DEF↓", resdown: "Res↓", atkdown: "ATK↓", stun: "Stun", charm: "Charm", burn: "Burn"};
+function btUnitHTML(u, st, e) {
+  if (!st) return "";
+  const act = e && (e.who === u.id), hit = e && ((e.to === u.id) || (e.hits || []).some((h) => h.id === u.id));
+  const dmg = e && e.to === u.id && e.dmg != null ? e.dmg : e && e.hits ? ((e.hits.find((h) => h.id === u.id) || {}).dmg) : null;
+  const dodged = e && ((e.to === u.id && e.dodged) || (e.hits || []).some((h) => h.id === u.id && h.dodged));
+  const hpPct = clamp(st.hp / (st.max || 1) * 100, 0, 100);
+  const buffs = st.buffs.map((b) => b.split(":")[0]).filter((v, i, a) => a.indexOf(v) === i).map((b) => `<i class="bt-bf${BT_DEBUFF.has(b) ? " de" : ""}">${esc(BT_BUFF_WORD[b] || b)}</i>`).join("");
+  return `<div class="bt-u ${u.side}${st.alive ? "" : " gone"}${act ? " act" : ""}${hit ? " hit" : ""}${st.stun ? " stun" : ""}" data-u="${u.id}">
+    <span class="bt-uf">${btFace(u.face, u.cls)}${CLASS_LOGO[u.cls] ? `<img class="bt-ucls" src="${CLASS_LOGO[u.cls]}" alt="" loading="lazy">` : ""}${dmg != null && hit ? `<b class="bt-pop${dodged ? " miss" : ""}">${dodged ? "Miss" : fmt(dmg)}</b>` : ""}</span>
+    <span class="bt-un">${esc(u.name)}</span>
+    <span class="bt-hp" role="img" aria-label="HP ${fmt(st.hp)} of ${fmt(st.max)}"><i style="transform:scaleX(${(hpPct / 100).toFixed(3)})"></i></span>
+    <span class="bt-hpn">${fmt(st.hp)}${st.bars ? ` <small>+${st.bars} bar${st.bars > 1 ? "s" : ""}</small>` : ""}</span>
+    ${u.side === "ally" ? `<span class="bt-npg${st.np >= 100 ? " full" : ""}" role="img" aria-label="NP ${st.np}%"><i style="transform:scaleX(${(clamp(st.np, 0, 100) / 100).toFixed(3)})"></i><b>${st.np}%</b></span>`
+      : `<span class="bt-ch" aria-label="Charge ${st.charge} of ${st.chargeMax}">${Array.from({length: st.chargeMax}, (x, i) => `<i class="${i < st.charge ? "on" : ""}"></i>`).join("")}</span>`}
+    <span class="bt-bfs">${buffs}</span></div>`;
+}
+// the moment to show: the event's snapshot, and which wave's enemies are in it
+function btViewHTML() {
+  const R = BT.run, e = R.events[BT.at], s = e.s, byId = new Map(s.u.map((x) => [x.id, x]));
+  const front = s.u.filter((x) => x.front);
+  const allies = R.units.filter((u) => u.side === "ally" && byId.has(u.id) && front.includes(byId.get(u.id)));
+  const back = R.units.filter((u) => u.side === "ally" && byId.has(u.id) && !front.includes(byId.get(u.id)) && byId.get(u.id).alive);
+  const foes = R.units.filter((u) => u.side === "foe" && byId.has(u.id));
+  // the cards: the hand of the turn, with the three picked
+  let plan = null; for (let i = BT.at; i >= 0; i--) { const x = R.events[i]; if (x.t === "plan") { plan = x; break; } if (x.t === "turn") break; }
+  const used = new Set(), at = plan ? R.events.indexOf(plan) : -1;
+  if (plan) for (let i = at + 1; i <= BT.at; i++) { const x = R.events[i]; if (x.t === "card" || x.t === "np") used.add(i); }
+  const hand = plan ? plan.hand.map((c, i) => { const p = plan.pick.findIndex((x) => !x.np && x.h === i); const u = btWho(c.who);
+    return `<span class="bt-cd ${c.card}${p >= 0 ? " pick" : ""}${c.crit ? " crit" : ""}" title="${esc((u ? u.name : "") + ": " + BT_WORD[c.card])}">${u ? btFace(u.face, u.cls) : ""}<b>${BT_WORD[c.card]}</b>${p >= 0 ? `<i>${p + 1}</i>` : ""}</span>`; }).join("")
+    + plan.pick.map((x, i) => x.np ? `<span class="bt-cd np pick"><b>NP</b><small>${esc(btName(x.who))}</small><i>${i + 1}</i></span>` : "").join("") : "";
+  const res = R.result, done = BT.at >= R.events.length - 1;
+  return `<div class="bt-run">
+    <div class="bt-bar">
+      <div class="bt-where"><b>${done ? (res === "win" ? "Victory" : res === "lose" ? "Defeat" : "Out of time") : "Turn " + (s.turn || 1)}</b><span>Wave ${s.wave || 1} of ${R.waves}${s.stars ? ` · ${s.stars} stars` : ""}</span></div>
+      <div class="bt-ctl" role="group" aria-label="Playback">
+        <button type="button" class="btn sm" data-bt-act="first" title="From the start" aria-label="From the start">⏮</button>
+        <button type="button" class="btn sm" data-bt-act="prev" title="One step back" aria-label="One step back">◀</button>
+        <button type="button" class="btn sm primary" data-bt-act="play" aria-pressed="${BT.play}">${BT.play ? "Pause" : done ? "Again" : "Play"}</button>
+        <button type="button" class="btn sm" data-bt-act="next" title="One step on" aria-label="One step on">▶</button>
+        <button type="button" class="btn sm" data-bt-act="last" title="To the end" aria-label="To the end">⏭</button>
+        <span class="seg bt-speed" role="group" aria-label="Speed">${[1, 2, 4].map((v) => `<button type="button" data-bt-speed="${v}" aria-pressed="${(btPrefs.speed || 1) === v}">${v}×</button>`).join("")}</span>
+      </div>
+      <div class="bt-acts"><button type="button" class="btn ghost sm" data-bt-act="again">New seed</button><button type="button" class="btn ghost sm" data-bt-act="setup">Change the setup</button></div>
+    </div>
+    <p class="bt-say" aria-live="polite">${esc(btLine(e))}</p>
+    <div class="bt-stage">
+      <div class="bt-row foes">${foes.map((u) => btUnitHTML(u, byId.get(u.id), e)).join("")}</div>
+      <div class="bt-hand">${hand}</div>
+      <div class="bt-row allies">${allies.map((u) => btUnitHTML(u, byId.get(u.id), e)).join("")}</div>
+      ${back.length ? `<div class="bt-back"><span>Behind</span>${back.map((u) => `<span class="bt-bk" title="${esc(u.name)}">${btFace(u.face, u.cls)}</span>`).join("")}</div>` : ""}
+    </div>
+    ${done ? btSummaryHTML() : ""}
+    <details class="bt-log"${btPrefs.log ? " open" : ""} data-bt-log><summary>What happened <small>${R.events.length} steps, seed ${esc(R.seed)}</small></summary>
+      <ol>${R.events.map((x, i) => x.t === "plan" || x.t === "foes-turn" ? "" : `<li class="${i === BT.at ? "cur" : i > BT.at ? "later" : ""} t-${x.t}"><button type="button" class="linkish" data-bt-at="${i}">${esc(btLine(x))}</button></li>`).join("")}</ol></details>
+  </div>`;
+}
+function btSummaryHTML() {
+  const R = BT.run, al = R.units.filter((u) => u.side === "ally"), top = al.slice().sort((a, b) => b.stat.dmg - a.stat.dmg)[0];
+  const head = R.result === "win" ? `Victory in ${R.turns} turn${R.turns === 1 ? "" : "s"}` : R.result === "lose" ? `Defeat on wave ${R.wave} of ${R.waves}, turn ${R.turns}` : `Out of time after ${R.turns} turns, on wave ${R.wave} of ${R.waves}`;
+  return `<section class="d-sec bt-sum ${R.result}"><h3>${esc(head)}</h3>
+    ${top && top.stat.dmg ? `<p>Most damage: <b>${esc(top.name)}</b>, ${fmt(top.stat.dmg)}.</p>` : ""}
+    <div class="bt-tbw"><table class="bt-tb"><thead><tr><th>Servant</th><th class="n">Damage</th><th class="n">NPs</th><th class="n">Cards</th><th class="n">Skills</th><th class="n">Defeated</th><th class="n">Taken</th></tr></thead>
+      <tbody>${al.map((u) => `<tr><td>${esc(u.name)}</td><td class="n">${fmt(u.stat.dmg)}</td><td class="n">${u.stat.nps}</td><td class="n">${u.stat.cards}</td><td class="n">${u.stat.skills}</td><td class="n">${u.stat.kills}</td><td class="n">${fmt(u.stat.taken)}</td></tr>`).join("")}</tbody></table></div>
+    <p class="bt-note">The page doesn't have each servant's own NP gain and hit counts, so it uses the usual ones for the class and card: a fight here is close to the game, not the same. Effects that trigger later (“apply a state that …”) aren't worked out.</p></section>`;
+}
+
+/* ---------- drawing and playing ---------- */
+function btRender() {
+  const box = document.getElementById("battle"); if (!box) return;
+  const keepLog = box.querySelector("[data-bt-log]"), logOpen = keepLog ? keepLog.open : !!btPrefs.log, logScroll = keepLog ? keepLog.querySelector("ol").scrollTop : 0;
+  box.innerHTML = BT.run ? btViewHTML() : btSetupHTML();
+  const lg = box.querySelector("[data-bt-log]"); if (lg) { lg.open = logOpen; const ol = lg.querySelector("ol"); ol.scrollTop = logScroll; const cur = ol.querySelector(".cur"); if (cur && BT.play) cur.scrollIntoView({block: "nearest"}); }
+}
+function btStop() { BT.play = false; clearTimeout(BT.timer); }
+function btTick() {
+  clearTimeout(BT.timer);
+  if (!BT.play || !BT.run) return;
+  if (BT.at >= BT.run.events.length - 1) { BT.play = false; btRender(); return; }
+  BT.at += 1; btRender();
+  const e = BT.run.events[BT.at], wait = (BT_PACE[e.t] != null ? BT_PACE[e.t] : 500) / (btPrefs.speed || 1);
+  BT.timer = setTimeout(btTick, BT_RM2.matches ? Math.max(wait, 400) : wait);
+}
+const BT_RM2 = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : {matches: false};
+function btFight(seedIn) {
+  const P = btSetup();
+  const party = P.party.map((k) => k ? btFighter(k) : null), waves = btEnemies();
+  if (!party.slice(0, 3).some(Boolean) || !waves.length) return;
+  const seed = num(seedIn != null ? seedIn : P.seed) || Math.floor(Math.random() * 1e9) + 1;
+  try { BT.run = btBattle({party: party, waves: waves}, seed); BT.at = 0; BT.play = true; BT.err = ""; }
+  catch (e) { BT.run = null; BT.err = String(e && e.message || e); toast("The fight couldn't be worked out: " + BT.err); }
+  btRender(); if (BT.run) { const v = document.getElementById("view-battle"); if (v) v.scrollIntoView({block: "start"}); btTick(); }
+}
+
+/* ---------- the page's buttons and fields ---------- */
+document.addEventListener("click", (e) => {
+  const box = document.getElementById("battle"); if (!box || !box.contains(e.target)) return;
+  const b = e.target.closest("[data-bt-act], [data-bt-src], [data-bt-hpm], [data-bt-speed], [data-bt-at]"); if (!b) return;
+  const P = btSetup();
+  if (b.dataset.btSrc) { P.src = b.dataset.btSrc; btSave(); if (P.src === "quest" && P.quest && !BT.quest && P.quest.q) btLoadQuest(P.quest.q, P.quest.ph); if (P.src === "quest" && P.quest && P.quest.w && !BT.war) btLoadWar(P.quest.w); btRender(); return; }
+  if (b.dataset.btHpm) { P.hpMul = num(b.dataset.btHpm); btSave(); btRender(); return; }
+  if (b.dataset.btSpeed) { btPrefs.speed = num(b.dataset.btSpeed); btSave(); btRender(); if (BT.play) btTick(); return; }
+  if (b.dataset.btAt) { btStop(); BT.at = num(b.dataset.btAt); btRender(); return; }
+  const a = b.dataset.btAct;
+  if (a === "fight") btFight();
+  else if (a === "again") { btStop(); btFight(Math.floor(Math.random() * 1e9) + 1); }
+  else if (a === "setup") { btStop(); BT.run = null; btRender(); }
+  else if (a === "play") { if (BT.play) { btStop(); btRender(); } else { if (BT.at >= BT.run.events.length - 1) BT.at = 0; BT.play = true; btRender(); btTick(); } }
+  else if (a === "first") { btStop(); BT.at = 0; btRender(); }
+  else if (a === "last") { btStop(); BT.at = BT.run.events.length - 1; btRender(); }
+  else if (a === "prev") { btStop(); BT.at = Math.max(0, BT.at - 1); btRender(); }
+  else if (a === "next") { btStop(); BT.at = Math.min(BT.run.events.length - 1, BT.at + 1); btRender(); }
+  else if (a === "wave-add") { P.made.push([{cls: "Saber", name: "Enemy", attr: "Earth", hp: 50000, atk: 8000, charge: 3, acts: 1}]); P.preset = "own"; btSave(); btRender(); }
+  else if (a === "wave-del") { P.made.splice(num(b.dataset.w), 1); P.preset = "own"; btSave(); btRender(); }
+  else if (a === "enemy-add") { const w = P.made[num(b.dataset.w)]; if (w && w.length < 3) w.push({cls: "Saber", name: "Enemy", attr: "Earth", hp: 50000, atk: 8000, charge: 3, acts: 1}); P.preset = "own"; btSave(); btRender(); }
+  else if (a === "enemy-del") { const w = P.made[num(b.dataset.w)]; if (w) { w.splice(num(b.dataset.e), 1); if (!w.length) P.made.splice(num(b.dataset.w), 1); } if (!P.made.length) P.made = btPreset("farm"); P.preset = "own"; btSave(); btRender(); }
+});
+document.addEventListener("change", (e) => {
+  const box = document.getElementById("battle"); if (!box || !box.contains(e.target)) return;
+  const t = e.target, P = btSetup();
+  if (t.dataset.btSlot != null) { P.party[num(t.dataset.btSlot)] = t.value; btSave(); btRender(); const n = document.getElementById("bt-p" + t.dataset.btSlot); if (n) n.focus(); }
+  else if (t.dataset.btNp) { P.np[t.dataset.btNp] = num(t.value) || 1; btSave(); btRender(); }
+  else if (t.dataset.btPreset != null) { if (t.value !== "own") { P.made = btPreset(t.value); P.preset = t.value; btSave(); btRender(); } }
+  else if (t.dataset.btPick) { const [wi, ei] = t.dataset.btPick.split(".").map(num); P.pick[wi] = P.pick[wi] || ["", "", ""]; P.pick[wi][ei] = t.value; btSave(); btRender(); }
+  else if (t.dataset.btE) { const [wi, ei, f] = t.dataset.btE.split("."), x = P.made[num(wi)] && P.made[num(wi)][num(ei)]; if (x) { x[f] = ["hp", "atk", "charge", "acts"].includes(f) ? num(t.value) : t.value; P.preset = "own"; btSave(); } }
+  else if (t.dataset.btWar != null) { P.quest = Object.assign({}, P.quest || {}, {w: t.value}); btSave(); if (t.value) btLoadWar(num(t.value)); else { BT.war = null; btRender(); } }
+  else if (t.dataset.btFight != null) { const [q, ph] = t.value.split("/").map(num); if (q) btLoadQuest(q, ph || 1); }
+  else if (t.dataset.btSeed != null) { P.seed = t.value.replace(/\D/g, "").slice(0, 10); btSave(); }
+});
+document.addEventListener("submit", (e) => {
+  const f = e.target.closest && e.target.closest("[data-bt-qid]"); if (!f) return;
+  e.preventDefault();
+  const v = f.querySelector("input").value, m = /quest\/(\d+)(?:\/(\d+))?/.exec(v) || /(\d{5,})(?:\D+(\d+))?/.exec(v);
+  if (m) btLoadQuest(num(m[1]), num(m[2]) || 1); else { BT.questErr = "That doesn't look like a quest number (like 94086601, or 94086601/3 for its third battle)."; btRender(); }
+});
+document.addEventListener("toggle", (e) => { if (e.target.matches && e.target.matches("[data-bt-log]")) { btPrefs.log = e.target.open; btSave(); } }, true);
+// keys while the fight plays: space plays and pauses, the arrows step
+document.addEventListener("keydown", (e) => {
+  if (S.tab !== "battle" || !BT.run || e.target.closest("input, select, textarea")) return;
+  if (e.key === " ") { e.preventDefault(); document.querySelector('#battle [data-bt-act="play"]').click(); }
+  else if (e.key === "ArrowRight") { e.preventDefault(); document.querySelector('#battle [data-bt-act="next"]').click(); }
+  else if (e.key === "ArrowLeft") { e.preventDefault(); document.querySelector('#battle [data-bt-act="prev"]').click(); }
+});
+
+/* ---------- the page is drawn when it's opened ---------- */
+const renderAll49b = renderAll;
+renderAll = function () { const r = renderAll49b.apply(this, arguments); try { if (S.tab === "battle") btOpen(); } catch (e) {} return r; };
+const renderChrome49b = renderChrome;
+renderChrome = function () { const r = renderChrome49b.apply(this, arguments); try { if (S.tab === "battle") btOpen(); else if (BT.play) { btStop(); } } catch (e) {} return r; };
+function btOpen() {
+  const box = document.getElementById("battle"); if (!box) return;
+  const P = btSetup();
+  if (P.src === "quest" && P.quest && P.quest.q && !BT.quest && !BT.questBusy && !BT.questErr) btLoadQuest(P.quest.q, P.quest.ph || 1);
+  if (P.src === "quest" && P.quest && P.quest.w && !BT.war && !BT.warBusy) btLoadWar(num(P.quest.w));
+  if (!box.childElementCount) btRender();
+}
 /* ================= 0.50.0: Bond 10 and Bond 15 =================
    For a servant at Bond 10 or more, while their page is open:
    - the website's background gets a layer of slowly rising bond crystals and two soft bands of light (#bond-bg). It

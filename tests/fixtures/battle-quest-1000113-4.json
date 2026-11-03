@@ -1,0 +1,318 @@
+{
+ "name": "Jeanne and Jeanne",
+ "recommendLv": "14",
+ "stages": [
+  {
+   "wave": 1,
+   "enemies": [
+    {
+     "deck": "enemy",
+     "deckId": 1,
+     "npcId": 20059,
+     "name": "Wyvern A",
+     "hp": 5400,
+     "atk": 1305,
+     "chargeTurn": 5,
+     "enemyScript": {},
+     "serverMod": {
+      "tdRate": 1100
+     },
+     "svt": {
+      "name": "Wyvern",
+      "className": "rider",
+      "attribute": "earth",
+      "face": "https://static.atlasacademy.io/NA/Enemys/99325003.png"
+     },
+     "traits": [
+      {
+       "name": "canBeInBattle"
+      },
+      {
+       "name": "notBasedOnServant"
+      },
+      {
+       "name": "attributeEarth"
+      },
+      {
+       "name": "demonBeast"
+      },
+      {
+       "name": "wyvern"
+      },
+      {
+       "name": "dragon"
+      },
+      {
+       "name": "classRider"
+      }
+     ]
+    },
+    {
+     "deck": "enemy",
+     "deckId": 2,
+     "npcId": 20059,
+     "name": "Wyvern B",
+     "hp": 5400,
+     "atk": 1305,
+     "chargeTurn": 5,
+     "enemyScript": {},
+     "serverMod": {
+      "tdRate": 1100
+     },
+     "svt": {
+      "name": "Wyvern",
+      "className": "rider",
+      "attribute": "earth",
+      "face": "https://static.atlasacademy.io/NA/Enemys/99325003.png"
+     },
+     "traits": [
+      {
+       "name": "canBeInBattle"
+      },
+      {
+       "name": "notBasedOnServant"
+      },
+      {
+       "name": "attributeEarth"
+      },
+      {
+       "name": "demonBeast"
+      },
+      {
+       "name": "wyvern"
+      },
+      {
+       "name": "dragon"
+      },
+      {
+       "name": "classRider"
+      }
+     ]
+    },
+    {
+     "deck": "enemy",
+     "deckId": 3,
+     "npcId": 20060,
+     "name": "Wyvern Dread",
+     "hp": 5700,
+     "atk": 1783,
+     "chargeTurn": 5,
+     "enemyScript": {},
+     "serverMod": {
+      "tdRate": 1100
+     },
+     "svt": {
+      "name": "Wyvern",
+      "className": "rider",
+      "attribute": "earth",
+      "face": "https://static.atlasacademy.io/NA/Enemys/99325001.png"
+     },
+     "traits": [
+      {
+       "name": "canBeInBattle"
+      },
+      {
+       "name": "notBasedOnServant"
+      },
+      {
+       "name": "attributeEarth"
+      },
+      {
+       "name": "demonBeast"
+      },
+      {
+       "name": "wyvern"
+      },
+      {
+       "name": "dragon"
+      },
+      {
+       "name": "classRider"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "wave": 2,
+   "enemies": [
+    {
+     "deck": "enemy",
+     "deckId": 1,
+     "npcId": 20060,
+     "name": "Wyvern Dread A",
+     "hp": 7068,
+     "atk": 2063,
+     "chargeTurn": 5,
+     "enemyScript": {},
+     "serverMod": {
+      "tdRate": 1100
+     },
+     "svt": {
+      "name": "Wyvern",
+      "className": "rider",
+      "attribute": "earth",
+      "face": "https://static.atlasacademy.io/NA/Enemys/99325001.png"
+     },
+     "traits": [
+      {
+       "name": "canBeInBattle"
+      },
+      {
+       "name": "notBasedOnServant"
+      },
+      {
+       "name": "attributeEarth"
+      },
+      {
+       "name": "demonBeast"
+      },
+      {
+       "name": "wyvern"
+      },
+      {
+       "name": "dragon"
+      },
+      {
+       "name": "classRider"
+      }
+     ]
+    },
+    {
+     "deck": "enemy",
+     "deckId": 2,
+     "npcId": 20060,
+     "name": "Wyvern Dread B",
+     "hp": 7068,
+     "atk": 2063,
+     "chargeTurn": 5,
+     "enemyScript": {},
+     "serverMod": {
+      "tdRate": 1100
+     },
+     "svt": {
+      "name": "Wyvern",
+      "className": "rider",
+      "attribute": "earth",
+      "face": "https://static.atlasacademy.io/NA/Enemys/99325001.png"
+     },
+     "traits": [
+      {
+       "name": "canBeInBattle"
+      },
+      {
+       "name": "notBasedOnServant"
+      },
+      {
+       "name": "attributeEarth"
+      },
+      {
+       "name": "demonBeast"
+      },
+      {
+       "name": "wyvern"
+      },
+      {
+       "name": "dragon"
+      },
+      {
+       "name": "classRider"
+      }
+     ]
+    },
+    {
+     "deck": "enemy",
+     "deckId": 3,
+     "npcId": 20061,
+     "name": "Wyvern Evil",
+     "hp": 14515,
+     "atk": 3247,
+     "chargeTurn": 5,
+     "enemyScript": {},
+     "serverMod": {
+      "tdRate": 1100
+     },
+     "svt": {
+      "name": "Wyvern",
+      "className": "rider",
+      "attribute": "earth",
+      "face": "https://static.atlasacademy.io/NA/Enemys/99325005.png"
+     },
+     "traits": [
+      {
+       "name": "canBeInBattle"
+      },
+      {
+       "name": "notBasedOnServant"
+      },
+      {
+       "name": "attributeEarth"
+      },
+      {
+       "name": "demonBeast"
+      },
+      {
+       "name": "wyvern"
+      },
+      {
+       "name": "dragon"
+      },
+      {
+       "name": "classRider"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "wave": 3,
+   "enemies": [
+    {
+     "deck": "enemy",
+     "deckId": 1,
+     "npcId": 970027,
+     "name": "Fafnir",
+     "hp": 52473,
+     "atk": 3035,
+     "chargeTurn": 5,
+     "enemyScript": {},
+     "serverMod": {
+      "tdRate": 1100
+     },
+     "svt": {
+      "name": "Dragon",
+      "className": "rider",
+      "attribute": "earth",
+      "face": "https://static.atlasacademy.io/NA/Enemys/99326401.png"
+     },
+     "traits": [
+      {
+       "name": "canBeInBattle"
+      },
+      {
+       "name": "notBasedOnServant"
+      },
+      {
+       "name": "attributeEarth"
+      },
+      {
+       "name": "demonBeast"
+      },
+      {
+       "name": "dragonType"
+      },
+      {
+       "name": "dragon"
+      },
+      {
+       "name": "superGiant"
+      },
+      {
+       "name": "classRider"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

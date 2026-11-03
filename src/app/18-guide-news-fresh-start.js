@@ -1,7 +1,8 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
-// alpha until the full website and app: 1.0.0
-const APP_VER = "0.28.1";
+// alpha until 0.50.0, beta from there until the full website and app: 1.0.0
+const APP_VER = "0.50.0-beta";
+const APP_STAGE = /-beta\b/.test(APP_VER) ? "beta" : "alpha", APP_NUM = APP_VER.replace(/-.*$/, "");
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -360,7 +361,7 @@ const CHANGES = [
 function newsHTML() {
   return `<div class="pcd-panel v15-panel news-panel" tabindex="-1">
     <button type="button" class="pcd-x" data-action="pc-close" aria-label="Close">×</button>
-    <p class="pcd-kick">Changelog · alpha</p>
+    <p class="pcd-kick">Changelog · ${APP_STAGE}</p>
     <h2 id="pcd-title" class="pcd-name">What's new</h2>
     <p class="fill-intro">Every update to Fate/Grand Index, newest first. Numbers go MAJOR.MINOR.PATCH: new features move the middle number, fixes the last one, and 1.0.0 will be the full website and app. Past Chaldea holds ${fmt(ATLAS_S.length)} servants and ${fmt(ATLAS_C.length)} Craft Essences.</p>
     ${CHANGES.map((c, i) => `<article class="cl-v${i ? "" : " is-new"}"><h3><span class="cl-n">${esc(c.v)}</span> ${esc(c.t)} <small>${esc(c.d)}</small>${i ? "" : `<i class="cl-new">New</i>`}</h3><ul>${c.i.map((t) => `<li>${t}</li>`).join("")}</ul></article>`).join("")}

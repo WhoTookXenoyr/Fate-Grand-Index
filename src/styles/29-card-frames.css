@@ -39,3 +39,44 @@
 .cf-opt img { object-fit: contain; border-radius: 2px; background: #2a2531; }
 .cf-none { border: 1.5px dashed var(--muted); border-radius: 3px; }
 .pcd-art .cf-pick { margin-top: 2px; }
+
+/* ---------- 0.50.0: Lv 100 and Lv 120 ----------
+   Lv 100: the long side edges turn rainbow and a gold aura glows around the card. Lv 120: every gold part (corners,
+   edges, stars, swords, the diamond and the class in it) turns rainbow, with a rainbow aura. The rainbow is a gradient
+   laid over the frame where its gold is (a mask made from the gold frame, cardframe-m100/m120) in the hue blend, so the
+   gold's own light and shade stay; a white shine runs over it. Only transform and opacity move. */
+.art-frame.cf-l100, .art-frame.cf-l120, .pcd-frame.cf-l100, .pcd-frame.cf-l120 { overflow: visible; }
+.cf > .cf-aura { position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; }
+.cf > .cf-aura i { position: absolute; inset: 0; border-radius: inherit; }
+.cf-l100 > .cf-aura i:nth-child(1) { box-shadow: 0 0 0 1px rgba(255, 222, 140, .85), 0 0 12px 2px rgba(255, 204, 88, .78), 0 0 26px 6px rgba(255, 186, 56, .38); }
+.cf-l100 > .cf-aura i:nth-child(2) { box-shadow: 0 0 0 1px rgba(255, 238, 180, .95), 0 0 16px 4px rgba(255, 214, 110, .9), 0 0 34px 10px rgba(255, 196, 70, .46); animation: cfAura 3.2s ease-in-out infinite alternate; }
+.cf-l120 > .cf-aura i:nth-child(1) { box-shadow: 0 0 0 1px rgba(255, 255, 255, .8), -7px -7px 16px -1px rgba(255, 92, 150, .78), 7px -7px 16px -1px rgba(255, 206, 72, .78), 7px 7px 16px -1px rgba(72, 214, 255, .78), -7px 7px 16px -1px rgba(150, 112, 255, .78), 0 0 30px 6px rgba(255, 255, 255, .22); }
+.cf-l120 > .cf-aura i:nth-child(2) { box-shadow: 0 0 0 1px rgba(255, 255, 255, .8), -7px -7px 16px -1px rgba(150, 112, 255, .82), 7px -7px 16px -1px rgba(255, 92, 150, .82), 7px 7px 16px -1px rgba(255, 206, 72, .82), -7px 7px 16px -1px rgba(90, 236, 150, .82), 0 0 30px 6px rgba(255, 255, 255, .22); animation: cfAura 2.6s ease-in-out infinite alternate; }
+@keyframes cfAura { from { opacity: 0; } to { opacity: 1; } }
+/* the rainbow, where the frame is gold */
+.cf > .cf-rb, .cf > .cf-rs { position: absolute; inset: 0; z-index: 3; overflow: hidden; border-radius: inherit; pointer-events: none;
+  -webkit-mask: url("@@asset:cardframe-m100.webp@@") 0 0 / 100% 100% no-repeat; mask: url("@@asset:cardframe-m100.webp@@") 0 0 / 100% 100% no-repeat; }
+.cf-l120 > .cf-rb, .cf-l120 > .cf-rs { -webkit-mask-image: url("@@asset:cardframe-m120.webp@@"); mask-image: url("@@asset:cardframe-m120.webp@@"); }
+.cf > .cf-rb { mix-blend-mode: hue; }
+/* (the edges are thin, so Lv 100's rainbow takes its colour whole) */
+.cf-l100 > .cf-rb { mix-blend-mode: color; }
+.cf > .cf-rs { mix-blend-mode: soft-light; }
+/* a band with every colour, repeated: moving it on by exactly one band loops without a seam. Lv 100: up the edges, a
+   third of the card per rainbow. Lv 120: diagonally across the whole frame, a rainbow every 45% of the card. */
+.cf-rb > i, .cf-cls-rb > i { position: absolute; left: -10%; width: 120%; top: -100%; height: 300%;
+  background: linear-gradient(180deg, #ff4f7b 0%, #ff9d4f 14%, #ffe95c 28%, #61f2a0 43%, #4fd3ff 57%, #7b74ff 71%, #e366ff 85%, #ff4f7b 100%) 0 0 / 100% 11.1111% repeat-y;
+  animation: cfFlow 6s linear infinite; }
+@keyframes cfFlow { from { transform: translateY(0); } to { transform: translateY(11.1111%); } }
+.cf-l120 > .cf-rb > i { left: -60%; width: 220%; background-size: 100% 15%; animation: cfFlowD 9s linear infinite; }
+@keyframes cfFlowD { from { transform: rotate(-32deg) translateY(0); } to { transform: rotate(-32deg) translateY(15%); } }
+.cf-cls-rb > i { background-size: 100% 33.3333%; }
+@keyframes cfFlowC { from { transform: translateY(0); } to { transform: translateY(33.3333%); } }
+.cf-cls-rb > i { animation-name: cfFlowC; animation-duration: 4s; }
+/* a white shine crossing now and then, like the holo foil */
+.cf-rs > i { position: absolute; top: -20%; left: 0; width: 45%; height: 140%; background: linear-gradient(100deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .95) 50%, rgba(255, 255, 255, 0) 100%);
+  transform: translateX(-120%) skewX(-12deg); animation: cfShine 5.5s cubic-bezier(.45, .05, .35, 1) infinite; }
+@keyframes cfShine { 0%, 55% { transform: translateX(-120%) skewX(-12deg); } 100% { transform: translateX(340%) skewX(-12deg); } }
+/* Lv 120: the class in the diamond too */
+.cf-cls-rb { position: absolute; inset: 0; overflow: hidden; mix-blend-mode: hue; pointer-events: none;
+  -webkit-mask: var(--cf-m) center / contain no-repeat; mask: var(--cf-m) center / contain no-repeat; }
+@media (prefers-reduced-motion: reduce) { .cf-aura i, .cf-rb > i, .cf-rs > i, .cf-cls-rb > i { animation: none !important; } .cf-l100 > .cf-aura i:nth-child(2), .cf-l120 > .cf-aura i:nth-child(2) { opacity: .5; } }

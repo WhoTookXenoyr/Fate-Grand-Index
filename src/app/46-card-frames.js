@@ -53,25 +53,32 @@ function cfFrame(r, lv) {
   const k = cfStars(r), g = lv == null ? 0 : cfGrails(k, lv), [sv, gd, rd] = CF_STEP[k];
   let metal = k >= 4 ? "gold" : k === 3 ? "silver" : "bronze";
   if (k > 0 && g) { if (gd && g >= gd) metal = "gold"; else if (sv && g >= sv) metal = "silver"; }
-  return {st: "f", metal: metal, red: !!(rd && g >= rd), src: CF_F[metal][k] || CF_F.bronze[k]};
+  // 0.50.0: Lv 100 and Lv 120 (lvl): the side edges, then every gold part, turn rainbow, with an aura around the card
+  const L = num(lv) || 0;
+  return {st: "f", metal: metal, red: !!(rd && g >= rd), lvl: L >= 120 ? 120 : L >= 100 ? 100 : 0, src: CF_F[metal][k] || CF_F.bronze[k]};
 }
-function cfFrameCe(r) { const k = clamp(cfStars(r), 1, 5); return {st: "o", metal: k >= 4 ? "gold" : k === 3 ? "silver" : "bronze", red: false, src: CF_O[k]}; }
+function cfFrameCe(r) { const k = clamp(cfStars(r), 1, 5); return {st: "o", metal: k >= 4 ? "gold" : k === 3 ? "silver" : "bronze", red: false, lvl: 0, src: CF_O[k]}; }
 
 // what goes on top of the picture
 function cfLayerHTML(fr, cls, atk, hp) {
-  const logo = fr.st === "f" ? CLASS_LOGO[cls] : null;
-  return `<img class="cf-img" src="${fr.src}" alt="" aria-hidden="true" draggable="false">`
-    + (logo ? `<span class="cf-cls" aria-hidden="true"><img src="${logo}" alt="" draggable="false"></span>` : "")
+  const logo = fr.st === "f" ? CLASS_LOGO[cls] : null, lv = fr.st === "f" ? fr.lvl || 0 : 0;
+  // Lv 100+: an aura around the card (behind it) and the rainbow, laid over the frame where its gold is (cf-rb);
+  // at Lv 120 the class in the diamond turns rainbow too
+  return (lv ? `<span class="cf-aura" aria-hidden="true"><i></i><i></i></span>` : "")
+    + `<img class="cf-img" src="${fr.src}" alt="" aria-hidden="true" draggable="false">`
+    + (lv ? `<span class="cf-rb" aria-hidden="true"><i></i></span><span class="cf-rs" aria-hidden="true"><i></i></span>` : "")
+    + (logo ? `<span class="cf-cls" aria-hidden="true"><img src="${logo}" alt="" draggable="false">${lv >= 120 ? `<span class="cf-cls-rb" style="--cf-m: url('${logo}')"><i></i></span>` : ""}</span>` : "")
     + `<span class="cf-n cf-atk" aria-hidden="true">${atk == null ? "" : fmt(atk)}</span><span class="cf-n cf-hp" aria-hidden="true">${hp == null ? "" : fmt(hp)}</span>`
     + `<span class="sr cf-sr">${esc([atk != null ? "ATK " + fmt(atk) : "", hp != null ? "HP " + fmt(hp) : ""].filter(Boolean).join(", "))}</span>`;
 }
 // puts a frame on (fr) or takes it off (null) a picture box: .art-frame on the SERVANTPAGE, .pcd-frame in Past Chaldea
 function cfApply(box, fr, cls, atk, hp) {
   if (!box) return;
-  box.querySelectorAll(":scope > .cf-img, :scope > .cf-cls, :scope > .cf-n, :scope > .cf-sr").forEach((e) => e.remove());
-  box.classList.remove("cf", "cf-o", "cf-f", "cf-gold", "cf-silver", "cf-bronze", "cf-red");
+  box.querySelectorAll(":scope > .cf-img, :scope > .cf-cls, :scope > .cf-n, :scope > .cf-sr, :scope > .cf-aura, :scope > .cf-rb, :scope > .cf-rs").forEach((e) => e.remove());
+  box.classList.remove("cf", "cf-o", "cf-f", "cf-gold", "cf-silver", "cf-bronze", "cf-red", "cf-l100", "cf-l120");
   if (!fr) return;
   box.classList.add("cf", "cf-" + fr.st, "cf-" + fr.metal); if (fr.red) box.classList.add("cf-red");
+  if (fr.st === "f" && fr.lvl) box.classList.add("cf-l" + fr.lvl);
   box.insertAdjacentHTML("beforeend", cfLayerHTML(fr, cls, atk, hp));
 }
 // the switch: Off / On (with a small picture of the frame this one gets)

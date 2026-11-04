@@ -105,7 +105,8 @@ with sync_playwright() as p:
         pg.goto(f"{SEEDED}#home"); pg.wait_for_timeout(1300)
         got = []
         for t in ("home", "ranking", "past"):
-            pg.evaluate(f"document.querySelector('#tab-{t}').click()"); pg.wait_for_timeout(500); pg.mouse.wheel(0, 700); pg.wait_for_timeout(300)
+            # (with the mouse over the page: since 0.50.0 the top-left corner is the sidebar, which scrolls on its own)
+            pg.evaluate(f"document.querySelector('#tab-{t}').click()"); pg.wait_for_timeout(500); pg.mouse.move(w * 0.6, h * 0.5); pg.mouse.wheel(0, 700); pg.wait_for_timeout(300)
             y = pg.evaluate("scrollY"); pg.reload(); pg.wait_for_timeout(1500); got.append((t, y, pg.evaluate("scrollY")))
         # Home's daily servant can change the height a little; the bottom is thousands of pixels away
         check(f"{w}px: a reload comes back where you were ({got})", all(y > 0 and abs(y2 - y) < 120 for t, y, y2 in got))

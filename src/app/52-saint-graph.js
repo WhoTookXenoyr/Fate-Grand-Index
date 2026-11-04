@@ -240,7 +240,9 @@ function sgClose() {
   cancelAnimationFrame(SG.raf); clearTimeout(SG.miniT);
   const sh = document.querySelector(".shell"); if (sh) sh.inert = false;
   if (typeof uiSync === "function") uiSync(); else { const side = document.getElementById("side"); if (side) side.inert = false; }
-  if (sgBack && sgBack.isConnected) sgBack.focus({preventScroll: true}); sgBack = null;
+  // back to the button that opened it (the page may have been drawn again since: then its new copy)
+  const back = sgBack && sgBack.isConnected ? sgBack : document.querySelector(`#dossier .sg-open[data-id="${CSS.escape(String(SG.s || ""))}"]`);
+  if (back) back.focus({preventScroll: true}); sgBack = null;
 }
 const sgCfg = () => SG.cfg[SG.s] && SG.cfg[SG.s][SG.stage];
 const sgChips = (attr, label, list, on) => `<div class="sg-chips" role="group" aria-label="${esc(label)}">${list.map((x) => `<button type="button" class="sg-chip" data-sg-${attr}="${x[0]}" aria-pressed="${on(x[0])}">${esc(x[1])}</button>`).join("")}</div>`;

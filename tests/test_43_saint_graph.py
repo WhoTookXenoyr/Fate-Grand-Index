@@ -27,8 +27,8 @@ servants = lambda pg: pg.evaluate(f"JSON.parse(localStorage.getItem('{KEY}')).se
 get = lambda pg, sid: next(x for x in servants(pg) if x["id"] == sid)
 def open_(pg, sid): pg.locator(f'#list [data-id="{sid}"]').evaluate("(e) => e.click()"); pg.wait_for_timeout(700)
 def quiet(pg): pg.evaluate("document.getElementById('toast').classList.remove('show', 'has-btn')")
-# how a stage looks: a few pixels of the big canvas (to tell two pictures apart)
-px = lambda pg: pg.evaluate("(() => { const c = document.getElementById('sg-cv'), x = c.getContext('2d'); return [[40, 40], [256, 120], [256, 400], [470, 680], [100, 600]].map(([a, b]) => Array.from(x.getImageData(a, b, 1, 1).data).join(',')).join(' '); })()")
+# how a stage looks: a hash of the big canvas's pixels (to tell two pictures apart)
+px = lambda pg: pg.evaluate("(() => { const c = document.getElementById('sg-cv'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let h = 0; for (let i = 0; i < d.length; i += 4 * 7) h = (h * 31 + d[i] * 3 + d[i + 1] * 5 + d[i + 2] * 7) % 2147483647; return h; })()")
 with sync_playwright() as p:
     b = p.chromium.launch()
     ctx = b.new_context(viewport={"width": 1440, "height": 900}, accept_downloads=True)

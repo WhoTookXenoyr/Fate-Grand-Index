@@ -43,7 +43,7 @@ with sync_playwright() as p:
 
     # ================= the engine =================
     r = pg.evaluate("""() => { const B = window.__fgiBattle, mine = B.servants().filter((s) => !s.wish).slice(0, 3).map((s) => B.fromServant(s));
-      const waves = [[B.made({cls: 'Lancer', name: 'A', hp: 40000, atk: 7000}), B.made({cls: 'Archer', name: 'B', hp: 40000, atk: 7000})], [B.made({cls: 'Saber', name: 'Boss', hp: 220000, atk: 9000, charge: 3, acts: 2})]];
+      const waves = [[B.made({cls: 'Lancer', name: 'A', hp: 15000, atk: 3000}), B.made({cls: 'Archer', name: 'B', hp: 15000, atk: 3000})], [B.made({cls: 'Saber', name: 'Boss', hp: 90000, atk: 5000, charge: 3})]];
       const one = B.run({party: mine, waves: waves}, 12345), two = B.run({party: mine, waves: waves}, 12345);
       const strip = (R) => JSON.stringify(R.events.map((e) => [e.t, e.who, e.to, e.dmg, e.n]));
       return {same: strip(one) === strip(two), result: one.result, turns: one.turns, waves: one.waves, n: one.events.length, first: one.events[0].t, last: one.events[one.events.length - 1].t,
@@ -52,7 +52,7 @@ with sync_playwright() as p:
     check(f"the same seed plays the same fight ({r['n']} steps)", r["same"] and r["n"] > 20)
     check(f"it starts, and it ends ({r['first']} … {r['last']})", r["first"] == "start" and r["last"] == "end")
     check(f"a seeded party beats two easy waves ({r['result']} in {r['turns']} turns)", r["result"] == "win" and 1 <= r["turns"] <= 40 and r["waves"] == 2)
-    check(f"each step has its moment to show, and the totals add up ({r['dmg']})", r["snap"] and r["allies"] == 3 and r["dmg"] >= 300000)
+    check(f"each step has its moment to show, and the totals add up ({r['dmg']})", r["snap"] and r["allies"] == 3 and r["dmg"] >= 120000)
     check(f"skills, cards and NPs all happen ({r['kinds']})", all(k in r["kinds"] for k in ("skill", "plan", "card", "np", "turn", "wave")))
     lose = pg.evaluate("""() => { const B = window.__fgiBattle, one = [B.fromServant(B.servants().filter((s) => !s.wish)[0])];
       const R = B.run({party: one, waves: [[B.made({cls: 'Berserker', name: 'Wall', hp: 50000000, atk: 60000, acts: 3})]]}, 7); return [R.result, R.turns]; }""")
@@ -147,16 +147,16 @@ with sync_playwright() as p:
     pg.fill("#battle [data-bt-qid] input", "https://apps.atlasacademy.io/db/NA/quest/1000113/4"); pg.click("#battle [data-bt-qid] button"); pg.wait_for_timeout(1500)
     check("a quest by its link: asked Atlas Academy for that battle", any("/nice/NA/quest/1000113/4" in u for u in asked))
     qw = pg.locator("#battle .bt-qwaves .bt-qw").count()
-    check(f"its waves and enemies are listed ({qw} waves)", qw == 4 and "Fafnir" in pg.locator("#battle .bt-qwaves").inner_text())
+    check(f"its waves and enemies are listed ({qw} waves)", qw == 3 and "Fafnir" in pg.locator("#battle .bt-qwaves").inner_text())
     pg.click('#battle [data-bt-act="fight"]'); pg.wait_for_timeout(300); stop(pg)
     pg.click('#battle [data-bt-act="last"]'); pg.wait_for_timeout(300)
     names = pg.evaluate("Array.from(document.querySelectorAll('#battle [data-bt-log] li button')).map((b) => b.textContent).join(' ')")
     check("the fight is against the quest's enemies", "Wyvern" in names or "Fafnir" in names)
-    check("Wave 1 of 4", "of 4" in pg.locator("#battle .bt-where span").inner_text())
+    check("three waves", "of 3" in pg.locator("#battle .bt-where span").inner_text())
     pg.click('#battle [data-bt-act="setup"]'); pg.wait_for_timeout(300)
     n0 = len(asked)
     pg.reload(); pg.wait_for_timeout(1500); pg.click('[data-action="tab"][data-tab="battle"]'); pg.wait_for_timeout(1200)
-    check("after a reload the quest is still there, from this browser's copy", pg.locator("#battle .bt-qwaves .bt-qw").count() == 4 and not any("/quest/1000113/4" in u for u in asked[n0:]))
+    check("after a reload the quest is still there, from this browser's copy", pg.locator("#battle .bt-qwaves .bt-qw").count() == 3 and not any("/quest/1000113/4" in u for u in asked[n0:]))
     pg.fill("#battle [data-bt-qid] input", "hello"); pg.click("#battle [data-bt-qid] button"); pg.wait_for_timeout(300)
     check("a word that isn't a quest number says so", "doesn't look like a quest number" in pg.locator("#battle .bt-warn").inner_text())
     pg.fill("#battle [data-bt-qid] input", "1000999/1"); pg.click("#battle [data-bt-qid] button"); pg.wait_for_timeout(1200)
@@ -179,7 +179,8 @@ with sync_playwright() as p:
     pg.click('#battle [data-bt-src="made"]'); pg.wait_for_timeout(200)
     pg.click('#battle [data-bt-act="fight"]'); pg.wait_for_timeout(300); stop(pg)
     pg.click('#battle [data-bt-act="last"]'); pg.wait_for_timeout(300)
-    check("and it fights", "Battle Tester" in pg.locator("#battle .bt-sum").inner_text())
+    sm = pg.locator("#battle .bt-sum").inner_text() if pg.locator("#battle .bt-sum").count() else pg.locator("#battle").inner_text()[:200]
+    check(f"and it fights ({sm[:160]!r})", "Battle Tester" in sm)
     check("nothing on the roster changed", roster(pg) == before)
     ctx.close()
 

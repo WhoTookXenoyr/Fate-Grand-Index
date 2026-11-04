@@ -98,9 +98,17 @@ const BT_VERB = /^((?:greatly |slightly |significantly |highly |high chance to |
 function btClauses(line) {
   const l = String(line || "").trim();
   if (!l || /^apply a state|^grant a state|["“”]/i.test(l)) return [];
-  const m = BT_TAIL.exec(l), tail = m ? m[0] : "", body = m ? l.slice(0, m.index) : l;
-  const parts = body.split(/\s&\s/), vm = BT_VERB.exec(parts[0]), verb = vm ? vm[1] : "";
-  return parts.map((p, i) => (i && verb && !BT_VERB.test(p + " ") ? verb + " " + p : p) + tail);
+  // each part with its own targets ("Increase ATK for all allies (3 turns) & Charge NP Gauge for all allies"), or the
+  // targets and turns of the part after it ("Increase ATK & DEF for all allies (3 turns)"), and the verb before it
+  const TURN = /\s*\((?:\d+ times?)?(?:,\s*)?(?:\d+ turns?)?\)\s*$/i;
+  const parts = l.split(/\s&\s/).map((p) => { const m = BT_TAIL.exec(p); return {body: m ? p.slice(0, m.index) : p, tail: m ? m[0] : ""}; });
+  for (let i = parts.length - 2; i >= 0; i--) {
+    if (!parts[i].tail) parts[i].tail = parts[i + 1].tail;
+    const tn = TURN.exec(parts[i + 1].body + parts[i + 1].tail);
+    if (tn && !/\(\d+ (?:times?|turns?)/i.test(parts[i].body + parts[i].tail)) parts[i].tail += tn[0].replace(/^\s*/, " ");
+  }
+  let verb = "";
+  return parts.map((p) => { const vm = BT_VERB.exec(p.body + " "); if (vm) verb = vm[1]; else if (verb) p.body = verb + " " + p.body; return (p.body + p.tail).replace(/\s+/g, " ").trim(); });
 }
 // a part that takes something away isn't the same effect as one that gives it ("disable HP recovery" isn't a heal)
 const BT_GIVE = new Set(["heal", "regen", "atk", "defup", "card", "np", "crit", "gain", "drop", "gather", "charge", "dres", "maxhp", "npturn", "starturn"]);
@@ -226,7 +234,7 @@ const btDeck = (d) => { const x = String(d || "").toUpperCase().replace(/[^QAB]/
 // an enemy made up on the page
 function btFromMade(e) {
   const cls = AFF_CLASSES.includes(e.cls) ? e.cls : "Saber";
-  return {key: "m:" + (e.name || cls), name: String(e.name || cls).slice(0, 40) || cls, cls: cls, attr: NPC_ATTRS.includes(e.attr) ? e.attr : "Earth", traits: [], face: "", hp: clamp(num(e.hp) || 30000, 1, 1e9), atk: clamp(num(e.atk) || 8000, 0, 1e6),
+  return {key: "m:" + (e.name || cls), name: String(e.name || cls).slice(0, 40) || cls, cls: cls, attr: NPC_ATTRS.includes(e.attr) ? e.attr : "Earth", traits: [], face: "", hp: clamp(num(e.hp) || 30000, 1, 1e9), atk: clamp(num(e.atk) != null ? num(e.atk) : 8000, 0, 1e6),
     deck: ["Q", "A", "B"], npLv: 1, np: null, sk: btBlankSkills(), pm: [0, 0, 0, 0, 0], npStart: 0, servant: false, charge: clamp(num(e.charge) || 3, 1, 8), acts: clamp(num(e.acts) || 1, 1, 3), npMul: 3, npAoe: e.aoe !== false,
     bars: (e.bars || []).map(num).filter((v) => v > 0), td: BT_TDRATE[cls] || 1};
 }

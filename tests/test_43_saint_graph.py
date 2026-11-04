@@ -120,11 +120,11 @@ with sync_playwright() as p:
     check("nothing else on the roster changed", json.dumps([x for x in servants(pg) if x["id"] != cid], sort_keys=True) == others)
     ctx.close()
 
-    # ================= a phone =================
+    # ================= a phone (a new browser: the servant is made our own again) =================
     ctx = b.new_context(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True, device_scale_factor=3)
     pg = page(ctx)
     pg.goto(SEEDED + "#servants"); pg.wait_for_timeout(1500)
-    pg.evaluate(f"(() => {{ const d = JSON.parse(localStorage.getItem('{KEY}')), s = d.servants.find((x) => x.id === '{cid}'); s.art = {{'1': '{ART}'}}; delete s.sgMaker; localStorage.setItem('{KEY}', JSON.stringify(d)); }})()")
+    pg.evaluate(f"(() => {{ const d = JSON.parse(localStorage.getItem('{KEY}')), s = d.servants.find((x) => x.id === '{cid}'); s.custom = true; s.name = 'Maker Test'; s.art = {{'1': '{ART}'}}; delete s.sgMaker; localStorage.setItem('{KEY}', JSON.stringify(d)); }})()")
     pg.reload(); pg.wait_for_timeout(1400)
     open_(pg, cid); pg.wait_for_timeout(500)
     pg.locator("#dossier .sg-open").scroll_into_view_if_needed(); pg.locator("#dossier .sg-open").tap(); pg.wait_for_timeout(900)

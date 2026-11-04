@@ -270,7 +270,7 @@ function btSummaryHTML() {
 function btRender() {
   const box = document.getElementById("battle"); if (!box) return;
   const keepLog = box.querySelector("[data-bt-log]"), logOpen = keepLog ? keepLog.open : !!btPrefs.log, logScroll = keepLog ? keepLog.querySelector("ol").scrollTop : 0;
-  box.innerHTML = BT.run ? btViewHTML() : btSetupHTML();
+  box.innerHTML = BT.run ? btViewHTML() : btSetupHTML(); BT.sig = btSig();
   const lg = box.querySelector("[data-bt-log]"); if (lg) { lg.open = logOpen; const ol = lg.querySelector("ol"); ol.scrollTop = logScroll; const cur = ol.querySelector(".cur"); if (cur && BT.play) cur.scrollIntoView({block: "nearest"}); }
 }
 function btStop() { BT.play = false; clearTimeout(BT.timer); }
@@ -356,5 +356,7 @@ function btOpen() {
   const P = btSetup();
   if (P.src === "quest" && P.quest && P.quest.q && !BT.quest && !BT.questBusy && !BT.questErr) btLoadQuest(P.quest.q, P.quest.ph || 1);
   if (P.src === "quest" && P.quest && P.quest.w && !BT.war && !BT.warBusy) btLoadWar(num(P.quest.w));
-  if (!box.childElementCount) btRender();
+  // (drawn again when the roster changed since: a servant added elsewhere can join the party right away)
+  if (!box.childElementCount || (!BT.run && btSig() !== BT.sig)) btRender();
 }
+const btSig = () => S.servants.map((s) => s.id + ":" + s.name + ":" + (s.wish ? 1 : 0) + ":" + (s.level || "")).join("|");

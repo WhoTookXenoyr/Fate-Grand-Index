@@ -173,14 +173,14 @@ with sync_playwright() as p:
     before = roster(pg)
     pg.click('[data-action="tab"][data-tab="battle"]'); pg.wait_for_timeout(700)
     sel(pg, "#bt-p0", "r:" + cid)
-    check("a custom servant in the party, marked Custom", "Custom" in pg.locator("#battle .bt-slot").first.inner_text())
+    check(f"a servant made since the page was drawn can join the party, marked Custom ({pg.locator('#bt-p0').input_value()})", pg.locator("#bt-p0").input_value() == "r:" + cid and "Custom" in pg.locator("#battle .bt-slot").first.locator("small").first.inner_text())
     t = pg.evaluate(f"(() => {{ const B = window.__fgiBattle, s = B.servants().find((x) => x.id === '{cid}'), t = B.fromServant(s); return {{custom: !!t.custom, np: !!t.np, sk: t.sk.length, atk: t.atk}}; }})()")
     check(f"with its Workshop kit ({t})", t["custom"] and t["np"] and t["sk"] == 3 and t["atk"] > 0)
     pg.click('#battle [data-bt-src="made"]'); pg.wait_for_timeout(200)
     pg.click('#battle [data-bt-act="fight"]'); pg.wait_for_timeout(300); stop(pg)
     pg.click('#battle [data-bt-act="last"]'); pg.wait_for_timeout(300)
     sm = pg.locator("#battle .bt-sum").inner_text() if pg.locator("#battle .bt-sum").count() else pg.locator("#battle").inner_text()[:200]
-    check(f"and it fights ({sm[:160]!r})", "Battle Tester" in sm)
+    check(f"and it fights ({sm[:160]!r}, party {prefs(pg)['party'][:3]}, toast {pg.locator('#toast').inner_text()[:80]!r})", "Battle Tester" in sm)
     check("nothing on the roster changed", roster(pg) == before)
     ctx.close()
 

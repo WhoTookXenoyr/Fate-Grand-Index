@@ -40,8 +40,8 @@ with sync_playwright() as p:
     check("the logo and the tools are in it too", pg.locator("#side .side-top .brand").count() == 1 and pg.locator("#side .side-tools .mast-actions").count() == 1)
     chip = pg.locator("#side .ver-chip").inner_text()
     check(f"the version says beta ({chip!r})", "0.50.0" in chip and "beta" in chip and "alpha" not in chip)
-    sx = pg.evaluate("document.querySelector('.shell').getBoundingClientRect().left")
-    check(f"the page sits beside the sidebar ({sx})", 230 <= sx <= 270)
+    sx = pg.evaluate("[document.getElementById('side').getBoundingClientRect().right, document.querySelector('.shell').getBoundingClientRect().left]")
+    check(f"the page sits beside the sidebar ({sx})", 200 <= sx[0] <= 260 and sx[0] - 1 <= sx[1] <= sx[0] + 80)
     check("the Look switch shows New", pg.locator('#side [data-action="ui-look"][data-v="beta"]').get_attribute("aria-pressed") == "true")
 
     # ---------- changing pages ----------

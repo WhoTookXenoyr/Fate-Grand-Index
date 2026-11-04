@@ -4611,9 +4611,13 @@ html.has-side .masthead { display: block; }
   .side .tab { min-height: 46px; font-size: 15.5px; }
 }
 
-/* ---------- a laptop: the sidebar takes room, so the roster column gives some back to the servant's page ---------- */
+/* ---------- a laptop: the sidebar takes room, so it's a little narrower, the page's sides are too, and the roster column
+   gives some back to the servant's page (whose picture keeps half of its row) ---------- */
 @media (min-width: 901px) and (max-width: 1599px) {
-  html.has-side:not(.side-mini):not([data-layout="compact"]) .workspace { grid-template-columns: minmax(300px, 400px) minmax(0, 1fr); }
+  html.has-side:not(.side-mini) { --side-w: 220px; }
+  html.has-side .shell { padding-inline: 28px; }
+  html.has-side:not(.side-mini):not([data-layout="compact"]) .workspace { grid-template-columns: minmax(300px, 440px) minmax(0, 1fr); }
+  html.has-side:not(.side-mini):not([data-layout="compact"]) .dossier .art-frame { flex-basis: clamp(250px, 50%, 440px); }
 }
 
 /* ---------- moving between pages: the new one slides in ---------- */
@@ -20889,10 +20893,11 @@ function uiTakeApart() {
   const sc = document.getElementById("side-scrim"); if (sc) sc.remove();
 }
 // the sidebar is there in the new look, and on phones in either look
+const uiMini = () => uiPrefs().mini === true;
 function uiApply() {
   const root = document.documentElement, look = uiLook();
   root.setAttribute("data-ui", look);
-  root.classList.toggle("side-mini", look === "beta" && !!uiPrefs().mini && !UI_PHONE.matches);
+  root.classList.toggle("side-mini", look === "beta" && uiMini() && !UI_PHONE.matches);
   if (look === "beta" || UI_PHONE.matches) uiBuild(); else uiTakeApart();
   try { paintPage(); } catch (e) {}
 }
@@ -20969,7 +20974,7 @@ document.addEventListener("click", (e) => {
     const was = uiLook(); uiPrefs().look = v; uiSave(); uiApply(); uiSync();
     toastAction(v === "classic" ? "Classic look: the page as it was before 0.50." : "The new look is on.", "Undo", () => { uiPrefs().look = was; uiSave(); uiApply(); uiSync(); });
   } else if (a === "ui-mini") {
-    uiPrefs().mini = !uiPrefs().mini; uiSave(); uiApply(); uiSync();
+    uiPrefs().mini = !uiMini(); uiSave(); uiApply(); uiSync();
   }
 });
 // a tab picked in the phone's menu closes the menu (the page changes underneath), and so does a tool that opens a window

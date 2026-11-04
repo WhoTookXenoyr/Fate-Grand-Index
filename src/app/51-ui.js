@@ -93,10 +93,11 @@ function uiTakeApart() {
   const sc = document.getElementById("side-scrim"); if (sc) sc.remove();
 }
 // the sidebar is there in the new look, and on phones in either look
+const uiMini = () => uiPrefs().mini === true;
 function uiApply() {
   const root = document.documentElement, look = uiLook();
   root.setAttribute("data-ui", look);
-  root.classList.toggle("side-mini", look === "beta" && !!uiPrefs().mini && !UI_PHONE.matches);
+  root.classList.toggle("side-mini", look === "beta" && uiMini() && !UI_PHONE.matches);
   if (look === "beta" || UI_PHONE.matches) uiBuild(); else uiTakeApart();
   try { paintPage(); } catch (e) {}
 }
@@ -173,7 +174,7 @@ document.addEventListener("click", (e) => {
     const was = uiLook(); uiPrefs().look = v; uiSave(); uiApply(); uiSync();
     toastAction(v === "classic" ? "Classic look: the page as it was before 0.50." : "The new look is on.", "Undo", () => { uiPrefs().look = was; uiSave(); uiApply(); uiSync(); });
   } else if (a === "ui-mini") {
-    uiPrefs().mini = !uiPrefs().mini; uiSave(); uiApply(); uiSync();
+    uiPrefs().mini = !uiMini(); uiSave(); uiApply(); uiSync();
   }
 });
 // a tab picked in the phone's menu closes the menu (the page changes underneath), and so does a tool that opens a window

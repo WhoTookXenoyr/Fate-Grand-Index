@@ -151,9 +151,13 @@ html.has-side .masthead { display: block; }
   .side .tab { min-height: 46px; font-size: 15.5px; }
 }
 
-/* ---------- a laptop: the sidebar takes room, so the roster column gives some back to the servant's page ---------- */
+/* ---------- a laptop: the sidebar takes room, so it's a little narrower, the page's sides are too, and the roster column
+   gives some back to the servant's page (whose picture keeps half of its row) ---------- */
 @media (min-width: 901px) and (max-width: 1599px) {
-  html.has-side:not(.side-mini):not([data-layout="compact"]) .workspace { grid-template-columns: minmax(300px, 400px) minmax(0, 1fr); }
+  html.has-side:not(.side-mini) { --side-w: 220px; }
+  html.has-side .shell { padding-inline: 28px; }
+  html.has-side:not(.side-mini):not([data-layout="compact"]) .workspace { grid-template-columns: minmax(300px, 440px) minmax(0, 1fr); }
+  html.has-side:not(.side-mini):not([data-layout="compact"]) .dossier .art-frame { flex-basis: clamp(250px, 50%, 440px); }
 }
 
 /* ---------- moving between pages: the new one slides in ---------- */

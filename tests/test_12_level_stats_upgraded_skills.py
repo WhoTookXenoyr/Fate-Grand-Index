@@ -46,7 +46,8 @@ with sync_playwright() as p:
     first = pg.locator(".news-panel .cl-v").first.inner_text()
     check("pressing it opens What's new at the current version", first.startswith(chip.inner_text()[1:].split(" ")[0]) and "Upgraded skills" in pg.locator(".news-panel").inner_text())
     labels = pg.evaluate("Array.from(document.querySelectorAll('.cl-n')).map(e => e.textContent)")
-    check(f"every release has a MAJOR.MINOR.PATCH number under 1.0.0 ({labels[:4]}…)", all(re.fullmatch(r"0\.\d+\.\d+", l) for l in labels) and labels[0] == chip.inner_text()[1:].split(" ")[0] and "0.15.0" in labels and labels[-1] == "0.1.0")
+    # (semver: a pre-release like 0.50.0-beta is still MAJOR.MINOR.PATCH, with its stage after the dash)
+    check(f"every release has a MAJOR.MINOR.PATCH number under 1.0.0 ({labels[:4]}…)", all(re.fullmatch(r"0\.\d+\.\d+(-(alpha|beta))?", l) for l in labels) and labels[0].split("-")[0] == chip.inner_text()[1:].split(" ")[0] and "0.15.0" in labels and labels[-1] == "0.1.0")
     pg.keyboard.press("Escape"); pg.wait_for_timeout(150)
 
     # ---- Artoria Face

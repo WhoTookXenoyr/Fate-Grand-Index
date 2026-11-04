@@ -64,9 +64,12 @@ with sync_playwright() as p:
     tab(pg, "home")
     check(f"Home ({len(tags(pg, '#view-home .cu-tag'))} tags)", len(tags(pg, "#view-home .cu-tag")) >= 2 and pg.locator('#view-home [data-cap="Camellya (Custom)"]').count() + pg.locator("#view-home .hm-row", has_text="Camellya").locator(".cu-tag").count() >= 1)
     tab(pg, "versus"); soon(pg, "#view-versus .vs-th-n .cu-tag")
+    # (with the whole suite running the table can fill in a moment after its first column: wait for both)
+    try: pg.wait_for_function("document.querySelectorAll('#view-versus .vs-th-n .cu-tag').length >= 2", timeout=8000)
+    except Exception: pass
     opts = pg.evaluate("Array.from(document.querySelectorAll('#view-versus option')).map((o) => o.textContent)")
     check("Versus lists to pick from say (Custom)", "Camellya (Custom)" in opts and f"{LONG} (Custom)" in opts and "Morgan (Custom)" in opts and "Morgan (Custom) (Custom)" not in opts)
-    check("and its tables tag them", pg.locator("#view-versus .vs-th-n .cu-tag").count() == 2)
+    check(f"and its tables tag them ({pg.locator('#view-versus .vs-th-n .cu-tag').count()})", pg.locator("#view-versus .vs-th-n .cu-tag").count() == 2)
     tab(pg, "parties")
     check("a party card tags them", pg.locator(".fc .fc-name", has_text="Camellya").locator(".cu-tag").count() >= 1)
     pg.locator('#parties [data-action="party-img"]').first.click(); pg.wait_for_timeout(2500)

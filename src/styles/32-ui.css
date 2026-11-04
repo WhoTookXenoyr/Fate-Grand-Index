@@ -64,6 +64,10 @@ html.has-side.side-mini { --side-w: 76px; }
      centred, up to 90% of that room on a wide screen */
   html.has-side .side { zoom: var(--ui-z, 1); }
   html.has-side body { padding-left: calc(var(--side-w) * var(--ui-z, 1)); }
+  /* (clip, not hidden: nothing new scrolls, so sticky parts keep working; a decoration that reaches past the page's side,
+     like the last card of Home's fan with the narrower sides, can't make the window scroll sideways. Things fixed to the
+     screen aren't clipped by it) */
+  html.has-side .shell { overflow-x: clip; }
   html.has-side .shell { margin-inline: auto; max-width: max(1260px, min(calc((100vw / var(--ui-z, 1) - var(--side-w)) * .9), 1720px)); padding-top: 22px; }
   html.has-side .side-btn, html.has-side .top-logo { display: none; }
   html.has-side .side-scrim { display: none; }

@@ -4598,7 +4598,13 @@ html[data-ui="classic"] .side-mini-btn { display: none; }
 html.side-mini .side { padding-inline: 12px; }
 html.side-mini .side .tab { justify-content: center; padding-inline: 0; }
 html.side-mini .side .tab-t, html.side-mini .side .eyebrow, html.side-mini .side-look, html.side-mini .side-mini-btn span, html.side-mini .side-tools { display: none; }
-html.side-mini .side .brand-logo { width: 50px; height: 50px; object-fit: cover; object-position: 30% 50%; }
+/* folded: the logo's diamond (the app icon's), not a slice of the wordmark */
+.side-gem { display: none; }
+html.side-mini .side .brand { display: none; }
+html.side-mini .side-gem { display: grid; place-items: center; height: 58px; border-radius: 10px; }
+html.side-mini .side-gem svg { height: 52px; width: auto; filter: drop-shadow(0 2px 6px rgba(140, 92, 18, .35)); transition: transform .2s ease; }
+html.side-mini .side-gem:hover svg { transform: scale(1.06); }
+html.side-mini .side-gem:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 html.side-mini .side-mini-btn { justify-content: center; }
 html.side-mini .side-mini-btn svg { transform: rotate(180deg); }
 .side-mini-btn:focus-visible, .side-look button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
@@ -20864,7 +20870,10 @@ function uiMove(node, into) {
 }
 function uiSideHTML() {
   return `<aside id="side" class="side" aria-label="Menu">
-      <div class="side-top"></div>
+      <div class="side-top"><a class="side-gem" href="#home" data-action="go-home" aria-label="Fate/Grand Index, Home" title="Home"><svg viewBox="118 50 276 412" aria-hidden="true" focusable="false">
+        <defs><linearGradient id="sd-gem-au" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbe7ad"/><stop offset=".45" stop-color="#d9a640"/><stop offset="1" stop-color="#8c5c12"/></linearGradient></defs>
+        <g fill="none" stroke="url(#sd-gem-au)" stroke-linejoin="miter" stroke-miterlimit="10"><path d="M256 66 L374 256 L256 446 L138 256 Z" stroke-width="28"/><path d="M256 150 L322 256 L256 362 L190 256 Z" stroke-width="20"/></g>
+        <path d="M256 214 L282 256 L256 298 L230 256 Z" fill="url(#sd-gem-au)"/></svg></a></div>
       <div class="side-nav"><i class="side-mark" aria-hidden="true"></i></div>
       <div class="side-tools"></div>
       <div class="side-foot">

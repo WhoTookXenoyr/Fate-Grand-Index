@@ -72,13 +72,14 @@ with sync_playwright() as p:
     sw = pg.evaluate("[document.getElementById('side').getBoundingClientRect().width, document.querySelector('.shell').getBoundingClientRect().width]")
     check(f"folded: only the icons, the page gets the room ({sw})", pg.evaluate("document.documentElement.classList.contains('side-mini')") and sw[0] < 100 and sw[1] > 1100)
     check("its button says Unfold", "Unfold" in (pg.locator("#side .side-mini-btn span").text_content() or "") and pg.locator("#side .side-mini-btn").get_attribute("aria-pressed") == "true")
+    check("folded, the logo is the app icon's diamond (a link Home)", pg.locator("#side .side-gem").is_visible() and not pg.locator("#side .brand").is_visible() and pg.locator("#side .side-gem").get_attribute("href") == "#home")
     pg.wait_for_timeout(400); c2 = cw()
     check(f"and the class name moves along with it ({c[0]:.0f} → {c2[0]:.0f})", c2[0] >= c2[1] and c2[0] < c[0] - 100)
     check("remembered", pg.evaluate(f"JSON.parse(localStorage.getItem('{UIK}'))").get("mini") is True)
     pg.reload(); pg.wait_for_timeout(1400)
     check("still folded after a reload", pg.evaluate("document.documentElement.classList.contains('side-mini')"))
     pg.click('#side [data-action="ui-mini"]'); pg.wait_for_timeout(400)
-    check("unfolded again", not pg.evaluate("document.documentElement.classList.contains('side-mini')"))
+    check("unfolded again, with the whole logo", not pg.evaluate("document.documentElement.classList.contains('side-mini')") and pg.locator("#side .brand").is_visible() and not pg.locator("#side .side-gem").is_visible())
 
     # ---------- Classic, and back ----------
     pg.click('#side [data-action="ui-look"][data-v="classic"]'); pg.wait_for_timeout(500)

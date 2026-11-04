@@ -45,7 +45,10 @@ function uiMove(node, into) {
 }
 function uiSideHTML() {
   return `<aside id="side" class="side" aria-label="Menu">
-      <div class="side-top"></div>
+      <div class="side-top"><a class="side-gem" href="#home" data-action="go-home" aria-label="Fate/Grand Index, Home" title="Home"><svg viewBox="118 50 276 412" aria-hidden="true" focusable="false">
+        <defs><linearGradient id="sd-gem-au" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbe7ad"/><stop offset=".45" stop-color="#d9a640"/><stop offset="1" stop-color="#8c5c12"/></linearGradient></defs>
+        <g fill="none" stroke="url(#sd-gem-au)" stroke-linejoin="miter" stroke-miterlimit="10"><path d="M256 66 L374 256 L256 446 L138 256 Z" stroke-width="28"/><path d="M256 150 L322 256 L256 362 L190 256 Z" stroke-width="20"/></g>
+        <path d="M256 214 L282 256 L256 298 L230 256 Z" fill="url(#sd-gem-au)"/></svg></a></div>
       <div class="side-nav"><i class="side-mark" aria-hidden="true"></i></div>
       <div class="side-tools"></div>
       <div class="side-foot">

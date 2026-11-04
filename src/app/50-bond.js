@@ -3,9 +3,10 @@
    - the website's background gets a layer of slowly rising bond crystals and two soft bands of light (#bond-bg). It
      sits over the background and under the page, faint enough not to cover the servant's own colours;
    - their page itself (the SERVANTPAGE's white in light mode, its black in dark mode) takes a faint moving rainbow,
-     with the Bond 10 crystal drawn large behind it (.bd-veil). At Bond 15 the rainbow is stronger and easy to see.
-   At Bond 15, opening their page with a click plays a short intro: the crystal comes together from its nine gems, a ring
-   of light opens, and the page rises in. Nothing waits for it; clicks go straight through.
+     with the Bond 10 crystal drawn large behind it (.bd-veil). The rainbow is easy to see (Bond 15's strength from Bond 10
+     on: Bond 10 takes long enough to deserve it).
+   Opening their page with a click plays a short intro: the crystal comes together from its nine gems, a ring of light
+   opens, and the page rises in. Bond 15 adds more crystals and a third band of light to the background. Nothing waits for it; clicks go straight through.
    Everything moves with transform and opacity only, follows the frame-rate setting, and stands still for reduced motion.
    The veil is put back after every redraw of the page; its animations pick up where they were (their delay follows the
    clock), so a + or − doesn't restart them. */
@@ -84,7 +85,7 @@ function bdBg(t) {
   el.classList.add("on"); el.classList.toggle("t10", t === 10); el.classList.toggle("t15", t === 15);
 }
 
-/* ---------- Bond 15: the intro when their page is opened ---------- */
+/* ---------- Bond 10 and 15: the intro when their page is opened ---------- */
 let bdClick = null, bdIntroEl = null, bdIntroT = 0;
 const BD_RM = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : {matches: false};
 function bdIntro(d, s) {
@@ -100,7 +101,7 @@ function bdIntro(d, s) {
   const el = document.createElement("div");
   el.className = "bd-intro"; el.setAttribute("aria-hidden", "true");
   el.style.cssText = `left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;--cs:${size}px`;
-  el.innerHTML = `<i class="bdi-wash"></i><i class="bdi-glow"></i><i class="bdi-ring"></i><i class="bdi-ring r2"></i><div class="bdi-cr">${gems}</div><b class="bdi-t">Bond 15</b>`;
+  el.innerHTML = `<i class="bdi-wash"></i><i class="bdi-glow"></i><i class="bdi-ring"></i><i class="bdi-ring r2"></i><div class="bdi-cr">${gems}</div><b class="bdi-t">Bond ${bdTier(s)}</b>`;
   document.body.appendChild(el); bdIntroEl = el;
   d.classList.remove("bd-enter"); void d.offsetWidth; d.classList.add("bd-enter");
   bdIntroT = setTimeout(() => { el.remove(); if (bdIntroEl === el) bdIntroEl = null; d.classList.remove("bd-enter"); }, 1900);
@@ -121,7 +122,7 @@ function bdPaint() {
   if (!t) { if (v) v.remove(); }
   else { if (!v) d.insertAdjacentHTML("afterbegin", bdVeilHTML()); bdMeasure(d); bdWatch(d); }
   bdBg(t && pageActive() ? t : 0);
-  if (s && bdClick === s.id) { bdClick = null; if (t === 15) bdIntro(d, s); }
+  if (s && bdClick === s.id) { bdClick = null; if (t) bdIntro(d, s); }
 }
 const renderDossier50 = renderDossier;
 renderDossier = function () { const r = renderDossier50.apply(this, arguments); try { bdPaint(); } catch (e) {} return r; };

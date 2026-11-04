@@ -14,7 +14,7 @@
    the account's; when both have one, the account window asks (use the account's, keep this browser's, or combine). */
 const SYNCK = "spirit-origin-list:v1:sync";
 const EXTRA_KEYS = {log: LOG_KEY, atlaslink: LINK_KEY, tiers: TIER_KEY, rankBase: RB_KEY, npcalc: NPC_KEY, event: EV_KEY, story: STORY_KEY,
-  summon: SUM_KEY, traitkeep: TRK_KEY, traitnote: TRN_KEY, filldismiss: FILL_KEY, statsync: SYNC_KEY, affinity: AFF_KEY};
+  summon: SUM_KEY, traitkeep: TRK_KEY, traitnote: TRN_KEY, filldismiss: FILL_KEY, statsync: SYNC_KEY, affinity: AFF_KEY, rankCustom: RC_KEY};
 const EXTRA_BY_KEY = new Map(Object.keys(EXTRA_KEYS).map((n) => [EXTRA_KEYS[n], n]));
 const SYNC = {state: "off", last: 0, err: "", pics: "", remote: null, timer: 0, pushT: 0, busy: null, again: false};
 const stSet = Storage.prototype.setItem, stDel = Storage.prototype.removeItem;

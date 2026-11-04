@@ -1059,6 +1059,11 @@ button.fc:hover { transform: translateY(-3px); box-shadow: 0 18px 26px -14px rgb
 
 /* ===== v8: ranking upgrades ===== */
 .rank-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+/* 0.50.0-beta: Count custom servants */
+.rank-ck { display: inline-flex; align-items: center; gap: 7px; min-height: 32px; padding: 0 4px; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+.rank-ck[hidden] { display: none; }
+.rank-ck input { width: 17px; height: 17px; margin: 0; accent-color: var(--gold); }
+.rank-chip.off { opacity: .72; font-style: italic; }
 .roi-top { display: flex; flex-direction: column; gap: 8px; }
 .roi-top:empty { display: none; }
 .roi-line { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
@@ -4367,18 +4372,17 @@ input.gr-auto { background: var(--sunken) !important; color: var(--muted); }
 /* 0.28.1: a present for logging in: the reward itself, big */
 .an-gr { margin: 0; font: 700 20px/1.2 var(--f-display); letter-spacing: -.005em; }
 /* ===== 0.50.0: Bond 10 and Bond 15 (50-bond.js) =====
-   Only transform and opacity move. The rainbow's strength is --a: faint at Bond 10, plain to see at Bond 15. */
+   Only transform and opacity move. The rainbow's strength is --a, plain to see from Bond 10 (Noyr: Bond 10 takes so long that
+   it deserves Bond 15's look); Bond 15 adds more crystals and a third band of light to the website's background. */
 
 /* ---------- the SERVANTPAGE's veil: pinned to the page's window as it scrolls, behind everything on it ---------- */
 #dossier.bd10, #dossier.bd15 { isolation: isolate; }
 /* (a sticky box's top counts from inside the scroll box's padding, so top: 0 keeps it at the padding's edge, and .bd-in
    reaches back over the padding) */
 .bd-veil { position: sticky; top: 0; flex: none; align-self: stretch; height: 0; margin-bottom: calc(-1 * var(--bd-gap, 24px)); z-index: -1; pointer-events: none;
-  --a: .14; --cr: .11; }
-.bd15 > .bd-veil { --a: .3; --cr: .2; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .bd-veil { --a: .13; --cr: .12; } :root:not([data-theme="light"]) .bd15 > .bd-veil { --a: .27; --cr: .22; } }
-:root[data-theme="dark"] .bd-veil { --a: .13; --cr: .12; }
-:root[data-theme="dark"] .bd15 > .bd-veil { --a: .27; --cr: .22; }
+  --a: .3; --cr: .2; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .bd-veil { --a: .27; --cr: .22; } }
+:root[data-theme="dark"] .bd-veil { --a: .27; --cr: .22; }
 .bd-in { position: absolute; top: calc(-1 * var(--bd-pt, 26px)); left: calc(-1 * var(--bd-pl, 26px)); right: calc(-1 * var(--bd-pr, 26px)); height: var(--bd-vh, 100vh); overflow: hidden; }
 /* the rainbow: one panel-wide band of colours, repeated and slanted; moving it on by one band loops without a seam */
 .bd-rb { position: absolute; top: -12%; bottom: -12%; left: -250%; right: -250%;
@@ -4393,9 +4397,9 @@ input.gr-auto { background: var(--sunken) !important; color: var(--muted); }
 .bd-cr { position: absolute; top: 3%; right: -9%; width: min(74%, 560px); aspect-ratio: 100 / 104; opacity: var(--cr); animation: bdBreath 12s ease-in-out infinite alternate; animation-delay: var(--bd-t, 0s); }
 .bd-cr svg { display: block; width: 100%; height: 100%; }
 @keyframes bdBreath { from { transform: rotate(-4deg) scale(.97); } to { transform: rotate(3deg) scale(1.03); } }
-/* Bond 15: a light that crosses the page now and then */
+/* a light that crosses the page now and then */
 .bd-glint { position: absolute; top: -20%; bottom: -20%; left: 0; width: 38%; opacity: 0; background: linear-gradient(100deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .22) 50%, rgba(255, 255, 255, 0) 100%); }
-.bd15 .bd-glint { opacity: 1; animation: bdGlint 10s cubic-bezier(.45, .05, .35, 1) infinite; animation-delay: var(--bd-t, 0s); }
+.bd10 .bd-glint, .bd15 .bd-glint { opacity: 1; animation: bdGlint 10s cubic-bezier(.45, .05, .35, 1) infinite; animation-delay: var(--bd-t, 0s); }
 @keyframes bdGlint { 0%, 70% { transform: translateX(-130%) skewX(-14deg); } 100% { transform: translateX(380%) skewX(-14deg); } }
 
 /* ---------- the website's background: rising crystals and soft bands of light ---------- */
@@ -4979,7 +4983,7 @@ section[id^="view-"].view-in { animation: uiViewIn .42s cubic-bezier(.2, .7, .2,
   <section id="view-ranking" class="d-sec" aria-labelledby="tab-ranking" hidden>
     <div class="toolbar">
       <p class="rank-note grow">Score out of 100: stats with Fou and class ATK bonus (32) + skills (27) + NP level (13) + Bond (10) + level (9) + rarity (9). Skills count like the game: reaching Lv 6 and Lv 10 is worth more because those steps also shorten the cooldown, and Lv 10 gives the full value. Bond counts more the higher it goes: Bond 1–5 add a little each, 6–10 more, 11–14 more again, and 14 → 15 the most. Reaching max level and Lv 100 add a bump. Arrows show moves since you last pressed Mark as seen.</p>
-      <div class="rank-tools"><div class="seg" role="group" aria-label="Ranking view"><button data-action="rank-view" data-v="list" aria-pressed="true">List</button><button data-action="rank-view" data-v="tiers" aria-pressed="false">Tier board</button></div><button class="btn sm" data-action="rank-seen">Mark as seen</button></div>
+      <div class="rank-tools"><div class="seg" role="group" aria-label="Ranking view"><button data-action="rank-view" data-v="list" aria-pressed="true">List</button><button data-action="rank-view" data-v="tiers" aria-pressed="false">Tier board</button></div><button class="btn sm" data-action="rank-seen">Mark as seen</button><label class="rank-ck" hidden><input type="checkbox" id="rank-custom" checked> Count custom servants</label></div>
     </div>
     <div id="roi-top" class="roi-top" aria-label="Best upgrades right now"></div>
     <ol id="ranking" class="rank-list" aria-label="Servant ranking"></ol>
@@ -6045,8 +6049,14 @@ function scoreOf(s, over) {
   };
   return {total: parts.stats + parts.skills + parts.np + parts.bond + parts.level + parts.rarity, parts: parts, missing: missing};
 }
+// 0.50.0-beta: servants of your own (custom) can be left out of the ranking and the tier board (Ranking: Count custom
+// servants), kept in spirit-origin-list:v1:rankCustom (false = left out); on by default
+const RC_KEY = "spirit-origin-list:v1:rankCustom";
+function rankCustom() { try { return localStorage.getItem(RC_KEY) !== "false"; } catch (e) { return true; } }
+function setRankCustom(on) { try { if (on) localStorage.removeItem(RC_KEY); else localStorage.setItem(RC_KEY, "false"); } catch (e) {} }
 function rankRows() {
-  return owned().map((s) => ({s: s, sc: scoreOf(s)})).sort((a, b) => b.sc.total - a.sc.total || String(a.s.name).localeCompare(String(b.s.name)));
+  const all = rankCustom();
+  return owned().filter((s) => all || !s.custom).map((s) => ({s: s, sc: scoreOf(s)})).sort((a, b) => b.sc.total - a.sc.total || String(a.s.name).localeCompare(String(b.s.name)));
 }
 const RB_KEY = "spirit-origin-list:v1:rankBase";
 function rankBase() { try { return JSON.parse(localStorage.getItem(RB_KEY) || "null"); } catch (e) { return null; } }
@@ -6116,6 +6126,9 @@ function renderRanking() {
   if (S.dbState !== "ok" || !S.loaded.servants) { el.innerHTML = ""; if (board) board.innerHTML = ""; return; }
   const view = rankView();
   document.querySelectorAll('[data-action="rank-view"]').forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === view)));
+  // the Count custom servants box: only there when you have some
+  const nCus = owned().filter((s) => s.custom).length, ck = document.getElementById("rank-custom");
+  if (ck) { ck.checked = rankCustom(); const lb = ck.closest("label"); if (lb) { lb.hidden = !nCus; lb.title = nCus ? (ck.checked ? "Your " + nCus + " custom servant" + (nCus === 1 ? " is" : "s are") + " in the ranking and on the tier board" : "Your custom servants are left out of the ranking and the tier board") : ""; } }
   const rows = rankRows();
   el.hidden = view !== "list"; if (board) board.hidden = view !== "tiers";
   const seen = document.querySelector('[data-action="rank-seen"]'); if (seen) seen.hidden = view !== "list";
@@ -6124,7 +6137,11 @@ function renderRanking() {
   if (board && view === "tiers") board.innerHTML = tierBoardHTML(rows) + `<p class="tier-note">Drag a servant to another tier, or press it to pick one. Servants you placed yourself show a pin; press "Back to automatic" to let the score decide again. Score ranges: EX 75+, S 62–75, A 50–62, B 40–50, C under 40.</p>`;
   if (view !== "list") return;
   const cur = {}; rows.forEach((r, i) => { cur[r.s.id] = i + 1; });
-  let base = rankBase(); if (!base) { base = cur; setRankBase(cur); }
+  let base0 = rankBase(); if (!base0) { base0 = cur; setRankBase(cur); }
+  // the arrows compare with the last "seen" order among the servants listed now, so leaving some out (custom servants, or
+  // one that was removed) doesn't make everyone below them look moved
+  const inRows = new Set(rows.map((r) => r.s.id)), base = {};
+  Object.keys(base0).filter((id) => inRows.has(id)).sort((x, y) => base0[x] - base0[y]).forEach((id, i) => { base[id] = i + 1; });
   el.innerHTML = rows.map((r, i) => {
     const rank = i + 1, prev = base[r.s.id], q = r.sc.parts, roi = roiOf(r.s);
     const mv = prev == null ? `<span class="mv">new</span>` : prev > rank ? `<span class="mv up" title="Up ${prev - rank}">▲${prev - rank}</span>` : prev < rank ? `<span class="mv down" title="Down ${rank - prev}">▼${rank - prev}</span>` : `<span class="mv" title="No change">–</span>`;
@@ -8002,7 +8019,7 @@ function renderDossier(force) {
     <header class="d-head">
       ${iconHTML(s, "lg")}
       <div><h2>${esc(s.name)}</h2>
-        <p class="d-meta"><span>${esc(s.cls || "No class")}</span><span class="stars">${"★".repeat(clamp(num(s.rarity) || 0, 0, 5))}</span>${s.role ? `<span class="tag">${esc(s.role)}</span>` : ""}${rk ? `<button class="tag rank-chip" data-action="tab" data-tab="ranking" title="Open the ranking">Rank #${rk.rank} of ${rk.of} · ${rk.sc.total.toFixed(1)}</button>` : ""}</p></div>
+        <p class="d-meta"><span>${esc(s.cls || "No class")}</span><span class="stars">${"★".repeat(clamp(num(s.rarity) || 0, 0, 5))}</span>${s.role ? `<span class="tag">${esc(s.role)}</span>` : ""}${rk ? `<button class="tag rank-chip" data-action="tab" data-tab="ranking" title="Open the ranking">Rank #${rk.rank} of ${rk.of} · ${rk.sc.total.toFixed(1)}</button>` : s.custom && !s.wish && !rankCustom() ? `<button class="tag rank-chip off" data-action="tab" data-tab="ranking" title="Custom servants are left out of the ranking. Count them again on the Ranking page">Not ranked</button>` : ""}</p></div>
       <div class="d-head-actions"><button class="btn sm" data-action="vs-add" data-id="${esc(s.id)}" title="Compare in the Versus tab">Compare</button>${S.readOnly ? "" : `<button class="btn sm" data-action="edit">Edit details</button>`}</div>
     </header>
     ${s.wish ? `<div class="wish-banner"><p><b>Guest.</b> Not summoned yet. Add their stage pictures under Ascension art, and summon them on the Summoning page when they join you.</p>${S.readOnly ? "" : `<span class="wish-acts"><button class="btn sm summon-btn" data-action="to-summon" data-id="${esc(s.id)}">Go to Summoning</button><button class="btn ghost sm" data-action="wish-remove" data-id="${esc(s.id)}">Remove from Guests</button></span><div id="wish-confirm" class="wish-confirm"></div>`}</div>` : ""}
@@ -9016,6 +9033,11 @@ function addTraitFromInput() {
   inp.value = ""; inp.focus(); refreshTraitLive();
 }
 $("#f-sort").addEventListener("change", (e) => { S.sort = e.target.value; renderList(); if (!S.editing) renderDossier(); });
+// 0.50.0-beta: count custom servants in the ranking and the tier board, or leave them out (a view setting: the servants don't change)
+$("#rank-custom").addEventListener("change", (e) => {
+  setRankCustom(e.target.checked); closeTierMenu(); renderAll();
+  toast(e.target.checked ? "Custom servants count in the ranking again." : "Custom servants are left out of the ranking and the tier board.");
+});
 $("#f-import").addEventListener("change", (e) => { const f = e.target.files && e.target.files[0]; if (f) readImport(f); e.target.value = ""; });
 document.addEventListener("change", (e) => {
   const t = e.target;
@@ -11518,11 +11540,12 @@ const CHANGES = [
     "<b>A new look</b>: the pages are in a sidebar on the left, each with its icon, with the tools (Guide, What's new, Fonts, Export, Import, the frame rate, light and dark) under them. <b>Fold the menu</b> leaves only the icons and is remembered. Buttons, sections and lists have a cleaner style, and the background is Chaldea's blue when no servant gives it colours. <b>Look: Classic</b> at the bottom of the sidebar puts the page back as it was in 0.28 (with Undo), and <b>New look</b> in the header switches back.",
     "<b>Battle</b>, a new page: put up to six servants in a party (yours, a Guest, a support or any NA servant, custom servants with their Workshop kit) against made-up enemies you can edit, your Guests, your own servants, or a real NA quest's enemies from Atlas Academy (pick a chapter and battle, or paste a quest's number or link). Press Fight and watch the auto-battle: skills, the five cards and the three picked, Noble Phantasms, the enemies' turn, the waves. Play, pause, step, go 2× or 4×, jump to any moment from the list of what happened, and see each servant's damage at the end. The same seed plays the same fight. A fight changes nothing on your list.",
     "<b>The Saint Graph maker</b>, for servants of your own (on their page, beside the pictures): make their four ascension pictures from one picture. Place it (zoom, position, mirror), pick a scene (Chaldea, twilight, a starfield, an inferno, sakura, the ocean, a throne room, the Void, holy light), a colour, a light and effects (sparkles, petals, embers, snow, a magic circle, an aura). <b>Make all four from this one</b> builds a rising set, from plain at Stage 1 to the most ornate at Stage 4. Save one stage or all four, with Undo, or Download a stage. The picture and the settings are kept with the servant, so it opens where you left it. It's all drawn in your browser; a PNG with a see-through background looks best.",
-    "<b>Bond 10</b>: their page takes a faint moving rainbow over its white (or its black in dark mode), with the Bond 10 crystal behind it, and bond crystals rise slowly through the website's background while their page is open. <b>Bond 15</b>: the rainbow is stronger, and opening them with a click plays a short intro: the crystal comes together from its nine gems, a ring of light opens, and their page rises in.",
+    "<b>Bond 10 and up</b>: their page takes a moving rainbow over its white (or its black in dark mode), with the Bond 10 crystal behind it and a light that crosses it now and then, and bond crystals rise slowly through the website's background while their page is open. Opening them with a click plays a short intro: the crystal comes together from its nine gems, a ring of light opens, and their page rises in. <b>Bond 15</b> adds more crystals and a band of light to the background.",
     "<b>Card frames at Lv 100 and Lv 120</b>: at Lv 100 the frame's middle edges turn rainbow and a gold aura glows around the card; at Lv 120 every gold part of the frame turns rainbow (the class logo too) with a rainbow aura.",
     "<b>On a phone</b> the sidebar is a menu that slides in from the left: the button at the top opens it, and a page picked in it, Escape, a swipe to the left or a tap beside it closes it. The bar at the top says which page you're on.",
     "Pages slide in when you change them, and a servant's window in Past Chaldea drops in. With reduced motion turned on, they just appear.",
     "The gold frame around a Lv 100 servant's page no longer stays half across the page after the list redraws under it.",
+    "<b>Count custom servants</b> on the Ranking page: untick it and your own servants are left out of the ranking, the tier board and Home's best servants (their page says Not ranked). It's remembered, and it changes nothing about the servants themselves.",
     "The menu waits behind any window over the page (the Workshop, a summon, Past Chaldea's window), so the keyboard can't wander into it."]},
   {v: "0.28.1", d: "2 Nov 2026", t: "Append skills for your own servants, NA's login bonuses and the Discord campaign", i: [
     "<b>Append skills for servants you made</b>: the Append skills section on a servant from the Workshop used to show five blank rows. It now names the four every NA servant has (Extra Attack Boost, Load Magical Energy, Special Attack Boost and Skill Reload) with their effects at the level you set. The third one is different for every servant in the game, so it's a list you pick from: ATK Up or Critical Resistance Up against a class. Picking has Undo, and the pick stays with the servant in backups and in the single-servant file.",
@@ -11759,7 +11782,7 @@ function tourHTML() {
 /* ---------- start fresh ---------- */
 // Only this browser's copy is emptied: other browsers and computers each keep their own list.
 const PREF_KEYS = ["spirit-origin-list:v1:theme", "spirit-origin-list:v1:fonts", "spirit-origin-list:v1:fps", "spirit-origin-list:v1:affinity", "spirit-origin-list:v1:icauto",
-  "spirit-origin-list:v1:past", "spirit-origin-list:v1:rankBase", "spirit-origin-list:v1:rankView", NEWS_KEY];
+  "spirit-origin-list:v1:past", "spirit-origin-list:v1:rankBase", "spirit-origin-list:v1:rankView", "spirit-origin-list:v1:rankCustom", NEWS_KEY];
 const SF_WORD = "START FRESH";
 function freshHTML() {
   const own = S.servants.filter((s) => !s.wish).length, gu = S.servants.filter((s) => s.wish).length, pa = (S.parties || []).length;
@@ -15413,7 +15436,7 @@ function servantFight(s, ph) {
     es.forEach((e, i) => { if (!boss || e.tot > boss.e.tot) boss = {e: e, dmg: dm[i]}; });
   });
   if (!total) return null;
-  return {s: s, aoe: aoe, frac: removed / total, boss: boss, rank: (rankOf(s.id) || {sc: {total: 0}}).sc.total};
+  return {s: s, aoe: aoe, frac: removed / total, boss: boss, rank: scoreOf(s).total};
 }
 function servantAdvice(ph) {
   return S.servants.map((s) => servantFight(s, ph)).filter(Boolean).sort((a, b) => b.frac - a.frac || b.rank - a.rank).slice(0, 6);
@@ -16938,7 +16961,7 @@ window.addEventListener("hashchange", () => { if (location.hash === "#account" &
    the account's; when both have one, the account window asks (use the account's, keep this browser's, or combine). */
 const SYNCK = "spirit-origin-list:v1:sync";
 const EXTRA_KEYS = {log: LOG_KEY, atlaslink: LINK_KEY, tiers: TIER_KEY, rankBase: RB_KEY, npcalc: NPC_KEY, event: EV_KEY, story: STORY_KEY,
-  summon: SUM_KEY, traitkeep: TRK_KEY, traitnote: TRN_KEY, filldismiss: FILL_KEY, statsync: SYNC_KEY, affinity: AFF_KEY};
+  summon: SUM_KEY, traitkeep: TRK_KEY, traitnote: TRN_KEY, filldismiss: FILL_KEY, statsync: SYNC_KEY, affinity: AFF_KEY, rankCustom: RC_KEY};
 const EXTRA_BY_KEY = new Map(Object.keys(EXTRA_KEYS).map((n) => [EXTRA_KEYS[n], n]));
 const SYNC = {state: "off", last: 0, err: "", pics: "", remote: null, timer: 0, pushT: 0, busy: null, again: false};
 const stSet = Storage.prototype.setItem, stDel = Storage.prototype.removeItem;
@@ -20693,9 +20716,10 @@ const btSig = () => S.servants.map((s) => s.id + ":" + s.name + ":" + (s.wish ? 
    - the website's background gets a layer of slowly rising bond crystals and two soft bands of light (#bond-bg). It
      sits over the background and under the page, faint enough not to cover the servant's own colours;
    - their page itself (the SERVANTPAGE's white in light mode, its black in dark mode) takes a faint moving rainbow,
-     with the Bond 10 crystal drawn large behind it (.bd-veil). At Bond 15 the rainbow is stronger and easy to see.
-   At Bond 15, opening their page with a click plays a short intro: the crystal comes together from its nine gems, a ring
-   of light opens, and the page rises in. Nothing waits for it; clicks go straight through.
+     with the Bond 10 crystal drawn large behind it (.bd-veil). The rainbow is easy to see (Bond 15's strength from Bond 10
+     on: Bond 10 takes long enough to deserve it).
+   Opening their page with a click plays a short intro: the crystal comes together from its nine gems, a ring of light
+   opens, and the page rises in. Bond 15 adds more crystals and a third band of light to the background. Nothing waits for it; clicks go straight through.
    Everything moves with transform and opacity only, follows the frame-rate setting, and stands still for reduced motion.
    The veil is put back after every redraw of the page; its animations pick up where they were (their delay follows the
    clock), so a + or − doesn't restart them. */
@@ -20774,7 +20798,7 @@ function bdBg(t) {
   el.classList.add("on"); el.classList.toggle("t10", t === 10); el.classList.toggle("t15", t === 15);
 }
 
-/* ---------- Bond 15: the intro when their page is opened ---------- */
+/* ---------- Bond 10 and 15: the intro when their page is opened ---------- */
 let bdClick = null, bdIntroEl = null, bdIntroT = 0;
 const BD_RM = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : {matches: false};
 function bdIntro(d, s) {
@@ -20790,7 +20814,7 @@ function bdIntro(d, s) {
   const el = document.createElement("div");
   el.className = "bd-intro"; el.setAttribute("aria-hidden", "true");
   el.style.cssText = `left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;--cs:${size}px`;
-  el.innerHTML = `<i class="bdi-wash"></i><i class="bdi-glow"></i><i class="bdi-ring"></i><i class="bdi-ring r2"></i><div class="bdi-cr">${gems}</div><b class="bdi-t">Bond 15</b>`;
+  el.innerHTML = `<i class="bdi-wash"></i><i class="bdi-glow"></i><i class="bdi-ring"></i><i class="bdi-ring r2"></i><div class="bdi-cr">${gems}</div><b class="bdi-t">Bond ${bdTier(s)}</b>`;
   document.body.appendChild(el); bdIntroEl = el;
   d.classList.remove("bd-enter"); void d.offsetWidth; d.classList.add("bd-enter");
   bdIntroT = setTimeout(() => { el.remove(); if (bdIntroEl === el) bdIntroEl = null; d.classList.remove("bd-enter"); }, 1900);
@@ -20811,7 +20835,7 @@ function bdPaint() {
   if (!t) { if (v) v.remove(); }
   else { if (!v) d.insertAdjacentHTML("afterbegin", bdVeilHTML()); bdMeasure(d); bdWatch(d); }
   bdBg(t && pageActive() ? t : 0);
-  if (s && bdClick === s.id) { bdClick = null; if (t === 15) bdIntro(d, s); }
+  if (s && bdClick === s.id) { bdClick = null; if (t) bdIntro(d, s); }
 }
 const renderDossier50 = renderDossier;
 renderDossier = function () { const r = renderDossier50.apply(this, arguments); try { bdPaint(); } catch (e) {} return r; };

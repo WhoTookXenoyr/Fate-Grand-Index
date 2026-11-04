@@ -1021,8 +1021,14 @@ function scoreOf(s, over) {
   };
   return {total: parts.stats + parts.skills + parts.np + parts.bond + parts.level + parts.rarity, parts: parts, missing: missing};
 }
+// 0.50.0-beta: servants of your own (custom) can be left out of the ranking and the tier board (Ranking: Count custom
+// servants), kept in spirit-origin-list:v1:rankCustom (false = left out); on by default
+const RC_KEY = "spirit-origin-list:v1:rankCustom";
+function rankCustom() { try { return localStorage.getItem(RC_KEY) !== "false"; } catch (e) { return true; } }
+function setRankCustom(on) { try { if (on) localStorage.removeItem(RC_KEY); else localStorage.setItem(RC_KEY, "false"); } catch (e) {} }
 function rankRows() {
-  return owned().map((s) => ({s: s, sc: scoreOf(s)})).sort((a, b) => b.sc.total - a.sc.total || String(a.s.name).localeCompare(String(b.s.name)));
+  const all = rankCustom();
+  return owned().filter((s) => all || !s.custom).map((s) => ({s: s, sc: scoreOf(s)})).sort((a, b) => b.sc.total - a.sc.total || String(a.s.name).localeCompare(String(b.s.name)));
 }
 const RB_KEY = "spirit-origin-list:v1:rankBase";
 function rankBase() { try { return JSON.parse(localStorage.getItem(RB_KEY) || "null"); } catch (e) { return null; } }
@@ -1092,6 +1098,9 @@ function renderRanking() {
   if (S.dbState !== "ok" || !S.loaded.servants) { el.innerHTML = ""; if (board) board.innerHTML = ""; return; }
   const view = rankView();
   document.querySelectorAll('[data-action="rank-view"]').forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === view)));
+  // the Count custom servants box: only there when you have some
+  const nCus = owned().filter((s) => s.custom).length, ck = document.getElementById("rank-custom");
+  if (ck) { ck.checked = rankCustom(); const lb = ck.closest("label"); if (lb) { lb.hidden = !nCus; lb.title = nCus ? (ck.checked ? "Your " + nCus + " custom servant" + (nCus === 1 ? " is" : "s are") + " in the ranking and on the tier board" : "Your custom servants are left out of the ranking and the tier board") : ""; } }
   const rows = rankRows();
   el.hidden = view !== "list"; if (board) board.hidden = view !== "tiers";
   const seen = document.querySelector('[data-action="rank-seen"]'); if (seen) seen.hidden = view !== "list";
@@ -1100,7 +1109,11 @@ function renderRanking() {
   if (board && view === "tiers") board.innerHTML = tierBoardHTML(rows) + `<p class="tier-note">Drag a servant to another tier, or press it to pick one. Servants you placed yourself show a pin; press "Back to automatic" to let the score decide again. Score ranges: EX 75+, S 62–75, A 50–62, B 40–50, C under 40.</p>`;
   if (view !== "list") return;
   const cur = {}; rows.forEach((r, i) => { cur[r.s.id] = i + 1; });
-  let base = rankBase(); if (!base) { base = cur; setRankBase(cur); }
+  let base0 = rankBase(); if (!base0) { base0 = cur; setRankBase(cur); }
+  // the arrows compare with the last "seen" order among the servants listed now, so leaving some out (custom servants, or
+  // one that was removed) doesn't make everyone below them look moved
+  const inRows = new Set(rows.map((r) => r.s.id)), base = {};
+  Object.keys(base0).filter((id) => inRows.has(id)).sort((x, y) => base0[x] - base0[y]).forEach((id, i) => { base[id] = i + 1; });
   el.innerHTML = rows.map((r, i) => {
     const rank = i + 1, prev = base[r.s.id], q = r.sc.parts, roi = roiOf(r.s);
     const mv = prev == null ? `<span class="mv">new</span>` : prev > rank ? `<span class="mv up" title="Up ${prev - rank}">▲${prev - rank}</span>` : prev < rank ? `<span class="mv down" title="Down ${rank - prev}">▼${rank - prev}</span>` : `<span class="mv" title="No change">–</span>`;

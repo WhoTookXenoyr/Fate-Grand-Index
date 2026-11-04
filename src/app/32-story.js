@@ -179,7 +179,7 @@ function servantFight(s, ph) {
     es.forEach((e, i) => { if (!boss || e.tot > boss.e.tot) boss = {e: e, dmg: dm[i]}; });
   });
   if (!total) return null;
-  return {s: s, aoe: aoe, frac: removed / total, boss: boss, rank: (rankOf(s.id) || {sc: {total: 0}}).sc.total};
+  return {s: s, aoe: aoe, frac: removed / total, boss: boss, rank: scoreOf(s).total};
 }
 function servantAdvice(ph) {
   return S.servants.map((s) => servantFight(s, ph)).filter(Boolean).sort((a, b) => b.frac - a.frac || b.rank - a.rank).slice(0, 6);

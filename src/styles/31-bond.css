@@ -1,16 +1,15 @@
 /* ===== 0.50.0: Bond 10 and Bond 15 (50-bond.js) =====
-   Only transform and opacity move. The rainbow's strength is --a: faint at Bond 10, plain to see at Bond 15. */
+   Only transform and opacity move. The rainbow's strength is --a, plain to see from Bond 10 (Noyr: Bond 10 takes so long that
+   it deserves Bond 15's look); Bond 15 adds more crystals and a third band of light to the website's background. */
 
 /* ---------- the SERVANTPAGE's veil: pinned to the page's window as it scrolls, behind everything on it ---------- */
 #dossier.bd10, #dossier.bd15 { isolation: isolate; }
 /* (a sticky box's top counts from inside the scroll box's padding, so top: 0 keeps it at the padding's edge, and .bd-in
    reaches back over the padding) */
 .bd-veil { position: sticky; top: 0; flex: none; align-self: stretch; height: 0; margin-bottom: calc(-1 * var(--bd-gap, 24px)); z-index: -1; pointer-events: none;
-  --a: .14; --cr: .11; }
-.bd15 > .bd-veil { --a: .3; --cr: .2; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .bd-veil { --a: .13; --cr: .12; } :root:not([data-theme="light"]) .bd15 > .bd-veil { --a: .27; --cr: .22; } }
-:root[data-theme="dark"] .bd-veil { --a: .13; --cr: .12; }
-:root[data-theme="dark"] .bd15 > .bd-veil { --a: .27; --cr: .22; }
+  --a: .3; --cr: .2; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .bd-veil { --a: .27; --cr: .22; } }
+:root[data-theme="dark"] .bd-veil { --a: .27; --cr: .22; }
 .bd-in { position: absolute; top: calc(-1 * var(--bd-pt, 26px)); left: calc(-1 * var(--bd-pl, 26px)); right: calc(-1 * var(--bd-pr, 26px)); height: var(--bd-vh, 100vh); overflow: hidden; }
 /* the rainbow: one panel-wide band of colours, repeated and slanted; moving it on by one band loops without a seam */
 .bd-rb { position: absolute; top: -12%; bottom: -12%; left: -250%; right: -250%;
@@ -25,9 +24,9 @@
 .bd-cr { position: absolute; top: 3%; right: -9%; width: min(74%, 560px); aspect-ratio: 100 / 104; opacity: var(--cr); animation: bdBreath 12s ease-in-out infinite alternate; animation-delay: var(--bd-t, 0s); }
 .bd-cr svg { display: block; width: 100%; height: 100%; }
 @keyframes bdBreath { from { transform: rotate(-4deg) scale(.97); } to { transform: rotate(3deg) scale(1.03); } }
-/* Bond 15: a light that crosses the page now and then */
+/* a light that crosses the page now and then */
 .bd-glint { position: absolute; top: -20%; bottom: -20%; left: 0; width: 38%; opacity: 0; background: linear-gradient(100deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .22) 50%, rgba(255, 255, 255, 0) 100%); }
-.bd15 .bd-glint { opacity: 1; animation: bdGlint 10s cubic-bezier(.45, .05, .35, 1) infinite; animation-delay: var(--bd-t, 0s); }
+.bd10 .bd-glint, .bd15 .bd-glint { opacity: 1; animation: bdGlint 10s cubic-bezier(.45, .05, .35, 1) infinite; animation-delay: var(--bd-t, 0s); }
 @keyframes bdGlint { 0%, 70% { transform: translateX(-130%) skewX(-14deg); } 100% { transform: translateX(380%) skewX(-14deg); } }
 
 /* ---------- the website's background: rising crystals and soft bands of light ---------- */

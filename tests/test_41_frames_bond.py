@@ -1,8 +1,8 @@
 import os
 # 0.50.0-beta: the card frame at Lv 100 (rainbow middle edges and a gold aura) and Lv 120 (every gold part rainbow, a
-# rainbow aura, the class logo too); Bond 10 (a moving faint rainbow over the SERVANTPAGE with the Bond 10 crystal behind
-# it, and rising crystals in the website's background) and Bond 15 (a stronger rainbow, and an intro when the servant
-# is opened with a click). The layers don't take clicks, stay under the page's content, come back after a redraw, go
+# rainbow aura, the class logo too); Bond 10 and up (a moving rainbow over the SERVANTPAGE with the Bond 10 crystal behind
+# it, rising crystals in the website's background, and an intro when the servant is opened with a click; Bond 15 adds
+# more crystals and a band of light). The layers don't take clicks, stay under the page's content, come back after a redraw, go
 # when the servant drops below the level, and stand still for reduced motion. None of it changes the servant.
 import sys, json
 from playwright.sync_api import sync_playwright
@@ -77,6 +77,10 @@ with sync_playwright() as p:
     setup(pg, sid, bond=10); open_(pg, sid)
     o = bond(pg)
     check(f"Bond 10: the page takes the rainbow and the crystal ({o['cls']})", o["cls"] == ["bd10"] and o["veil"] and o["crystal"] and o["gems"] >= 9)
+    t10 = pg.evaluate("(() => { const e = document.querySelector('.bd-intro .bdi-t'); return e ? e.textContent : null; })()")
+    check(f"opened with a click, Bond 10 has the intro too ({t10})", t10 == "Bond 10")
+    check("and the light that crosses the page", pg.evaluate("getComputedStyle(document.querySelector('#dossier .bd-glint')).animationName") not in ("", "none"))
+    pg.wait_for_timeout(2000)
     check(f"behind the page's content, not taking clicks ({o['vz']}, {o['vpe']})", o["vz"] == "-1" and o["vpe"] == "none")
     check(f"the rainbow moves ({o['rb']})", o["rb"] not in ("", "none"))
     check(f"the website's background gets the rising crystals ({o['bg']})", o["bg"] == ["on", "t10"] and o["bgpe"] == "none")
@@ -104,7 +108,7 @@ with sync_playwright() as p:
     check("then it's gone by itself", pg.locator(".bd-intro").count() == 0 and not pg.evaluate("document.getElementById('dossier').classList.contains('bd-enter')"))
     o = bond(pg)
     a15 = pg.evaluate("getComputedStyle(document.querySelector('#dossier .bd-veil')).getPropertyValue('--a').trim()")
-    check(f"Bond 15: a stronger rainbow than Bond 10 ({a10} → {a15})", o["cls"] == ["bd15"] and float(a15) > float(a10))
+    check(f"Bond 15: the same plain-to-see rainbow as Bond 10 ({a10} → {a15})", o["cls"] == ["bd15"] and float(a15) == float(a10) and float(a10) >= 0.25)
     check(f"its background has more crystals ({o['bg']})", o["bg"] == ["on", "t15"])
     pg.click('#dossier [data-action="bump"][data-f="level"][data-d="1"]'); pg.wait_for_timeout(700)
     check("a redraw doesn't play the intro again", pg.locator(".bd-intro").count() == 0)

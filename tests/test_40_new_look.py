@@ -43,6 +43,19 @@ with sync_playwright() as p:
     sx = pg.evaluate("[document.getElementById('side').getBoundingClientRect().right, document.querySelector('.shell').getBoundingClientRect().left]")
     check(f"the page sits beside the sidebar ({sx})", 200 <= sx[0] <= 260 and sx[0] - 1 <= sx[1] <= sx[0] + 80)
     check("the Look switch shows New", pg.locator('#side [data-action="ui-look"][data-v="beta"]').get_attribute("aria-pressed") == "true")
+    # light mode: a white sidebar; dark mode: the game's navy (Noyr's fix)
+    bgs = {}
+    for th in ("light", "dark"):
+        pg.evaluate(f"document.documentElement.setAttribute('data-theme', '{th}')"); pg.wait_for_timeout(150)
+        bgs[th] = pg.evaluate("getComputedStyle(document.getElementById('side')).backgroundImage")
+    pg.evaluate("document.documentElement.setAttribute('data-theme', 'light')")
+    check(f"light mode: the sidebar is white ({bgs['light'][:60]})", "rgb(255, 255, 255)" in bgs["light"])
+    check(f"dark mode: the sidebar is navy ({bgs['dark'][:60]})", "rgb(16, 27, 64)" in bgs["dark"])
+    # the class name behind the page starts beside the sidebar (it was half under it)
+    pg.locator('#list .row').first.evaluate("(e) => e.click()"); pg.wait_for_timeout(1200)
+    cw = lambda: pg.evaluate("[document.querySelector('.pc-word').getBoundingClientRect().left, document.getElementById('side').getBoundingClientRect().right]")
+    c = cw()
+    check(f"the class name in the background starts beside the sidebar ({c})", c[0] >= c[1])
 
     # ---------- changing pages ----------
     m0 = pg.evaluate("document.querySelector('.side-mark').style.transform")
@@ -59,6 +72,8 @@ with sync_playwright() as p:
     sw = pg.evaluate("[document.getElementById('side').getBoundingClientRect().width, document.querySelector('.shell').getBoundingClientRect().width]")
     check(f"folded: only the icons, the page gets the room ({sw})", pg.evaluate("document.documentElement.classList.contains('side-mini')") and sw[0] < 100 and sw[1] > 1100)
     check("its button says Unfold", "Unfold" in (pg.locator("#side .side-mini-btn span").text_content() or "") and pg.locator("#side .side-mini-btn").get_attribute("aria-pressed") == "true")
+    pg.wait_for_timeout(400); c2 = cw()
+    check(f"and the class name moves along with it ({c[0]:.0f} → {c2[0]:.0f})", c2[0] >= c2[1] and c2[0] < c[0] - 100)
     check("remembered", pg.evaluate(f"JSON.parse(localStorage.getItem('{UIK}'))").get("mini") is True)
     pg.reload(); pg.wait_for_timeout(1400)
     check("still folded after a reload", pg.evaluate("document.documentElement.classList.contains('side-mini')"))

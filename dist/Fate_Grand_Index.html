@@ -4459,8 +4459,8 @@ input.gr-auto { background: var(--sunken) !important; color: var(--muted); }
   #dossier.bd-enter > * { animation: none !important; }
 }
 /* ===== 0.50.0-beta: the new look (the Chaldea terminal), the sidebar, moving between pages (51-ui.js) =====
-   New look: html[data-ui="beta"]. Navy and gold like the game's own menus; the sidebar is navy in light mode too, the one
-   loud thing on the page. Classic: html[data-ui="classic"], the 0.28 page, with the sidebar on phones only.
+   New look: html[data-ui="beta"]. Navy and gold like the game's own menus; the sidebar is white in light mode and the
+   game's navy in dark mode. Classic: html[data-ui="classic"], the 0.28 page, with the sidebar on phones only.
    Only transform and opacity move. */
 
 /* ---------- the new look's colours ---------- */
@@ -4472,8 +4472,10 @@ html[data-ui="beta"] {
   --g1: #dfe6f4; --g2: #d0daee; --g3: #eef2fa;
   --page-muted: color-mix(in srgb, var(--ink) 82%, transparent);
   --r-panel: 16px; --r-row: 10px;
-  /* the sidebar is the game's menu: navy in both modes */
-  --sd-bg1: #13204a; --sd-bg2: #0a1330; --sd-ink: #eef1fa; --sd-muted: #a6b1d1; --sd-gold: #e0c27a; --sd-line: rgba(224, 194, 122, .22);
+  /* the sidebar: white in light mode (0.50.0-beta, Noyr's fix), the game's navy in dark mode */
+  --sd-bg1: #ffffff; --sd-bg2: #f3f6fc; --sd-ink: #16224a; --sd-muted: #56638a; --sd-gold: #94701f; --sd-line: rgba(22, 34, 74, .13);
+  --sd-panel: #ffffff; --sd-raised: #ffffff; --sd-sunken: rgba(22, 34, 74, .05); --sd-focus: #2d6dd4; --sd-trim: rgba(148, 112, 31, .32);
+  --sd-shadow: 6px 0 24px -18px rgba(22, 34, 74, .4); --sd-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   html[data-ui="beta"]:not([data-theme="light"]) {
@@ -4482,7 +4484,9 @@ html[data-ui="beta"] {
     --warn-bg: #17244b; --warn-ink: #f0d690; --bar: #d9b86c;
     --shadow: 0 16px 36px -20px rgba(0, 0, 0, .85);
     --g1: #121d42; --g2: #0a1229; --g3: #1a2955;
-    --sd-bg1: #101b40; --sd-bg2: #070e25;
+    --sd-bg1: #101b40; --sd-bg2: #070e25; --sd-ink: #eef1fa; --sd-muted: #a6b1d1; --sd-gold: #e0c27a; --sd-line: rgba(224, 194, 122, .22);
+    --sd-panel: rgba(255, 255, 255, .05); --sd-raised: rgba(255, 255, 255, .08); --sd-sunken: rgba(255, 255, 255, .06); --sd-focus: #8fd0ff; --sd-trim: rgba(224, 194, 122, .5);
+    --sd-shadow: 6px 0 28px -18px rgba(5, 10, 30, .7); --sd-scheme: dark;
   }
 }
 html[data-ui="beta"][data-theme="dark"] {
@@ -4491,7 +4495,9 @@ html[data-ui="beta"][data-theme="dark"] {
   --warn-bg: #17244b; --warn-ink: #f0d690; --bar: #d9b86c;
   --shadow: 0 16px 36px -20px rgba(0, 0, 0, .85);
   --g1: #121d42; --g2: #0a1229; --g3: #1a2955;
-  --sd-bg1: #101b40; --sd-bg2: #070e25;
+  --sd-bg1: #101b40; --sd-bg2: #070e25; --sd-ink: #eef1fa; --sd-muted: #a6b1d1; --sd-gold: #e0c27a; --sd-line: rgba(224, 194, 122, .22);
+  --sd-panel: rgba(255, 255, 255, .05); --sd-raised: rgba(255, 255, 255, .08); --sd-sunken: rgba(255, 255, 255, .06); --sd-focus: #8fd0ff; --sd-trim: rgba(224, 194, 122, .5);
+  --sd-shadow: 6px 0 28px -18px rgba(5, 10, 30, .7); --sd-scheme: dark;
 }
 
 /* ---------- the new look's parts ---------- */
@@ -4528,6 +4534,10 @@ html.has-side.side-mini { --side-w: 76px; }
      like the last card of Home's fan with the narrower sides, can't make the window scroll sideways. Things fixed to the
      screen aren't clipped by it) */
   html.has-side .shell { overflow-x: clip; }
+  /* the class name behind the page starts beside the sidebar (it was half under it) and moves along when the menu folds;
+     its size follows the room that's left */
+  html.has-side .pc-word { translate: calc(var(--side-w) * var(--ui-z, 1)) 0; font-size: min(220px, calc(min(100vw - var(--side-w) * var(--ui-z, 1), 1700px) * 1.25 / var(--n)));
+    transition: opacity .32s ease, transform .32s ease, translate .32s cubic-bezier(.3, .7, .2, 1); }
   html.has-side .shell { margin-inline: auto; max-width: max(1260px, min(calc((100vw / var(--ui-z, 1) - var(--side-w)) * .9), 1720px)); padding-top: 22px; }
   html.has-side .side-btn, html.has-side .top-logo { display: none; }
   html.has-side .side-scrim { display: none; }
@@ -4536,11 +4546,14 @@ html.has-side.side-mini { --side-w: 76px; }
   overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
   background: linear-gradient(180deg, color-mix(in srgb, var(--panel) 97%, transparent), color-mix(in srgb, var(--sunken) 97%, transparent)); border-right: 1px solid var(--line); color: var(--ink); }
 html[data-ui="beta"] .side { background: linear-gradient(180deg, var(--sd-bg1), var(--sd-bg2)); border-right: 1px solid var(--sd-line); color: var(--sd-ink);
-  box-shadow: inset -1px 0 0 rgba(255, 255, 255, .03), 6px 0 28px -18px rgba(5, 10, 30, .7); --ink: var(--sd-ink); --muted: var(--sd-muted); --page-muted: var(--sd-muted); --line: var(--sd-line);
-  --panel: rgba(255, 255, 255, .05); --raised: rgba(255, 255, 255, .08); --sunken: rgba(255, 255, 255, .06); --gold: var(--sd-gold); --focus: #8fd0ff; color-scheme: dark; }
+  box-shadow: var(--sd-shadow); --ink: var(--sd-ink); --muted: var(--sd-muted); --page-muted: var(--sd-muted); --line: var(--sd-line);
+  --panel: var(--sd-panel); --raised: var(--sd-raised); --sunken: var(--sd-sunken); --gold: var(--sd-gold); --focus: var(--sd-focus); color-scheme: var(--sd-scheme); }
 /* a thin gold rule down the inside edge, like the trim on the game's panels */
 html[data-ui="beta"] .side::after { content: ""; position: fixed; top: 0; bottom: 0; left: calc(var(--side-w) - 4px); width: 1px; pointer-events: none;
-  background: linear-gradient(180deg, transparent, rgba(224, 194, 122, .5) 18%, rgba(224, 194, 122, .5) 82%, transparent); }
+  background: linear-gradient(180deg, transparent, var(--sd-trim) 18%, var(--sd-trim) 82%, transparent); }
+/* (in light mode the logo gets the same thin navy outline it has on the light page, so its white letters read on white) */
+html:not([data-theme="dark"]) .top-logo img { filter: drop-shadow(0 0 1px rgba(18, 30, 72, .9)) drop-shadow(0 1px 3px rgba(18, 30, 72, .45)); }
+@media (prefers-color-scheme: dark) { html:not([data-theme]) .top-logo img { filter: none; } }
 .side-top { display: flex; flex-direction: column; gap: 6px; padding: 0 4px; }
 .side .brand { margin: 0; }
 .side .brand-logo { width: 176px; height: auto; display: block; }
@@ -4602,7 +4615,7 @@ html.has-side .masthead { display: block; }
   html.has-side .shell { padding-top: 0; }
   html.has-side .masthead { position: sticky; top: 0; z-index: 25; margin: 0 calc(-1 * clamp(16px, 4vw, 40px)); padding: calc(env(safe-area-inset-top, 0px) + 8px) clamp(12px, 4vw, 40px) 8px;
     background: color-mix(in srgb, var(--panel) 94%, transparent); border-bottom: 1px solid var(--line); }
-  html[data-ui="beta"].has-side .masthead { background: linear-gradient(180deg, var(--sd-bg1), color-mix(in srgb, var(--sd-bg2) 96%, transparent)); border-bottom-color: var(--sd-line); --ink: var(--sd-ink); --line: var(--sd-line); --panel: rgba(255, 255, 255, .06); color: var(--sd-ink); }
+  html[data-ui="beta"].has-side .masthead { background: linear-gradient(180deg, var(--sd-bg1), color-mix(in srgb, var(--sd-bg2) 96%, transparent)); border-bottom-color: var(--sd-line); --ink: var(--sd-ink); --muted: var(--sd-muted); --line: var(--sd-line); --panel: var(--sd-panel); --raised: var(--sd-raised); --sunken: var(--sd-sunken); --gold: var(--sd-gold); color: var(--sd-ink); }
   html.has-side .top-title { margin-left: auto; font-size: 15px; font-family: var(--f-body); font-weight: 600; letter-spacing: 0; color: var(--muted); }
   html[data-ui="beta"].has-side .top-title { color: var(--sd-muted); }
   /* the menu slides in from the left, over the page */

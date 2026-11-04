@@ -6,6 +6,11 @@ sp = sys.argv[1]; URL = os.environ.get("FGI_URL") or "file://" + sp
 NEW = f"{URL}/_seeded.html#servants"
 errs = []
 def check(label, ok): print(("PASS " if ok else "FAIL ") + label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 LS = "JSON.parse(localStorage.getItem('spirit-origin-list:v1'))"
 COUNT = """() => new Promise((res) => { const r = indexedDB.open('spirit-origin-list-images', 1); r.onsuccess = () => { const t = r.result.transaction('img', 'readonly').objectStore('img').count(); t.onsuccess = () => res(t.result); t.onerror = () => res(-1); }; r.onerror = () => res(-1); })"""
 red = base64.b64encode(open(f"{sp}/ph_red.png", "rb").read()).decode()
@@ -62,7 +67,7 @@ with sync_playwright() as p:
     check("owned servants' form has the boxes too", pg.locator("#fs-art .fa-tile").count() == 5)
     pg.click('[data-action="cancel-edit"]'); pg.wait_for_timeout(300)
     # summon shows the art on the card
-    pg.click("#tab-summon"); pg.wait_for_timeout(600); pg.click('.smg [data-action="summon"][data-id="morgan"]'); pg.wait_for_timeout(300); pg.keyboard.press("Escape"); pg.wait_for_timeout(1500)
+    go_tab(pg, "summon"); pg.wait_for_timeout(600); pg.click('.smg [data-action="summon"][data-id="morgan"]'); pg.wait_for_timeout(300); pg.keyboard.press("Escape"); pg.wait_for_timeout(1500)
     check("summon card shows the stage picture", pg.locator(".s2-front img.s2-art:not(.mark)").count() == 1)
     pg.screenshot(path=f"{sp}/v71-summon.png")
     pg.click(".sm-done"); pg.wait_for_timeout(800)

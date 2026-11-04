@@ -60,7 +60,11 @@ html[data-ui="beta"] .summary { border-bottom-color: color-mix(in srgb, var(--go
 html.has-side { --side-w: 248px; }
 html.has-side.side-mini { --side-w: 76px; }
 @media (min-width: 901px) {
-  html.has-side .shell { margin-left: var(--side-w); margin-right: auto; max-width: min(1320px, calc(100vw - var(--side-w))); padding-top: 22px; }
+  /* the sidebar grows with the screen like the page does (18-ui-scale.css); the page sits in the room beside it,
+     centred, up to 90% of that room on a wide screen */
+  html.has-side .side { zoom: var(--ui-z, 1); }
+  html.has-side body { padding-left: calc(var(--side-w) * var(--ui-z, 1)); }
+  html.has-side .shell { margin-inline: auto; max-width: max(1260px, min(calc((100vw / var(--ui-z, 1) - var(--side-w)) * .9), 1720px)); padding-top: 22px; }
   html.has-side .side-btn, html.has-side .top-logo { display: none; }
   html.has-side .side-scrim { display: none; }
 }
@@ -147,9 +151,19 @@ html.has-side .masthead { display: block; }
   .side .tab { min-height: 46px; font-size: 15.5px; }
 }
 
+/* ---------- a laptop: the sidebar takes room, so the roster column gives some back to the servant's page ---------- */
+@media (min-width: 901px) and (max-width: 1599px) {
+  html.has-side:not(.side-mini):not([data-layout="compact"]) .workspace { grid-template-columns: minmax(300px, 400px) minmax(0, 1fr); }
+}
+
 /* ---------- moving between pages: the new one slides in ---------- */
 section[id^="view-"].view-in { animation: uiViewIn .42s cubic-bezier(.2, .7, .2, 1) both; }
 @keyframes uiViewIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+/* (the Servants page holds things fixed to the screen: the grail frame around the servant's panel, the Compact window,
+   the phone's sheet. A transform on the page would carry them along while it slides, so this page fades as a whole and
+   only the parts without them slide) */
+#view-servants.view-in { animation-name: uiFade; }
+#view-servants.view-in > :not(.workspace), #view-servants.view-in .workspace > .list { animation: uiViewIn .42s cubic-bezier(.2, .7, .2, 1) both; }
 
 /* ---------- Past Chaldea: the servant's window drops in ---------- */
 .pcd.pcd-drop { animation: uiFade .26s ease-out both; }
@@ -164,6 +178,6 @@ section[id^="view-"].view-in { animation: uiViewIn .42s cubic-bezier(.2, .7, .2,
 @keyframes uiCard { 0% { opacity: 0; transform: translateY(-70px) rotate(-4deg) scale(1.05); } 60% { opacity: 1; } 100% { opacity: 1; transform: none; } }
 
 @media (prefers-reduced-motion: reduce) {
-  section[id^="view-"].view-in, .pcd.pcd-drop, .pcd.pcd-drop .pcd-panel, .pcd.pcd-drop .pcd-frame, .pcd.pcd-drop .pcd-info > * { animation: none !important; }
+  section[id^="view-"].view-in, #view-servants.view-in > *, #view-servants.view-in .workspace > .list, .pcd.pcd-drop, .pcd.pcd-drop .pcd-panel, .pcd.pcd-drop .pcd-frame, .pcd.pcd-drop .pcd-info > * { animation: none !important; }
   .side, .side-mark, .side-scrim { transition: none !important; }
 }

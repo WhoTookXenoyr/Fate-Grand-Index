@@ -31,6 +31,7 @@ const UI_IC = {
   versus: '<path d="M5 4.5l9.5 9.5M4.5 14l5 5M7 16.5l-3 3"/><path d="M19 4.5 9.5 14M19.5 14l-5 5M17 16.5l3 3"/>',
   battle: '<path d="M12 3.5 5 6v5.5c0 4.3 2.9 7.3 7 9 4.1-1.7 7-4.7 7-9V6z"/><path d="M12 8v7M9 11.5h6"/>',
   past: '<path d="M4.5 8.5h15v11h-15z"/><path d="M3.5 5h17v3.5h-17z"/><path d="M10 12h4"/>',
+  friends: '<circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.5" cy="8" r="2.6"/><path d="M15.5 13.2c2.6-.3 4.6 1.4 5.1 4.3"/>',
   _: '<circle cx="12" cy="12" r="7"/>'
 };
 const uiIcon = (k) => `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${UI_IC[k] || UI_IC._}</svg>`;
@@ -111,7 +112,7 @@ function uiOpen() {
 function uiClose(quiet) {
   const root = document.documentElement, was = root.classList.contains("side-open");
   root.classList.remove("side-open");
-  const side = document.getElementById("side"); if (side) side.inert = UI_PHONE.matches;
+  const side = document.getElementById("side"), sh = document.querySelector(".shell"); if (side) side.inert = UI_PHONE.matches || !!(sh && sh.inert);
   const b = document.querySelector(".side-btn"); if (b) { b.setAttribute("aria-expanded", "false"); if (was && !quiet) b.focus({preventScroll: true}); }
 }
 // a swipe to the left closes it
@@ -134,7 +135,9 @@ function uiSync() {
   side.querySelectorAll('[data-action="ui-look"]').forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === uiLook())));
   const mini = document.documentElement.classList.contains("side-mini"), mb = side.querySelector(".side-mini-btn");
   if (mb) { mb.setAttribute("aria-pressed", String(mini)); mb.querySelector("span").textContent = mini ? "Unfold the menu" : "Fold the menu"; mb.title = mini ? "Show the names in the menu" : "Show only the icons"; }
-  side.inert = UI_PHONE.matches && !document.documentElement.classList.contains("side-open");
+  // closed on a phone, or a window is open over the page (the page itself is inert then, and so is the menu beside it)
+  const sh = document.querySelector(".shell");
+  side.inert = (UI_PHONE.matches && !document.documentElement.classList.contains("side-open")) || !!(sh && sh.inert);
   const tt = document.getElementById("top-title"), cur = document.querySelector('nav.tabs .tab[aria-selected="true"] .tab-t');
   if (tt) tt.textContent = cur ? cur.textContent : "";
   uiMark();
@@ -148,7 +151,7 @@ renderChrome = function () {
   try {
     if (uiTab !== null && uiTab !== S.tab) {
       const v = document.getElementById("view-" + S.tab);
-      if (v) { v.classList.remove("view-in"); void v.offsetWidth; v.classList.add("view-in"); setTimeout(() => v.classList.remove("view-in"), 700); }
+      if (v) { v.classList.remove("view-in"); void v.offsetWidth; v.classList.add("view-in"); setTimeout(() => { v.classList.remove("view-in"); if (typeof queueDsFrame === "function") queueDsFrame(); }, 700); }
       if (UI_PHONE.matches) uiClose(true);
     }
     uiTab = S.tab; uiSync();
@@ -156,6 +159,9 @@ renderChrome = function () {
   return r;
 };
 window.addEventListener("resize", () => requestAnimationFrame(uiMark));
+// every window that makes the page inert (the Workshop, a summon, Past Chaldea's, the Saint Graph maker …) does it to
+// .shell; the menu lives beside .shell, so it follows along
+(() => { const sh = document.querySelector(".shell"); if (sh && window.MutationObserver) new MutationObserver(() => uiSync()).observe(sh, {attributes: true, attributeFilter: ["inert"]}); })();
 
 document.addEventListener("click", (e) => {
   const b = e.target.closest && e.target.closest('[data-action^="ui-"]'); if (!b) return;
@@ -170,8 +176,13 @@ document.addEventListener("click", (e) => {
     uiPrefs().mini = !uiPrefs().mini; uiSave(); uiApply(); uiSync();
   }
 });
-// a tab picked in the phone's menu closes the menu (the page changes underneath)
-document.addEventListener("click", (e) => { const t = e.target.closest && e.target.closest("#side .tab"); if (t && UI_PHONE.matches) setTimeout(() => uiClose(true), 0); });
+// a tab picked in the phone's menu closes the menu (the page changes underneath), and so does a tool that opens a window
+// (the Guide, What's new, Fonts, an export, signing in); the ones that change something in place keep it open
+document.addEventListener("click", (e) => {
+  if (!UI_PHONE.matches || !e.target.closest) return;
+  const t = e.target.closest('#side .tab, #side [data-action="tour"], #side [data-action="news"], #side [data-action="fonts"], #side #export-menu [role="menuitem"], #side #acct-btn');
+  if (t) setTimeout(() => uiClose(true), 0);
+});
 
 /* ---------- the background when no servant gives it colours: Chaldea's blue in the new look ---------- */
 const UI_PAL = ["#8394c2", "#46598f", "#b8c4e2"];

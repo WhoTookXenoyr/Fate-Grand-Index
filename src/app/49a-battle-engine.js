@@ -614,4 +614,4 @@ const BT_AUTO = {
 };
 
 // for the tests: the engine on its own, without the page around it (it changes nothing on its own)
-try { Object.defineProperty(window, "__fgiBattle", {value: Object.freeze({run: btBattle, fromServant: btFromServant, fromNA: btFromNA, made: btFromMade, asFoe: btAsFoe, servants: () => S.servants.slice()}), configurable: true}); } catch (e) {}
+try { Object.defineProperty(window, "__fgiBattle", {value: Object.freeze({run: btBattle, fromServant: btFromServant, fromNA: btFromNA, made: btFromMade, asFoe: btAsFoe, read: (line, rows) => btClauses(line).map((l) => btReadLine(l, (rows || []).slice())).filter(Boolean), skill: btSkillNA, servants: () => JSON.parse(JSON.stringify(S.servants))}), configurable: true}); } catch (e) {}

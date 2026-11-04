@@ -10,6 +10,11 @@ errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
     if not ok: fails.append(label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 INIT = "localStorage.setItem('spirit-origin-list:v1:intro','1');localStorage.setItem('spirit-origin-list:v1:news','9.9.9');"
 WHO = "oberon"
 def row_parts(pg):
@@ -38,7 +43,7 @@ with sync_playwright() as p:
     for lv in range(1, 16):
         pg.click('#dossier [data-action="bump"][data-f="bond"][data-d="1"]'); pg.wait_for_timeout(60)
         # the Ranking is drawn when it's opened (0.24.0), so open it to read the score, then come back to the servant
-        pg.click("#tab-ranking"); pg.wait_for_timeout(150); seen.append(row_parts(pg)[0]); pg.click("#tab-servants"); pg.wait_for_timeout(150)
+        go_tab(pg, "ranking"); pg.wait_for_timeout(150); seen.append(row_parts(pg)[0]); go_tab(pg, "servants"); pg.wait_for_timeout(150)
         if lv in (7, 10, 11, 15): shown[lv] = gems()
     check(f"Bond 0: ten dark gems ({shown[0]})", shown[0] == ["g0"] * 10)
     check(f"Bond 7: the first seven gems lit, three dark ({shown[7]})", shown[7] == [f"g{i}" for i in range(1, 8)] + ["g0"] * 3)
@@ -62,7 +67,7 @@ with sync_playwright() as p:
     # back down a level from the SERVANTPAGE
     pg.goto(SEEDED + "#servants"); pg.wait_for_timeout(800); pg.click(f'#list [data-id="{WHO}"]'); pg.wait_for_timeout(500)
     pg.click('#dossier [data-action="bump"][data-f="bond"][data-d="-1"]'); pg.wait_for_timeout(900)
-    pg.click("#tab-ranking"); pg.wait_for_timeout(300)
+    go_tab(pg, "ranking"); pg.wait_for_timeout(300)
     check(f"lowering Bond to 14 takes the 1.5 back ({row_parts(pg)[0]})", row_parts(pg)[0] == 8.5 and bond_of(pg) == 14)
     b.close()
 

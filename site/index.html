@@ -4520,7 +4520,11 @@ html[data-ui="beta"] .summary { border-bottom-color: color-mix(in srgb, var(--go
 html.has-side { --side-w: 248px; }
 html.has-side.side-mini { --side-w: 76px; }
 @media (min-width: 901px) {
-  html.has-side .shell { margin-left: var(--side-w); margin-right: auto; max-width: min(1320px, calc(100vw - var(--side-w))); padding-top: 22px; }
+  /* the sidebar grows with the screen like the page does (18-ui-scale.css); the page sits in the room beside it,
+     centred, up to 90% of that room on a wide screen */
+  html.has-side .side { zoom: var(--ui-z, 1); }
+  html.has-side body { padding-left: calc(var(--side-w) * var(--ui-z, 1)); }
+  html.has-side .shell { margin-inline: auto; max-width: max(1260px, min(calc((100vw / var(--ui-z, 1) - var(--side-w)) * .9), 1720px)); padding-top: 22px; }
   html.has-side .side-btn, html.has-side .top-logo { display: none; }
   html.has-side .side-scrim { display: none; }
 }
@@ -4607,9 +4611,19 @@ html.has-side .masthead { display: block; }
   .side .tab { min-height: 46px; font-size: 15.5px; }
 }
 
+/* ---------- a laptop: the sidebar takes room, so the roster column gives some back to the servant's page ---------- */
+@media (min-width: 901px) and (max-width: 1599px) {
+  html.has-side:not(.side-mini):not([data-layout="compact"]) .workspace { grid-template-columns: minmax(300px, 400px) minmax(0, 1fr); }
+}
+
 /* ---------- moving between pages: the new one slides in ---------- */
 section[id^="view-"].view-in { animation: uiViewIn .42s cubic-bezier(.2, .7, .2, 1) both; }
 @keyframes uiViewIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+/* (the Servants page holds things fixed to the screen: the grail frame around the servant's panel, the Compact window,
+   the phone's sheet. A transform on the page would carry them along while it slides, so this page fades as a whole and
+   only the parts without them slide) */
+#view-servants.view-in { animation-name: uiFade; }
+#view-servants.view-in > :not(.workspace), #view-servants.view-in .workspace > .list { animation: uiViewIn .42s cubic-bezier(.2, .7, .2, 1) both; }
 
 /* ---------- Past Chaldea: the servant's window drops in ---------- */
 .pcd.pcd-drop { animation: uiFade .26s ease-out both; }
@@ -4624,7 +4638,7 @@ section[id^="view-"].view-in { animation: uiViewIn .42s cubic-bezier(.2, .7, .2,
 @keyframes uiCard { 0% { opacity: 0; transform: translateY(-70px) rotate(-4deg) scale(1.05); } 60% { opacity: 1; } 100% { opacity: 1; transform: none; } }
 
 @media (prefers-reduced-motion: reduce) {
-  section[id^="view-"].view-in, .pcd.pcd-drop, .pcd.pcd-drop .pcd-panel, .pcd.pcd-drop .pcd-frame, .pcd.pcd-drop .pcd-info > * { animation: none !important; }
+  section[id^="view-"].view-in, #view-servants.view-in > *, #view-servants.view-in .workspace > .list, .pcd.pcd-drop, .pcd.pcd-drop .pcd-panel, .pcd.pcd-drop .pcd-frame, .pcd.pcd-drop .pcd-info > * { animation: none !important; }
   .side, .side-mark, .side-scrim { transition: none !important; }
 }
 /* ===== 0.50.0-beta: the Battle page (49a-battle-engine.js, 49b-battle-ui.js) =====
@@ -11473,6 +11487,16 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.50.0-beta", d: "3 Nov 2026", t: "The beta: a new look, a battle simulator, the Saint Graph maker, and Bond 10 and 15", i: [
+    "<b>A new look</b>: the pages are in a sidebar on the left, each with its icon, with the tools (Guide, What's new, Fonts, Export, Import, the frame rate, light and dark) under them. <b>Fold the menu</b> leaves only the icons and is remembered. Buttons, sections and lists have a cleaner style, and the background is Chaldea's blue when no servant gives it colours. <b>Look: Classic</b> at the bottom of the sidebar puts the page back as it was in 0.28 (with Undo), and <b>New look</b> in the header switches back.",
+    "<b>Battle</b>, a new page: put up to six servants in a party (yours, a Guest, a support or any NA servant, custom servants with their Workshop kit) against made-up enemies you can edit, your Guests, your own servants, or a real NA quest's enemies from Atlas Academy (pick a chapter and battle, or paste a quest's number or link). Press Fight and watch the auto-battle: skills, the five cards and the three picked, Noble Phantasms, the enemies' turn, the waves. Play, pause, step, go 2× or 4×, jump to any moment from the list of what happened, and see each servant's damage at the end. The same seed plays the same fight. A fight changes nothing on your list.",
+    "<b>The Saint Graph maker</b>, for servants of your own (on their page, beside the pictures): make their four ascension pictures from one picture. Place it (zoom, position, mirror), pick a scene (Chaldea, twilight, a starfield, an inferno, sakura, the ocean, a throne room, the Void, holy light), a colour, a light and effects (sparkles, petals, embers, snow, a magic circle, an aura). <b>Make all four from this one</b> builds a rising set, from plain at Stage 1 to the most ornate at Stage 4. Save one stage or all four, with Undo, or Download a stage. The picture and the settings are kept with the servant, so it opens where you left it. It's all drawn in your browser; a PNG with a see-through background looks best.",
+    "<b>Bond 10</b>: their page takes a faint moving rainbow over its white (or its black in dark mode), with the Bond 10 crystal behind it, and bond crystals rise slowly through the website's background while their page is open. <b>Bond 15</b>: the rainbow is stronger, and opening them with a click plays a short intro: the crystal comes together from its nine gems, a ring of light opens, and their page rises in.",
+    "<b>Card frames at Lv 100 and Lv 120</b>: at Lv 100 the frame's middle edges turn rainbow and a gold aura glows around the card; at Lv 120 every gold part of the frame turns rainbow (the class logo too) with a rainbow aura.",
+    "<b>On a phone</b> the sidebar is a menu that slides in from the left: the button at the top opens it, and a page picked in it, Escape, a swipe to the left or a tap beside it closes it. The bar at the top says which page you're on.",
+    "Pages slide in when you change them, and a servant's window in Past Chaldea drops in. With reduced motion turned on, they just appear.",
+    "The gold frame around a Lv 100 servant's page no longer stays half across the page after the list redraws under it.",
+    "The menu waits behind any window over the page (the Workshop, a summon, Past Chaldea's window), so the keyboard can't wander into it."]},
   {v: "0.28.1", d: "2 Nov 2026", t: "Append skills for your own servants, NA's login bonuses and the Discord campaign", i: [
     "<b>Append skills for servants you made</b>: the Append skills section on a servant from the Workshop used to show five blank rows. It now names the four every NA servant has (Extra Attack Boost, Load Magical Energy, Special Attack Boost and Skill Reload) with their effects at the level you set. The third one is different for every servant in the game, so it's a list you pick from: ATK Up or Critical Resistance Up against a class. Picking has Undo, and the pick stays with the servant in backups and in the single-servant file.",
     "On NA now's <b>Login bonuses</b> list was always empty: Atlas Academy's NA data has no login bonuses at all. It now lists NA's, from NA's news, each linked to its announcement and saying what it gives: the GUDAGUDA revival's 21-day bonus, the Lostbelt No.6 Clear Support Leyline Stones, the countdown bonus with today's reward, and the Discord Saint Quartz. They show even when Atlas Academy can't be reached, and move to the next day on their own.",
@@ -20266,7 +20290,7 @@ const BT_AUTO = {
 };
 
 // for the tests: the engine on its own, without the page around it (it changes nothing on its own)
-try { Object.defineProperty(window, "__fgiBattle", {value: Object.freeze({run: btBattle, fromServant: btFromServant, fromNA: btFromNA, made: btFromMade, asFoe: btAsFoe, servants: () => S.servants.slice()}), configurable: true}); } catch (e) {}
+try { Object.defineProperty(window, "__fgiBattle", {value: Object.freeze({run: btBattle, fromServant: btFromServant, fromNA: btFromNA, made: btFromMade, asFoe: btAsFoe, read: (line, rows) => btClauses(line).map((l) => btReadLine(l, (rows || []).slice())).filter(Boolean), skill: btSkillNA, servants: () => JSON.parse(JSON.stringify(S.servants))}), configurable: true}); } catch (e) {}
 /* ================= 0.50.0-beta: the battle simulator, part 2: the Battle page =================
    Set up a fight (your party; the enemies: made up, your Guests, your servants, or a real NA quest), press Fight, and
    watch it play out: the skills, the five cards and the three picked, the damage on each enemy, the enemies' turn, the
@@ -20606,7 +20630,10 @@ document.addEventListener("submit", (e) => {
 document.addEventListener("toggle", (e) => { if (e.target.matches && e.target.matches("[data-bt-log]")) { btPrefs.log = e.target.open; btSave(); } }, true);
 // keys while the fight plays: space plays and pauses, the arrows step
 document.addEventListener("keydown", (e) => {
-  if (S.tab !== "battle" || !BT.run || e.target.closest("input, select, textarea")) return;
+  if (S.tab !== "battle" || !BT.run || e.altKey || e.ctrlKey || e.metaKey || e.target.closest("input, select, textarea, [contenteditable]")) return;
+  // not while a window is open over the page, and Space keeps pressing whatever button has the focus
+  const sh = document.querySelector(".shell"); if (sh && sh.inert) return;
+  if (e.key === " " && e.target.closest("button, a, summary, [role='button']")) return;
   if (e.key === " ") { e.preventDefault(); document.querySelector('#battle [data-bt-act="play"]').click(); }
   else if (e.key === "ArrowRight") { e.preventDefault(); document.querySelector('#battle [data-bt-act="next"]').click(); }
   else if (e.key === "ArrowLeft") { e.preventDefault(); document.querySelector('#battle [data-bt-act="prev"]').click(); }
@@ -20755,6 +20782,10 @@ renderDossier = function () { const r = renderDossier50.apply(this, arguments); 
 const renderAll50 = renderAll;
 renderAll = function () { const r = renderAll50.apply(this, arguments); try { bdPaint(); } catch (e) {} return r; };
 window.addEventListener("hashchange", () => setTimeout(() => { try { bdPaint(); } catch (e) {} }, 0));
+// (a tab change only redraws the page's chrome, so that's watched too)
+const renderChrome50 = renderChrome;
+renderChrome = function () { const r = renderChrome50.apply(this, arguments); try { bdBg(bdTierNow() && pageActive() ? bdTierNow() : 0); } catch (e) {} return r; };
+function bdTierNow() { const d = document.getElementById("dossier"); return d ? (d.classList.contains("bd15") ? 15 : d.classList.contains("bd10") ? 10 : 0) : 0; }
 /* ================= 0.50.0-beta: the new look, the sidebar, and moving between pages =================
    Two looks, picked in the sidebar and kept in this browser (spirit-origin-list:v1:ui = {look, mini}):
    - New (the default): the Chaldea terminal. Navy and gold like the game's own menus, and a sidebar on the left in
@@ -20788,6 +20819,7 @@ const UI_IC = {
   versus: '<path d="M5 4.5l9.5 9.5M4.5 14l5 5M7 16.5l-3 3"/><path d="M19 4.5 9.5 14M19.5 14l-5 5M17 16.5l3 3"/>',
   battle: '<path d="M12 3.5 5 6v5.5c0 4.3 2.9 7.3 7 9 4.1-1.7 7-4.7 7-9V6z"/><path d="M12 8v7M9 11.5h6"/>',
   past: '<path d="M4.5 8.5h15v11h-15z"/><path d="M3.5 5h17v3.5h-17z"/><path d="M10 12h4"/>',
+  friends: '<circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.5" cy="8" r="2.6"/><path d="M15.5 13.2c2.6-.3 4.6 1.4 5.1 4.3"/>',
   _: '<circle cx="12" cy="12" r="7"/>'
 };
 const uiIcon = (k) => `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${UI_IC[k] || UI_IC._}</svg>`;
@@ -20868,7 +20900,7 @@ function uiOpen() {
 function uiClose(quiet) {
   const root = document.documentElement, was = root.classList.contains("side-open");
   root.classList.remove("side-open");
-  const side = document.getElementById("side"); if (side) side.inert = UI_PHONE.matches;
+  const side = document.getElementById("side"), sh = document.querySelector(".shell"); if (side) side.inert = UI_PHONE.matches || !!(sh && sh.inert);
   const b = document.querySelector(".side-btn"); if (b) { b.setAttribute("aria-expanded", "false"); if (was && !quiet) b.focus({preventScroll: true}); }
 }
 // a swipe to the left closes it
@@ -20891,7 +20923,9 @@ function uiSync() {
   side.querySelectorAll('[data-action="ui-look"]').forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === uiLook())));
   const mini = document.documentElement.classList.contains("side-mini"), mb = side.querySelector(".side-mini-btn");
   if (mb) { mb.setAttribute("aria-pressed", String(mini)); mb.querySelector("span").textContent = mini ? "Unfold the menu" : "Fold the menu"; mb.title = mini ? "Show the names in the menu" : "Show only the icons"; }
-  side.inert = UI_PHONE.matches && !document.documentElement.classList.contains("side-open");
+  // closed on a phone, or a window is open over the page (the page itself is inert then, and so is the menu beside it)
+  const sh = document.querySelector(".shell");
+  side.inert = (UI_PHONE.matches && !document.documentElement.classList.contains("side-open")) || !!(sh && sh.inert);
   const tt = document.getElementById("top-title"), cur = document.querySelector('nav.tabs .tab[aria-selected="true"] .tab-t');
   if (tt) tt.textContent = cur ? cur.textContent : "";
   uiMark();
@@ -20905,7 +20939,7 @@ renderChrome = function () {
   try {
     if (uiTab !== null && uiTab !== S.tab) {
       const v = document.getElementById("view-" + S.tab);
-      if (v) { v.classList.remove("view-in"); void v.offsetWidth; v.classList.add("view-in"); setTimeout(() => v.classList.remove("view-in"), 700); }
+      if (v) { v.classList.remove("view-in"); void v.offsetWidth; v.classList.add("view-in"); setTimeout(() => { v.classList.remove("view-in"); if (typeof queueDsFrame === "function") queueDsFrame(); }, 700); }
       if (UI_PHONE.matches) uiClose(true);
     }
     uiTab = S.tab; uiSync();
@@ -20913,6 +20947,9 @@ renderChrome = function () {
   return r;
 };
 window.addEventListener("resize", () => requestAnimationFrame(uiMark));
+// every window that makes the page inert (the Workshop, a summon, Past Chaldea's, the Saint Graph maker …) does it to
+// .shell; the menu lives beside .shell, so it follows along
+(() => { const sh = document.querySelector(".shell"); if (sh && window.MutationObserver) new MutationObserver(() => uiSync()).observe(sh, {attributes: true, attributeFilter: ["inert"]}); })();
 
 document.addEventListener("click", (e) => {
   const b = e.target.closest && e.target.closest('[data-action^="ui-"]'); if (!b) return;
@@ -20927,8 +20964,13 @@ document.addEventListener("click", (e) => {
     uiPrefs().mini = !uiPrefs().mini; uiSave(); uiApply(); uiSync();
   }
 });
-// a tab picked in the phone's menu closes the menu (the page changes underneath)
-document.addEventListener("click", (e) => { const t = e.target.closest && e.target.closest("#side .tab"); if (t && UI_PHONE.matches) setTimeout(() => uiClose(true), 0); });
+// a tab picked in the phone's menu closes the menu (the page changes underneath), and so does a tool that opens a window
+// (the Guide, What's new, Fonts, an export, signing in); the ones that change something in place keep it open
+document.addEventListener("click", (e) => {
+  if (!UI_PHONE.matches || !e.target.closest) return;
+  const t = e.target.closest('#side .tab, #side [data-action="tour"], #side [data-action="news"], #side [data-action="fonts"], #side #export-menu [role="menuitem"], #side #acct-btn');
+  if (t) setTimeout(() => uiClose(true), 0);
+});
 
 /* ---------- the background when no servant gives it colours: Chaldea's blue in the new look ---------- */
 const UI_PAL = ["#8394c2", "#46598f", "#b8c4e2"];

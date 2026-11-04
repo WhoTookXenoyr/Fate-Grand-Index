@@ -13,6 +13,11 @@ errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
     if not ok: fails.append(label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 INIT = ("localStorage.setItem('spirit-origin-list:v1:intro','1');localStorage.setItem('spirit-origin-list:v1:news','9.9.9');"
         "localStorage.setItem('spirit-origin-list:v1:live', JSON.stringify({on: true}));"
         "if (!localStorage.getItem('spirit-origin-list:v1:summon')) localStorage.setItem('spirit-origin-list:v1:summon', JSON.stringify({anim: false}));")
@@ -204,7 +209,7 @@ with sync_playwright() as p:
     link.click(); pg.wait_for_selector(f"{EVP} .ev-title", timeout=20000); pg.wait_for_selector(f"{PANE} .ewt", timeout=20000); pg.wait_for_timeout(1200)
     check(f"the Event page has its own address ({pg.evaluate('location.hash')})", pg.evaluate("location.hash").startswith(f"#event/{EID}") and pg.locator("#view-event").is_visible() and pg.locator("#view-home").is_hidden())
     check("opening an event moves focus to its page", pg.evaluate("document.activeElement && document.activeElement.id") in ("event", "evt-main-info"))
-    check("no tab of the site is selected, the tab bar still has eight (Story joined in 0.24.0)", pg.locator('.tabs .tab[aria-selected="true"]').count() == 0 and pg.locator(".tabs .tab").count() == 8)
+    check("no tab of the site is selected, the tab bar still has nine (Story joined in 0.24.0, Battle in 0.50.0)", pg.locator('.tabs .tab[aria-selected="true"]').count() == 0 and pg.locator(".tabs .tab").count() == 9)
     head = pg.locator(f"{EVP} .ev-head").inner_text()
     check("header: name, countdown, the event's banner and where the tabs come from", "Test Halloween Rising" in head and re.search(r"ends in \d+d \d+h", head) is not None and pg.locator(f"{EVP} .ev-bn").count() == 1 and WT_PAGE in head)
     names = tab_names(pg)
@@ -338,13 +343,13 @@ with sync_playwright() as p:
     check(f"Back returns to the Event page, on the tab you left ({pg.evaluate('location.hash')})", pg.evaluate("location.hash").startswith(f"#event/{EID}") and pg.locator("#view-event").is_visible() and pg.locator('#event .ev-tab[aria-selected="true"]').inner_text().strip() == "Summoning Campaign")
     pg.go_back(); pg.wait_for_timeout(1000)
     check("and Back again to Home (switching tabs adds no Back steps)", pg.locator("#view-home").is_visible() and pg.locator("#view-event").is_hidden())
-    pg.click("#tab-summon"); pg.wait_for_timeout(600)
+    go_tab(pg, "summon"); pg.wait_for_timeout(600)
     pg.click('[data-action="sm-ban-off"]'); pg.wait_for_timeout(600)
     smst = json.loads(pg.evaluate("localStorage.getItem('spirit-origin-list:v1:summon')"))
     check("Back to your own banner leaves the NA one", "ban" not in smst and pg.locator(".sm-ban").count() == 0)
 
     # ---- the guarantee for a featured ★5 who isn't on your list
-    pg.click("#tab-home"); pg.wait_for_timeout(600)
+    go_tab(pg, "home"); pg.wait_for_timeout(600)
     pg.locator("#home .hb-camp", has_text="Fes. 2026").locator('[data-action="ev-sim"]').click(); pg.wait_for_timeout(900)
     st = json.loads(pg.evaluate("localStorage.getItem('spirit-origin-list:v1:summon')")); st["n"] = 325; st["got"] = 0
     pg.evaluate("(v) => localStorage.setItem('spirit-origin-list:v1:summon', v)", json.dumps(st))

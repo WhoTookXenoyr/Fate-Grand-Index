@@ -8,6 +8,11 @@ errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
     if not ok: fails.append(label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 LS = "JSON.parse(localStorage.getItem('spirit-origin-list:v1'))"
 def page(ctx):
     pg = ctx.new_page(); pg.add_init_script("if (!localStorage.getItem('spirit-origin-list:v1:summon')) localStorage.setItem('spirit-origin-list:v1:summon', JSON.stringify({anim: false}))"); pg.on("pageerror", lambda e: errs.append(str(e)))
@@ -28,8 +33,8 @@ with sync_playwright() as p:
     before = {d["id"]: json.dumps(d, sort_keys=True) for d in docs(pg)}
 
     # ---- the tab and the page
-    pg.click("#tab-past"); pg.wait_for_timeout(1200)
-    check("Past Chaldea tab opens", pg.evaluate("location.hash") == "#past" and pg.locator("#tab-past").get_attribute("aria-selected") == "true" and pg.locator(".tabs .tab").count() == 8)
+    go_tab(pg, "past"); pg.wait_for_timeout(1200)
+    check("Past Chaldea tab opens", pg.evaluate("location.hash") == "#past" and pg.locator("#tab-past").get_attribute("aria-selected") == "true" and pg.locator(".tabs .tab").count() == 9)
     n_srv = pg.locator('.pc-view [data-v="servants"] small').inner_text()
     check(f"418 NA servants minus the 27 on your list ({n_srv})", n_srv == "391")
     check("first 240 shown, the rest behind Show more", pg.locator(".pc-grid .pc-card").count() == 240 and pg.locator('[data-action="pc-more"]').count() == 1)
@@ -80,12 +85,12 @@ with sync_playwright() as p:
     check("Open Guest goes to their page with the art", pg.evaluate("location.hash") == "#servants" and pg.locator("#dossier h2").first.inner_text() == "Altria Pendragon (Alter)" and pg.locator("#dossier .art-frame img[data-art]").count() >= 1)
     check("their skills and NP table show in the servant panel", pg.locator("#dossier .skill").count() == 3 and pg.locator("#dossier .npt").count() == 1)
     pg.screenshot(path=f"{sp}/v12-guest-dossier.png")
-    pg.click("#tab-past"); pg.wait_for_timeout(900)
+    go_tab(pg, "past"); pg.wait_for_timeout(900)
     check("and they leave Past Chaldea", pg.locator('.pc-card[data-no="3"]').count() == 0 and pg.locator('.pc-view [data-v="servants"] small').inner_text() == "390")
 
     # ---- summoning straight to the roster, paced by rarity
     import time
-    pg.click("#tab-past"); pg.wait_for_timeout(700)
+    go_tab(pg, "past"); pg.wait_for_timeout(700)
     # 0.16.0: ★1–2 have no ceremony, ★3 a short silver one, ★5 the full rainbow one
     for no, want, edge in ((16, "none", 0), (13, "brisk", 1), (119, "full", 1)):
         if not pg.locator(f'.pc-card[data-no="{no}"]').count(): pg.click('[data-action="pc-more"]'); pg.wait_for_timeout(300)
@@ -97,7 +102,7 @@ with sync_playwright() as p:
         pg.click(".sm-done"); pg.wait_for_timeout(900)
         d = next((x for x in docs(pg) if x.get("atlas") == no), None)
         check(f"No. {no} joined the roster at the start", d and not d.get("wish") and d["level"] == 1 and d["skills"] == [1, "Locked", "Locked"] and pg.evaluate("location.hash") == "#servants" and pg.locator("#dossier h2").first.inner_text() == d["name"])
-        pg.click("#tab-past"); pg.wait_for_timeout(600)
+        go_tab(pg, "past"); pg.wait_for_timeout(600)
     check("rainbow outline for ★5, gold for ★4 (CSS)", pg.evaluate("""(() => { let ok = 0; for (const sh of document.styleSheets) { let rs; try { rs = sh.cssRules; } catch (e) { continue; } for (const r of rs) { const t = r.cssText || ''; if (t.includes('data-tier="gold5"] .sm-edge > b') && t.includes('conic-gradient')) ok |= 1; if (t.includes('data-tier="gold"] .sm-edge > b') && t.includes('rgb(232, 185, 62)')) ok |= 2; } } return ok; })()""") == 3)
     after2 = docs(pg)
     changed = [k for k, v in before.items() if json.dumps(next(d for d in after2 if d["id"] == k), sort_keys=True) != v]
@@ -133,7 +138,7 @@ with sync_playwright() as p:
     check("reload stays on Past Chaldea", pg.evaluate("location.hash") == "#past" and pg.locator(".pc-grid .pc-card").count() > 0)
 
     # ---- Summoning
-    pg.click("#tab-summon"); pg.wait_for_timeout(800)
+    go_tab(pg, "summon"); pg.wait_for_timeout(800)
     pg.click('[data-action="sm-roll"][data-n="11"]'); pg.wait_for_timeout(500)
     st = pg.evaluate("JSON.parse(localStorage.getItem('spirit-origin-list:v1:summon'))")
     ces = [x for x in st["last"] if x["k"] == "c"]
@@ -153,14 +158,14 @@ with sync_playwright() as p:
     pg.click('[data-action="sm-pool"][data-v="list"]'); pg.wait_for_timeout(300)
 
     # ---- Home
-    pg.click("#tab-home"); pg.wait_for_timeout(1000)
+    go_tab(pg, "home"); pg.wait_for_timeout(1000)
     check("Home shows today's visitor from Past Chaldea", pg.locator(".hm-b-past .hp-spot").count() == 1)
     pg.click(".hm-b-past .hp-spot"); pg.wait_for_timeout(500)
     check("and opens them", pg.locator("#pc-dlg").is_visible()); pg.keyboard.press("Escape")
 
     # ---- dark mode
     pg.click('[data-action="theme"]'); pg.wait_for_timeout(900)
-    pg.click("#tab-past"); pg.wait_for_timeout(800); pg.screenshot(path=f"{sp}/v12-past-dark.png")
+    go_tab(pg, "past"); pg.wait_for_timeout(800); pg.screenshot(path=f"{sp}/v12-past-dark.png")
     pg.click('.pc-card[data-no="129"]'); pg.wait_for_timeout(600); pg.screenshot(path=f"{sp}/v12-detail-dark.png"); pg.keyboard.press("Escape")
     pg.click('[data-action="theme"]'); pg.wait_for_timeout(700)
     ctx.close()

@@ -8,6 +8,11 @@ errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
     if not ok: fails.append(label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 LS = "JSON.parse(localStorage.getItem('spirit-origin-list:v1'))"
 def page(ctx):
     pg = ctx.new_page(); pg.on("pageerror", lambda e: errs.append(str(e)))
@@ -27,9 +32,9 @@ with sync_playwright() as p:
     pg.keyboard.press("Escape"); pg.wait_for_timeout(900)
     check("Esc lets go: the backdrop returns and Oberon stays on show", pg.evaluate(idle) and not pg.evaluate(emb) and pg.evaluate("document.getElementById('page-class').textContent.trim()") == "" and pg.locator("#dossier h2").first.inner_text() == "Oberon")
     pg.click('[data-id="oberon"]'); pg.wait_for_timeout(700)
-    pg.click('[data-action="tab"][data-tab="ranking"]'); pg.wait_for_timeout(700)
+    go_tab(pg, "ranking"); pg.wait_for_timeout(700)
     check("another tab shows the resting backdrop", pg.evaluate(idle) and not pg.evaluate(emb))
-    pg.click('[data-action="tab"][data-tab="servants"]'); pg.wait_for_timeout(900)
+    go_tab(pg, "servants"); pg.wait_for_timeout(900)
     check("back on Servants, Oberon's backdrop again", not pg.evaluate(idle) and pg.evaluate(emb))
     pg.keyboard.press("Escape"); pg.wait_for_timeout(800)
     check("Escape lets go on desktop", pg.evaluate(idle))
@@ -48,7 +53,7 @@ with sync_playwright() as p:
     check("and back to light", pg.evaluate("document.documentElement.dataset.theme") == "light")
 
     # ---- Guests: tab gone, wishlist renamed, old guests moved over
-    check("Guests tab removed (eight tabs since Story joined in 0.24.0)", pg.locator('#tab-guests').count() == 0 and pg.locator(".tabs .tab").count() == 8)
+    check("Guests tab removed (nine tabs: Story joined in 0.24.0, Battle in 0.50.0)", pg.locator('#tab-guests').count() == 0 and pg.locator(".tabs .tab").count() == 9)
     head = pg.locator(".wish-head h2").inner_text()
     check(f"wishlist is now 'Guests' ({head!r})", head.startswith("Guests") and pg.locator('[data-action="add-wish"]').inner_text().strip() == "+ Add guest")
     d = pg.evaluate(LS)
@@ -56,13 +61,13 @@ with sync_playwright() as p:
     moved = [g for g in old if g.get("movedTo")]
     names = {s["name"] for s in d["servants"] if s.get("wish")}
     check(f"old guest entries moved into Guests and kept ({len(moved)}/{len(old)})", old and len(moved) == len(old) and all(g["name"] in names or any(s["name"] == g["name"] for s in d["servants"]) for g in old))
-    pg.click('[data-action="tab"][data-tab="parties"]'); pg.wait_for_timeout(400)
+    go_tab(pg, "parties"); pg.wait_for_timeout(400)
     if pg.locator('[data-action="edit-party"]').count():
         pg.locator('[data-action="edit-party"]').first.click(); pg.wait_for_timeout(400)
         groups = pg.evaluate("Array.from(document.querySelectorAll('#pt-guest optgroup')).map(g=>g.label)")
         check(f"party guest picker lists Guests first {groups}", groups and groups[0] == "Guests")
         pg.click('[data-action="cancel-party"]') if pg.locator('[data-action="cancel-party"]').count() else None
-    pg.click('[data-action="tab"][data-tab="servants"]'); pg.wait_for_timeout(400)
+    go_tab(pg, "servants"); pg.wait_for_timeout(400)
 
     # ---- Fou tiers
     pg.click('[data-id="space-ereshkigal"]'); pg.wait_for_timeout(700)
@@ -142,7 +147,7 @@ with sync_playwright() as p:
     pg.set_input_files('input[data-form-art="1"]', f"{sp}/ph_purple.png"); pg.wait_for_timeout(600)
     pg.click('#servant-form button[type="submit"]'); pg.wait_for_timeout(900)
     gid = pg.evaluate(LS + ".servants.find(s=>s.name==='Test Guest').id")
-    pg.click("#tab-summon"); pg.wait_for_timeout(600); pg.click(f'.smg [data-action="summon"][data-id="{gid}"]')
+    go_tab(pg, "summon"); pg.wait_for_timeout(600); pg.click(f'.smg [data-action="summon"][data-id="{gid}"]')
     pg.wait_for_timeout(3300)
     check("the card shows the blue back", pg.locator(".s2-cover img").count() == 1 and "webp" in pg.locator(".s2-cover img").first.get_attribute("src")[:30])
     pg.screenshot(path=f"{sp}/v9-sum-a.png")

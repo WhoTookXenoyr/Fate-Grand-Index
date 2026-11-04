@@ -9,6 +9,11 @@ errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
     if not ok: fails.append(label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 def atlas(r):
     u = r.request.url
     f = "ph_buff.png" if "BuffIcons" in u else "ph_skill.png" if "SkillIcons" in u else "ph_face.png" if "/Faces/" in u else "ph_graph.png"
@@ -117,13 +122,13 @@ with sync_playwright() as p:
     txt = pg.locator(".news-panel").inner_text()
     check("What's new lists every version, newest first", txt.index("0.14.0") < txt.index("0.13.1") < txt.index("0.12.0") < txt.index("0.2.0") < txt.index("0.1.0") and "Past Chaldea" in txt and pg.locator(".cl-v").count() >= 17)
     pg.keyboard.press("Escape"); pg.wait_for_timeout(200)
-    check("…and the dot goes away for good", pg.locator(".news-dot").is_hidden() and pg.evaluate("localStorage.getItem('spirit-origin-list:v1:news')") == pg.locator(".masthead .ver-chip").inner_text().split(" ")[0][1:])
+    check("…and the dot goes away for good", pg.locator(".news-dot").is_hidden() and pg.evaluate("localStorage.getItem('spirit-origin-list:v1:news')").startswith(pg.locator("#side .ver-chip, .masthead .ver-chip").first.inner_text().split(" ")[0][1:]))
     check("Home has What's new too", pg.locator("#home .hm-b-news").count() == 1 and pg.locator('#home .hm-b-news [data-action="sf-open"]').count() == 1)
 
     # ---- grails for other rarities: ★4 at Lv 100 took 7
     pg.evaluate("""() => { const k = 'spirit-origin-list:v1', d = JSON.parse(localStorage.getItem(k)); d.servants.push({id: 'four', order: 9, name: 'Four', cls: 'Saber', rarity: 4, level: 100, skills: [1,1,1]}, {id: 'three', order: 10, name: 'Three', cls: 'Saber', rarity: 3, level: 91, skills: [1,1,1]}); localStorage.setItem(k, JSON.stringify(d)); }""")
     pg.reload(); pg.wait_for_timeout(1300)
-    pg.click("#tab-servants"); pg.wait_for_timeout(500)
+    go_tab(pg, "servants"); pg.wait_for_timeout(500)
     t4 = pg.locator('[data-id="four"] .row-lv').first.inner_text(); t3 = pg.locator('[data-id="three"] .row-lv').first.inner_text()
     check(f"★4 at Lv 100 took 7 grails, ★3 at Lv 91 took 5 ({t4!r}, {t3!r})", "+20 · 7 grails" in t4 and "+21 · 5 grails" in t3)
 
@@ -150,7 +155,7 @@ with sync_playwright() as p:
     check("a browser that already has servants gets no guide", pg.locator(".tour-panel").count() == 0)
     note = pg.locator("#trait-note")
     print("   trait note on your seeded roster:", note.inner_text()[:300] if note.is_visible() else "(none)")
-    pg.click("#tab-servants"); pg.wait_for_timeout(300)
+    go_tab(pg, "servants"); pg.wait_for_timeout(300)
     # one wrong Morgan: wrong attribute and order, a trait she doesn't have, one the NA data doesn't know
     pg.evaluate("""() => { const k = 'spirit-origin-list:v1'; const d = {servants: [], parties: [], guests: []};
       d.servants.push({id: 'morg', order: 1, name: 'Morgan (Berserker)', cls: 'Berserker', rarity: 5, level: 90, skills: [1,1,1], attr: 'Sky', lawOrder: ['Chaotic'], moral: ['Good'], traits: ['Female', 'Dragon', 'Pseudo-Servant', 'King'], traitsSet: true, notes: 'mine'});

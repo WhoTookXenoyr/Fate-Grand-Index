@@ -12,6 +12,11 @@ errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
     if not ok: fails.append(label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 INIT = "localStorage.setItem('spirit-origin-list:v1:intro','1');localStorage.setItem('spirit-origin-list:v1:news','9.9.9');localStorage.setItem('spirit-origin-list:v1:summon',JSON.stringify({anim:false}));localStorage.setItem('spirit-origin-list:v1:statsync','1')"
 LS = "JSON.parse(localStorage.getItem('spirit-origin-list:v1'))"
 WSK = "JSON.parse(localStorage.getItem('spirit-origin-list:v1:workshop') || 'null')"
@@ -232,7 +237,7 @@ with sync_playwright() as p:
     check("Escape closes the Workshop", pg.locator("#ws").is_hidden() and pg.evaluate("document.querySelector('.shell').inert") is False)
 
     # ---------- from an NA servant: Past Chaldea's Remix ----------
-    pg.click("#tab-past"); pg.wait_for_timeout(600)
+    go_tab(pg, "past"); pg.wait_for_timeout(600)
     pg.fill('[data-pc-q="q"]', "Morgan"); pg.wait_for_timeout(400)
     pg.locator('.pc-card[aria-label^="Morgan,"]').first.click(); pg.wait_for_timeout(600)
     check("Past Chaldea's servant window has Remix in the Workshop", pg.locator('#pc-dlg [data-action="ws-remix"]').count() == 1)
@@ -252,7 +257,7 @@ with sync_playwright() as p:
     pg.click('[data-ws="close"]'); pg.wait_for_timeout(200)
 
     # ---------- Versus with any NA servant ----------
-    pg.click("#tab-versus"); pg.wait_for_timeout(500)
+    go_tab(pg, "versus"); pg.wait_for_timeout(500)
     check("Versus has Compare with an NA servant", pg.locator('#versus [data-action="vs-na"]').count() == 1)
     pg.click('#versus [data-action="vs-na"]'); pg.wait_for_timeout(400)
     pg.fill(".spk [data-spk-q]", "Morgan"); pg.wait_for_timeout(300)

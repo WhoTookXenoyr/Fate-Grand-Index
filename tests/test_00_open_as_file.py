@@ -7,6 +7,11 @@ errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
     if not ok: fails.append(label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 INIT = "localStorage.setItem('spirit-origin-list:v1:intro','1');localStorage.setItem('spirit-origin-list:v1:news','9.9.9');"
 
 with sync_playwright() as p:
@@ -28,7 +33,7 @@ with sync_playwright() as p:
     check("a servant page opens", pg.locator("#dossier h2").first.inner_text() == "Artoria")
     saved = json.loads(pg.evaluate("localStorage.getItem('spirit-origin-list:v1')") or "{}")
     check("the roster is saved in this browser under the same key as always", len(saved.get("servants", [])) == n)
-    pg.click("#tab-past"); pg.wait_for_timeout(800)
+    go_tab(pg, "past"); pg.wait_for_timeout(800)
     check("Past Chaldea lists the NA servants", pg.locator(".pc-grid .pc-card").count() == 240)
     ctx.close()
 

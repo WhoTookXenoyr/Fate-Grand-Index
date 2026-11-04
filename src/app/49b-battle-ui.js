@@ -337,7 +337,10 @@ document.addEventListener("submit", (e) => {
 document.addEventListener("toggle", (e) => { if (e.target.matches && e.target.matches("[data-bt-log]")) { btPrefs.log = e.target.open; btSave(); } }, true);
 // keys while the fight plays: space plays and pauses, the arrows step
 document.addEventListener("keydown", (e) => {
-  if (S.tab !== "battle" || !BT.run || e.target.closest("input, select, textarea")) return;
+  if (S.tab !== "battle" || !BT.run || e.altKey || e.ctrlKey || e.metaKey || e.target.closest("input, select, textarea, [contenteditable]")) return;
+  // not while a window is open over the page, and Space keeps pressing whatever button has the focus
+  const sh = document.querySelector(".shell"); if (sh && sh.inert) return;
+  if (e.key === " " && e.target.closest("button, a, summary, [role='button']")) return;
   if (e.key === " ") { e.preventDefault(); document.querySelector('#battle [data-bt-act="play"]').click(); }
   else if (e.key === "ArrowRight") { e.preventDefault(); document.querySelector('#battle [data-bt-act="next"]').click(); }
   else if (e.key === "ArrowLeft") { e.preventDefault(); document.querySelector('#battle [data-bt-act="prev"]').click(); }

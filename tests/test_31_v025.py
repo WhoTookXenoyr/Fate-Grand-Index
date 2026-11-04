@@ -10,6 +10,11 @@ errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
     if not ok: fails.append(label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 INIT = "localStorage.setItem('spirit-origin-list:v1:intro','1');localStorage.setItem('spirit-origin-list:v1:news','9.9.9');localStorage.setItem('spirit-origin-list:v1:summon',JSON.stringify({anim:false}))"
 LS = "JSON.parse(localStorage.getItem('spirit-origin-list:v1'))"
 src = open(os.path.join(sp, "atlas_data.js"), encoding="utf-8").read()
@@ -120,7 +125,7 @@ with sync_playwright() as p:
     check(f"and Undo takes it back ({m.get('artCos')})", "artCos" not in m and pg.evaluate(AVA, "mash")[1].endswith("mash-c4.png"))
 
     # ---------- Craft Essences that suit a servant ----------
-    pg.click("#tab-past"); pg.wait_for_timeout(700)
+    go_tab(pg, "past"); pg.wait_for_timeout(700)
     if not pg.locator(".pc-mine input").is_checked(): pg.locator(".pc-mine input").check(); pg.wait_for_timeout(400)  # yours too
     pg.fill('[data-pc-q="q"]', "Altria Caster"); pg.wait_for_timeout(500)
     pg.locator('#view-past [data-action="pc-open"][data-no="284"]').first.click(); pg.wait_for_timeout(800)
@@ -167,7 +172,7 @@ with sync_playwright() as p:
     check("Space Ereshkigal keeps the Beast's rainbow waves", not pg.evaluate("(() => { const e = document.getElementById('own-bg'); return !!e && e.classList.contains('on'); })()"))
     check("and her art panel has no cup", not pg.evaluate("!!document.querySelector('#dossier .own-scene')"))
     pg.click('#list [data-id="draco"]'); pg.wait_for_timeout(1000)
-    pg.click("#tab-story"); pg.wait_for_timeout(800)
+    go_tab(pg, "story"); pg.wait_for_timeout(800)
     on_story = pg.evaluate("(() => { const e = document.getElementById('own-bg'); return [!!e && e.classList.contains('on'), document.documentElement.classList.contains('story-on')]; })()")
     check(f"it steps aside where the Story look is on ({on_story})", not (on_story[0] and on_story[1]))
     ctx.close()

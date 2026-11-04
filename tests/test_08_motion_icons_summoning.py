@@ -8,6 +8,11 @@ errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
     if not ok: fails.append(label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 LS = "JSON.parse(localStorage.getItem('spirit-origin-list:v1'))"
 SMS = "JSON.parse(localStorage.getItem('spirit-origin-list:v1:summon'))"
 def page(ctx):
@@ -84,7 +89,7 @@ with sync_playwright() as p:
     check("Go to Summoning opens the page at that Guest", pg.evaluate("location.hash") == "#summon" and pg.locator("#smg-merlin").count() == 1)
 
     # ---- Summoning page
-    check("eight tabs, Story then Summoning after Servants (Story joined in 0.24.0)", pg.locator(".tabs .tab").count() == 8 and pg.locator(".tabs .tab").nth(2).inner_text() == "Story" and pg.locator(".tabs .tab").nth(3).inner_text() == "Summoning")
+    check("nine tabs, Story then Summoning after Servants (Story joined in 0.24.0, Battle in 0.50.0)", pg.locator(".tabs .tab").count() == 9 and pg.locator(".tabs .tab").nth(2).inner_text() == "Story" and pg.locator(".tabs .tab").nth(3).inner_text() == "Summoning")
     check("Guests can be summoned here", pg.locator('.smg [data-action="summon"]').count() == 5)
     n35 = pg.evaluate("(" + LS + ").servants") ; n35 = len([x for x in (n35.values() if isinstance(n35, dict) else n35) if x.get("rarity") in (3, 4, 5)])
     check(f"drop chances list every ★3–★5 servant ({pg.locator('.smc').count()} of {n35})", pg.locator(".smc").count() == n35)
@@ -131,7 +136,7 @@ with sync_playwright() as p:
     check("Summon on the Summoning page adds the Guest to your roster", m and not m.get("wish") and pg.evaluate("location.hash") == "#servants")
 
     # ---- Home
-    pg.click("#tab-home"); pg.wait_for_timeout(1200)
+    go_tab(pg, "home"); pg.wait_for_timeout(1200)
     check("Home has no Summon buttons, a Summoning block instead", pg.locator('#home [data-action="summon"]').count() == 0 and pg.locator(".hm-b-sum").count() == 1)
     log = pg.evaluate("JSON.parse(localStorage.getItem('spirit-origin-list:v1:log') || '[]')")
     check(f"recent progress logged the summon ({[x['k'] for x in log][:3]})", any(x["k"] == "summon" and x["id"] == "merlin" for x in log) and "Summoned" in pg.locator(".hm-b-log").inner_text())
@@ -140,15 +145,15 @@ with sync_playwright() as p:
     check("19 Master records with some earned", pg.locator(".rec").count() == 19 and pg.locator(".rec.done").count() >= 1)
     pg.fill("#hm-find", "nito"); pg.press("#hm-find", "Enter"); pg.wait_for_timeout(900)
     check("find a servant from Home", pg.evaluate("location.hash") == "#servants" and pg.locator("#dossier h2").first.inner_text() == "Nitocris Alter")
-    pg.click("#tab-home"); pg.wait_for_timeout(900)
+    go_tab(pg, "home"); pg.wait_for_timeout(900)
     check("Up against choice kept", pg.locator('.hv-c.on').get_attribute("data-cls") == "Caster")
     pg.screenshot(path=f"{sp}/v11-home-desktop.png", full_page=True)
 
     # ---- dark mode
     pg.click('[data-action="theme"]'); pg.wait_for_timeout(900)
-    pg.click("#tab-summon"); pg.wait_for_timeout(900)
+    go_tab(pg, "summon"); pg.wait_for_timeout(900)
     pg.screenshot(path=f"{sp}/v11-summon-dark.png")
-    pg.click("#tab-home"); pg.wait_for_timeout(900)
+    go_tab(pg, "home"); pg.wait_for_timeout(900)
     pg.locator(".hm-b-rec").scroll_into_view_if_needed(); pg.wait_for_timeout(300); pg.screenshot(path=f"{sp}/v11-home-dark.png")
     pg.click('[data-action="theme"]'); pg.wait_for_timeout(900)
     ctx.close()
@@ -163,9 +168,9 @@ with sync_playwright() as p:
         pg.click('[data-action="sm-roll"][data-n="11"]'); pg.wait_for_timeout(3600)
         pg.locator("#sm-results").scroll_into_view_if_needed(); pg.screenshot(path=f"{sp}/v11-phone{wdt}-summon.png")
         sw.append(pg.evaluate("document.documentElement.scrollWidth"))
-        pg.click("#tab-home"); pg.wait_for_timeout(1000); sw.append(pg.evaluate("document.documentElement.scrollWidth"))
+        go_tab(pg, "home"); pg.wait_for_timeout(1000); sw.append(pg.evaluate("document.documentElement.scrollWidth"))
         pg.locator(".hm-b-vs").scroll_into_view_if_needed(); pg.screenshot(path=f"{sp}/v11-phone{wdt}-home.png")
-        pg.click("#tab-servants"); pg.wait_for_timeout(700); pg.click('#list .row[data-id="oberon"]'); pg.wait_for_timeout(900)
+        go_tab(pg, "servants"); pg.wait_for_timeout(700); pg.click('#list .row[data-id="oberon"]'); pg.wait_for_timeout(900)
         pg.locator("#dossier .skill .ln-ic").first.scroll_into_view_if_needed(); pg.locator("#dossier .skill .ln-ic").first.click(); pg.wait_for_timeout(300)
         r = pg.evaluate("(() => { const b = document.getElementById('ic-pick').getBoundingClientRect(); return [b.left, b.right, b.bottom, innerWidth, innerHeight]; })()")
         check(f"{wdt}px: picker is a bottom sheet ({[round(x) for x in r]})", abs(r[0]) < 1 and abs(r[1] - r[3]) < 1 and abs(r[2] - r[4]) < 1)

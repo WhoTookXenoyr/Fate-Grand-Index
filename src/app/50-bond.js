@@ -129,3 +129,7 @@ renderDossier = function () { const r = renderDossier50.apply(this, arguments); 
 const renderAll50 = renderAll;
 renderAll = function () { const r = renderAll50.apply(this, arguments); try { bdPaint(); } catch (e) {} return r; };
 window.addEventListener("hashchange", () => setTimeout(() => { try { bdPaint(); } catch (e) {} }, 0));
+// (a tab change only redraws the page's chrome, so that's watched too)
+const renderChrome50 = renderChrome;
+renderChrome = function () { const r = renderChrome50.apply(this, arguments); try { bdBg(bdTierNow() && pageActive() ? bdTierNow() : 0); } catch (e) {} return r; };
+function bdTierNow() { const d = document.getElementById("dossier"); return d ? (d.classList.contains("bd15") ? 15 : d.classList.contains("bd10") ? 10 : 0) : 0; }

@@ -12,6 +12,11 @@ errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
     if not ok: fails.append(label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 INIT = "localStorage.setItem('spirit-origin-list:v1:intro','1');localStorage.setItem('spirit-origin-list:v1:news','9.9.9');localStorage.setItem('spirit-origin-list:v1:summon',JSON.stringify({anim:false}))"
 STK = "JSON.parse(localStorage.getItem('spirit-origin-list:v1:story') || '{}')"
 DOWN = set()
@@ -38,7 +43,7 @@ with sync_playwright() as p:
     ctx = b.new_context(viewport={"width": 1360, "height": 900}); pg = page(ctx)
     pg.goto(SEEDED + "#home"); pg.wait_for_timeout(1400)
     g1_default = pg.evaluate(G1)
-    pg.click("#tab-story"); pg.wait_for_timeout(800)
+    go_tab(pg, "story"); pg.wait_for_timeout(800)
     chips = pg.evaluate("[...document.querySelectorAll('#story .st-ch > b')].map(e => e.textContent)")
     check(f"the Story tab lists Part 1's chapters ({chips})", chips[:2] == ["Fuyuki", "Orleans"] and chips[-1] == "Solomon" and len(chips) == 9)
     pg.click('#story [data-action="st-part"][data-k="2"]'); pg.wait_for_timeout(300)
@@ -93,7 +98,7 @@ with sync_playwright() as p:
 
     # ---------- the chapter's look ----------
     check("on the servant page the chapter's look steps aside", not pg.evaluate("document.documentElement.classList.contains('story-on')"))
-    pg.click("#tab-home"); pg.wait_for_timeout(1000)
+    go_tab(pg, "home"); pg.wait_for_timeout(1000)
     on = pg.evaluate("document.documentElement.classList.contains('story-on')")
     bg = pg.evaluate("(() => { const b = document.getElementById('story-bg'); return b ? [b.dataset.m, b.classList.contains('on'), b.style.getPropertyValue('--c1'), b.querySelectorAll('i').length] : null; })()")
     check(f"on Home the page wears Fuyuki's look ({bg})", on and bg and bg[0] == "embers" and bg[1] and bg[2] == "#d9542b" and bg[3] >= 10)

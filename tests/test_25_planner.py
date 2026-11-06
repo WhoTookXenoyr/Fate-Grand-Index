@@ -146,8 +146,7 @@ with sync_playwright() as p:
     check("and your materials", have.get("6001") == 10 and have.get("qp") == 300000000)
 
     # ---------- backups ----------
-    pg.evaluate("window.scrollTo(0, 0)"); pg.click("#btn-export")
-    with pg.expect_download() as dl: pg.click('#export-menu [data-action="export"]')
+    with pg.expect_download() as dl: pg.evaluate("document.querySelector('#export-menu [data-action=\"export\"]').click()")  # (on Settings since 0.50.0)
     bk = json.load(open(dl.value.path(), encoding="utf-8"))
     ar = next(x for x in bk["servants"] if x["id"] == "artoria")
     check("a backup carries the plan, coins and appends on the servant", ar.get("plan") and ar.get("coins") == 85 and "appends" in ar)

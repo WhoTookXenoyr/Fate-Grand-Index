@@ -33,10 +33,10 @@ with sync_playwright() as p:
     # ================= frame rate and resting =================
     ctx, pg = page(p)
     pg.goto(SEEDED + "#home"); pg.wait_for_timeout(2200)
-    check("a 0.18+ version in the top-left chip", re.search(r"v0\.(1[89]|[2-9]\d)\.\d+", pg.locator(".masthead .ver-chip").first.inner_text()) is not None)
+    check("a 0.18+ version in the top-left chip", re.search(r"v0\.(1[89]|[2-9]\d)\.\d+", pg.locator("#side .ver-chip, .masthead .ver-chip").first.inner_text()) is not None)
     r = pg.evaluate(STEPS, 60)
     check(f"60 fps: every running CSS animation steps 1/60 s on the shared clock ({r[0]} running, off: {r[2]})", r[0] > 10 and r[1] == 0)
-    pg.click("#fps-btn"); pg.wait_for_timeout(700)
+    pg.evaluate("document.querySelector('#fps-btn').click()"); pg.wait_for_timeout(700)
     r = pg.evaluate(STEPS, 30)
     check(f"30 fps: every running CSS animation steps 1/30 s ({r[0]} running, off: {r[2]})", r[0] > 10 and r[1] == 0)
     held = pg.evaluate("document.getAnimations().filter(a => a instanceof CSSAnimation && a.playState === 'paused' && !(a.effect.target.closest && a.effect.target.closest('[data-off]'))).length")

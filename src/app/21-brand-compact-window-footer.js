@@ -41,7 +41,7 @@ function footHTML() {
       <div class="sf-brand">
         ${logo ? `<img class="sf-logo" src="${logo}" alt="Fate/Grand Index" width="176" height="70" loading="lazy">` : `<b>Fate/Grand Index</b>`}
         <p>A Fate/Grand Order index with every NA servant and Craft Essence, and a Spirit Origin List of your own.</p>
-        <p><button type="button" class="ver-chip" data-action="news" title="What's new in this version">v${APP_VER} · alpha</button></p>
+        <p><button type="button" class="ver-chip" data-action="news" title="What's new in this version">v${APP_NUM} · ${APP_STAGE}</button></p>
       </div>
       <nav class="sf-col" aria-label="Pages"><h2>Explore</h2><ul>${FOOT_TABS.map((t) => `<li><button type="button" data-action="tab" data-tab="${t[0]}" data-foot>${t[1]}</button></li>`).join("")}</ul></nav>
       <div class="sf-col"><h2>Your data</h2>

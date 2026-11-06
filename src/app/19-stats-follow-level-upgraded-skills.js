@@ -6,7 +6,7 @@ delete TRAIT_ALIAS["demonic beast"];
 NA_TRAITS = null;
 
 /* ---------- the version, top left ---------- */
-(function () { const v = document.getElementById("app-ver"); if (v) v.textContent = "v" + APP_VER + " · alpha"; })();
+(function () { const v = document.getElementById("app-ver"); if (v) v.textContent = "v" + APP_NUM + " · " + APP_STAGE; })();
 
 /* ---------- HP and ATK always match the level (for servants matched to the NA list) ---------- */
 function syncStats(s) {

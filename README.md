@@ -1,10 +1,10 @@
 # Fate/Grand Index
 
-A Fate/Grand Order index of every NA servant and Craft Essence (Past Chaldea), plus your own Spirit Origin List: roster, Guests, parties, rankings, versus, a summoning simulator, a materials planner, an NP damage calculator, a Story page and (0.27.0) a Servant Workshop for servants of your own. It ships as one self-contained HTML file that saves everything in your own browser, and (0.26.0) as a hosted site and installable app with accounts, sync and friends.
+A Fate/Grand Order index of every NA servant and Craft Essence (Past Chaldea), plus your own Spirit Origin List: roster, Guests, parties, rankings, versus, a summoning simulator, a materials planner, an NP damage calculator, a Story page, (0.27.0) a Servant Workshop for servants of your own and (0.50.0) a battle simulator and a Saint Graph maker. It ships as one self-contained HTML file that saves everything in your own browser, and (0.26.0) as a hosted site and installable app with accounts, sync and friends.
 
 **Online: [fategrandindex.com](https://fategrandindex.com)** (the site and the installable app, with accounts and friends).
 
-Status: **alpha** (`0.x`). Version 1.0.0 will be the full website and app.
+Status: **beta** (`0.50.0-beta`; alpha up to 0.28.1). Version 1.0.0 will be the full website and app.
 [fategrandindex.com](https://fategrandindex.com) will usually be ahead of the app and offline HTML in releases.
 
 ## Layout
@@ -134,6 +134,31 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
 - **Export** on the SERVANTPAGE saves that servant and their uploaded pictures as `<name>.servant.json`: a backup with `kind: "servant"` and one entry (`src/app/48-servant-file.js`).
 - **Import** (the backup button) shows its own preview for such a file. A servant whose ID is already on the list can be added as a copy (new ID) or replaced. Pictures get new IDs. Undo import works as for backups.
 - On the website, data: URLs are turned into pictures by hand (`dataUrlToBlob`), because the Content Security Policy stops `fetch()` reading them. Undo import marks every entry it changed for sync.
+
+## The new look (0.50.0-beta)
+- `src/app/51-ui.js`, `src/styles/32-ui.css`. `html[data-ui]` is `beta` (the new look, the default) or `classic`, kept with the folded menu in `spirit-origin-list:v1:ui` (`{look, mini}`). The new look moves the masthead's eyebrow, logo, tabs and tools into `#side` (`uiBuild`) and puts them back for Classic (`uiTakeApart`); a phone (max-width 900px) gets the sidebar in either look, as a drawer (`html.side-open`, `#side-scrim`).
+- `#side` follows `.shell`: whenever a window makes `.shell` inert, the sidebar is inert too (a MutationObserver on the attribute), so every dialog keeps the keyboard in itself without knowing about the sidebar.
+- Settings (0.50.0-beta): `#view-settings`, opened by the cog beside the account; `uiSetFill` moves the header's tools into it (Classic on a computer puts them back).
+- The background's default colours are Chaldea's blue in the new look (`UI_PAL`, swapped in for `DEFAULT_PAL` only while painting).
+- Moving between pages adds `.view-in` to the page for one animation; Past Chaldea's window gets `.pcd-drop`. Both are transform and opacity only, and off for reduced motion.
+
+## Card frames at Lv 100 and 120, and Bond 10 and 15 (0.50.0-beta)
+- Lv 100 / Lv 120 (`cf-l100` / `cf-l120` on the framed picture, `src/app/46-card-frames.js`): a box-shadow aura (`.cf-aura`), and a rainbow band (`.cf-rb`) masked to the frame's gold: `cardframe-m100.webp` is the middle edges only, `cardframe-m120.webp` all of the gold (both made from the ★5 frame by its colours; the red ATK/HP letters are left out). At Lv 120 the class logo is masked the same way (`.cf-cls-rb`). Servants only, on the SERVANTPAGE.
+- Bond 10 / 15 (`src/app/50-bond.js`, `src/styles/31-bond.css`): `#dossier.bd10` / `.bd15` with `.bd-veil` (a sticky layer at the top of the panel's scroll, under its content: two rainbow bands and the Bond 10 crystal drawn as nine SVG gems, `BD_GEMS`), and `#bond-bg` before `.shell` (rising crystals and bands of light) while their page is open. Bond 10 and 15 share the veil's strength (`--a`) and its glint (Noyr asked for Bond 15's look from Bond 10); Bond 15 adds more gems and a third band to `#bond-bg`. Opened with a click, either plays `.bd-intro` (about 1.9 s, no clicks taken, "Bond 10" or "Bond 15"). The animations' delays follow the clock, so a redraw doesn't restart them.
+
+## Battle (0.50.0-beta)
+- The engine (`src/app/49a-battle-engine.js`, all `bt`/`BT_`): `btBattle({party, waves}, seed)` plays a whole fight with a seeded random number (`btRng`, so a seed repeats its fight) and returns every step (`events`, each with a snapshot `s` of everyone's HP, NP, charge and buffs), the result (`win`, `lose`, `time` after 40 turns) and each unit's totals. Damage follows the game's formula (class and attribute affinity, card and chain bonuses, crits, buffs and debuffs, Overcharge); NP gain and hit counts use class defaults (the data has no per-servant ones).
+- Fighters: `btFromServant` (yours: level, skill and NP levels, Fou, CE, Append 2 and 3; custom servants from `kitNow`), `btFromNA` (NA's at max level, skills 10), `btFromMade`, `btAsFoe`, `btFromQuest`. NA's skill and NP lines are read into effects by `BT_READ` (`btClauses` splits "&" lines; "Apply a state …" is left alone).
+- `window.__fgiBattle` exposes the engine for the tests (frozen; no access to the roster beyond a copy).
+- The page (`src/app/49b-battle-ui.js`, `src/styles/33-battle.css`): the setup is `spirit-origin-list:v1:battle`. A quest's enemies come from Atlas Academy's `nice/NA/quest/<id>/<phase>`, made small by `btPhaseSmall` and kept in the cache (`fate-grand-index-cache`, `battle:phase:<id>-<phase>`). The tests use `tests/fixtures/battle-quest-1000113-4.json`.
+
+## The Saint Graph maker (0.50.0-beta)
+- `src/app/52-saint-graph.js`, `src/styles/34-saint-graph.css`: for a servant that's `custom` or not NA's (`atlasOf` finds nothing), a window (`#sg-dlg`) that draws four 512 × 724 stages on a canvas: the picture (zoom, position, mirror) over one of nine drawn scenes, a colour (a canvas filter, or a tint where the browser has no filters), a light and effects. Particles are placed by a seed per stage, so they stay put while other things change.
+- Saving uploads the stage picture like any stage picture (`S.assets.upload`) and keeps the picture it was made from as `art.sg1` … `art.sg4` (so backups, servant files and the picture clean-ups count it as theirs) and the settings as `sgMaker` (`{v, cfg, made}`). A picture it replaced is deleted 20 s later if nothing uses it; Undo puts the old art map back.
+
+## Ranking without custom servants (0.50.0-beta)
+- **Count custom servants** on the Ranking page (`#rank-custom`, shown when the roster has `custom` servants): unticked, `rankRows()` leaves them out, so the ranking, the tier board, Home's best servants and `rankOf` (a custom servant's page says Not ranked) all follow. Kept as `spirit-origin-list:v1:rankCustom` = `"false"` (absent = counted), synced with the other extras. The Story page's advice scores servants with `scoreOf` directly, so it still suggests them.
+- The ranking's arrows compare with the last Mark as seen order among the servants listed now, so leaving some out (or removing one) doesn't show everyone below as moved.
 
 ## Your data
 

@@ -13,6 +13,11 @@ errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
     if not ok: fails.append(label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 INIT = "localStorage.setItem('spirit-origin-list:v1:intro','1');localStorage.setItem('spirit-origin-list:v1:news','9.9.9');if(!localStorage.getItem('spirit-origin-list:v1'))localStorage.setItem('spirit-origin-list:v1'," + json.dumps(ROSTER) + ")"
 # the work a press starts: the handler and the redraws it schedules (not the wait for the screen's next frame)
 PRESS = """async (sel) => { const b = document.querySelector(sel); if (!b) return -1; const t0 = performance.now(); b.click();
@@ -41,24 +46,24 @@ with sync_playwright() as p:
     for tab in ("parties", "ranking", "home", "past", "servants"):
         t = pg.evaluate(PRESS, f"#tab-{tab}"); pg.wait_for_timeout(700)
         check(f"opening {tab}: {t} ms", t < 900)
-    pg.click("#tab-parties"); pg.wait_for_timeout(800)
+    go_tab(pg, "parties"); pg.wait_for_timeout(800)
     check("Party DNA still finds three stall trios with a big roster", pg.locator(".dna-team").count() == 3)
 
     # a tab drawn later shows the change made while it was hidden
     sid = ids[2]
     score = lambda: float(pg.locator("#ranking .rank-row", has=pg.locator(f'[data-action="goto"][data-id="{sid}"]')).locator(".rk-score").inner_text())
-    pg.click("#tab-ranking"); pg.wait_for_timeout(700); sc0 = score()
-    pg.click("#tab-servants"); pg.wait_for_timeout(500)
+    go_tab(pg, "ranking"); pg.wait_for_timeout(700); sc0 = score()
+    go_tab(pg, "servants"); pg.wait_for_timeout(500)
     pg.click(f'#list [data-id="{sid}"]'); pg.wait_for_timeout(400)
     lv0 = sv(pg, sid)["level"]
     for _ in range(3): pg.click('#dossier [data-action="bump"][data-f="level"][data-d="-1"]'); pg.wait_for_timeout(100)
     pg.wait_for_timeout(900)
-    pg.click("#tab-ranking"); pg.wait_for_timeout(700)
+    go_tab(pg, "ranking"); pg.wait_for_timeout(700)
     sc1 = score()
     check(f"Ranking, drawn when opened, has the lower level's score (Lv {lv0} -> {sv(pg, sid)['level']}: {sc0} -> {sc1})", sv(pg, sid)["level"] == lv0 - 3 and sc1 < sc0)
 
     # rows that didn't change are kept; the changed one is redrawn
-    pg.click("#tab-servants"); pg.wait_for_timeout(500)
+    go_tab(pg, "servants"); pg.wait_for_timeout(500)
     pg.evaluate("document.querySelectorAll('#list .row').forEach((r) => { r.__t23 = 1; })")
     pg.click(f'#list [data-id="{sid}"]'); pg.wait_for_timeout(300)
     pg.click('#dossier [data-action="bump"][data-f="level"][data-d="1"]'); pg.wait_for_timeout(900)

@@ -12,6 +12,11 @@ def page(ctx):
     pg.route("https://fonts.googleapis.com/**", lambda r: r.abort()); pg.route("https://fonts.gstatic.com/**", lambda r: r.abort())
     return pg
 def check(label, ok): print(("PASS " if ok else "FAIL ") + label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 STORE = "JSON.parse(localStorage.getItem('spirit-origin-list:v1')).servants.find(s=>s.id==='%s')"
 SID = "lady-avalon"
 with sync_playwright() as p:
@@ -84,10 +89,10 @@ with sync_playwright() as p:
     check(f"saved: {len(st['skillSets'])} skill sets, NP forms {[g['name'] for g in st['npTable']['g']]}, base skill kept",
           len(st["skillSets"]) == 2 and st["skillSets"][0]["info"][0]["name"] == "Shield of Chaldea" and [g["name"] for g in st["npTable"]["g"]] == ["", "Paladin"] and st["skillInfo"][0]["name"].strip("()") == base1)
     # ---- parties show logos
-    pg.click('[data-action="tab"][data-tab="parties"]'); pg.wait_for_timeout(500)
+    go_tab(pg, "parties"); pg.wait_for_timeout(500)
     check(f"party cards use class logos ({pg.locator('.fc-logo').count()})", pg.locator(".fc-logo").count() >= 50)
     pg.locator(".party").first.screenshot(path=f"{sp}/v6-party.png")
-    pg.click('[data-action="tab"][data-tab="servants"]'); pg.wait_for_timeout(300)
+    go_tab(pg, "servants"); pg.wait_for_timeout(300)
     # ---- every class: banner + page
     classes = ["Saber", "Archer", "Lancer", "Rider", "Caster", "Assassin", "Berserker", "Ruler", "Avenger", "Moon Cancer", "Alter Ego", "Foreigner", "Pretender", "Shielder", "Beast"]
     shots = []

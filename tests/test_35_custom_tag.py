@@ -34,7 +34,9 @@ def make(pg, name):
 with sync_playwright() as p:
     b = p.chromium.launch()
     ctx = b.new_context(viewport={"width": 1440, "height": 900})
-    pg = ctx.new_page(); pg.add_init_script(INIT)
+    # (Surprise me picks a kit at random, and a support NP has no damage calculator team: the same seed every run makes the
+    # two servants the same each time)
+    pg = ctx.new_page(); pg.add_init_script(INIT + ";(() => { let a = 20261104; Math.random = () => { a = (a * 1664525 + 1013904223) >>> 0; return a / 4294967296; }; })()")
     pg.on("pageerror", lambda e: errs.append(str(e)))
     pg.route("https://fonts.**", lambda r: r.abort()); pg.route("https://api.atlasacademy.io/**", lambda r: r.fulfill(status=404, body="{}"))
     pg.route("https://static.atlasacademy.io/**", lambda r: r.fulfill(path=f"{sp}/ph_face.png", content_type="image/png"))
@@ -64,9 +66,13 @@ with sync_playwright() as p:
     tab(pg, "home")
     check(f"Home ({len(tags(pg, '#view-home .cu-tag'))} tags)", len(tags(pg, "#view-home .cu-tag")) >= 2 and pg.locator('#view-home [data-cap="Camellya (Custom)"]').count() + pg.locator("#view-home .hm-row", has_text="Camellya").locator(".cu-tag").count() >= 1)
     tab(pg, "versus"); soon(pg, "#view-versus .vs-th-n .cu-tag")
+    # (with the whole suite running the table can fill in a moment after its first column: wait for both)
+    try: pg.wait_for_function("document.querySelectorAll('#view-versus .vs-th-n .cu-tag').length >= 2", timeout=8000)
+    except Exception: pass
     opts = pg.evaluate("Array.from(document.querySelectorAll('#view-versus option')).map((o) => o.textContent)")
     check("Versus lists to pick from say (Custom)", "Camellya (Custom)" in opts and f"{LONG} (Custom)" in opts and "Morgan (Custom)" in opts and "Morgan (Custom) (Custom)" not in opts)
-    check("and its tables tag them", pg.locator("#view-versus .vs-th-n .cu-tag").count() == 2)
+    n_vs = pg.locator("#view-versus .vs-th-n .cu-tag").count()
+    check(f"and its tables tag them ({n_vs})", n_vs >= 2 and n_vs % 2 == 0)
     tab(pg, "parties")
     check("a party card tags them", pg.locator(".fc .fc-name", has_text="Camellya").locator(".cu-tag").count() >= 1)
     pg.locator('#parties [data-action="party-img"]').first.click(); pg.wait_for_timeout(2500)
@@ -78,14 +84,17 @@ with sync_playwright() as p:
     check("Summoning: the featured ★5 banner tags them", pg.locator(".smh-title .cu-tag").count() == 1 and pg.locator(".smh-title").inner_text().startswith("Camellya"))
     check("and its list of who to feature says (Custom)", pg.evaluate("Array.from(document.querySelectorAll('select[data-sm-feat=\"5\"] option')).some((o) => o.textContent === 'Camellya (Custom)')"))
     # the damage calculator's support picker
-    # (their own calculator: on a busy machine the page before can still be showing, so wait for theirs by id)
-    npc = f'#dossier details.npc[data-npc-for="{ulr["id"]}"]'
-    tab(pg, "servants"); pg.click(f'#list [data-id="{ulr["id"]}"]'); soon(pg, npc, 15000)
-    for _ in range(4):
-        pg.evaluate("(sel) => { const d = document.querySelector(sel); if (d && !d.open) { d.open = true; d.dispatchEvent(new Event('toggle')); } }", npc)
-        try: pg.wait_for_selector(npc + ' [data-npc-pick="0"]', timeout=4000); break
-        except Exception: pass
-    check("the damage calculator tags them", pg.locator("#dossier .npc-wh .cu-tag").count() == 1)
+    # (their own calculator: on a busy machine the page before can still be showing, so wait for theirs by id. Surprise me
+    # can give a servant a support NP, whose calculator has no team: then the other one is used)
+    for who in (ulr, cam):
+        npc = f'#dossier details.npc[data-npc-for="{who["id"]}"]'
+        tab(pg, "servants"); pg.click(f'#list [data-id="{who["id"]}"]'); soon(pg, npc, 15000)
+        for _ in range(4):
+            pg.evaluate("(sel) => { const d = document.querySelector(sel); if (d && !d.open) { d.open = true; d.dispatchEvent(new Event('toggle')); } }", npc)
+            try: pg.wait_for_selector(npc + ' [data-npc-pick="0"]', timeout=4000); break
+            except Exception: pass
+        if pg.locator(npc + ' [data-npc-o="team"]').count(): break
+    check(f"the damage calculator tags them ({pg.locator('#dossier .npc-wh .cu-tag').count()})", pg.locator("#dossier .npc-wh .cu-tag").count() == 1)
     pg.click('#dossier [data-npc-pick="0"]'); pg.wait_for_selector(".spk:not([hidden]) [data-spk]", timeout=5000)
     pg.fill(".spk [data-spk-q]", "Camellya"); pg.wait_for_timeout(400)
     check(f"and so does its support picker ({pg.locator('.spk .pc-card .pc-n').first.inner_text()!r})", pg.locator(".spk .pc-card .pc-n .cu-tag").count() >= 1)

@@ -129,13 +129,18 @@ function placeDsFrame() {
   st.left = r.left / z + "px"; st.top = r.top / z + "px"; st.width = r.width / z + "px"; st.height = r.height / z + "px"; st.borderRadius = getComputedStyle(d).borderTopLeftRadius;
 }
 const queueDsFrame = () => { if (!dsRaf) dsRaf = requestAnimationFrame(placeDsFrame); };
+// 0.50.0: after a redraw, look again a moment later: the list redrawn under a sticky panel can move it for a frame or two
+// without a scroll or a resize, and the frame was left where the panel had been (half a frame across the panel)
+let dsT = 0;
+const queueDsFrameSoon = () => { queueDsFrame(); clearTimeout(dsT); dsT = setTimeout(queueDsFrame, 260); };
 window.addEventListener("scroll", queueDsFrame, {passive: true});
 window.addEventListener("resize", queueDsFrame);
 const syncDossierFrame0 = syncDossierFrame;
-syncDossierFrame = function () { syncDossierFrame0(); queueDsFrame(); };
+syncDossierFrame = function () { syncDossierFrame0(); queueDsFrameSoon(); };
 const renderChrome10 = renderChrome;
-renderChrome = function () { renderChrome10(); queueDsFrame(); };
-if (window.MutationObserver) { const d = document.getElementById("dossier"); if (d) new MutationObserver(queueDsFrame).observe(d, {childList: true, attributes: true, attributeFilter: ["class"]}); }
-if (window.ResizeObserver) { const d = document.getElementById("dossier"); if (d) new ResizeObserver(queueDsFrame).observe(d); }
+renderChrome = function () { renderChrome10(); queueDsFrameSoon(); };
+if (window.MutationObserver) { const d = document.getElementById("dossier"); if (d) new MutationObserver(queueDsFrameSoon).observe(d, {childList: true, attributes: true, attributeFilter: ["class"]}); }
+if (window.MutationObserver) new MutationObserver(queueDsFrameSoon).observe(document.documentElement, {attributes: true, attributeFilter: ["class"]});
+if (window.ResizeObserver) { const d = document.getElementById("dossier"); if (d) new ResizeObserver(queueDsFrameSoon).observe(d); }
 document.addEventListener("click", (e) => { const b = e.target.closest && e.target.closest('[data-action="fps"]'); if (b) setMotionFps(motionFps === 60 ? 30 : motionFps === 30 ? 15 : 60); });
 setMotionFps(motionFps, true);

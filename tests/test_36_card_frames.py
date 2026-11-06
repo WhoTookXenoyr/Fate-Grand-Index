@@ -18,10 +18,11 @@ CFK = KEY + ":cardframe"
 ART = "https://static.atlasacademy.io/NA/CharaGraph/1/1a.png"
 def stats(pg):
     return pg.evaluate("Array.from(document.querySelectorAll('#dossier .stat-grid .stat .v')).map((e) => e.textContent.trim())")
+# (the Lv 100 and Lv 120 looks, cf-l100 and cf-l120, are test_41's)
 def cf(pg, box="#dossier .art-frame"):
     return pg.evaluate("""(sel) => { const b = document.querySelector(sel); if (!b) return null;
       const t = (c) => { const e = b.querySelector(':scope > ' + c); return e ? e.textContent.trim() : null; }, r = b.getBoundingClientRect();
-      return {cls: Array.from(b.classList).filter((c) => c.startsWith('cf')).sort(), frame: !!b.querySelector(':scope > .cf-img'), diamond: !!b.querySelector(':scope > .cf-cls'),
+      return {cls: Array.from(b.classList).filter((c) => c.startsWith('cf') && !/^cf-l1[02]0$/.test(c)).sort(), frame: !!b.querySelector(':scope > .cf-img'), diamond: !!b.querySelector(':scope > .cf-cls'),
         atk: t('.cf-atk'), hp: t('.cf-hp'), sr: t('.cf-sr'), ratio: Math.round(r.width / r.height * 1000) / 1000}; }""", box)
 def pick(pg, where, on):
     pg.click(f'.cf-pick [data-action="cf-set"][data-w="{where}"][data-v="{"1" if on else ""}"]'); pg.wait_for_timeout(300)

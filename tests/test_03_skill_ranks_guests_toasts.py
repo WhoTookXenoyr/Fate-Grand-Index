@@ -12,6 +12,11 @@ def page(ctx):
     pg.route("https://fonts.googleapis.com/**", lambda r: r.abort()); pg.route("https://fonts.gstatic.com/**", lambda r: r.abort())
     return pg
 def check(label, ok): print(("PASS " if ok else "FAIL ") + label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 LS = "JSON.parse(localStorage.getItem('spirit-origin-list:v1'))"
 def scroll(pg, sel):
     # the servant page can redraw while Playwright scrolls to a part of it; scroll to the newest copy instead
@@ -56,13 +61,13 @@ with sync_playwright() as p:
     check("not in roster rows", pg.locator('#list > .row[data-id="altria-caster"]').count() == 0)
     check(f"summary counts Guests: {pg.locator('#summary').inner_text()!r}", re.search(r"\d+ in Guests", pg.locator("#summary").inner_text()) is not None)
     check("dossier wish banner", pg.locator(".wish-banner .summon-btn").count() == 1)
-    pg.click('[data-action="tab"][data-tab="ranking"]'); pg.wait_for_timeout(300)
+    go_tab(pg, "ranking"); pg.wait_for_timeout(300)
     check("wish servant not ranked", pg.locator('#ranking [data-id="altria-caster"]').count() == 0)
-    pg.click('[data-action="tab"][data-tab="servants"]'); pg.wait_for_timeout(300)
+    go_tab(pg, "servants"); pg.wait_for_timeout(300)
     pg.evaluate("window.scrollTo(0, document.body.scrollHeight)"); pg.wait_for_timeout(200)
     pg.locator(".wish").screenshot(path=f"{sp}/v7-wish.png")
     # ---- summoning animation
-    pg.click("#tab-summon"); pg.wait_for_timeout(600); pg.click('.smg [data-action="summon"][data-id="altria-caster"]')
+    go_tab(pg, "summon"); pg.wait_for_timeout(600); pg.click('.smg [data-action="summon"][data-id="altria-caster"]')
     for t, nm in [(700, "a"), (1500, "b"), (2250, "c"), (2600, "d"), (3300, "e"), (4000, "f"), (5100, "g"), (8200, "h")]:
         pg.wait_for_timeout(t - (0 if nm == "a" else prev)); prev = t
         pg.screenshot(path=f"{sp}/v7-summon-{nm}.png")
@@ -112,10 +117,10 @@ with sync_playwright() as p:
     pg.locator(".aff-panel").screenshot(path=f"{sp}/v7-aff-edit.png")
     pg.click('[data-action="aff-edit"]'); pg.wait_for_timeout(200)
     with pg.expect_download() as dl:
-        pg.click('#btn-export'); pg.click('[data-action="export"]')
+        pg.evaluate("document.querySelector('#export-menu [data-action=\"export\"]').click()")  # (on Settings since 0.50.0)
     data = json.load(open(dl.value.path()))
     check(f"backup carries chart changes {data['settings'].get('affinity')}", data["settings"].get("affinity") == {"Beast>Berserker": 2})
-    pg.reload(); pg.wait_for_timeout(900); pg.click('[data-action="tab"][data-tab="versus"]'); pg.wait_for_timeout(500)
+    pg.reload(); pg.wait_for_timeout(900); go_tab(pg, "versus"); pg.wait_for_timeout(500)
     check("chart change kept after reload", cell("Beast", "Berserker") == "2×" and pg.locator(".aff td.ov").count() == 1)
     pg.click('[data-action="aff-reset"]'); pg.wait_for_timeout(200); pg.click('[data-action="aff-reset-go"]'); pg.wait_for_timeout(300)
     check("reset to standard", cell("Beast", "Berserker") == "1×" and pg.evaluate("localStorage.getItem('spirit-origin-list:v1:affinity')") is None)
@@ -146,7 +151,7 @@ with sync_playwright() as p:
         if scheme == "dark":
             pg.click('[data-id="ereshkigal"]'); pg.wait_for_timeout(600); scroll(pg, ".skills"); pg.wait_for_timeout(1000)
             pg.locator(".skills").screenshot(path=f"{sp}/v7-dark-skills.png")
-            pg.click('[data-action="tab"][data-tab="versus"]'); pg.wait_for_timeout(700)
+            go_tab(pg, "versus"); pg.wait_for_timeout(700)
             pg.screenshot(path=f"{sp}/v7-dark-versus.png", full_page=True)
         ctx.close()
 
@@ -158,7 +163,7 @@ with sync_playwright() as p:
         pg.click('[data-action="add-wish"]'); pg.wait_for_timeout(300); pg.fill("#sv-name", f"Phone Wish {wdt}"); pg.select_option("#sv-cls", "Archer"); pg.select_option("#sv-rarity", "4"); pg.click('#servant-form button[type="submit"]'); pg.wait_for_timeout(600)
         pg.click('[data-action="close"]'); pg.wait_for_timeout(300)
         scroll(pg, ".wish"); sw.append(pg.evaluate("document.documentElement.scrollWidth")); pg.screenshot(path=f"{sp}/v7-phone{wdt}-wish.png")
-        pg.click("#tab-summon"); pg.wait_for_timeout(700); sw.append(pg.evaluate("document.documentElement.scrollWidth")); pg.click(f'.smg [data-action="summon"]'); pg.wait_for_timeout(2700); pg.screenshot(path=f"{sp}/v7-phone{wdt}-summon1.png"); pg.wait_for_timeout(2300)
+        go_tab(pg, "summon"); pg.wait_for_timeout(700); sw.append(pg.evaluate("document.documentElement.scrollWidth")); pg.click(f'.smg [data-action="summon"]'); pg.wait_for_timeout(2700); pg.screenshot(path=f"{sp}/v7-phone{wdt}-summon1.png"); pg.wait_for_timeout(2300)
         pg.screenshot(path=f"{sp}/v7-phone{wdt}-summon2.png"); sw.append(pg.evaluate("document.documentElement.scrollWidth"))
         pg.click(".sm-done"); pg.wait_for_timeout(700)
         pg.click('[data-action="vs-add"]'); pg.wait_for_timeout(700)
@@ -166,7 +171,7 @@ with sync_playwright() as p:
         if pg.locator('[data-action="vs-add3"]').count(): pg.click('[data-action="vs-add3"]')
         pg.wait_for_timeout(500); sw.append(pg.evaluate("document.documentElement.scrollWidth"))
         pg.screenshot(path=f"{sp}/v7-phone{wdt}-versus3.png")
-        pg.click('[data-action="tab"][data-tab="servants"]'); pg.wait_for_timeout(300); pg.click('#list > .row >> nth=0'); pg.wait_for_timeout(900)
+        go_tab(pg, "servants"); pg.wait_for_timeout(300); pg.click('#list > .row >> nth=0'); pg.wait_for_timeout(900)
         sw.append(pg.evaluate("document.documentElement.scrollWidth")); pg.screenshot(path=f"{sp}/v7-phone{wdt}-dossier.png")
         tabs = pg.evaluate("[document.querySelector('.tabs').scrollWidth, document.querySelector('.tabs').clientWidth]")
         check(f"phone {wdt}: no sideways scroll {sw}, tabs fit {tabs}", max(sw) <= wdt)
@@ -176,7 +181,7 @@ with sync_playwright() as p:
     ctx = p.chromium.launch_persistent_context(prof, viewport={"width": 1000, "height": 800}, reduced_motion="reduce")
     pg = page(ctx); pg.goto(NEW); pg.wait_for_timeout(800)
     pg.click('[data-action="add-wish"]'); pg.wait_for_timeout(300); pg.fill("#sv-name", "Calm Wish"); pg.select_option("#sv-cls", "Ruler"); pg.click('#servant-form button[type="submit"]'); pg.wait_for_timeout(600)
-    pg.click("#tab-summon"); pg.wait_for_timeout(600); pg.click('.smg [data-action="summon"]'); pg.wait_for_timeout(300)
+    go_tab(pg, "summon"); pg.wait_for_timeout(600); pg.click('.smg [data-action="summon"]'); pg.wait_for_timeout(300)
     check("reduced motion: result shown at once", pg.evaluate("document.getElementById('summon').classList.contains('info')"))
     pg.screenshot(path=f"{sp}/v7-rm-summon.png")
     pg.click(".sm-done"); pg.wait_for_timeout(600)

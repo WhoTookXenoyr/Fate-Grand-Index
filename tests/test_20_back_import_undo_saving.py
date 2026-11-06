@@ -10,6 +10,11 @@ errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
     if not ok: fails.append(label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 TOASTS = "window.__toasts = []; document.addEventListener('DOMContentLoaded', () => { const t = document.getElementById('toast'); if (t) new MutationObserver(() => { const x = t.textContent.trim(); if (x && window.__toasts[window.__toasts.length - 1] !== x) window.__toasts.push(x); }).observe(t, {childList: true, characterData: true, subtree: true}); });"
 INIT = TOASTS + "localStorage.setItem('spirit-origin-list:v1:intro','1');localStorage.setItem('spirit-origin-list:v1:news','9.9.9');if(!localStorage.getItem('spirit-origin-list:v1:summon'))localStorage.setItem('spirit-origin-list:v1:summon',JSON.stringify({anim:false}))"
 LS = "JSON.parse(localStorage.getItem('spirit-origin-list:v1'))"
@@ -37,13 +42,13 @@ with sync_playwright() as p:
     back(pg); check(f"Back: Parties -> Ranking ({tab(pg)})", tab(pg) == "ranking" and pg.url.endswith("#ranking"))
     back(pg); back(pg); check(f"Back twice more: Home ({tab(pg)})", tab(pg) == "home")
     pg.go_forward(); pg.wait_for_timeout(450); check(f"Forward: Servants ({tab(pg)})", tab(pg) == "servants")
-    pg.click("#tab-ranking"); pg.wait_for_timeout(250); pg.click("#tab-ranking"); pg.wait_for_timeout(250)
+    go_tab(pg, "ranking"); pg.wait_for_timeout(250); go_tab(pg, "ranking"); pg.wait_for_timeout(250)
     n1 = pg.evaluate("history.length")
     check(f"pressing the tab you're on adds no step ({n1})", n1 == start_len + 2)
     pg.reload(); pg.wait_for_timeout(1200)
     check(f"a reload stays on the tab and adds no step ({tab(pg)}, {pg.evaluate('history.length')})", tab(pg) == "ranking" and pg.evaluate("history.length") == n1)
     # opening a servant from Home goes to Servants, and Back returns Home
-    pg.click("#tab-home"); pg.wait_for_timeout(400)
+    go_tab(pg, "home"); pg.wait_for_timeout(400)
     pg.locator('#home [data-action="goto"]').first.click(); pg.wait_for_timeout(500)
     check(f"a servant from Home opens on Servants ({tab(pg)})", tab(pg) == "servants")
     back(pg); check(f"Back returns Home ({tab(pg)})", tab(pg) == "home")
@@ -53,7 +58,7 @@ with sync_playwright() as p:
     ctx = b.new_context(viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True); pg = page(ctx)
     pg.goto(SEEDED + "#home"); pg.wait_for_timeout(1500)
     check(f"opened fresh on #home, the phone page starts at the top (scrollY {pg.evaluate('scrollY')})", pg.evaluate("scrollY") == 0)
-    pg.click("#tab-servants"); pg.wait_for_timeout(400)
+    go_tab(pg, "servants"); pg.wait_for_timeout(400)
     first = pg.evaluate("document.querySelector('#list [data-id]').dataset.id")
     pg.click(f'#list [data-id="{first}"]'); pg.wait_for_timeout(500)
     check("tapping a servant opens their page", sheet_open(pg))
@@ -66,7 +71,7 @@ with sync_playwright() as p:
     check(f"'← Roster' closes it ({sheet_open(pg)}, state {pg.evaluate('history.state')})", not sheet_open(pg) and not pg.evaluate("history.state && history.state.sheet"))
     back(pg); check(f"the next Back goes to Home, no dead press ({tab(pg)})", tab(pg) == "home")
     # leaving for another tab keeps the step: Back from there brings the servant page back
-    pg.click("#tab-servants"); pg.wait_for_timeout(300); pg.click(f'#list [data-id="{first}"]'); pg.wait_for_timeout(400)
+    go_tab(pg, "servants"); pg.wait_for_timeout(300); pg.click(f'#list [data-id="{first}"]'); pg.wait_for_timeout(400)
     pg.click('#dossier [data-action="vs-add"]'); pg.wait_for_timeout(500)
     check(f"Compare leaves the servant page for Versus ({tab(pg)})", tab(pg) == "versus")
     back(pg); check(f"Back from Versus returns to the servant page ({tab(pg)}, open {sheet_open(pg)})", tab(pg) == "servants" and sheet_open(pg))
@@ -100,7 +105,8 @@ with sync_playwright() as p:
         pg.goto(f"{SEEDED}#home"); pg.wait_for_timeout(1300)
         got = []
         for t in ("home", "ranking", "past"):
-            pg.evaluate(f"document.querySelector('#tab-{t}').click()"); pg.wait_for_timeout(500); pg.mouse.wheel(0, 700); pg.wait_for_timeout(300)
+            # (with the mouse over the page: since 0.50.0 the top-left corner is the sidebar, which scrolls on its own)
+            pg.evaluate(f"document.querySelector('#tab-{t}').click()"); pg.wait_for_timeout(500); pg.mouse.move(w * 0.6, h * 0.5); pg.mouse.wheel(0, 700); pg.wait_for_timeout(300)
             y = pg.evaluate("scrollY"); pg.reload(); pg.wait_for_timeout(1500); got.append((t, y, pg.evaluate("scrollY")))
         # Home's daily servant can change the height a little; the bottom is thousands of pixels away
         check(f"{w}px: a reload comes back where you were ({got})", all(y > 0 and abs(y2 - y) < 120 for t, y, y2 in got))
@@ -109,8 +115,7 @@ with sync_playwright() as p:
     # ---- import: say what changes, and undo it
     ctx = b.new_context(viewport={"width": 1360, "height": 900}, accept_downloads=True); pg = page(ctx)
     pg.goto(SEEDED + "#servants"); pg.wait_for_timeout(1500)
-    pg.click("#btn-export")
-    with pg.expect_download() as dl: pg.click('[data-action="export"]')
+    with pg.expect_download() as dl: pg.evaluate("document.querySelector('#export-menu [data-action=\"export\"]').click()")  # (on Settings since 0.50.0)
     path = os.path.join(sp, "_t20_backup.json"); dl.value.save_as(path)
     bk = json.load(open(path))
     # the backup is a day older than the list

@@ -1,7 +1,8 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
-// alpha until the full website and app: 1.0.0
-const APP_VER = "0.28.1";
+// alpha until 0.50.0, beta from there until the full website and app: 1.0.0
+const APP_VER = "0.50.0-beta";
+const APP_STAGE = /-beta\b/.test(APP_VER) ? "beta" : "alpha", APP_NUM = APP_VER.replace(/-.*$/, "");
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -163,6 +164,17 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.50.0-beta", d: "3 Nov 2026", t: "The beta: a new look, a battle simulator, the Saint Graph maker, and Bond 10 and 15", i: [
+    "<b>A new look</b>: the pages are in a sidebar on the left, each with its icon, and at its foot your account and a cog for the new <b>Settings</b> page: light or dark, the look, the servant page's layout, the sidebar's fold, fonts, the frame rate, export and import, the Guide and What's new. Folding the sidebar (on Settings) leaves only the icons, the logo's diamond and the cog, and is remembered. Buttons, sections and lists have a cleaner style, and the background is Chaldea's blue when no servant gives it colours. <b>Look: Classic</b> on Settings puts the page back as it was in 0.28 (with Undo), and <b>New look</b> in the header switches back.",
+    "<b>Battle</b>, a new page: put up to six servants in a party (yours, a Guest, a support or any NA servant, custom servants with their Workshop kit) against made-up enemies you can edit, your Guests, your own servants, or a real NA quest's enemies from Atlas Academy (pick a chapter and battle, or paste a quest's number or link). Press Fight and watch the auto-battle: skills, the five cards and the three picked, Noble Phantasms, the enemies' turn, the waves. Play, pause, step, go 2× or 4×, jump to any moment from the list of what happened, and see each servant's damage at the end. The same seed plays the same fight. A fight changes nothing on your list.",
+    "<b>The Saint Graph maker</b>, for servants of your own (on their page, beside the pictures): make their four ascension pictures from one picture. Place it (zoom, position, mirror), pick a scene (Chaldea, twilight, a starfield, an inferno, sakura, the ocean, a throne room, the Void, holy light), a colour, a light and effects (sparkles, petals, embers, snow, a magic circle, an aura). <b>Make all four from this one</b> builds a rising set, from plain at Stage 1 to the most ornate at Stage 4. Save one stage or all four, with Undo, or Download a stage. The picture and the settings are kept with the servant, so it opens where you left it. It's all drawn in your browser; a PNG with a see-through background looks best.",
+    "<b>Bond 10 and up</b>: their page takes a moving rainbow over its white (or its black in dark mode), with the Bond 10 crystal behind it and a light that crosses it now and then, and bond crystals rise slowly through the website's background while their page is open. Opening them with a click plays a short intro: the crystal comes together from its nine gems, a ring of light opens, and their page rises in. <b>Bond 15</b> adds more crystals and a band of light to the background.",
+    "<b>Card frames at Lv 100 and Lv 120</b>: at Lv 100 the frame's middle edges turn rainbow and a gold aura glows around the card; at Lv 120 every gold part of the frame turns rainbow (the class logo too) with a rainbow aura.",
+    "<b>On a phone</b> the sidebar is a menu that slides in from the left: the button at the top opens it, and a page picked in it, Escape, a swipe to the left or a tap beside it closes it. The bar at the top says which page you're on.",
+    "Pages slide in when you change them, and a servant's window in Past Chaldea drops in. With reduced motion turned on, they just appear.",
+    "The gold frame around a Lv 100 servant's page no longer stays half across the page after the list redraws under it.",
+    "<b>Count custom servants</b> on the Ranking page: untick it and your own servants are left out of the ranking, the tier board and Home's best servants (their page says Not ranked). It's remembered, and it changes nothing about the servants themselves.",
+    "The menu waits behind any window over the page (the Workshop, a summon, Past Chaldea's window), so the keyboard can't wander into it."]},
   {v: "0.28.1", d: "2 Nov 2026", t: "Append skills for your own servants, NA's login bonuses and the Discord campaign", i: [
     "<b>Append skills for servants you made</b>: the Append skills section on a servant from the Workshop used to show five blank rows. It now names the four every NA servant has (Extra Attack Boost, Load Magical Energy, Special Attack Boost and Skill Reload) with their effects at the level you set. The third one is different for every servant in the game, so it's a list you pick from: ATK Up or Critical Resistance Up against a class. Picking has Undo, and the pick stays with the servant in backups and in the single-servant file.",
     "On NA now's <b>Login bonuses</b> list was always empty: Atlas Academy's NA data has no login bonuses at all. It now lists NA's, from NA's news, each linked to its announcement and saying what it gives: the GUDAGUDA revival's 21-day bonus, the Lostbelt No.6 Clear Support Leyline Stones, the countdown bonus with today's reward, and the Discord Saint Quartz. They show even when Atlas Academy can't be reached, and move to the next day on their own.",
@@ -360,7 +372,7 @@ const CHANGES = [
 function newsHTML() {
   return `<div class="pcd-panel v15-panel news-panel" tabindex="-1">
     <button type="button" class="pcd-x" data-action="pc-close" aria-label="Close">×</button>
-    <p class="pcd-kick">Changelog · alpha</p>
+    <p class="pcd-kick">Changelog · ${APP_STAGE}</p>
     <h2 id="pcd-title" class="pcd-name">What's new</h2>
     <p class="fill-intro">Every update to Fate/Grand Index, newest first. Numbers go MAJOR.MINOR.PATCH: new features move the middle number, fixes the last one, and 1.0.0 will be the full website and app. Past Chaldea holds ${fmt(ATLAS_S.length)} servants and ${fmt(ATLAS_C.length)} Craft Essences.</p>
     ${CHANGES.map((c, i) => `<article class="cl-v${i ? "" : " is-new"}"><h3><span class="cl-n">${esc(c.v)}</span> ${esc(c.t)} <small>${esc(c.d)}</small>${i ? "" : `<i class="cl-new">New</i>`}</h3><ul>${c.i.map((t) => `<li>${t}</li>`).join("")}</ul></article>`).join("")}
@@ -398,7 +410,7 @@ function tourHTML() {
 /* ---------- start fresh ---------- */
 // Only this browser's copy is emptied: other browsers and computers each keep their own list.
 const PREF_KEYS = ["spirit-origin-list:v1:theme", "spirit-origin-list:v1:fonts", "spirit-origin-list:v1:fps", "spirit-origin-list:v1:affinity", "spirit-origin-list:v1:icauto",
-  "spirit-origin-list:v1:past", "spirit-origin-list:v1:rankBase", "spirit-origin-list:v1:rankView", NEWS_KEY];
+  "spirit-origin-list:v1:past", "spirit-origin-list:v1:rankBase", "spirit-origin-list:v1:rankView", "spirit-origin-list:v1:rankCustom", NEWS_KEY];
 const SF_WORD = "START FRESH";
 function freshHTML() {
   const own = S.servants.filter((s) => !s.wish).length, gu = S.servants.filter((s) => s.wish).length, pa = (S.parties || []).length;

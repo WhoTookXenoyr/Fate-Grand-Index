@@ -9,6 +9,11 @@ fails = []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
     if not ok: fails.append(label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 LS = "JSON.parse(localStorage.getItem('spirit-origin-list:v1'))"
 def page(ctx):
     pg = ctx.new_page(); pg.on("pageerror", lambda e: errs.append(str(e)))
@@ -158,7 +163,7 @@ with sync_playwright() as p:
     check("…and shows as Lawful Good", "Lawful" in pg.locator(".tr-sec").inner_text() and "Good" in pg.locator(".tr-sec").inner_text())
 
     # ---- party DNA still works with the new kits
-    pg.click('[data-action="tab"][data-tab="ranking"]'); pg.wait_for_timeout(400)
+    go_tab(pg, "ranking"); pg.wait_for_timeout(400)
     check("ranking renders", pg.locator(".rk-roi").count() >= 15)
 
     # ---- phones and dark mode

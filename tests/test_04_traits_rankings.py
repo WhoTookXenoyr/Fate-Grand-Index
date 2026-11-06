@@ -6,6 +6,11 @@ sp = sys.argv[1]; URL = os.environ.get("FGI_URL") or "file://" + sp
 NEW = f"{URL}/_seeded.html#servants"
 errs = []
 def check(label, ok): print(("PASS " if ok else "FAIL ") + label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 LS = "JSON.parse(localStorage.getItem('spirit-origin-list:v1'))"
 def page(ctx):
     pg = ctx.new_page(); pg.add_init_script("document.addEventListener('DOMContentLoaded', () => { const st = document.createElement('style'); st.textContent = '#trait-note{display:none!important}'; document.head.appendChild(st); })"); pg.on("pageerror", lambda e: errs.append(str(e)))
@@ -61,7 +66,7 @@ with sync_playwright() as p:
     check("supports that buff these traits: Medb reaches Oberon (Fae/Male)", "Queen Medb" in sup and "Artoria" in sup)
     pg.locator('.vs-panel:has(.vs-trm)').screenshot(path=f"{sp}/v8-vs-traits.png")
     # ---- Ranking: ROI and tier board
-    pg.click('[data-action="tab"][data-tab="ranking"]'); pg.wait_for_timeout(400)
+    go_tab(pg, "ranking"); pg.wait_for_timeout(400)
     roi = pg.locator("#roi-top").inner_text()
     check(f"Highest ROI flags Space Ereshkigal: {roi[:120]!r}", "Highest ROI" in roi and "Space Ereshkigal" in roi)
     check("rows show the next best upgrade", pg.locator(".rk-roi").count() >= 15)
@@ -76,7 +81,7 @@ with sync_playwright() as p:
     check(f"drag moves Tamamo {start_tier} -> {now}, pinned and saved", now == "SS" and pg.evaluate("JSON.parse(localStorage.getItem('spirit-origin-list:v1:tiers'))['tamamo-no-mae']") == "SS" and pg.locator('.tier-card.pinned[data-id="tamamo-no-mae"]').count() == 1)
     check("menu didn't open after the drag", pg.evaluate("document.getElementById('tier-menu').hidden"))
     pg.screenshot(path=f"{sp}/v8-tierboard.png", full_page=True)
-    pg.reload(); pg.wait_for_timeout(900); pg.click('[data-action="tab"][data-tab="ranking"]'); pg.wait_for_timeout(300)
+    pg.reload(); pg.wait_for_timeout(900); go_tab(pg, "ranking"); pg.wait_for_timeout(300)
     check("tier board view and placement kept after reload", pg.locator(".tier-row").count() == 5 and pg.evaluate("document.querySelector('.tier-card[data-id=\"tamamo-no-mae\"]').closest('[data-tier-drop]').dataset.tierDrop") == "SS")
     pg.click('.tier-card[data-id="tamamo-no-mae"]'); pg.wait_for_timeout(200)
     check("pressing a card opens the tier menu", not pg.evaluate("document.getElementById('tier-menu').hidden"))
@@ -87,6 +92,7 @@ with sync_playwright() as p:
     check("menu move to A", pg.evaluate("document.querySelector('.tier-card[data-id=\"oberon\"]').closest('[data-tier-drop]').dataset.tierDrop") == "A")
     pg.click('[data-action="rank-view"][data-v="list"]'); pg.wait_for_timeout(200)
     # ---- export menu: CSV and planner list
+    pg.evaluate("document.querySelector('#side .side-cog').click()"); pg.wait_for_timeout(500)  # (Export is on Settings since 0.50.0)
     pg.click("#btn-export"); pg.wait_for_timeout(150)
     check("export menu opens", not pg.evaluate("document.getElementById('export-menu').hidden"))
     with pg.expect_download() as dl: pg.click('[data-action="export-csv"]')
@@ -96,11 +102,11 @@ with sync_playwright() as p:
     ob = [r for r in rows if r["Name"] == "Oberon"][0]
     check(f"CSV export: {len(rows)} rows, Oberon traits '{ob['Traits'][:40]}…'", len(rows) >= 22 and ob["Class"] == "Pretender" and "Fae" in ob["Traits"] and ob["Alignment"] == "Chaotic Evil")
     with pg.expect_download() as dl2:
-        pg.click("#btn-export"); pg.click('[data-action="export-planner"]')
+        pg.click("#btn-export"); pg.click('#export-menu [data-action="export-planner"]')
     pj = json.load(open(dl2.value.path()))
     check("planner list export", pj["app"] == "spirit-origin-list-planner" and len(pj["servants"]) >= 22 and isinstance(pj["servants"][0]["skills"], list))
     with pg.expect_download() as dl3:
-        pg.click("#btn-export"); pg.click('[data-action="export"]')
+        pg.click("#btn-export"); pg.click('#export-menu [data-action="export"]')
     bk = json.load(open(dl3.value.path()))
     check("full backup carries tier placements", bk["settings"].get("tiers") == {"oberon": "A"})
     # ---- import: edited CSV (Dutch style with semicolons), and a foreign planner JSON
@@ -125,7 +131,7 @@ with sync_playwright() as p:
     ob3 = pg.evaluate(LS + ".servants.find(s=>s.id==='oberon')"); cc = pg.evaluate(LS + ".servants.find(s=>s.name==='Charlotte Corday')")
     check(f"foreign JSON mapped: Oberon Lv {ob3['level']} NP{ob3.get('npLevel')} skills {ob3['skills']}; Corday {cc and (cc['cls'], cc['rarity'], cc['skills'])}", ob3["level"] == 94 and ob3["npLevel"] == 2 and ob3["skills"] == [10, 9, 8] and cc and cc["cls"] == "Assassin" and cc["rarity"] == 1 and cc["skills"] == [6, 6, 6])
     # ---- Party DNA
-    pg.click('[data-action="tab"][data-tab="parties"]'); pg.wait_for_timeout(800)
+    go_tab(pg, "parties"); pg.wait_for_timeout(800)
     check("Party DNA shows 3 stall trios", pg.locator(".dna-team").count() == 3)
     first = pg.locator(".dna-team").first.inner_text()
     check(f"stall trio explains cover and NP: {first[:90]!r}", "defense cover" in first and "NP each turn" in first)
@@ -137,12 +143,12 @@ with sync_playwright() as p:
     pg.click('[data-action="dna-mode"][data-v="solo"]'); pg.wait_for_timeout(400)
     solo = pg.locator(".dna-body").inner_text()
     check(f"solo mode lists the 1–3★ servants without kit data as not ranked yet", "Scheherazade" in solo and "Charlotte Corday" in solo and "Not ranked yet" in solo)
-    pg.click('[data-action="tab"][data-tab="servants"]'); pg.wait_for_timeout(300); pg.click('[data-action="add-wish"]'); pg.wait_for_timeout(300)
+    go_tab(pg, "servants"); pg.wait_for_timeout(300); pg.click('[data-action="add-wish"]'); pg.wait_for_timeout(300)
     pg.fill("#sv-name", "Solo Tester"); pg.select_option("#sv-cls", "Saber"); pg.select_option("#sv-rarity", "3")
     pg.fill("#sv-s1-effect", "Grants self Guts (3 turns)\nHeals own HP"); pg.fill("#sv-s1-cd", "7")
     pg.fill("#sv-s2-effect", "Grants self Invincible (1 turn)\nCharges own NP gauge by 20%"); pg.fill("#sv-s2-cd", "8")
     pg.click('#servant-form button[type="submit"]'); pg.wait_for_timeout(600)
-    pg.click('[data-action="tab"][data-tab="parties"]'); pg.wait_for_timeout(500)
+    go_tab(pg, "parties"); pg.wait_for_timeout(500)
     solo = pg.locator(".dna-body").inner_text()
     check(f"a 3★ with typed skills is ranked with a CE tip: {solo[:120]!r}", "Best solo pick" in solo and "Solo Tester" in solo.split("Not ranked yet")[0] and "Craft Essence to look for" in solo and "Guts" not in solo.split("Craft Essence to look for:")[1].split(".")[0])
     pg.uncheck("#dna-wish"); pg.wait_for_timeout(300)
@@ -157,8 +163,8 @@ with sync_playwright() as p:
     ctx = p.chromium.launch_persistent_context(prof, viewport={"width": 1360, "height": 1000}, color_scheme="dark")
     pg = page(ctx); pg.goto(NEW); pg.wait_for_timeout(900)
     pg.click('[data-id="queen-medb"]'); pg.wait_for_timeout(500); pg.locator(".tr-sec").scroll_into_view_if_needed(); pg.locator(".tr-sec").screenshot(path=f"{sp}/v8-dark-traits.png")
-    pg.click('[data-action="tab"][data-tab="ranking"]'); pg.wait_for_timeout(300); pg.click('[data-action="rank-view"][data-v="tiers"]'); pg.wait_for_timeout(300); pg.screenshot(path=f"{sp}/v8-dark-tiers.png")
-    pg.click('[data-action="tab"][data-tab="parties"]'); pg.wait_for_timeout(600); pg.locator("#dna").screenshot(path=f"{sp}/v8-dark-dna.png")
+    go_tab(pg, "ranking"); pg.wait_for_timeout(300); pg.click('[data-action="rank-view"][data-v="tiers"]'); pg.wait_for_timeout(300); pg.screenshot(path=f"{sp}/v8-dark-tiers.png")
+    go_tab(pg, "parties"); pg.wait_for_timeout(600); pg.locator("#dna").screenshot(path=f"{sp}/v8-dark-dna.png")
     ctx.close()
     for wdt in (360, 400):
         ctx = p.chromium.launch_persistent_context(prof, viewport={"width": wdt, "height": 820}, has_touch=True, is_mobile=True)
@@ -168,7 +174,7 @@ with sync_playwright() as p:
         pg.screenshot(path=f"{sp}/v8-phone{wdt}-traits.png")
         pg.tap('[data-action="edit-traits"]'); pg.wait_for_timeout(500); sw.append(pg.evaluate("document.documentElement.scrollWidth")); pg.screenshot(path=f"{sp}/v8-phone{wdt}-form.png")
         pg.tap('[data-action="cancel-edit"]'); pg.wait_for_timeout(300); pg.tap('[data-action="close"]'); pg.wait_for_timeout(300)
-        pg.tap('[data-action="tab"][data-tab="ranking"]'); pg.wait_for_timeout(300)
+        go_tab(pg, "ranking"); pg.wait_for_timeout(300)
         if pg.locator(".tier-row").count() == 0: pg.tap('[data-action="rank-view"][data-v="tiers"]'); pg.wait_for_timeout(300)
         sw.append(pg.evaluate("document.documentElement.scrollWidth")); pg.screenshot(path=f"{sp}/v8-phone{wdt}-tiers.png")
         # long-press drag with touch
@@ -187,8 +193,8 @@ with sync_playwright() as p:
         cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []}); pg.wait_for_timeout(400)
         where = pg.evaluate(f"document.querySelector('.tier-card[data-id=\"{who}\"]').closest('[data-tier-drop]').dataset.tierDrop")
         check(f"phone {wdt}: long-press drag moves {who} from {was} to {where}", where == goal)
-        pg.tap('[data-action="tab"][data-tab="parties"]'); pg.wait_for_timeout(700); sw.append(pg.evaluate("document.documentElement.scrollWidth")); pg.locator("#dna").screenshot(path=f"{sp}/v8-phone{wdt}-dna.png")
-        pg.tap('[data-action="tab"][data-tab="versus"]'); pg.wait_for_timeout(600); pg.locator(".vs-trm").scroll_into_view_if_needed(); sw.append(pg.evaluate("document.documentElement.scrollWidth"))
+        go_tab(pg, "parties"); pg.wait_for_timeout(700); sw.append(pg.evaluate("document.documentElement.scrollWidth")); pg.locator("#dna").screenshot(path=f"{sp}/v8-phone{wdt}-dna.png")
+        go_tab(pg, "versus"); pg.wait_for_timeout(600); pg.locator(".vs-trm").scroll_into_view_if_needed(); sw.append(pg.evaluate("document.documentElement.scrollWidth"))
         check(f"phone {wdt}: no sideways scroll {sw}", max(sw) <= wdt)
         ctx.close()
 print("page errors:", errs)

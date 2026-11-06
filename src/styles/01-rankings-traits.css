@@ -60,6 +60,11 @@
 
 /* ===== v8: ranking upgrades ===== */
 .rank-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+/* 0.50.0-beta: Count custom servants */
+.rank-ck { display: inline-flex; align-items: center; gap: 7px; min-height: 32px; padding: 0 4px; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+.rank-ck[hidden] { display: none; }
+.rank-ck input { width: 17px; height: 17px; margin: 0; accent-color: var(--gold); }
+.rank-chip.off { opacity: .72; font-style: italic; }
 .roi-top { display: flex; flex-direction: column; gap: 8px; }
 .roi-top:empty { display: none; }
 .roi-line { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }

@@ -9,6 +9,11 @@ errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
     if not ok: fails.append(label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 LS = "JSON.parse(localStorage.getItem('spirit-origin-list:v1'))"
 def page(ctx):
     pg = ctx.new_page(); pg.on("pageerror", lambda e: errs.append(str(e)))
@@ -45,15 +50,15 @@ with sync_playwright() as p:
     # ---- Home links into the rest of the page
     name = cards.nth(3).get_attribute("data-cap"); cards.nth(3).click(); pg.wait_for_timeout(900)
     check(f"clicking a card opens {name}", pg.evaluate("location.hash") == "#servants" and pg.locator("#dossier h2").first.inner_text() == name and pg.locator("#home").inner_html() == "")
-    pg.click("#tab-home"); pg.wait_for_timeout(700)
+    go_tab(pg, "home"); pg.wait_for_timeout(700)
     pg.click('.hm-cls[data-cls="Berserker"]'); pg.wait_for_timeout(700)
     rows = pg.locator("#list > .row .row-meta").all_inner_texts()
     check(f"a class opens the roster filtered ({len(rows)} Berserkers)", rows and all(r.startswith("Berserker") for r in rows) and pg.input_value("#f-class") == "Berserker")
     pg.select_option("#f-class", ""); pg.wait_for_timeout(300)
-    pg.click("#tab-home"); pg.wait_for_timeout(700)
+    go_tab(pg, "home"); pg.wait_for_timeout(700)
     pg.click('.hm-actions [data-tab="summon"]'); pg.wait_for_timeout(1200)
     check("Summoning button opens the Summoning page", pg.evaluate("location.hash") == "#summon" and pg.locator(".smg").count() >= 1)
-    pg.click("#tab-servants"); pg.wait_for_timeout(600)
+    go_tab(pg, "servants"); pg.wait_for_timeout(600)
     pg.reload(); pg.wait_for_timeout(1200)
     check("reloading stays on Servants", pg.evaluate("location.hash") == "#servants" and not pg.locator("#view-servants").is_hidden())
 
@@ -99,7 +104,7 @@ with sync_playwright() as p:
     ctx = p.chromium.launch_persistent_context(prof, viewport={"width": 1360, "height": 1000}, color_scheme="dark")
     pg = page(ctx); pg.goto(BASE); pg.wait_for_timeout(1800)
     pg.screenshot(path=f"{sp}/v10-home-dark.png")
-    pg.click('#tab-servants'); pg.wait_for_timeout(500); pg.click('[data-id="artoria"]'); pg.wait_for_timeout(700)
+    go_tab(pg, "servants"); pg.wait_for_timeout(500); pg.click('[data-id="artoria"]'); pg.wait_for_timeout(700)
     pg.locator("#dossier .skills").screenshot(path=f"{sp}/v10-skills-dark.png")
     pg.click('[data-id="cu-chulainn-alter"]'); pg.wait_for_timeout(700)
     pg.screenshot(path=f"{sp}/v10-dossier-dark.png")

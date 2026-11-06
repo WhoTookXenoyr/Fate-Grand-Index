@@ -9,6 +9,11 @@ errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
     if not ok: fails.append(label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 def atlas(r):
     u = r.request.url
     f = "ph_buff.png" if "BuffIcons" in u else "ph_skill.png" if "SkillIcons" in u else "ph_face.png" if "/Faces/" in u else "ph_graph.png"
@@ -31,12 +36,12 @@ with sync_playwright() as p:
     # ================= your list at 30 fps, in the dark =================
     ctx, pg = page(p, init="if (!localStorage.getItem('spirit-origin-list:v1:fps')) { localStorage.setItem('spirit-origin-list:v1:fps', '30'); localStorage.setItem('spirit-origin-list:v1:theme', 'dark'); }")
     pg.goto(SEEDED + "#servants"); pg.wait_for_timeout(1600)
-    pg.click("#theme-tgl"); pg.wait_for_timeout(1300)
+    pg.evaluate("document.querySelector('#theme-tgl').click()"); pg.wait_for_timeout(1300)
     ok = True
     try: pg.click('#list .row[data-id="artoria"]', timeout=3000)
     except Exception: ok = False
     check("switching light / dark at 30 fps leaves the page clickable", ok and pg.locator("#dossier h2").first.inner_text() == "Artoria" and not pg.evaluate("document.documentElement.classList.contains('vt-theme')"))
-    pg.click("#theme-tgl"); pg.wait_for_timeout(1300)
+    pg.evaluate("document.querySelector('#theme-tgl').click()"); pg.wait_for_timeout(1300)
     ok = True
     try: pg.click('#list .row[data-id="ereshkigal"]', timeout=3000)
     except Exception: ok = False
@@ -84,17 +89,17 @@ with sync_playwright() as p:
     for _ in range(9): pg.click('#dossier [data-action="bump"][data-f="bond"][data-d="1"]'); pg.wait_for_timeout(40)
     pg.wait_for_timeout(800)
     check("…and stops at 15", next(x for x in docs(pg) if x["id"] == "space-ereshkigal").get("bond") == 15 and "Max bond" in pg.locator("#dossier .lv-row").inner_text())
-    pg.click("#tab-home"); pg.wait_for_timeout(700)
+    go_tab(pg, "home"); pg.wait_for_timeout(700)
     recs = pg.locator(".rec-list .rec").all_inner_texts()
     names = [r.split("\n")[0] for r in recs]
     check(f"new Master records ({len(recs)})", all(n in names for n in ["Bond 10", "Max Bond", "EX Servant", "Five S", "Ten A", "Holy Grail Servant", "Rainbow Fou", "Gold Fou"]))
     check("Bond 10 and Max Bond are earned", all("Earned" in r for r in recs if r.split("\n")[0] in ("Bond 10", "Max Bond")))
-    pg.click("#tab-ranking"); pg.wait_for_timeout(400); pg.click('[data-action="rank-view"][data-v="tiers"]'); pg.wait_for_timeout(300)
+    go_tab(pg, "ranking"); pg.wait_for_timeout(400); pg.click('[data-action="rank-view"][data-v="tiers"]'); pg.wait_for_timeout(300)
     check("the top tier is called EX", pg.locator(".tier-lab b").first.inner_text() == "EX" and "EX 75+" in pg.locator(".tier-note").inner_text())
 
     # ---- the Compact layout
-    pg.click("#tab-servants"); pg.wait_for_timeout(300)
-    pg.click("#layout-tgl"); pg.wait_for_timeout(500)
+    go_tab(pg, "servants"); pg.wait_for_timeout(300)
+    pg.evaluate("document.querySelector('#layout-tgl').click()"); pg.wait_for_timeout(500)
     check("with a servant open, Compact shows them as a window over the list", pg.locator(".cmp-veil").is_visible() and pg.locator(".cmp-x").is_visible())
     pg.keyboard.press("Escape"); pg.wait_for_timeout(300)
     pg.click('#list .row[data-id="artoria"]'); pg.wait_for_timeout(600)
@@ -106,7 +111,7 @@ with sync_playwright() as p:
     check("…after a reload too", pg.locator("#dossier .cmp-top").count() == 1)
     pg.keyboard.press("Escape"); pg.wait_for_timeout(300)
     check("Esc closes the Compact window", pg.locator("#dossier.open").count() == 0 and pg.locator(".cmp-veil").is_hidden())
-    pg.click("#layout-tgl"); pg.wait_for_timeout(400)
+    pg.evaluate("document.querySelector('#layout-tgl').click()"); pg.wait_for_timeout(400)
     pg.click('#list .row[data-id="artoria"]'); pg.wait_for_timeout(400)
     check("Modern puts everything back in one column", pg.locator("#dossier .cmp-top").count() == 0 and pg.evaluate("document.documentElement.dataset.layout") == "modern")
     ctx.close()
@@ -114,7 +119,7 @@ with sync_playwright() as p:
     # ================= Past Chaldea and the Summoning page =================
     ctx, pg = page(p)
     pg.goto(EMPTY); pg.wait_for_timeout(1400); pg.keyboard.press("Escape"); pg.wait_for_timeout(150)
-    pg.click("#tab-past"); pg.wait_for_timeout(500)
+    go_tab(pg, "past"); pg.wait_for_timeout(500)
     pg.fill('[data-pc-q="q"]', "Altria Pendragon"); pg.wait_for_timeout(300)
     pg.click('.pc-card[data-no="2"]'); pg.wait_for_timeout(400)
     sw = pg.locator('.pcd-panel [data-action="pc-npup"]')
@@ -136,7 +141,7 @@ with sync_playwright() as p:
     pg.keyboard.press("Escape"); pg.wait_for_timeout(200)
 
     # ---- the Summoning page: the best card gets the ceremony; card backs by rarity
-    pg.click("#tab-summon"); pg.wait_for_timeout(500)
+    go_tab(pg, "summon"); pg.wait_for_timeout(500)
     pg.click('[data-action="sm-pool"][data-v="all"]'); pg.wait_for_timeout(300)
     t0 = time.time(); pg.click('[data-action="sm-roll"][data-n="11"]'); pg.wait_for_timeout(400)
     ov = pg.locator("#summon")
@@ -155,7 +160,7 @@ with sync_playwright() as p:
     pg.click('[data-action="sm-roll"][data-n="11"]'); pg.wait_for_timeout(400)
     check("with the switch off, the cards are dealt straight away", ov.is_hidden() and pg.locator(".smr-list .smr").count() == 11 and json.loads(pg.evaluate("localStorage.getItem('spirit-origin-list:v1:summon')"))["anim"] is False)
     # a ★4 servant summoned from Past Chaldea: gold, faster than rainbow
-    pg.click("#tab-past"); pg.wait_for_timeout(400)
+    go_tab(pg, "past"); pg.wait_for_timeout(400)
     pg.fill('[data-pc-q="q"]', "emiya"); pg.wait_for_timeout(300); pg.click('.pc-card[data-no="11"]'); pg.wait_for_timeout(300)
     t0 = time.time(); pg.click('.pcd-panel [data-action="pc-summon"]')
     pg.wait_for_function("document.getElementById('summon').classList.contains('info')", timeout=15000); dt = time.time() - t0

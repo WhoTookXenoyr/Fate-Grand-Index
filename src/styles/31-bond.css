@@ -1,0 +1,91 @@
+/* ===== 0.50.0: Bond 10 and Bond 15 (50-bond.js) =====
+   Only transform and opacity move. The rainbow's strength is --a, plain to see from Bond 10 (Noyr: Bond 10 takes so long that
+   it deserves Bond 15's look); Bond 15 adds more crystals and a third band of light to the website's background. */
+
+/* ---------- the SERVANTPAGE's veil: pinned to the page's window as it scrolls, behind everything on it ---------- */
+#dossier.bd10, #dossier.bd15 { isolation: isolate; }
+/* (a sticky box's top counts from inside the scroll box's padding, so top: 0 keeps it at the padding's edge, and .bd-in
+   reaches back over the padding) */
+.bd-veil { position: sticky; top: 0; flex: none; align-self: stretch; height: 0; margin-bottom: calc(-1 * var(--bd-gap, 24px)); z-index: -1; pointer-events: none;
+  --a: .3; --cr: .2; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .bd-veil { --a: .27; --cr: .22; } }
+:root[data-theme="dark"] .bd-veil { --a: .27; --cr: .22; }
+.bd-in { position: absolute; top: calc(-1 * var(--bd-pt, 26px)); left: calc(-1 * var(--bd-pl, 26px)); right: calc(-1 * var(--bd-pr, 26px)); height: var(--bd-vh, 100vh); overflow: hidden; }
+/* the rainbow: one panel-wide band of colours, repeated and slanted; moving it on by one band loops without a seam */
+.bd-rb { position: absolute; top: -12%; bottom: -12%; left: -250%; right: -250%;
+  background: linear-gradient(90deg, rgba(255, 112, 150, var(--a)) 0%, rgba(255, 186, 112, var(--a)) 14%, rgba(255, 234, 128, var(--a)) 28%, rgba(138, 234, 168, var(--a)) 43%,
+    rgba(112, 204, 255, var(--a)) 57%, rgba(160, 142, 255, var(--a)) 71%, rgba(234, 140, 255, var(--a)) 85%, rgba(255, 112, 150, var(--a)) 100%) 0 0 / 16.6667% 100% repeat-x;
+  animation: bdFlow 30s linear infinite; animation-delay: var(--bd-t, 0s); }
+@keyframes bdFlow { from { transform: skewX(-24deg) translateX(0); } to { transform: skewX(-24deg) translateX(16.6667%); } }
+/* a second, wider and fainter band the other way: where they cross, the colours shift like foil */
+.bd-rb.b2 { opacity: .55; background-size: 33.3333% 100%; animation: bdFlow2 60s linear infinite; animation-delay: var(--bd-t, 0s); }
+@keyframes bdFlow2 { from { transform: skewX(30deg) translateX(0); } to { transform: skewX(30deg) translateX(-33.3333%); } }
+/* the crystal, large and faint, breathing */
+.bd-cr { position: absolute; top: 3%; right: -9%; width: min(74%, 560px); aspect-ratio: 100 / 104; opacity: var(--cr); animation: bdBreath 12s ease-in-out infinite alternate; animation-delay: var(--bd-t, 0s); }
+.bd-cr svg { display: block; width: 100%; height: 100%; }
+@keyframes bdBreath { from { transform: rotate(-4deg) scale(.97); } to { transform: rotate(3deg) scale(1.03); } }
+/* a light that crosses the page now and then */
+.bd-glint { position: absolute; top: -20%; bottom: -20%; left: 0; width: 38%; opacity: 0; background: linear-gradient(100deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .22) 50%, rgba(255, 255, 255, 0) 100%); }
+.bd10 .bd-glint, .bd15 .bd-glint { opacity: 1; animation: bdGlint 10s cubic-bezier(.45, .05, .35, 1) infinite; animation-delay: var(--bd-t, 0s); }
+@keyframes bdGlint { 0%, 70% { transform: translateX(-130%) skewX(-14deg); } 100% { transform: translateX(380%) skewX(-14deg); } }
+
+/* ---------- the website's background: rising crystals and soft bands of light ---------- */
+.bond-bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; opacity: 0; transition: opacity 1.2s ease; }
+.bond-bg.on { opacity: .9; }
+.bdb-band { position: absolute; left: -30%; width: 160%; height: 46vh; border-radius: 50%; opacity: .5;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, .34), rgba(255, 255, 255, 0)); }
+.bdb-band.b1 { top: 8%; animation: bdBand1 26s ease-in-out infinite alternate; }
+.bdb-band.b2 { top: 52%; animation: bdBand2 32s ease-in-out infinite alternate; background: radial-gradient(closest-side, rgba(176, 226, 255, .3), rgba(176, 226, 255, 0)); }
+.bdb-band.b3 { top: 30%; opacity: 0; background: radial-gradient(closest-side, rgba(255, 190, 236, .32), rgba(255, 190, 236, 0)); }
+.t15 .bdb-band.b3 { opacity: .5; animation: bdBand1 21s ease-in-out infinite alternate-reverse; }
+@keyframes bdBand1 { from { transform: translateX(-8%) rotate(-7deg); } to { transform: translateX(8%) rotate(-2deg); } }
+@keyframes bdBand2 { from { transform: translateX(7%) rotate(5deg); } to { transform: translateX(-7%) rotate(9deg); } }
+/* each crystal rises from below the page and fades out near the top, turning a little as it goes */
+.bdb-g { position: absolute; bottom: -24px; width: var(--s); height: var(--s); opacity: 0; animation: bdRise var(--d) linear infinite; animation-delay: var(--w); }
+.bdb-g::before { content: ""; position: absolute; inset: 0; border-radius: 22%; transform: rotate(45deg); background: linear-gradient(160deg, var(--c1), var(--c2));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .7), 0 0 8px 1px color-mix(in srgb, var(--c1) 70%, transparent); }
+.bdb-g.more { display: none; }
+.t15 .bdb-g.more { display: block; }
+@keyframes bdRise {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  10% { opacity: .75; }
+  80% { opacity: .55; }
+  100% { transform: translate(var(--x), -112vh) rotate(var(--r)); opacity: 0; }
+}
+
+/* ---------- Bond 15: the intro ---------- */
+.bd-intro { position: fixed; z-index: 70; pointer-events: none; overflow: hidden; border-radius: var(--r-panel, 22px); }
+.bd-intro > * { position: absolute; left: 50%; top: 34%; }
+.bdi-wash { inset: 0; left: 0; top: 0; background: radial-gradient(120% 80% at 50% 34%, rgba(255, 255, 255, .7), rgba(255, 255, 255, 0) 70%); opacity: 0; animation: bdiWash 1.5s ease-out both; }
+@keyframes bdiWash { 0% { opacity: 0; } 25% { opacity: 1; } 100% { opacity: 0; } }
+.bdi-glow { width: calc(var(--cs) * 2.4); height: calc(var(--cs) * 2.4); margin: calc(var(--cs) * -1.2) 0 0 calc(var(--cs) * -1.2); border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, .95), rgba(255, 236, 176, .55) 38%, rgba(190, 220, 255, .25) 62%, rgba(255, 255, 255, 0)); opacity: 0; animation: bdiGlow 1.5s cubic-bezier(.2, .7, .2, 1) both; }
+@keyframes bdiGlow { 0% { opacity: 0; transform: scale(.2); } 40% { opacity: 1; transform: scale(.75); } 58% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.25); } }
+.bdi-ring { width: var(--cs); height: var(--cs); margin: calc(var(--cs) * -.5) 0 0 calc(var(--cs) * -.5); border-radius: 50%; opacity: 0;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, .95), 0 0 14px 3px rgba(255, 214, 120, .7), inset 0 0 12px 2px rgba(150, 210, 255, .6); animation: bdiRing 1.5s cubic-bezier(.15, .7, .2, 1) both; animation-delay: .5s; }
+.bdi-ring.r2 { animation-delay: .62s; box-shadow: 0 0 0 1.5px rgba(255, 255, 255, .85), 0 0 12px 2px rgba(255, 150, 214, .6), inset 0 0 10px 2px rgba(150, 255, 210, .5); }
+@keyframes bdiRing { 0% { opacity: 0; transform: scale(.35); } 12% { opacity: 1; } 100% { opacity: 0; transform: scale(3.2); } }
+/* the nine gems fly in to their places, the crystal pulses once, then lifts away */
+.bdi-cr { width: var(--cs); height: calc(var(--cs) * 1.04); margin: calc(var(--cs) * -.52) 0 0 calc(var(--cs) * -.5); animation: bdiCr 1.5s cubic-bezier(.3, .6, .2, 1) both; }
+@keyframes bdiCr { 0%, 44% { transform: scale(1); opacity: 1; } 54% { transform: scale(1.1); opacity: 1; } 66% { transform: scale(1); opacity: 1; } 100% { transform: translateY(-16px) scale(.86); opacity: 0; } }
+.bdi-g { position: absolute; display: block; opacity: 0; animation: bdiGem .62s cubic-bezier(.2, .8, .25, 1.15) both; animation-delay: calc(.04s + var(--i) * .035s); }
+.bdi-g svg { display: block; width: 100%; height: 100%; }
+@keyframes bdiGem { from { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(.4); } to { opacity: 1; transform: none; } }
+.bdi-t { top: calc(34% + var(--cs) * .66); transform: translateX(-50%); font: 600 12px var(--f-data, monospace); letter-spacing: .32em; text-transform: uppercase; white-space: nowrap; color: var(--ink);
+  text-shadow: 0 0 10px rgba(255, 255, 255, .9); opacity: 0; animation: bdiT 1.5s ease both; }
+@keyframes bdiT { 0%, 30% { opacity: 0; letter-spacing: .1em; } 55% { opacity: 1; letter-spacing: .32em; } 80% { opacity: 1; } 100% { opacity: 0; letter-spacing: .4em; } }
+/* and the page rises in under it, a part at a time */
+#dossier.bd-enter > :not(.bd-veil) { animation: bdiRise .62s cubic-bezier(.2, .7, .2, 1) both; animation-delay: .42s; }
+#dossier.bd-enter > :nth-child(3) { animation-delay: .48s; }
+#dossier.bd-enter > :nth-child(4) { animation-delay: .54s; }
+#dossier.bd-enter > :nth-child(5) { animation-delay: .6s; }
+#dossier.bd-enter > :nth-child(6) { animation-delay: .66s; }
+#dossier.bd-enter > :nth-child(n+7) { animation-delay: .72s; }
+@keyframes bdiRise { from { opacity: 0; transform: translateY(18px) scale(.985); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-rb, .bd-cr, .bd-glint, .bdb-band, .bdb-g { animation: none !important; }
+  .bdb-g { display: none; }
+  .bd-intro { display: none; }
+  #dossier.bd-enter > * { animation: none !important; }
+}

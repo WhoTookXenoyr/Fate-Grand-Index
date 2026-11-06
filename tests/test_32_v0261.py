@@ -14,6 +14,11 @@ errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
     if not ok: fails.append(label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 INIT = "localStorage.setItem('spirit-origin-list:v1:intro','1');localStorage.setItem('spirit-origin-list:v1:news','9.9.9');localStorage.setItem('spirit-origin-list:v1:summon',JSON.stringify({anim:false}))"
 LS = "JSON.parse(localStorage.getItem('spirit-origin-list:v1'))"
 STK = "spirit-origin-list:v1:story"
@@ -43,7 +48,7 @@ with sync_playwright() as p:
     g = guest(pg, "morgan")
     check(f"Morgan is a Guest with NA's four stage pictures ({sorted((g or {}).get('art', {}))})", g and g.get("wish") and all(k in g["art"] for k in "1234"))
     st1 = g["art"]["1"]
-    pg.click("#tab-servants"); pg.wait_for_timeout(500); pg.locator('#list [data-id="morgan"]').first.click(); pg.wait_for_timeout(800)
+    go_tab(pg, "servants"); pg.wait_for_timeout(500); pg.locator('#list [data-id="morgan"]').first.click(); pg.wait_for_timeout(800)
     acts = pg.evaluate("[...document.querySelectorAll('#dossier .wish-banner button')].map(b => b.textContent.trim())")
     check(f"the Guest's page has Remove from Guests next to Go to Summoning ({acts})", acts == ["Go to Summoning", "Remove from Guests"])
     pg.click('#dossier [data-action="stage"][data-slot="1"]'); pg.wait_for_timeout(300)
@@ -114,7 +119,7 @@ with sync_playwright() as p:
     cls = pg.evaluate("[...document.querySelectorAll('#story .st-ccard b')].slice(0, 3).map(x => x.textContent)")
     check(f"worth borrowing: your Guests of the right classes ({borrow[:90]} for {cls})", ("Castoria" in borrow or "Merlin" in borrow or "Scathach-Skadi" in borrow) if "Caster" in cls else ("Koyanskaya" in borrow) if "Assassin" in cls else True)
     # ---------- the chapter's look ----------
-    pg.click("#tab-ranking"); pg.wait_for_timeout(1600)
+    go_tab(pg, "ranking"); pg.wait_for_timeout(1600)
     look = pg.evaluate("""(() => { const i = document.getElementById('idle-bg'), s = document.getElementById('story-bg');
       return {idle: !!i && i.classList.contains('on') && i.classList.contains('st-tint'), c1: i && i.style.getPropertyValue('--c1'),
         glows: s ? s.querySelectorAll('.sb-glow').length : 0, rays: s ? s.querySelectorAll('.sb-rays').length : 0, heat: s ? s.querySelectorAll('.sb-heat').length : 0,
@@ -123,9 +128,9 @@ with sync_playwright() as p:
     check("with glows, light around the circle, more embers and Fuyuki's heat", look["on"] and look["glows"] == 3 and look["rays"] == 1 and look["heat"] == 1 and look["parts"] == 35)
     props = pg.evaluate("""[...new Set(document.getAnimations().filter(a => a.effect && a.effect.target && a.effect.target.closest && a.effect.target.closest('#story-bg')).flatMap(a => a.effect.getKeyframes().flatMap(k => Object.keys(k).filter(x => !['offset', 'easing', 'composite', 'computedOffset'].includes(x)))))]""")
     check(f"which only move and fade (nothing the graphics card has to repaint: {props})", props and all(x in ("transform", "opacity", "translate") for x in props))
-    pg.click('[data-action="theme"]'); pg.wait_for_timeout(900)
+    pg.evaluate("document.querySelector('#theme-tgl').click()"); pg.wait_for_timeout(900)
     check("in the other theme too", pg.evaluate("document.getElementById('idle-bg').classList.contains('st-tint') && document.getElementById('story-bg').classList.contains('on')"))
-    pg.click("#tab-story"); pg.wait_for_timeout(600); pg.uncheck("#story [data-st-theme]"); pg.wait_for_timeout(400); pg.click("#tab-ranking"); pg.wait_for_timeout(1600)
+    go_tab(pg, "story"); pg.wait_for_timeout(600); pg.uncheck("#story [data-st-theme]"); pg.wait_for_timeout(400); go_tab(pg, "ranking"); pg.wait_for_timeout(1600)
     off = pg.evaluate("(() => { const i = document.getElementById('idle-bg'), s = document.getElementById('story-bg'); return [!!i, i && i.className, i && i.style.cssText, s && s.className, location.hash]; })()")
     check(f"with the look off, the circle is the page's own again ({off})", off[0] and "st-tint" not in off[1] and not off[2] and (not off[3] or " on" not in off[3]))
     ctx.close()

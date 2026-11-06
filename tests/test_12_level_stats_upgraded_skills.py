@@ -9,6 +9,11 @@ errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
     if not ok: fails.append(label)
+# (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)
+def go_tab(pg, t):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+    pg.locator(f"#tab-{t}").click()
 def atlas(r):
     u = r.request.url
     f = "ph_buff.png" if "BuffIcons" in u else "ph_skill.png" if "SkillIcons" in u else "ph_face.png" if "/Faces/" in u else "ph_graph.png"
@@ -34,17 +39,19 @@ with sync_playwright() as p:
     ctx, pg = page(p)
     pg.goto(EMPTY); pg.wait_for_timeout(1500)
     pg.keyboard.press("Escape"); pg.wait_for_timeout(150)
-    chip = pg.locator(".masthead .ver-chip")
-    check(f"the version shows top left ({chip.inner_text()!r})", chip.is_visible() and re.fullmatch(r"v0\.\d+\.\d+ · alpha", chip.inner_text()) is not None and chip.bounding_box()["x"] < 600 and chip.bounding_box()["y"] < 80)
+    # (0.50.0-beta: the logo and the chip are at the top of the sidebar)
+    chip = pg.locator("#side .ver-chip, .masthead .ver-chip").first
+    check(f"the version shows top left ({chip.inner_text()!r})", chip.is_visible() and re.fullmatch(r"v0\.\d+\.\d+ · (alpha|beta)", chip.inner_text()) is not None and chip.bounding_box()["x"] < 600 and chip.bounding_box()["y"] < 140)
     chip.click(); pg.wait_for_timeout(300)
     first = pg.locator(".news-panel .cl-v").first.inner_text()
     check("pressing it opens What's new at the current version", first.startswith(chip.inner_text()[1:].split(" ")[0]) and "Upgraded skills" in pg.locator(".news-panel").inner_text())
     labels = pg.evaluate("Array.from(document.querySelectorAll('.cl-n')).map(e => e.textContent)")
-    check(f"every release has a MAJOR.MINOR.PATCH number under 1.0.0 ({labels[:4]}…)", all(re.fullmatch(r"0\.\d+\.\d+", l) for l in labels) and labels[0] == chip.inner_text()[1:].split(" ")[0] and "0.15.0" in labels and labels[-1] == "0.1.0")
+    # (semver: a pre-release like 0.50.0-beta is still MAJOR.MINOR.PATCH, with its stage after the dash)
+    check(f"every release has a MAJOR.MINOR.PATCH number under 1.0.0 ({labels[:4]}…)", all(re.fullmatch(r"0\.\d+\.\d+(-(alpha|beta))?", l) for l in labels) and labels[0].split("-")[0] == chip.inner_text()[1:].split(" ")[0] and "0.15.0" in labels and labels[-1] == "0.1.0")
     pg.keyboard.press("Escape"); pg.wait_for_timeout(150)
 
     # ---- Artoria Face
-    pg.click("#tab-past"); pg.wait_for_timeout(600)
+    go_tab(pg, "past"); pg.wait_for_timeout(600)
     opts = pg.evaluate("Array.from(document.querySelectorAll('[data-pc-f=tr] option')).map(o => o.value)")
     check("Artoria Face is a trait to filter by (Saberface is gone)", "Artoria Face" in opts and "Saberface" not in opts)
     pg.select_option('[data-pc-f="tr"]', "Artoria Face"); pg.wait_for_timeout(300)

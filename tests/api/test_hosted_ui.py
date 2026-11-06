@@ -40,8 +40,13 @@ def story_fx(route):
         m = re.search(r"/nice/NA/quest/(\d+)/(\d+)", u); f = f"{FX}/quest-{m.group(1)}-{m.group(2)}.json" if m else ""
     if f and os.path.exists(f): route.fulfill(path=f, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"})
     else: route.fulfill(status=404, body="{}", headers={"Access-Control-Allow-Origin": "*"})
+# (0.50.0: on a phone the account button is in the menu that slides in from the left: open it first)
+def menu(pg):
+    if pg.evaluate("matchMedia('(max-width: 900px)').matches && !document.documentElement.classList.contains('side-open')") and pg.locator(".top-bar .side-btn").count():
+        pg.locator(".top-bar .side-btn").click(); pg.wait_for_timeout(350)
+
 def sign_in(pg, email, pw):
-    pg.click("#acct-btn"); pg.wait_for_selector("#acct-email")
+    menu(pg); pg.click("#acct-btn"); pg.wait_for_selector("#acct-email")
     pg.fill("#acct-email", email); pg.fill("#acct-pw", pw); pg.click('.acct-form button[type="submit"]')
 
 def run(base):

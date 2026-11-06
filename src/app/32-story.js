@@ -179,7 +179,7 @@ function servantFight(s, ph) {
     es.forEach((e, i) => { if (!boss || e.tot > boss.e.tot) boss = {e: e, dmg: dm[i]}; });
   });
   if (!total) return null;
-  return {s: s, aoe: aoe, frac: removed / total, boss: boss, rank: (rankOf(s.id) || {sc: {total: 0}}).sc.total};
+  return {s: s, aoe: aoe, frac: removed / total, boss: boss, rank: scoreOf(s).total};
 }
 function servantAdvice(ph) {
   return S.servants.map((s) => servantFight(s, ph)).filter(Boolean).sort((a, b) => b.frac - a.frac || b.rank - a.rank).slice(0, 6);
@@ -440,7 +440,7 @@ function storyPaint() {
     bg.classList.toggle("on", !!c); bg.classList.toggle("lt", !isDark());
   }
   // the chapter's plate next to the logo
-  const brand = document.querySelector(".masthead .brand");
+  const brand = document.querySelector(".brand");
   let plate = document.getElementById("story-plate");
   if (c && brand) {
     if (!plate) { brand.insertAdjacentHTML("beforeend", `<button type="button" id="story-plate" class="story-plate-btn" data-action="tab" data-tab="story"></button>`); plate = document.getElementById("story-plate"); }

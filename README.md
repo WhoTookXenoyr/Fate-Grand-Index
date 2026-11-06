@@ -138,6 +138,7 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
 ## The new look (0.50.0-beta)
 - `src/app/51-ui.js`, `src/styles/32-ui.css`. `html[data-ui]` is `beta` (the new look, the default) or `classic`, kept with the folded menu in `spirit-origin-list:v1:ui` (`{look, mini}`). The new look moves the masthead's eyebrow, logo, tabs and tools into `#side` (`uiBuild`) and puts them back for Classic (`uiTakeApart`); a phone (max-width 900px) gets the sidebar in either look, as a drawer (`html.side-open`, `#side-scrim`).
 - `#side` follows `.shell`: whenever a window makes `.shell` inert, the sidebar is inert too (a MutationObserver on the attribute), so every dialog keeps the keyboard in itself without knowing about the sidebar.
+- Settings (0.50.0-beta): `#view-settings`, opened by the cog beside the account; `uiSetFill` moves the header's tools into it (Classic on a computer puts them back).
 - The background's default colours are Chaldea's blue in the new look (`UI_PAL`, swapped in for `DEFAULT_PAL` only while painting).
 - Moving between pages adds `.view-in` to the page for one animation; Past Chaldea's window gets `.pcd-drop`. Both are transform and opacity only, and off for reduced motion.
 

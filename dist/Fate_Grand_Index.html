@@ -4579,29 +4579,36 @@ html:not([data-theme="dark"]) .top-logo img { filter: drop-shadow(0 0 1px rgba(1
 /* the gold marker glides to the page you're on */
 .side-mark { position: absolute; left: -14px; top: 0; width: 3px; height: 42px; border-radius: 0 3px 3px 0; background: var(--gold); box-shadow: 0 0 12px 1px color-mix(in srgb, var(--gold) 60%, transparent);
   opacity: 0; transition: transform .38s cubic-bezier(.3, .7, .2, 1), height .38s ease, opacity .2s ease; pointer-events: none; }
-/* the header's buttons, at the foot of the menu */
-.side-tools { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); }
-/* two to a row; the frame rate, the layout and light/dark switches sit together under them */
-.side .mast-actions { display: flex; flex-wrap: wrap; gap: 6px; }
-.side .mast-actions > .btn, .side .mast-actions > .menu-wrap, .side .mast-actions > label.btn { flex: 1 1 calc(50% - 3px); min-width: 0; }
-.side .mast-actions > .btn, .side .mast-actions > .menu-wrap > .btn, .side .mast-actions > label.btn { width: 100%; min-height: 34px; padding: 0 10px; font-size: 13px; justify-content: flex-start; }
-.side .mast-actions > .menu-wrap { position: relative; }
-.side .mast-actions > .acct-btn { flex-basis: 100%; }
-.side .mast-actions > .fps-btn, .side .mast-actions > .lay-tgl, .side .mast-actions > .theme-tgl { flex: none; }
-.side .pop-menu { top: auto; bottom: calc(100% + 6px); left: 0; right: auto; width: min(270px, calc(var(--side-w) + 40px)); }
-.side-foot { display: flex; flex-direction: column; gap: 8px; }
-.side-look { display: flex; align-items: center; gap: 4px; padding: 3px; border-radius: 10px; border: 1px solid var(--line); font-size: 12.5px; }
-.side-look span { padding: 0 6px 0 7px; color: var(--muted); }
-.side-look button { flex: 1; min-height: 28px; border: 0; border-radius: 7px; background: none; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer; }
-.side-look button[aria-pressed="true"] { background: color-mix(in srgb, var(--gold) 26%, transparent); color: var(--ink); }
-.side-mini-btn { display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 8px; border: 0; border-radius: 8px; background: none; color: var(--muted); font: inherit; font-size: 12.5px; cursor: pointer; }
-.side-mini-btn:hover { color: var(--ink); }
-.side-mini-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: transform .3s ease; }
-html[data-ui="classic"] .side-mini-btn { display: none; }
+/* the foot of the menu: the account and the Settings cog beside it (0.50.0-beta; the other tools are on Settings) */
+.side-tools { display: flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); }
+.side .mast-actions { display: flex; flex: 1 1 auto; min-width: 0; gap: 6px; }
+.side:not(.has-acct) .mast-actions { display: none; }
+.side .mast-actions > .acct-btn { flex: 1 1 auto; min-width: 0; justify-content: flex-start; }
+.side-cog { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 9px; flex: none; min-width: 42px; min-height: 40px; padding: 0 10px;
+  border: 1px solid var(--line); border-radius: 10px; background: linear-gradient(180deg, var(--raised), var(--panel)); color: var(--ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.side:not(.has-acct) .side-cog { flex: 1 1 auto; justify-content: flex-start; padding-inline: 12px; }
+.side.has-acct .side-cog-t { display: none; }
+.side-cog .cog { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; transition: transform .45s cubic-bezier(.3, .7, .2, 1); }
+.side-cog:hover { border-color: color-mix(in srgb, var(--gold) 70%, var(--line)); }
+.side-cog:hover .cog { transform: rotate(60deg); }
+.side-cog[aria-current="page"] { border-color: var(--gold); background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 24%, transparent), color-mix(in srgb, var(--gold) 6%, transparent)); }
+.side-cog[aria-current="page"] .cog { color: var(--gold); }
+.side-cog:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.side-cog-dot { position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--buster, #d4463a); box-shadow: 0 0 0 2px var(--sd-bg1); }
+.side-cog-dot[hidden] { display: none; }
 /* folded: just the icons */
 html.side-mini .side { padding-inline: 12px; }
 html.side-mini .side .tab { justify-content: center; padding-inline: 0; }
-html.side-mini .side .tab-t, html.side-mini .side .eyebrow, html.side-mini .side-look, html.side-mini .side-mini-btn span, html.side-mini .side-tools { display: none; }
+html.side-mini .side .tab-t, html.side-mini .side .eyebrow, html.side-mini .side-cog-t { display: none; }
+/* folded, the foot is the account's initial (or a person for Sign in) over the cog */
+html.side-mini .side-tools { flex-direction: column; align-items: stretch; }
+html.side-mini .side .mast-actions { justify-content: center; }
+html.side-mini .side .mast-actions > .acct-btn { flex: none; width: 42px; min-height: 40px; padding: 0; justify-content: center; }
+html.side-mini .acct-btn .acct-nm, html.side-mini .acct-btn .sync-dot, html.side-mini .acct-btn:not(.in) > span { display: none; }
+html.side-mini .acct-btn:not(.in)::before { content: ""; width: 20px; height: 20px; background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7'%3E%3Ccircle cx='12' cy='8.5' r='3.6'/%3E%3Cpath d='M4.8 20c.9-3.6 3.7-5.6 7.2-5.6s6.3 2 7.2 5.6'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7'%3E%3Ccircle cx='12' cy='8.5' r='3.6'/%3E%3Cpath d='M4.8 20c.9-3.6 3.7-5.6 7.2-5.6s6.3 2 7.2 5.6'/%3E%3C/svg%3E") center / contain no-repeat; }
+html.side-mini .side-cog { flex: none; align-self: center; padding: 0; width: 42px; justify-content: center; }
 /* folded: the logo's diamond (the app icon's), not a slice of the wordmark */
 .side-gem { display: none; }
 html.side-mini .side .brand { display: none; }
@@ -4609,9 +4616,6 @@ html.side-mini .side-gem { display: grid; place-items: center; height: 58px; bor
 html.side-mini .side-gem svg { height: 52px; width: auto; filter: drop-shadow(0 2px 6px rgba(140, 92, 18, .35)); transition: transform .2s ease; }
 html.side-mini .side-gem:hover svg { transform: scale(1.06); }
 html.side-mini .side-gem:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-html.side-mini .side-mini-btn { justify-content: center; }
-html.side-mini .side-mini-btn svg { transform: rotate(180deg); }
-.side-mini-btn:focus-visible, .side-look button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 /* ---------- the top of the page: the page's name; on phones a bar with the menu button and the logo ---------- */
 html.has-side .masthead { display: block; }
@@ -4634,7 +4638,7 @@ html.has-side .masthead { display: block; }
   html[data-ui="beta"] .side::after { display: none; }
   .side-scrim { position: fixed; inset: 0; z-index: 61; background: rgba(6, 10, 26, .5); opacity: 0; pointer-events: none; transition: opacity .3s ease; }
   html.side-open .side-scrim { opacity: 1; pointer-events: auto; }
-  .side-mini-btn { display: none; }
+  .set-row.set-menu { display: none; }
   .side .tab { min-height: 46px; font-size: 15.5px; }
 }
 
@@ -4645,6 +4649,26 @@ html.has-side .masthead { display: block; }
   html.has-side .shell { padding-inline: 28px; }
   html.has-side:not(.side-mini):not([data-layout="compact"]) .workspace { grid-template-columns: minmax(300px, 440px) minmax(0, 1fr); }
   html.has-side:not(.side-mini):not([data-layout="compact"]) .dossier .art-frame { flex-basis: clamp(250px, 50%, 440px); }
+}
+
+/* ---------- the Settings page ---------- */
+.set-grid { columns: 2 380px; column-gap: 18px; }
+.set-card { display: flex; flex-direction: column; break-inside: avoid; margin-bottom: 18px; padding: 6px 20px; border: 1px solid var(--line); border-radius: var(--r-panel, 16px); background: var(--panel); box-shadow: var(--shadow); }
+.set-card h3 { margin: 14px 0 4px; font-family: var(--f-display); font-size: 1.15rem; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--ink); }
+.set-row { display: flex; align-items: center; justify-content: space-between; gap: 10px 18px; padding: 14px 0; border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+.set-card h3 + .set-row { border-top: 0; }
+.set-l { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.set-l b { font-size: 15px; font-weight: 650; color: var(--ink); }
+.set-l small { font-size: 13px; line-height: 1.4; color: var(--muted); max-width: 46ch; }
+.set-c { display: flex; align-items: center; justify-content: flex-end; flex: none; }
+.set-c > .btn, .set-c > .menu-wrap > .btn, .set-c > label.btn { min-height: 38px; padding: 0 16px; }
+.set-c > .menu-wrap { position: relative; }
+.set-seg button { white-space: nowrap; }
+.set-tab { display: none; }
+@media (max-width: 560px) {
+  .set-card { padding: 4px 16px; }
+  .set-row { flex-wrap: wrap; }
+  .set-row.set-look, .set-row.set-menu { flex-direction: column; align-items: flex-start; }
 }
 
 /* ---------- moving between pages: the new one slides in ---------- */
@@ -4670,7 +4694,7 @@ section[id^="view-"].view-in { animation: uiViewIn .42s cubic-bezier(.2, .7, .2,
 
 @media (prefers-reduced-motion: reduce) {
   section[id^="view-"].view-in, #view-servants.view-in > *, #view-servants.view-in .workspace > .list, .pcd.pcd-drop, .pcd.pcd-drop .pcd-panel, .pcd.pcd-drop .pcd-frame, .pcd.pcd-drop .pcd-info > * { animation: none !important; }
-  .side, .side-mark, .side-scrim { transition: none !important; }
+  .side, .side-mark, .side-scrim, .side-cog .cog { transition: none !important; }
 }
 /* ===== 0.50.0-beta: the Battle page (49a-battle-engine.js, 49b-battle-ui.js) =====
    Only transform and opacity move: the HP and NP bars scale, the acting fighter steps forward, the damage rises. */
@@ -11530,7 +11554,7 @@ function traitPanelHTML() {
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
   {v: "0.50.0-beta", d: "3 Nov 2026", t: "The beta: a new look, a battle simulator, the Saint Graph maker, and Bond 10 and 15", i: [
-    "<b>A new look</b>: the pages are in a sidebar on the left, each with its icon, with the tools (Guide, What's new, Fonts, Export, Import, the frame rate, light and dark) under them. <b>Fold the menu</b> leaves only the icons and is remembered. Buttons, sections and lists have a cleaner style, and the background is Chaldea's blue when no servant gives it colours. <b>Look: Classic</b> at the bottom of the sidebar puts the page back as it was in 0.28 (with Undo), and <b>New look</b> in the header switches back.",
+    "<b>A new look</b>: the pages are in a sidebar on the left, each with its icon, and at its foot your account and a cog for the new <b>Settings</b> page: light or dark, the look, the servant page's layout, the sidebar's fold, fonts, the frame rate, export and import, the Guide and What's new. Folding the sidebar (on Settings) leaves only the icons, the logo's diamond and the cog, and is remembered. Buttons, sections and lists have a cleaner style, and the background is Chaldea's blue when no servant gives it colours. <b>Look: Classic</b> on Settings puts the page back as it was in 0.28 (with Undo), and <b>New look</b> in the header switches back.",
     "<b>Battle</b>, a new page: put up to six servants in a party (yours, a Guest, a support or any NA servant, custom servants with their Workshop kit) against made-up enemies you can edit, your Guests, your own servants, or a real NA quest's enemies from Atlas Academy (pick a chapter and battle, or paste a quest's number or link). Press Fight and watch the auto-battle: skills, the five cards and the three picked, Noble Phantasms, the enemies' turn, the waves. Play, pause, step, go 2× or 4×, jump to any moment from the list of what happened, and see each servant's damage at the end. The same seed plays the same fight. A fight changes nothing on your list.",
     "<b>The Saint Graph maker</b>, for servants of your own (on their page, beside the pictures): make their four ascension pictures from one picture. Place it (zoom, position, mirror), pick a scene (Chaldea, twilight, a starfield, an inferno, sakura, the ocean, a throne room, the Void, holy light), a colour, a light and effects (sparkles, petals, embers, snow, a magic circle, an aura). <b>Make all four from this one</b> builds a rising set, from plain at Stage 1 to the most ornate at Stage 4. Save one stage or all four, with Undo, or Download a stage. The picture and the settings are kept with the servant, so it opens where you left it. It's all drawn in your browser; a PNG with a see-through background looks best.",
     "<b>Bond 10 and up</b>: their page takes a moving rainbow over its white (or its black in dark mode), with the Bond 10 crystal behind it and a light that crosses it now and then, and bond crystals rise slowly through the website's background while their page is open. Opening them with a click plays a short intro: the crystal comes together from its nine gems, a ring of light opens, and their page rises in. <b>Bond 15</b> adds more crystals and a band of light to the background.",
@@ -20878,6 +20902,56 @@ const UI_IC = {
 };
 const uiIcon = (k) => `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${UI_IC[k] || UI_IC._}</svg>`;
 
+const UI_COG = '<svg class="cog" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10.3 3.5h3.4l.5 2.4 1.6.9 2.3-.8 1.7 2.9-1.8 1.6v1.9l1.8 1.6-1.7 2.9-2.3-.8-1.6.9-.5 2.4h-3.4l-.5-2.4-1.6-.9-2.3.8-1.7-2.9 1.8-1.6v-1.9L4.2 8.9l1.7-2.9 2.3.8 1.6-.9z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+/* ---------- 0.50.0-beta: the Settings page (the cog beside the account) ----------
+   The header's tools live here in the new look and on phones: light or dark, the look, the servant page's layout, the
+   sidebar's fold, fonts, the frame rate, export and import, the guide and What's new. They're the same buttons (moved,
+   not copied), so everything they did still works; Classic on a computer puts them back in the header. */
+TABS.push("settings");
+const UI_SET_ROWS = [
+  ["Look and feel", [
+    ["theme", "Light or dark", ""],
+    ["look", "Look", "Classic is the page as it was before 0.50."],
+    ["layout", "Servant page", "Modern puts the servant beside your list; Compact opens them in a window."],
+    ["menu", "Sidebar", "The pages' names and icons, or only the icons."],
+    ["fonts", "Text", "The page's fonts."],
+    ["fps", "Animations", "Fewer frames a second are lighter on a slow computer."]]],
+  ["Your data", [
+    ["export", "Backup", "Download your servants, parties and pictures, or a spreadsheet."],
+    ["import", "Bring a list in", "A backup from this page, a spreadsheet (.csv) or a planner's .json export."]]],
+  ["Help", [
+    ["guide", "New here?", "A short tour of the page."],
+    ["news", "Updates", "Every version, newest first."]]]
+];
+function uiSetHTML() {
+  const seg = (k) => k === "look"
+    ? `<div class="seg set-seg" role="group" aria-label="Look"><button type="button" data-action="ui-look" data-v="beta">New</button><button type="button" data-action="ui-look" data-v="classic">Classic</button></div>`
+    : k === "menu" ? `<div class="seg set-seg" role="group" aria-label="Sidebar"><button type="button" data-action="ui-mini" data-v="0">Names and icons</button><button type="button" data-action="ui-mini" data-v="1">Only icons</button></div>` : "";
+  return `<button type="button" id="tab-settings" class="set-tab" data-action="tab" data-tab="settings" hidden tabindex="-1" aria-hidden="true">Settings</button>
+    <div class="set-grid">${UI_SET_ROWS.map(([h, rows]) => `<section class="set-card" aria-labelledby="set-h-${esc(h.replace(/\W+/g, "-").toLowerCase())}"><h3 id="set-h-${esc(h.replace(/\W+/g, "-").toLowerCase())}">${esc(h)}</h3>
+      ${rows.map(([k, t, d]) => `<div class="set-row set-${k}"><div class="set-l"><b>${esc(t)}</b>${d ? `<small>${esc(d)}</small>` : ""}</div><div class="set-c" data-set="${k}">${seg(k)}</div></div>`).join("")}</section>`).join("")}</div>`;
+}
+(function () {
+  const sec = document.createElement("section");
+  sec.id = "view-settings"; sec.className = "set-page"; sec.setAttribute("aria-label", "Settings"); sec.hidden = true; sec.innerHTML = uiSetHTML();
+  const sh = document.querySelector(".shell"), ft = sh && sh.querySelector(":scope > .site-foot");
+  if (ft) sh.insertBefore(sec, ft); else if (sh) sh.appendChild(sec);
+  if ((location.hash || "").slice(1) === "settings") S.tab = "settings";
+})();
+function uiSetFill() {
+  const set = document.getElementById("view-settings"), acts = document.querySelector(".mast-actions"); if (!set || !acts) return;
+  const slot = (k) => set.querySelector(`[data-set="${k}"]`), pick = (sel) => acts.querySelector(":scope > " + sel);
+  uiMove(pick("#theme-tgl"), slot("theme"));
+  uiMove(pick("#layout-tgl"), slot("layout"));
+  uiMove(pick('[data-action="fonts"]'), slot("fonts"));
+  uiMove(pick("#fps-btn"), slot("fps"));
+  uiMove(pick("#export-wrap"), slot("export"));
+  uiMove(pick("#lbl-import"), slot("import"));
+  uiMove(pick('[data-action="tour"]'), slot("guide"));
+  uiMove(pick(".news-btn"), slot("news"));
+}
+
 /* ---------- building the sidebar, and taking it apart ---------- */
 const uiMoved = [];   // [node, its old parent, the node it came before]
 function uiMove(node, into) {
@@ -20892,11 +20966,7 @@ function uiSideHTML() {
         <g fill="none" stroke="url(#sd-gem-au)" stroke-linejoin="miter" stroke-miterlimit="10"><path d="M256 66 L374 256 L256 446 L138 256 Z" stroke-width="28"/><path d="M256 150 L322 256 L256 362 L190 256 Z" stroke-width="20"/></g>
         <path d="M256 214 L282 256 L256 298 L230 256 Z" fill="url(#sd-gem-au)"/></svg></a></div>
       <div class="side-nav"><i class="side-mark" aria-hidden="true"></i></div>
-      <div class="side-tools"></div>
-      <div class="side-foot">
-        <div class="side-look" role="group" aria-label="Look"><span>Look</span><button type="button" data-action="ui-look" data-v="beta">New</button><button type="button" data-action="ui-look" data-v="classic">Classic</button></div>
-        <button type="button" class="side-mini-btn" data-action="ui-mini"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14.5 6.5 9 12l5.5 5.5"/></svg><span>Fold the menu</span></button>
-      </div>
+      <div class="side-tools"><button type="button" class="side-cog" data-action="tab" data-tab="settings" title="Settings" aria-label="Settings">${UI_COG}<span class="side-cog-t">Settings</span><i class="side-cog-dot" aria-hidden="true" hidden></i></button></div>
     </aside><div id="side-scrim" class="side-scrim" data-action="ui-close" aria-hidden="true"></div>`;
 }
 function uiBuild() {
@@ -20908,6 +20978,9 @@ function uiBuild() {
   uiMove(brand, side.querySelector(".side-top"));
   uiMove(document.querySelector("nav.tabs"), side.querySelector(".side-nav"));
   uiMove(document.querySelector(".mast-actions"), side.querySelector(".side-tools"));
+  // (the account stays beside the cog; everything else in the header goes to Settings)
+  const tools = side.querySelector(".side-tools"), cog = tools.querySelector(".side-cog"); if (cog) tools.appendChild(cog);
+  uiSetFill();
   // the bar across the top: the menu button (phones), the page's name, and the logo small (phones)
   if (mast && !mast.querySelector(".top-bar")) {
     const logo = document.querySelector(".brand-logo");
@@ -20936,6 +21009,8 @@ function uiTakeApart() {
   const acts = document.querySelector(".mast-actions");
   if (acts && !acts.querySelector(".ui-try")) acts.insertAdjacentHTML("beforeend", `<button type="button" class="btn ghost ui-try" data-action="ui-look" data-v="beta" title="Switch to the new look">New look</button>`);
   const sc = document.getElementById("side-scrim"); if (sc) sc.remove();
+  // (and Settings is the header again: its page has nothing left on it)
+  if (S.tab === "settings" && !UI_PHONE.matches) { S.tab = "home"; try { history.replaceState(history.state, "", "#home"); } catch (e) {} }
 }
 // the sidebar is there in the new look, and on phones in either look
 const uiMini = () => uiPrefs().mini === true;
@@ -20978,14 +21053,20 @@ function uiMark() {
 }
 function uiSync() {
   const side = document.getElementById("side"); if (!side) return;
-  side.querySelectorAll('[data-action="ui-look"]').forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === uiLook())));
-  const mini = document.documentElement.classList.contains("side-mini"), mb = side.querySelector(".side-mini-btn");
-  if (mb) { mb.setAttribute("aria-pressed", String(mini)); mb.querySelector("span").textContent = mini ? "Unfold the menu" : "Fold the menu"; mb.title = mini ? "Show the names in the menu" : "Show only the icons"; }
+  document.querySelectorAll('#view-settings [data-action="ui-look"]').forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === uiLook())));
+  document.querySelectorAll('#view-settings [data-action="ui-mini"]').forEach((b) => b.setAttribute("aria-pressed", String((b.dataset.v === "1") === uiMini())));
+  // the cog: lit on its page, a dot while What's new is unread, and the whole width when there's no account button beside it
+  const cog = side.querySelector(".side-cog"), acct = document.getElementById("acct-btn"), nd = document.querySelector(".news-dot");
+  if (cog) {
+    if (S.tab === "settings") cog.setAttribute("aria-current", "page"); else cog.removeAttribute("aria-current");
+    const dot = cog.querySelector(".side-cog-dot"); if (dot) dot.hidden = !nd || nd.hidden;
+  }
+  side.classList.toggle("has-acct", !!(acct && !acct.hidden && side.contains(acct)));
   // closed on a phone, or a window is open over the page (the page itself is inert then, and so is the menu beside it)
   const sh = document.querySelector(".shell");
   side.inert = (UI_PHONE.matches && !document.documentElement.classList.contains("side-open")) || !!(sh && sh.inert);
   const tt = document.getElementById("top-title"), cur = document.querySelector('nav.tabs .tab[aria-selected="true"] .tab-t');
-  if (tt) tt.textContent = cur ? cur.textContent : "";
+  if (tt) tt.textContent = S.tab === "settings" ? "Settings" : cur ? cur.textContent : "";
   uiMark();
 }
 
@@ -21016,19 +21097,25 @@ document.addEventListener("click", (e) => {
   else if (a === "ui-close") uiClose();
   else if (a === "ui-look") {
     const v = b.dataset.v === "classic" ? "classic" : "beta"; if (v === uiLook()) return;
-    const was = uiLook(); uiPrefs().look = v; uiSave(); uiApply(); uiSync();
-    toastAction(v === "classic" ? "Classic look: the page as it was before 0.50." : "The new look is on.", "Undo", () => { uiPrefs().look = was; uiSave(); uiApply(); uiSync(); });
+    const was = uiLook(); uiPrefs().look = v; uiSave(); uiApply(); renderChrome(); uiSync();
+    toastAction(v === "classic" ? "Classic look: the page as it was before 0.50." : "The new look is on.", "Undo", () => { uiPrefs().look = was; uiSave(); uiApply(); renderChrome(); uiSync(); });
   } else if (a === "ui-mini") {
-    uiPrefs().mini = !uiMini(); uiSave(); uiApply(); uiSync();
+    const v = b.dataset.v != null ? b.dataset.v === "1" : !uiMini(); if (v === uiMini()) return;
+    uiPrefs().mini = v; uiSave(); uiApply(); uiSync();
   }
 });
-// a tab picked in the phone's menu closes the menu (the page changes underneath), and so does a tool that opens a window
-// (the Guide, What's new, Fonts, an export, signing in); the ones that change something in place keep it open
+// a page picked in the phone's menu closes the menu (the page changes underneath), and so do Settings, the version chip
+// (What's new) and the account button
 document.addEventListener("click", (e) => {
   if (!UI_PHONE.matches || !e.target.closest) return;
-  const t = e.target.closest('#side .tab, #side [data-action="tour"], #side [data-action="news"], #side [data-action="fonts"], #side #export-menu [role="menuitem"], #side #acct-btn');
+  const t = e.target.closest('#side .tab, #side .side-cog, #side [data-action="news"], #side #acct-btn');
   if (t) setTimeout(() => uiClose(true), 0);
 });
+
+// the cog's dot follows What's new's, and the cog widens when there's no account button beside it
+const syncNewsDot51 = syncNewsDot;
+syncNewsDot = function () { const r = syncNewsDot51.apply(this, arguments); try { uiSync(); } catch (e) {} return r; };
+if (typeof acctPaint === "function") { const acctPaint51 = acctPaint; acctPaint = function () { const r = acctPaint51.apply(this, arguments); try { uiSync(); } catch (e) {} return r; }; }
 
 /* ---------- the background when no servant gives it colours: Chaldea's blue in the new look ---------- */
 const UI_PAL = ["#8394c2", "#46598f", "#b8c4e2"];

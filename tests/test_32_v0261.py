@@ -128,7 +128,7 @@ with sync_playwright() as p:
     check("with glows, light around the circle, more embers and Fuyuki's heat", look["on"] and look["glows"] == 3 and look["rays"] == 1 and look["heat"] == 1 and look["parts"] == 35)
     props = pg.evaluate("""[...new Set(document.getAnimations().filter(a => a.effect && a.effect.target && a.effect.target.closest && a.effect.target.closest('#story-bg')).flatMap(a => a.effect.getKeyframes().flatMap(k => Object.keys(k).filter(x => !['offset', 'easing', 'composite', 'computedOffset'].includes(x)))))]""")
     check(f"which only move and fade (nothing the graphics card has to repaint: {props})", props and all(x in ("transform", "opacity", "translate") for x in props))
-    pg.click('[data-action="theme"]'); pg.wait_for_timeout(900)
+    pg.evaluate("document.querySelector('#theme-tgl').click()"); pg.wait_for_timeout(900)
     check("in the other theme too", pg.evaluate("document.getElementById('idle-bg').classList.contains('st-tint') && document.getElementById('story-bg').classList.contains('on')"))
     go_tab(pg, "story"); pg.wait_for_timeout(600); pg.uncheck("#story [data-st-theme]"); pg.wait_for_timeout(400); go_tab(pg, "ranking"); pg.wait_for_timeout(1600)
     off = pg.evaluate("(() => { const i = document.getElementById('idle-bg'), s = document.getElementById('story-bg'); return [!!i, i && i.className, i && i.style.cssText, s && s.className, location.hash]; })()")

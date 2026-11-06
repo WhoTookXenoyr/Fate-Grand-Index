@@ -36,6 +36,56 @@ const UI_IC = {
 };
 const uiIcon = (k) => `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${UI_IC[k] || UI_IC._}</svg>`;
 
+const UI_COG = '<svg class="cog" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10.3 3.5h3.4l.5 2.4 1.6.9 2.3-.8 1.7 2.9-1.8 1.6v1.9l1.8 1.6-1.7 2.9-2.3-.8-1.6.9-.5 2.4h-3.4l-.5-2.4-1.6-.9-2.3.8-1.7-2.9 1.8-1.6v-1.9L4.2 8.9l1.7-2.9 2.3.8 1.6-.9z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+/* ---------- 0.50.0-beta: the Settings page (the cog beside the account) ----------
+   The header's tools live here in the new look and on phones: light or dark, the look, the servant page's layout, the
+   sidebar's fold, fonts, the frame rate, export and import, the guide and What's new. They're the same buttons (moved,
+   not copied), so everything they did still works; Classic on a computer puts them back in the header. */
+TABS.push("settings");
+const UI_SET_ROWS = [
+  ["Look and feel", [
+    ["theme", "Light or dark", ""],
+    ["look", "Look", "Classic is the page as it was before 0.50."],
+    ["layout", "Servant page", "Modern puts the servant beside your list; Compact opens them in a window."],
+    ["menu", "Sidebar", "The pages' names and icons, or only the icons."],
+    ["fonts", "Text", "The page's fonts."],
+    ["fps", "Animations", "Fewer frames a second are lighter on a slow computer."]]],
+  ["Your data", [
+    ["export", "Backup", "Download your servants, parties and pictures, or a spreadsheet."],
+    ["import", "Bring a list in", "A backup from this page, a spreadsheet (.csv) or a planner's .json export."]]],
+  ["Help", [
+    ["guide", "New here?", "A short tour of the page."],
+    ["news", "Updates", "Every version, newest first."]]]
+];
+function uiSetHTML() {
+  const seg = (k) => k === "look"
+    ? `<div class="seg set-seg" role="group" aria-label="Look"><button type="button" data-action="ui-look" data-v="beta">New</button><button type="button" data-action="ui-look" data-v="classic">Classic</button></div>`
+    : k === "menu" ? `<div class="seg set-seg" role="group" aria-label="Sidebar"><button type="button" data-action="ui-mini" data-v="0">Names and icons</button><button type="button" data-action="ui-mini" data-v="1">Only icons</button></div>` : "";
+  return `<button type="button" id="tab-settings" class="set-tab" data-action="tab" data-tab="settings" hidden tabindex="-1" aria-hidden="true">Settings</button>
+    <div class="set-grid">${UI_SET_ROWS.map(([h, rows]) => `<section class="set-card" aria-labelledby="set-h-${esc(h.replace(/\W+/g, "-").toLowerCase())}"><h3 id="set-h-${esc(h.replace(/\W+/g, "-").toLowerCase())}">${esc(h)}</h3>
+      ${rows.map(([k, t, d]) => `<div class="set-row set-${k}"><div class="set-l"><b>${esc(t)}</b>${d ? `<small>${esc(d)}</small>` : ""}</div><div class="set-c" data-set="${k}">${seg(k)}</div></div>`).join("")}</section>`).join("")}</div>`;
+}
+(function () {
+  const sec = document.createElement("section");
+  sec.id = "view-settings"; sec.className = "set-page"; sec.setAttribute("aria-label", "Settings"); sec.hidden = true; sec.innerHTML = uiSetHTML();
+  const sh = document.querySelector(".shell"), ft = sh && sh.querySelector(":scope > .site-foot");
+  if (ft) sh.insertBefore(sec, ft); else if (sh) sh.appendChild(sec);
+  if ((location.hash || "").slice(1) === "settings") S.tab = "settings";
+})();
+function uiSetFill() {
+  const set = document.getElementById("view-settings"), acts = document.querySelector(".mast-actions"); if (!set || !acts) return;
+  const slot = (k) => set.querySelector(`[data-set="${k}"]`), pick = (sel) => acts.querySelector(":scope > " + sel);
+  uiMove(pick("#theme-tgl"), slot("theme"));
+  uiMove(pick("#layout-tgl"), slot("layout"));
+  uiMove(pick('[data-action="fonts"]'), slot("fonts"));
+  uiMove(pick("#fps-btn"), slot("fps"));
+  uiMove(pick("#export-wrap"), slot("export"));
+  uiMove(pick("#lbl-import"), slot("import"));
+  uiMove(pick('[data-action="tour"]'), slot("guide"));
+  uiMove(pick(".news-btn"), slot("news"));
+}
+
 /* ---------- building the sidebar, and taking it apart ---------- */
 const uiMoved = [];   // [node, its old parent, the node it came before]
 function uiMove(node, into) {
@@ -50,11 +100,7 @@ function uiSideHTML() {
         <g fill="none" stroke="url(#sd-gem-au)" stroke-linejoin="miter" stroke-miterlimit="10"><path d="M256 66 L374 256 L256 446 L138 256 Z" stroke-width="28"/><path d="M256 150 L322 256 L256 362 L190 256 Z" stroke-width="20"/></g>
         <path d="M256 214 L282 256 L256 298 L230 256 Z" fill="url(#sd-gem-au)"/></svg></a></div>
       <div class="side-nav"><i class="side-mark" aria-hidden="true"></i></div>
-      <div class="side-tools"></div>
-      <div class="side-foot">
-        <div class="side-look" role="group" aria-label="Look"><span>Look</span><button type="button" data-action="ui-look" data-v="beta">New</button><button type="button" data-action="ui-look" data-v="classic">Classic</button></div>
-        <button type="button" class="side-mini-btn" data-action="ui-mini"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14.5 6.5 9 12l5.5 5.5"/></svg><span>Fold the menu</span></button>
-      </div>
+      <div class="side-tools"><button type="button" class="side-cog" data-action="tab" data-tab="settings" title="Settings" aria-label="Settings">${UI_COG}<span class="side-cog-t">Settings</span><i class="side-cog-dot" aria-hidden="true" hidden></i></button></div>
     </aside><div id="side-scrim" class="side-scrim" data-action="ui-close" aria-hidden="true"></div>`;
 }
 function uiBuild() {
@@ -66,6 +112,9 @@ function uiBuild() {
   uiMove(brand, side.querySelector(".side-top"));
   uiMove(document.querySelector("nav.tabs"), side.querySelector(".side-nav"));
   uiMove(document.querySelector(".mast-actions"), side.querySelector(".side-tools"));
+  // (the account stays beside the cog; everything else in the header goes to Settings)
+  const tools = side.querySelector(".side-tools"), cog = tools.querySelector(".side-cog"); if (cog) tools.appendChild(cog);
+  uiSetFill();
   // the bar across the top: the menu button (phones), the page's name, and the logo small (phones)
   if (mast && !mast.querySelector(".top-bar")) {
     const logo = document.querySelector(".brand-logo");
@@ -94,6 +143,8 @@ function uiTakeApart() {
   const acts = document.querySelector(".mast-actions");
   if (acts && !acts.querySelector(".ui-try")) acts.insertAdjacentHTML("beforeend", `<button type="button" class="btn ghost ui-try" data-action="ui-look" data-v="beta" title="Switch to the new look">New look</button>`);
   const sc = document.getElementById("side-scrim"); if (sc) sc.remove();
+  // (and Settings is the header again: its page has nothing left on it)
+  if (S.tab === "settings" && !UI_PHONE.matches) { S.tab = "home"; try { history.replaceState(history.state, "", "#home"); } catch (e) {} }
 }
 // the sidebar is there in the new look, and on phones in either look
 const uiMini = () => uiPrefs().mini === true;
@@ -136,14 +187,20 @@ function uiMark() {
 }
 function uiSync() {
   const side = document.getElementById("side"); if (!side) return;
-  side.querySelectorAll('[data-action="ui-look"]').forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === uiLook())));
-  const mini = document.documentElement.classList.contains("side-mini"), mb = side.querySelector(".side-mini-btn");
-  if (mb) { mb.setAttribute("aria-pressed", String(mini)); mb.querySelector("span").textContent = mini ? "Unfold the menu" : "Fold the menu"; mb.title = mini ? "Show the names in the menu" : "Show only the icons"; }
+  document.querySelectorAll('#view-settings [data-action="ui-look"]').forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === uiLook())));
+  document.querySelectorAll('#view-settings [data-action="ui-mini"]').forEach((b) => b.setAttribute("aria-pressed", String((b.dataset.v === "1") === uiMini())));
+  // the cog: lit on its page, a dot while What's new is unread, and the whole width when there's no account button beside it
+  const cog = side.querySelector(".side-cog"), acct = document.getElementById("acct-btn"), nd = document.querySelector(".news-dot");
+  if (cog) {
+    if (S.tab === "settings") cog.setAttribute("aria-current", "page"); else cog.removeAttribute("aria-current");
+    const dot = cog.querySelector(".side-cog-dot"); if (dot) dot.hidden = !nd || nd.hidden;
+  }
+  side.classList.toggle("has-acct", !!(acct && !acct.hidden && side.contains(acct)));
   // closed on a phone, or a window is open over the page (the page itself is inert then, and so is the menu beside it)
   const sh = document.querySelector(".shell");
   side.inert = (UI_PHONE.matches && !document.documentElement.classList.contains("side-open")) || !!(sh && sh.inert);
   const tt = document.getElementById("top-title"), cur = document.querySelector('nav.tabs .tab[aria-selected="true"] .tab-t');
-  if (tt) tt.textContent = cur ? cur.textContent : "";
+  if (tt) tt.textContent = S.tab === "settings" ? "Settings" : cur ? cur.textContent : "";
   uiMark();
 }
 
@@ -174,19 +231,25 @@ document.addEventListener("click", (e) => {
   else if (a === "ui-close") uiClose();
   else if (a === "ui-look") {
     const v = b.dataset.v === "classic" ? "classic" : "beta"; if (v === uiLook()) return;
-    const was = uiLook(); uiPrefs().look = v; uiSave(); uiApply(); uiSync();
-    toastAction(v === "classic" ? "Classic look: the page as it was before 0.50." : "The new look is on.", "Undo", () => { uiPrefs().look = was; uiSave(); uiApply(); uiSync(); });
+    const was = uiLook(); uiPrefs().look = v; uiSave(); uiApply(); renderChrome(); uiSync();
+    toastAction(v === "classic" ? "Classic look: the page as it was before 0.50." : "The new look is on.", "Undo", () => { uiPrefs().look = was; uiSave(); uiApply(); renderChrome(); uiSync(); });
   } else if (a === "ui-mini") {
-    uiPrefs().mini = !uiMini(); uiSave(); uiApply(); uiSync();
+    const v = b.dataset.v != null ? b.dataset.v === "1" : !uiMini(); if (v === uiMini()) return;
+    uiPrefs().mini = v; uiSave(); uiApply(); uiSync();
   }
 });
-// a tab picked in the phone's menu closes the menu (the page changes underneath), and so does a tool that opens a window
-// (the Guide, What's new, Fonts, an export, signing in); the ones that change something in place keep it open
+// a page picked in the phone's menu closes the menu (the page changes underneath), and so do Settings, the version chip
+// (What's new) and the account button
 document.addEventListener("click", (e) => {
   if (!UI_PHONE.matches || !e.target.closest) return;
-  const t = e.target.closest('#side .tab, #side [data-action="tour"], #side [data-action="news"], #side [data-action="fonts"], #side #export-menu [role="menuitem"], #side #acct-btn');
+  const t = e.target.closest('#side .tab, #side .side-cog, #side [data-action="news"], #side #acct-btn');
   if (t) setTimeout(() => uiClose(true), 0);
 });
+
+// the cog's dot follows What's new's, and the cog widens when there's no account button beside it
+const syncNewsDot51 = syncNewsDot;
+syncNewsDot = function () { const r = syncNewsDot51.apply(this, arguments); try { uiSync(); } catch (e) {} return r; };
+if (typeof acctPaint === "function") { const acctPaint51 = acctPaint; acctPaint = function () { const r = acctPaint51.apply(this, arguments); try { uiSync(); } catch (e) {} return r; }; }
 
 /* ---------- the background when no servant gives it colours: Chaldea's blue in the new look ---------- */
 const UI_PAL = ["#8394c2", "#46598f", "#b8c4e2"];

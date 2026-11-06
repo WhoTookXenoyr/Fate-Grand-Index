@@ -89,7 +89,7 @@ with sync_playwright() as p:
         pg.keyboard.press("Escape"); pg.wait_for_timeout(300)
         fb = pg.locator('[data-action="fonts"], #btn-fonts').first
         if fb.count():
-            fb.click(); pg.wait_for_timeout(400)
+            pg.evaluate("document.querySelector('[data-action=\"fonts\"]').click()"); pg.wait_for_timeout(400)  # (on Settings since 0.50.0)
             check(f"{tag}: the Fonts dialog fits the screen", inside(pg, rect(pg, "#font-dlg")))
             pg.keyboard.press("Escape")
         ctx.close()

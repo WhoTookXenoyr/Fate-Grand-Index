@@ -92,6 +92,7 @@ with sync_playwright() as p:
     check("menu move to A", pg.evaluate("document.querySelector('.tier-card[data-id=\"oberon\"]').closest('[data-tier-drop]').dataset.tierDrop") == "A")
     pg.click('[data-action="rank-view"][data-v="list"]'); pg.wait_for_timeout(200)
     # ---- export menu: CSV and planner list
+    pg.evaluate("document.querySelector('#side .side-cog').click()"); pg.wait_for_timeout(500)  # (Export is on Settings since 0.50.0)
     pg.click("#btn-export"); pg.wait_for_timeout(150)
     check("export menu opens", not pg.evaluate("document.getElementById('export-menu').hidden"))
     with pg.expect_download() as dl: pg.click('[data-action="export-csv"]')
@@ -101,11 +102,11 @@ with sync_playwright() as p:
     ob = [r for r in rows if r["Name"] == "Oberon"][0]
     check(f"CSV export: {len(rows)} rows, Oberon traits '{ob['Traits'][:40]}…'", len(rows) >= 22 and ob["Class"] == "Pretender" and "Fae" in ob["Traits"] and ob["Alignment"] == "Chaotic Evil")
     with pg.expect_download() as dl2:
-        pg.click("#btn-export"); pg.click('[data-action="export-planner"]')
+        pg.click("#btn-export"); pg.click('#export-menu [data-action="export-planner"]')
     pj = json.load(open(dl2.value.path()))
     check("planner list export", pj["app"] == "spirit-origin-list-planner" and len(pj["servants"]) >= 22 and isinstance(pj["servants"][0]["skills"], list))
     with pg.expect_download() as dl3:
-        pg.click("#btn-export"); pg.click('[data-action="export"]')
+        pg.click("#btn-export"); pg.click('#export-menu [data-action="export"]')
     bk = json.load(open(dl3.value.path()))
     check("full backup carries tier placements", bk["settings"].get("tiers") == {"oberon": "A"})
     # ---- import: edited CSV (Dutch style with semicolons), and a foreign planner JSON

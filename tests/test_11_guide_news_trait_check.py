@@ -117,12 +117,12 @@ with sync_playwright() as p:
     check("Home counts the grails", "(5 grails in all)" in pg.locator("#home .hm-lead").inner_text())
 
     # ---- What's new
-    check("What's new has a dot until it's read", pg.locator(".news-dot").is_visible())
-    pg.click('.mast-actions [data-action="news"]'); pg.wait_for_timeout(300)
+    check("What's new has a dot until it's read (on the Settings cog since 0.50.0)", pg.locator(".side-cog-dot").is_visible() or pg.locator(".news-dot").is_visible())
+    pg.evaluate("document.querySelector('.news-btn').click()"); pg.wait_for_timeout(300)  # (on Settings since 0.50.0)
     txt = pg.locator(".news-panel").inner_text()
     check("What's new lists every version, newest first", txt.index("0.14.0") < txt.index("0.13.1") < txt.index("0.12.0") < txt.index("0.2.0") < txt.index("0.1.0") and "Past Chaldea" in txt and pg.locator(".cl-v").count() >= 17)
     pg.keyboard.press("Escape"); pg.wait_for_timeout(200)
-    check("…and the dot goes away for good", pg.locator(".news-dot").is_hidden() and pg.evaluate("localStorage.getItem('spirit-origin-list:v1:news')").startswith(pg.locator("#side .ver-chip, .masthead .ver-chip").first.inner_text().split(" ")[0][1:]))
+    check("…and the dot goes away for good", pg.locator(".news-dot").is_hidden() and pg.locator(".side-cog-dot").is_hidden() and pg.evaluate("localStorage.getItem('spirit-origin-list:v1:news')").startswith(pg.locator("#side .ver-chip, .masthead .ver-chip").first.inner_text().split(" ")[0][1:]))
     check("Home has What's new too", pg.locator("#home .hm-b-news").count() == 1 and pg.locator('#home .hm-b-news [data-action="sf-open"]').count() == 1)
 
     # ---- grails for other rarities: ★4 at Lv 100 took 7
@@ -134,6 +134,7 @@ with sync_playwright() as p:
 
     # ---- start fresh
     pg.evaluate("localStorage.setItem('spirit-origin-list:v1:theme', 'dark')")
+    pg.evaluate("document.querySelector('#side .side-cog').click()"); pg.wait_for_timeout(500)
     pg.click("#btn-export"); pg.wait_for_timeout(150)
     check("Start fresh is in the Export menu", pg.locator('#export-menu [data-action="sf-open"]').is_visible())
     pg.click('#export-menu [data-action="sf-open"]'); pg.wait_for_timeout(250)

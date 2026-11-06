@@ -164,10 +164,10 @@ with sync_playwright() as p:
     check("and opens them", pg.locator("#pc-dlg").is_visible()); pg.keyboard.press("Escape")
 
     # ---- dark mode
-    pg.click('[data-action="theme"]'); pg.wait_for_timeout(900)
+    pg.evaluate("document.querySelector('#theme-tgl').click()"); pg.wait_for_timeout(900)
     go_tab(pg, "past"); pg.wait_for_timeout(800); pg.screenshot(path=f"{sp}/v12-past-dark.png")
     pg.click('.pc-card[data-no="129"]'); pg.wait_for_timeout(600); pg.screenshot(path=f"{sp}/v12-detail-dark.png"); pg.keyboard.press("Escape")
-    pg.click('[data-action="theme"]'); pg.wait_for_timeout(700)
+    pg.evaluate("document.querySelector('#theme-tgl').click()"); pg.wait_for_timeout(700)
     ctx.close()
 
     for wdt in (360, 400):

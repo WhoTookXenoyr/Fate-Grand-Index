@@ -115,8 +115,7 @@ with sync_playwright() as p:
     # ---- import: say what changes, and undo it
     ctx = b.new_context(viewport={"width": 1360, "height": 900}, accept_downloads=True); pg = page(ctx)
     pg.goto(SEEDED + "#servants"); pg.wait_for_timeout(1500)
-    pg.click("#btn-export")
-    with pg.expect_download() as dl: pg.click('[data-action="export"]')
+    with pg.expect_download() as dl: pg.evaluate("document.querySelector('#export-menu [data-action=\"export\"]').click()")  # (on Settings since 0.50.0)
     path = os.path.join(sp, "_t20_backup.json"); dl.value.save_as(path)
     bk = json.load(open(path))
     # the backup is a day older than the list

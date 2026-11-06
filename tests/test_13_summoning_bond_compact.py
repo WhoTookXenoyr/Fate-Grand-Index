@@ -36,12 +36,12 @@ with sync_playwright() as p:
     # ================= your list at 30 fps, in the dark =================
     ctx, pg = page(p, init="if (!localStorage.getItem('spirit-origin-list:v1:fps')) { localStorage.setItem('spirit-origin-list:v1:fps', '30'); localStorage.setItem('spirit-origin-list:v1:theme', 'dark'); }")
     pg.goto(SEEDED + "#servants"); pg.wait_for_timeout(1600)
-    pg.click("#theme-tgl"); pg.wait_for_timeout(1300)
+    pg.evaluate("document.querySelector('#theme-tgl').click()"); pg.wait_for_timeout(1300)
     ok = True
     try: pg.click('#list .row[data-id="artoria"]', timeout=3000)
     except Exception: ok = False
     check("switching light / dark at 30 fps leaves the page clickable", ok and pg.locator("#dossier h2").first.inner_text() == "Artoria" and not pg.evaluate("document.documentElement.classList.contains('vt-theme')"))
-    pg.click("#theme-tgl"); pg.wait_for_timeout(1300)
+    pg.evaluate("document.querySelector('#theme-tgl').click()"); pg.wait_for_timeout(1300)
     ok = True
     try: pg.click('#list .row[data-id="ereshkigal"]', timeout=3000)
     except Exception: ok = False
@@ -99,7 +99,7 @@ with sync_playwright() as p:
 
     # ---- the Compact layout
     go_tab(pg, "servants"); pg.wait_for_timeout(300)
-    pg.click("#layout-tgl"); pg.wait_for_timeout(500)
+    pg.evaluate("document.querySelector('#layout-tgl').click()"); pg.wait_for_timeout(500)
     check("with a servant open, Compact shows them as a window over the list", pg.locator(".cmp-veil").is_visible() and pg.locator(".cmp-x").is_visible())
     pg.keyboard.press("Escape"); pg.wait_for_timeout(300)
     pg.click('#list .row[data-id="artoria"]'); pg.wait_for_timeout(600)
@@ -111,7 +111,7 @@ with sync_playwright() as p:
     check("…after a reload too", pg.locator("#dossier .cmp-top").count() == 1)
     pg.keyboard.press("Escape"); pg.wait_for_timeout(300)
     check("Esc closes the Compact window", pg.locator("#dossier.open").count() == 0 and pg.locator(".cmp-veil").is_hidden())
-    pg.click("#layout-tgl"); pg.wait_for_timeout(400)
+    pg.evaluate("document.querySelector('#layout-tgl').click()"); pg.wait_for_timeout(400)
     pg.click('#list .row[data-id="artoria"]'); pg.wait_for_timeout(400)
     check("Modern puts everything back in one column", pg.locator("#dossier .cmp-top").count() == 0 and pg.evaluate("document.documentElement.dataset.layout") == "modern")
     ctx.close()

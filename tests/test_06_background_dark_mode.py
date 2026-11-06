@@ -42,14 +42,14 @@ with sync_playwright() as p:
 
     # ---- theme switch
     tg = pg.locator("#theme-tgl")
-    check("theme switch in the header", tg.count() == 1 and tg.get_attribute("aria-pressed") == "false")
-    tg.click(); pg.wait_for_timeout(1500)
+    check("theme switch (on Settings since 0.50.0)", tg.count() == 1 and tg.get_attribute("aria-pressed") == "false")
+    pg.evaluate("document.querySelector('#theme-tgl').click()"); pg.wait_for_timeout(1500)
     print("   theme now:", pg.evaluate("document.documentElement.dataset.theme"), pg.evaluate("localStorage.getItem('spirit-origin-list:v1:theme')"), tg.get_attribute("aria-pressed"))
     check("switch turns dark mode on and saves it", pg.evaluate("document.documentElement.dataset.theme") == "dark" and pg.evaluate("localStorage.getItem('spirit-origin-list:v1:theme')") == "dark" and tg.get_attribute("aria-pressed") == "true")
     pg.screenshot(path=f"{sp}/v9-dark-idle.png")
     pg.reload(); pg.wait_for_timeout(1000)
     check("dark mode kept after reload", pg.evaluate("document.documentElement.dataset.theme") == "dark" and pg.locator("#theme-tgl").get_attribute("aria-pressed") == "true")
-    pg.locator("#theme-tgl").click(); pg.wait_for_timeout(900)
+    pg.evaluate("document.querySelector('#theme-tgl').click()"); pg.wait_for_timeout(900)
     check("and back to light", pg.evaluate("document.documentElement.dataset.theme") == "light")
 
     # ---- Guests: tab gone, wishlist renamed, old guests moved over

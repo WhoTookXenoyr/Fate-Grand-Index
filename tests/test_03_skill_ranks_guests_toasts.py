@@ -117,7 +117,7 @@ with sync_playwright() as p:
     pg.locator(".aff-panel").screenshot(path=f"{sp}/v7-aff-edit.png")
     pg.click('[data-action="aff-edit"]'); pg.wait_for_timeout(200)
     with pg.expect_download() as dl:
-        pg.click('#btn-export'); pg.click('[data-action="export"]')
+        pg.evaluate("document.querySelector('#export-menu [data-action=\"export\"]').click()")  # (on Settings since 0.50.0)
     data = json.load(open(dl.value.path()))
     check(f"backup carries chart changes {data['settings'].get('affinity')}", data["settings"].get("affinity") == {"Beast>Berserker": 2})
     pg.reload(); pg.wait_for_timeout(900); go_tab(pg, "versus"); pg.wait_for_timeout(500)

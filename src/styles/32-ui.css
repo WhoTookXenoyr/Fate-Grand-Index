@@ -115,29 +115,36 @@ html:not([data-theme="dark"]) .top-logo img { filter: drop-shadow(0 0 1px rgba(1
 /* the gold marker glides to the page you're on */
 .side-mark { position: absolute; left: -14px; top: 0; width: 3px; height: 42px; border-radius: 0 3px 3px 0; background: var(--gold); box-shadow: 0 0 12px 1px color-mix(in srgb, var(--gold) 60%, transparent);
   opacity: 0; transition: transform .38s cubic-bezier(.3, .7, .2, 1), height .38s ease, opacity .2s ease; pointer-events: none; }
-/* the header's buttons, at the foot of the menu */
-.side-tools { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); }
-/* two to a row; the frame rate, the layout and light/dark switches sit together under them */
-.side .mast-actions { display: flex; flex-wrap: wrap; gap: 6px; }
-.side .mast-actions > .btn, .side .mast-actions > .menu-wrap, .side .mast-actions > label.btn { flex: 1 1 calc(50% - 3px); min-width: 0; }
-.side .mast-actions > .btn, .side .mast-actions > .menu-wrap > .btn, .side .mast-actions > label.btn { width: 100%; min-height: 34px; padding: 0 10px; font-size: 13px; justify-content: flex-start; }
-.side .mast-actions > .menu-wrap { position: relative; }
-.side .mast-actions > .acct-btn { flex-basis: 100%; }
-.side .mast-actions > .fps-btn, .side .mast-actions > .lay-tgl, .side .mast-actions > .theme-tgl { flex: none; }
-.side .pop-menu { top: auto; bottom: calc(100% + 6px); left: 0; right: auto; width: min(270px, calc(var(--side-w) + 40px)); }
-.side-foot { display: flex; flex-direction: column; gap: 8px; }
-.side-look { display: flex; align-items: center; gap: 4px; padding: 3px; border-radius: 10px; border: 1px solid var(--line); font-size: 12.5px; }
-.side-look span { padding: 0 6px 0 7px; color: var(--muted); }
-.side-look button { flex: 1; min-height: 28px; border: 0; border-radius: 7px; background: none; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer; }
-.side-look button[aria-pressed="true"] { background: color-mix(in srgb, var(--gold) 26%, transparent); color: var(--ink); }
-.side-mini-btn { display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 8px; border: 0; border-radius: 8px; background: none; color: var(--muted); font: inherit; font-size: 12.5px; cursor: pointer; }
-.side-mini-btn:hover { color: var(--ink); }
-.side-mini-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: transform .3s ease; }
-html[data-ui="classic"] .side-mini-btn { display: none; }
+/* the foot of the menu: the account and the Settings cog beside it (0.50.0-beta; the other tools are on Settings) */
+.side-tools { display: flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); }
+.side .mast-actions { display: flex; flex: 1 1 auto; min-width: 0; gap: 6px; }
+.side:not(.has-acct) .mast-actions { display: none; }
+.side .mast-actions > .acct-btn { flex: 1 1 auto; min-width: 0; justify-content: flex-start; }
+.side-cog { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 9px; flex: none; min-width: 42px; min-height: 40px; padding: 0 10px;
+  border: 1px solid var(--line); border-radius: 10px; background: linear-gradient(180deg, var(--raised), var(--panel)); color: var(--ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.side:not(.has-acct) .side-cog { flex: 1 1 auto; justify-content: flex-start; padding-inline: 12px; }
+.side.has-acct .side-cog-t { display: none; }
+.side-cog .cog { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; transition: transform .45s cubic-bezier(.3, .7, .2, 1); }
+.side-cog:hover { border-color: color-mix(in srgb, var(--gold) 70%, var(--line)); }
+.side-cog:hover .cog { transform: rotate(60deg); }
+.side-cog[aria-current="page"] { border-color: var(--gold); background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 24%, transparent), color-mix(in srgb, var(--gold) 6%, transparent)); }
+.side-cog[aria-current="page"] .cog { color: var(--gold); }
+.side-cog:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.side-cog-dot { position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--buster, #d4463a); box-shadow: 0 0 0 2px var(--sd-bg1); }
+.side-cog-dot[hidden] { display: none; }
 /* folded: just the icons */
 html.side-mini .side { padding-inline: 12px; }
 html.side-mini .side .tab { justify-content: center; padding-inline: 0; }
-html.side-mini .side .tab-t, html.side-mini .side .eyebrow, html.side-mini .side-look, html.side-mini .side-mini-btn span, html.side-mini .side-tools { display: none; }
+html.side-mini .side .tab-t, html.side-mini .side .eyebrow, html.side-mini .side-cog-t { display: none; }
+/* folded, the foot is the account's initial (or a person for Sign in) over the cog */
+html.side-mini .side-tools { flex-direction: column; align-items: stretch; }
+html.side-mini .side .mast-actions { justify-content: center; }
+html.side-mini .side .mast-actions > .acct-btn { flex: none; width: 42px; min-height: 40px; padding: 0; justify-content: center; }
+html.side-mini .acct-btn .acct-nm, html.side-mini .acct-btn .sync-dot, html.side-mini .acct-btn:not(.in) > span { display: none; }
+html.side-mini .acct-btn:not(.in)::before { content: ""; width: 20px; height: 20px; background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7'%3E%3Ccircle cx='12' cy='8.5' r='3.6'/%3E%3Cpath d='M4.8 20c.9-3.6 3.7-5.6 7.2-5.6s6.3 2 7.2 5.6'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7'%3E%3Ccircle cx='12' cy='8.5' r='3.6'/%3E%3Cpath d='M4.8 20c.9-3.6 3.7-5.6 7.2-5.6s6.3 2 7.2 5.6'/%3E%3C/svg%3E") center / contain no-repeat; }
+html.side-mini .side-cog { flex: none; align-self: center; padding: 0; width: 42px; justify-content: center; }
 /* folded: the logo's diamond (the app icon's), not a slice of the wordmark */
 .side-gem { display: none; }
 html.side-mini .side .brand { display: none; }
@@ -145,9 +152,6 @@ html.side-mini .side-gem { display: grid; place-items: center; height: 58px; bor
 html.side-mini .side-gem svg { height: 52px; width: auto; filter: drop-shadow(0 2px 6px rgba(140, 92, 18, .35)); transition: transform .2s ease; }
 html.side-mini .side-gem:hover svg { transform: scale(1.06); }
 html.side-mini .side-gem:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-html.side-mini .side-mini-btn { justify-content: center; }
-html.side-mini .side-mini-btn svg { transform: rotate(180deg); }
-.side-mini-btn:focus-visible, .side-look button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 /* ---------- the top of the page: the page's name; on phones a bar with the menu button and the logo ---------- */
 html.has-side .masthead { display: block; }
@@ -170,7 +174,7 @@ html.has-side .masthead { display: block; }
   html[data-ui="beta"] .side::after { display: none; }
   .side-scrim { position: fixed; inset: 0; z-index: 61; background: rgba(6, 10, 26, .5); opacity: 0; pointer-events: none; transition: opacity .3s ease; }
   html.side-open .side-scrim { opacity: 1; pointer-events: auto; }
-  .side-mini-btn { display: none; }
+  .set-row.set-menu { display: none; }
   .side .tab { min-height: 46px; font-size: 15.5px; }
 }
 
@@ -181,6 +185,26 @@ html.has-side .masthead { display: block; }
   html.has-side .shell { padding-inline: 28px; }
   html.has-side:not(.side-mini):not([data-layout="compact"]) .workspace { grid-template-columns: minmax(300px, 440px) minmax(0, 1fr); }
   html.has-side:not(.side-mini):not([data-layout="compact"]) .dossier .art-frame { flex-basis: clamp(250px, 50%, 440px); }
+}
+
+/* ---------- the Settings page ---------- */
+.set-grid { columns: 2 380px; column-gap: 18px; }
+.set-card { display: flex; flex-direction: column; break-inside: avoid; margin-bottom: 18px; padding: 6px 20px; border: 1px solid var(--line); border-radius: var(--r-panel, 16px); background: var(--panel); box-shadow: var(--shadow); }
+.set-card h3 { margin: 14px 0 4px; font-family: var(--f-display); font-size: 1.15rem; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--ink); }
+.set-row { display: flex; align-items: center; justify-content: space-between; gap: 10px 18px; padding: 14px 0; border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+.set-card h3 + .set-row { border-top: 0; }
+.set-l { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.set-l b { font-size: 15px; font-weight: 650; color: var(--ink); }
+.set-l small { font-size: 13px; line-height: 1.4; color: var(--muted); max-width: 46ch; }
+.set-c { display: flex; align-items: center; justify-content: flex-end; flex: none; }
+.set-c > .btn, .set-c > .menu-wrap > .btn, .set-c > label.btn { min-height: 38px; padding: 0 16px; }
+.set-c > .menu-wrap { position: relative; }
+.set-seg button { white-space: nowrap; }
+.set-tab { display: none; }
+@media (max-width: 560px) {
+  .set-card { padding: 4px 16px; }
+  .set-row { flex-wrap: wrap; }
+  .set-row.set-look, .set-row.set-menu { flex-direction: column; align-items: flex-start; }
 }
 
 /* ---------- moving between pages: the new one slides in ---------- */
@@ -206,5 +230,5 @@ section[id^="view-"].view-in { animation: uiViewIn .42s cubic-bezier(.2, .7, .2,
 
 @media (prefers-reduced-motion: reduce) {
   section[id^="view-"].view-in, #view-servants.view-in > *, #view-servants.view-in .workspace > .list, .pcd.pcd-drop, .pcd.pcd-drop .pcd-panel, .pcd.pcd-drop .pcd-frame, .pcd.pcd-drop .pcd-info > * { animation: none !important; }
-  .side, .side-mark, .side-scrim { transition: none !important; }
+  .side, .side-mark, .side-scrim, .side-cog .cog { transition: none !important; }
 }

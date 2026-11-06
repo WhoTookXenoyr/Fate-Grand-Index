@@ -30,7 +30,7 @@ with sync_playwright() as p:
     # ---- frame-rate switch
     fb = pg.locator("#fps-btn")
     check("fps button starts at 60", fb.get_attribute("data-fps") == "60")
-    fb.click(); pg.wait_for_timeout(500)
+    pg.evaluate("document.querySelector('#fps-btn').click()"); pg.wait_for_timeout(500)  # (on Settings since 0.50.0)
     st = pg.evaluate("""() => { const run = document.getAnimations().filter(a => a instanceof CSSAnimation && a.playState === 'running' && !(a.effect.target.closest && a.effect.target.closest('#summon')));
       const k = 1000 / 30, ok = run.filter(a => { const t = a.effect.getTiming(); return String(t.easing).startsWith('steps(') && Math.abs(t.duration / k - Math.round(t.duration / k)) < 1e-6; });
       return [run.length, ok.length]; }""")
@@ -39,11 +39,11 @@ with sync_playwright() as p:
     pg.wait_for_timeout(400)
     t2 = pg.evaluate("(() => { const a = document.getAnimations().find(a => a instanceof CSSAnimation && a.playState === 'running'); return a ? a.currentTime : null; })()")
     check(f"and they keep running ({t1} → {t2})", t1 is not None and t2 is not None and t2 > t1)
-    fb.click(); pg.wait_for_timeout(300)
+    pg.evaluate("document.querySelector('#fps-btn').click()"); pg.wait_for_timeout(300)
     check("then 15 fps", fb.get_attribute("data-fps") == "15" and pg.evaluate("localStorage.getItem('spirit-origin-list:v1:fps')") == "15")
     pg.reload(); pg.wait_for_timeout(1400)
     check("15 fps kept after reload", pg.locator("#fps-btn").get_attribute("data-fps") == "15")
-    pg.locator("#fps-btn").click(); pg.wait_for_timeout(400)
+    pg.evaluate("document.querySelector('#fps-btn').click()"); pg.wait_for_timeout(400)
     check("and back to 60 with everything playing", pg.locator("#fps-btn").get_attribute("data-fps") == "60" and pg.evaluate("document.getAnimations().filter(a => a.playState === 'paused' && !(a.effect.target.closest && a.effect.target.closest('[data-off]'))).length") == 0)
 
     # ---- icons on effect lines
@@ -150,12 +150,12 @@ with sync_playwright() as p:
     pg.screenshot(path=f"{sp}/v11-home-desktop.png", full_page=True)
 
     # ---- dark mode
-    pg.click('[data-action="theme"]'); pg.wait_for_timeout(900)
+    pg.evaluate("document.querySelector('#theme-tgl').click()"); pg.wait_for_timeout(900)
     go_tab(pg, "summon"); pg.wait_for_timeout(900)
     pg.screenshot(path=f"{sp}/v11-summon-dark.png")
     go_tab(pg, "home"); pg.wait_for_timeout(900)
     pg.locator(".hm-b-rec").scroll_into_view_if_needed(); pg.wait_for_timeout(300); pg.screenshot(path=f"{sp}/v11-home-dark.png")
-    pg.click('[data-action="theme"]'); pg.wait_for_timeout(900)
+    pg.evaluate("document.querySelector('#theme-tgl').click()"); pg.wait_for_timeout(900)
     ctx.close()
 
     # ---- phones

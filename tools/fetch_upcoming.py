@@ -34,3 +34,4 @@ for u in up:
 with gzip.open(os.path.join(ATLAS, "upcoming_servants.json.gz"), "wt", encoding="utf-8") as f: json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
 with gzip.open(os.path.join(ATLAS, "upcoming_costumes.json.gz"), "wt", encoding="utf-8") as f: json.dump(cos, f, ensure_ascii=False)
 print("wrote", len(out), "servants")
+# run by .github/workflows/upcoming.yml

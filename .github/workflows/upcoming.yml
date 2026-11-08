@@ -1,11 +1,14 @@
 name: Upcoming servants
 
-# Downloads JP's data for the servants in data/atlas/upcoming.json (tools/fetch_upcoming.py) and keeps the result as
-# this run's artifact "upcoming", to commit to the branch. Runs when upcoming.json changes, or from the Actions tab.
+# Downloads JP's data for the servants in data/atlas/upcoming.json (tools/fetch_upcoming.py) and commits it to the same
+# branch. Runs when upcoming.json changes, or from the Actions tab.
 on:
   push:
     paths: [data/atlas/upcoming.json, tools/fetch_upcoming.py]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   fetch:
@@ -17,9 +20,9 @@ jobs:
         with:
           python-version: "3.12"
       - run: python tools/fetch_upcoming.py
-      - uses: actions/upload-artifact@v4
-        with:
-          name: upcoming
-          path: |
-            data/atlas/upcoming_servants.json.gz
-            data/atlas/upcoming_costumes.json.gz
+      - name: Commit the data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/atlas/upcoming_servants.json.gz data/atlas/upcoming_costumes.json.gz
+          git diff --cached --quiet || { git commit -m "Upcoming servants: JP's data (tools/fetch_upcoming.py)"; git push; }

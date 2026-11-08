@@ -16,6 +16,12 @@ _open = lambda p: open(p, encoding="utf-8") if os.path.exists(p) else gzip.open(
 S = json.load(_open(os.path.join(ATLAS, "servants.json")))
 C = json.load(_open(os.path.join(ATLAS, "ces.json")))
 COSTUMES = json.load(_open(os.path.join(ATLAS, "costumes.json")))
+# 0.51.0: servants JP has and NA doesn't yet (data/atlas/upcoming.json, fetched by tools/fetch_upcoming.py): ATLAS_UP
+UP_LIST = json.load(open(os.path.join(ATLAS, "upcoming.json"), encoding="utf-8"))["servants"] if os.path.exists(os.path.join(ATLAS, "upcoming.json")) else []
+_na_nos = {x["collectionNo"] for x in S if x.get("collectionNo")}
+UP_LIST = [u for u in UP_LIST if u["no"] not in _na_nos]  # NA has them now: they're ordinary servants
+U = [x for x in json.load(_open(os.path.join(ATLAS, "upcoming_servants.json"))) if x["collectionNo"] in {u["no"] for u in UP_LIST}] if UP_LIST else []
+COSTUMES.update(json.load(_open(os.path.join(ATLAS, "upcoming_costumes.json"))) if U else {})
 BASE = "https://static.atlasacademy.io/NA/"
 def p(url): return url[len(BASE):] if url and url.startswith(BASE) else url
 
@@ -90,6 +96,41 @@ def suffix_at(g):
         best = m
     if not best: return None
     return Suf(best.start(), g[best.start() + 1:])
+# JP's descriptions are in Japanese: an upcoming servant's lines are made from its effects' English names instead
+TGT_EN = {"self": "Self", "ptAll": "Party", "ptOne": "One ally", "ptOther": "Allies (not self)", "ptOtherFull": "Allies (not self)", "enemy": "One enemy",
+          "enemyAll": "All enemies", "ptselectOneSub": "One ally", "ptFull": "Party", "enemyOther": "Other enemies"}
+def lines_en(k, np=False):
+    out = []
+    for f in k.get("functions") or []:
+        if f.get("funcType") in ("none", "subFieldBuff") or (f.get("funcType") or "").startswith("event"): continue
+        b = (f.get("buffs") or [{}])[0]
+        if b.get("type") in SKIP_BUFF: continue
+        n = (b.get("name") or f.get("funcPopupText") or "").replace("\n", " ").strip()
+        ft = f.get("funcType") or ""
+        if ft == "hastenNpturn" and not (f.get("funcTargetType") or "").startswith("enemy"): continue
+        if ft in ("addState", "addStateShort", "addFieldChangeToField") and not b.get("name"): continue
+        if ft in FUNC_EN and not f.get("buffs"): n = FUNC_EN[ft]
+        if not n or JP_TEXT.search(n): n = FUNC_EN.get(ft) or re.sub(r"([a-z])([A-Z])", r"\1 \2", ft).capitalize()
+        if n.lower() in ("add state", "add state short", "add field change to field"): continue
+        sv = (f.get("svals") or [{}])[0]
+        rest = [x for x in (("%d turns" % sv["Turn"]) if sv.get("Turn", -1) > 0 else "", ("%d times" % sv["Count"]) if sv.get("Count", -1) > 0 else "") if x]
+        line = "%s: %s%s" % (TGT_EN.get(f.get("funcTargetType"), "Effect"), n, " (" + ", ".join(rest) + ")" if rest else "")
+        if line not in out: out.append(line)
+    return (out, []) if np else out
+JP_TEXT = re.compile(r"[\u3040-\u30ff\u4e00-\u9fff]")
+NA_LINES = {}
+for _x in S:
+    for _k in _x["skills"] + _x.get("classPassive", []) + [a["skill"] for a in _x.get("appendPassive") or []]:
+        if _k.get("name") and _k["name"].strip() != "???" and _k.get("detail") and _k["name"] not in NA_LINES: NA_LINES[_k["name"]] = _k["detail"]
+FUNC_EN = {"gainNp": "NP charge", "gainStar": "Gain critical stars", "lossStar": "Lose critical stars", "hastenNpturn": "Charge gauge up", "delayNpturn": "Charge gauge down",
+           "subState": "Remove effects", "damageNp": "Deals damage", "damageNpIndividual": "Deals damage", "damageNpPierce": "Deals damage (ignores Defense)",
+           "gainHp": "Restore HP", "lossNp": "NP down", "shortenSkill": "Cooldowns down", "cardReset": "Shuffle cards", "transformServant": "Transforms"}
+def lines_of(k, np=False):
+    d = k.get("detail") or ""
+    if not JP_TEXT.search(d): return lines(d, np)
+    # the same skill as an NA servant's: NA's wording; otherwise lines from its effects' English names
+    if not np and k.get("name") in NA_LINES: return lines(NA_LINES[k["name"]])
+    return lines_en(k, np)
 def lines(detail, np=False):
     d = mask(clean(detail))
     if not d: return ([], []) if np else []
@@ -332,10 +373,12 @@ def mats(levels):
             row += [i["id"], it["amount"]]
         rows.append(row)
     return rows
+ups = []
 import collections as _co
 _eg = _co.Counter(json.dumps(x.get("expGrowth") or []) for x in S if x["type"] in ("normal", "heroine") and x["collectionNo"])
 EXPS = [json.loads(_eg.most_common(1)[0][0])]; EXP_IX = {_eg.most_common(1)[0][0]: 0}
-for x in S:
+UP_NOS = {x["collectionNo"] for x in U}
+for x in S + U:
     if x["type"] not in ("normal", "heroine") or x["className"] not in CLS or not x["collectionNo"]: continue
     tr = all_traits(x)
     traits = []
@@ -348,7 +391,7 @@ for x in S:
     hg, ag = x["hpGrowth"], x["atkGrowth"]
     at = lambda arr, lv: arr[lv - 1] if len(arr) >= lv else None
     sk = []
-    one = lambda k: {"n": k["name"], "e": lines(k["detail"]), "cd": (k.get("coolDown") or [None])[0], "v": skill_vals(k), "ic": icon_key(k.get("icon"))}
+    one = lambda k: {"n": k["name"], "e": lines_of(k), "cd": (k.get("coolDown") or [None])[0], "v": skill_vals(k), "ic": icon_key(k.get("icon"))}
     slots = [k for k in x["skills"] if k["num"] in (1, 2, 3)]
     for k in pick(slots):
         o = one(k); o["up"] = 1 if k.get("strengthStatus") == 99 else 0
@@ -359,11 +402,11 @@ for x in S:
         chain = sorted(same, key=lambda c: c.get("priority", 0)) if any(c.get("strengthStatus") in (1, 2, 99) or c.get("condQuestId") for c in same) else []
         if len(chain) > 1 and chain[-1]["id"] == k["id"]: o["u"] = [one(c) for c in chain[:-1]]
         sk.append(o)
-    ps = [{"n": c["name"], "e": lines(c["detail"]), "ic": icon_key(c.get("icon"))} for c in x["classPassive"] if c.get("name")]
+    ps = [{"n": c["name"], "e": lines_of(c), "ic": icon_key(c.get("icon"))} for c in x["classPassive"] if c.get("name")]
     nps = [n for n in x["noblePhantasms"] if n.get("functions")]
     npo = None
     def np_obj(n):
-        e, oc = lines(n["detail"], True)
+        e, oc = lines_of(n, True)
         rows, ocr = np_table(n)
         dist = n.get("npDistribution") or []
         return {"n": n["name"], "k": n.get("rank", ""), "ty": n.get("type", ""), "cd": CARD.get(str(n["card"]), ""), "tg": target(n), "h": len(dist),
@@ -412,6 +455,8 @@ for x in S:
     aps = []
     for a in sorted(x.get("appendPassive") or [], key=lambda a: a.get("num", 0)):
         o = one(a["skill"]); o.pop("cd", None)
+        same = [i for i, ap in enumerate(APPENDS) if ap["n"] == o["n"]] if x["collectionNo"] in UP_NOS else []
+        if same: aps.append(same[0]); continue
         key = json.dumps(o, sort_keys=True, ensure_ascii=False)
         if key not in APPEND_IX: APPEND_IX[key] = len(APPENDS); APPENDS.append(o)
         aps.append(APPEND_IX[key])
@@ -439,10 +484,16 @@ for x in S:
         key = json.dumps(eg)
         if key not in EXP_IX: EXP_IX[key] = len(EXPS); EXPS.append(eg)
         if EXP_IX[key]: rec["xg"] = EXP_IX[key]
-    out.append(rec)
+    if x["collectionNo"] in UP_NOS:
+        u = next(u for u in UP_LIST if u["no"] == x["collectionNo"])
+        rec["up"] = {k: u[k] for k in ("at", "eta", "ev") if u.get(k)}
+        # "???" is JP hiding a name the story reveals later
+        for o in rec["sk"]: o["n"] = o["n"] if o["n"].strip() != "???" else "Skill %d" % (rec["sk"].index(o) + 1)
+        ups.append(rec)
+    else: out.append(rec)
 out.sort(key=lambda r: r["no"])
 MAT_LIST = sorted(MATS.values(), key=lambda m: m[0]); MAT_IX = {m[0]: k for k, m in enumerate(MAT_LIST)}
-for r in out:
+for r in out + ups:
     for key in ("ma", "ms", "mp"): r[key] = [[MAT_IX[v] if k % 2 == 0 else v for k, v in enumerate(row)] for row in r[key]]
 
 FLAG = {"normal": "N", "svtEquipEvent": "E", "svtEquipEventReward": "R", "svtEquipFriendShip": "B", "svtEquipChocolate": "V", "svtEquipCampaign": "C", "svtEquipExp": "X", "svtEquipManaExchange": "M", "unknown": "U"}
@@ -479,6 +530,7 @@ for x in S:
             assert b + (m - b) * k[i] // 1000 == v, (x["name"], i)
 js = "const ATLAS_CURVES = %s;\n" % json.dumps({str(k): v for k, v in CURVES.items()}, separators=(",", ":"))
 js += "const ATLAS_IMG = %s;\nconst ATLAS_S = %s;\nconst ATLAS_C = %s;\nconst ATLAS_ICONS = %s;\n" % (json.dumps(BASE), json.dumps(out, ensure_ascii=False, separators=(",", ":")), json.dumps(ces, ensure_ascii=False, separators=(",", ":")), json.dumps(icons, ensure_ascii=False, separators=(",", ":")))
+js += "const ATLAS_UP = %s;\n" % json.dumps(sorted(ups, key=lambda r: r["no"]), ensure_ascii=False, separators=(",", ":"))
 js += "const ATLAS_MATS = %s;\n" % json.dumps(MAT_LIST, ensure_ascii=False, separators=(",", ":"))
 js += "const ATLAS_APPENDS = %s;\n" % json.dumps(APPENDS, ensure_ascii=False, separators=(",", ":"))
 js += "const ATLAS_EXP = %s;\n" % json.dumps(EXPS, separators=(",", ":"))
@@ -493,4 +545,4 @@ GRAIL = {
   5: [(q, 2 * i) for i, q in enumerate([9000000, 10000000, 11000000, 12000000, 13000000] + [15000000] * 10, 1)]}
 js += "const ATLAS_GRAIL = %s;\n" % json.dumps({str(k): [list(t) for t in v] for k, v in GRAIL.items()}, separators=(",", ":"))
 with open(os.path.join(ROOT, "src", "data", "atlas_data.js"), "w", encoding="utf-8") as f: f.write(js.strip() + "\n")
-print("servants", len(out), "ces", len(ces), "icons", len(icons), "bytes", len(js.encode()))
+print("servants", len(out), "upcoming", len(ups), "ces", len(ces), "icons", len(icons), "bytes", len(js.encode()))

@@ -56,7 +56,7 @@ python3 tests/run.py --ci-fonts  # with the fallback fonts GitHub's machines hav
 
 The tests don't need the internet: most suites swap the pictures that would come from Atlas Academy for placeholders, and the sample roster in `tests/fixtures/sample-roster.json` is built into `build/seeded.html`. Screenshots go to `build/test-work/`.
 
-The hosted site has its own tests, which need wrangler (`cd tools/dev && npm install`): `python3 tests/api/test_api.py` (the server; `--d1-pics` keeps pictures in the database) and `python3 tests/api/test_hosted_ui.py` (the site in a browser: sign-up, a second device, sync, combining rosters, friends, a shared link, offline).
+The hosted site has its own tests, which need wrangler (`cd tools/dev && npm install`): `python3 tests/api/test_api.py` (the server; `--d1-pics` keeps pictures in the database) and `python3 tests/api/test_hosted_ui.py` (the site in a browser: sign-up, a second device, sync, combining rosters, friends, a shared link, offline) and `python3 tests/api/test_hosted_owner.py` (the owner and the servants coming to NA).
 
 GitHub Actions runs the build check and every suite on each push to `main` and on every pull request, and the hosted site's tests as a second job (`.github/workflows/test.yml`).
 
@@ -159,6 +159,11 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
 ## Ranking without custom servants (0.50.0-beta)
 - **Count custom servants** on the Ranking page (`#rank-custom`, shown when the roster has `custom` servants): unticked, `rankRows()` leaves them out, so the ranking, the tier board, Home's best servants and `rankOf` (a custom servant's page says Not ranked) all follow. Kept as `spirit-origin-list:v1:rankCustom` = `"false"` (absent = counted), synced with the other extras. The Story page's advice scores servants with `scoreOf` directly, so it still suggests them.
 - The ranking's arrows compare with the last Mark as seen order among the servants listed now, so leaving some out (or removing one) doesn't show everyone below as moved.
+
+## Servants coming to NA (0.51.0-beta)
+- `data/atlas/upcoming.json` lists the servants JP has and NA doesn't yet (number, JP id, the event, NA's release `at` in UTC or the expected month `eta`). `tools/fetch_upcoming.py` downloads JP's data for them (English where Atlas Academy has it) into `upcoming_servants.json.gz` and `upcoming_costumes.json.gz`. The **Upcoming servants** workflow runs it and commits the result whenever `upcoming.json` changes on a branch. `tools/gen_atlas.py` turns them into `ATLAS_UP` (the same shape as `ATLAS_S`, plus `up`: `at`, `eta`, `ev`). Their descriptions are made from the effects' English names, or taken from an NA skill with the same name, since JP's are in Japanese. A servant NA's data has is dropped from `ATLAS_UP` on its own.
+- `53-upcoming.js`: Past Chaldea's **Coming to NA** row. Locked, a servant's page is its Stage 1 picture blurred, the event and a countdown in your own time. Their kit stays hidden. At NA's release time (from the wiki's upcoming event that lists them, else `at`) they join `ATLAS_S` for everyone. The site's owner sees them in full from the start. That's the server's `OWNER` variable (friend codes, emails or account ids), which makes `/api/me` say `owner: true` (docs/hosting.md, step 6b). It's remembered on the device as `spirit-origin-list:v1:owner` so the page opens in full before the server answers, and it's dropped when they sign out.
+- This is a lock against spoilers. JP's data is public, and the offline file has no owner.
 
 ## Your data
 

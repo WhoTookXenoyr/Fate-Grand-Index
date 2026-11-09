@@ -11,6 +11,7 @@ __pycache__/
 # build output of tools/build.py other than dist/ (the seeded test page, the tests' work folder)
 build/
 data/atlas/*.json
+!data/atlas/upcoming.json
 
 # local Cloudflare (tools/dev): wrangler and its state
 tools/dev/node_modules/

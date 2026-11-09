@@ -5,7 +5,7 @@ import os
 # (it's inert while any window makes the page inert). On a phone the sidebar is a drawer: the menu button opens it, a
 # page picked in it closes it, so do Escape and the dark area beside it, and the page has no sideways scroll.
 # None of it touches the roster.
-import sys, json
+import sys, json, re
 from playwright.sync_api import sync_playwright
 sp = sys.argv[1]; URL = os.environ.get("FGI_URL") or "file://" + sp
 SEEDED = f"{URL}/_seeded.html"
@@ -39,7 +39,7 @@ with sync_playwright() as p:
     check("each page has its icon and its name", pg.locator("#side .side-nav .tab .tab-ic svg").count() == len(tabs) and pg.locator("#side .side-nav .tab .tab-t").count() == len(tabs))
     check("the logo and the tools are in it too", pg.locator("#side .side-top .brand").count() == 1 and pg.locator("#side .side-tools .mast-actions").count() == 1)
     chip = pg.locator("#side .ver-chip").inner_text()
-    check(f"the version says beta ({chip!r})", "0.50.0" in chip and "beta" in chip and "alpha" not in chip)
+    check(f"the version says beta ({chip!r})", re.search(r"0\.\d+\.\d+", chip) and "beta" in chip and "alpha" not in chip)
     sx = pg.evaluate("[document.getElementById('side').getBoundingClientRect().right, document.querySelector('.shell').getBoundingClientRect().left]")
     check(f"the page sits beside the sidebar ({sx})", 200 <= sx[0] <= 260 and sx[0] - 1 <= sx[1] <= sx[0] + 80)
     # light mode: a white sidebar; dark mode: the game's navy (Noyr's fix)

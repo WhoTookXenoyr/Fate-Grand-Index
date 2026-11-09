@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until 0.50.0, beta from there until the full website and app: 1.0.0
-const APP_VER = "0.50.0-beta";
+const APP_VER = "0.51.0-beta";
 const APP_STAGE = /-beta\b/.test(APP_VER) ? "beta" : "alpha", APP_NUM = APP_VER.replace(/-.*$/, "");
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
@@ -164,6 +164,12 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.51.0-beta", d: "8 Nov 2026", t: "Coming to NA: the next servants, locked until their release", i: [
+    "<b>Past Chaldea</b> has a <b>Coming to NA</b> row: servants JP already has that NA doesn't yet. That's Tutankhamun and Van Gogh (Miner) from Mystery House Crafters, Louhi and Abigail Williams (Santa) from Christmas, and Phantasmoon.",
+    "Their page stays locked until NA gets them. It shows their picture blurred, the event that brings them and a countdown to NA's release in your own time. Their skills, Noble Phantasm and numbers stay hidden.",
+    "When the countdown ends, their page opens for everyone and they join NA's list like any other servant. When NA hasn't announced a date yet, the page says which month they're expected. The countdown starts once the wiki has NA's date.",
+    "The site's owner sees them in full already."
+  ]},
   {v: "0.50.0-beta", d: "3 Nov 2026", t: "The beta: a new look, a battle simulator, the Saint Graph maker, and Bond 10 and 15", i: [
     "<b>A new look</b>: the pages are in a sidebar on the left, each with its icon, and at its foot your account and a cog for the new <b>Settings</b> page: light or dark, the look, the servant page's layout, the sidebar's fold, fonts, the frame rate, export and import, the Guide and What's new. Folding the sidebar (on Settings) leaves only the icons, the logo's diamond and the cog, and is remembered. Buttons, sections and lists have a cleaner style, and the background is Chaldea's blue when no servant gives it colours. <b>Look: Classic</b> on Settings puts the page back as it was in 0.28 (with Undo), and <b>New look</b> in the header switches back.",
     "<b>Battle</b>, a new page: put up to six servants in a party (yours, a Guest, a support or any NA servant, custom servants with their Workshop kit) against made-up enemies you can edit, your Guests, your own servants, or a real NA quest's enemies from Atlas Academy (pick a chapter and battle, or paste a quest's number or link). Press Fight and watch the auto-battle: skills, the five cards and the three picked, Noble Phantasms, the enemies' turn, the waves. Play, pause, step, go 2× or 4×, jump to any moment from the list of what happened, and see each servant's damage at the end. The same seed plays the same fight. A fight changes nothing on your list.",

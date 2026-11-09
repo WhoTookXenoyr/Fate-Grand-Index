@@ -97,11 +97,18 @@ const endCookie = (ctx) => setCookie(COOKIE, "", {maxAge: 0, secure: secure(ctx)
 export function providers(env) {
   return {discord: !!(env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET), google: !!(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET), password: !!(env.PEPPER && String(env.PEPPER).length >= 16), pics: env.PICS ? "r2" : "d1"};
 }
+// 0.51.0: the site's owner (the OWNER variable in Cloudflare: their friend code, email or account id; several can be
+// separated by spaces or semicolons) sees the servants NA doesn't have yet. Everyone else gets their page with a countdown.
+export function isOwner(env, u) {
+  const list = String(env.OWNER || "").split(/[\s;]+/).map((t) => t.trim().toLowerCase()).filter(Boolean);
+  if (!u || !list.length) return false;
+  return list.some((t) => (/^[\d,.]+$/.test(t) && u.code && t.replace(/\D/g, "") === String(u.code).replace(/\D/g, "")) || t === String(u.id).toLowerCase() || (u.email && t === String(u.email).toLowerCase()));
+}
 export async function me(ctx, u) {
   const idents = (await ctx.env.DB.prepare("SELECT provider, label FROM idents WHERE user_id = ?").bind(u.id).all()).results || [];
   let supports = []; try { supports = JSON.parse(u.supports || "[]"); } catch (e) {}
   return {id: u.id, name: u.name, email: u.email || null, code: u.code, vis: u.vis, share: u.vis === "link" ? u.share : null, feed: !!u.feed,
-    supports: supports, idents: idents, hasPassword: !!u.pw, bytes: u.bytes || 0, created: u.created, rev: u.rev};
+    supports: supports, idents: idents, hasPassword: !!u.pw, bytes: u.bytes || 0, created: u.created, rev: u.rev, owner: isOwner(ctx.env, u)};
 }
 
 /* ---------- email and password ---------- */

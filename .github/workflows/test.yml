@@ -82,4 +82,6 @@ jobs:
       - name: The site in a browser
         env:
           WRANGLER_SEND_METRICS: "false"
-        run: python tests/api/test_hosted_ui.py
+        run: |
+          python tests/api/test_hosted_ui.py
+          python tests/api/test_hosted_owner.py

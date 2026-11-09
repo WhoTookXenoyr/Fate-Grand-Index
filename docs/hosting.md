@@ -89,6 +89,14 @@ You can add R2 later. Pictures already uploaded stay where they are, and new one
    - Copy the **Client ID** and the **Client secret**.
 4. In the Pages project, go to **Settings → Variables and Secrets**. Add **`GOOGLE_CLIENT_ID`** and **`GOOGLE_CLIENT_SECRET`**.
 
+## 6b. You as the owner (optional)
+
+Past Chaldea has a **Coming to NA** row: servants JP has and NA doesn't yet. Everyone sees their page locked with a countdown to NA's release. The owner sees them in full.
+
+1. Create your account on the site first (step 7), then open it and copy your **friend code** (like 123,456,789).
+2. In the Pages project, go to **Settings → Variables and Secrets → Add**. Type: **Text** (it isn't a secret). Name: **`OWNER`**. Value: your friend code. Your account's email works too. For more than one owner, separate them with spaces.
+3. Deploy again (step 7). After that, sign in on the site and the locked pages open for you.
+
 ## 7. Deploy again, and try it
 
 Bindings and secrets only reach a new deploy:

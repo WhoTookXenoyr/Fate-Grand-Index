@@ -1,0 +1,10 @@
+{
+  "note": "Servants JP has and NA doesn't have yet. Their Past Chaldea page stays locked with a countdown until NA gets them (the owner sees it). 'at' is NA's release (UTC) when it's known, 'eta' the expected month when it isn't; the page also takes the date from the wiki once NA announces the event. After editing, run tools/fetch_upcoming.py (or push: the Upcoming servants workflow runs it), then tools/gen_atlas.py and tools/build.py. Remove a servant once NA's data has them.",
+  "servants": [
+    {"no": 427, "id": 205300, "name": "Tutankhamun", "ev": "Mystery House Crafters", "at": "2026-11-12T09:00:00Z"},
+    {"no": 428, "id": 305600, "name": "Van Gogh (Miner)", "ev": "Mystery House Crafters", "at": "2026-11-12T09:00:00Z"},
+    {"no": 429, "id": 705000, "name": "Louhi", "ev": "Christmas 2026", "eta": "2026-12"},
+    {"no": 430, "id": 2800800, "name": "Abigail Williams (Santa)", "ev": "Christmas 2026", "eta": "2026-12"},
+    {"no": 431, "id": 2800900, "name": "Phantasmoon", "ev": "Space Phantasmoon", "eta": "2026-12"}
+  ]
+}

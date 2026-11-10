@@ -81,6 +81,10 @@ html.has-side.side-mini { --side-w: 76px; }
   html.has-side .shell { margin-inline: auto; max-width: max(1260px, min(calc((100vw / var(--ui-z, 1) - var(--side-w)) * .9), 1720px)); padding-top: 22px; }
   html.has-side .side-btn, html.has-side .top-logo { display: none; }
   html.has-side .side-scrim { display: none; }
+  /* 0.52.0: the Compact window is centred in the room beside the sidebar. It was centred on the whole screen, so on a
+     screen under about 1680 px wide its left edge (the picture, the first words of each line) lay under the sidebar */
+  html.has-side[data-layout="compact"] .dossier { left: var(--side-w); width: min(1180px, calc(100vw / var(--ui-z, 1) - var(--side-w) - 48px)); }
+  html.has-side .cmp-x { left: calc(50% + var(--side-w) / 2 + min(1180px, 100vw / var(--ui-z, 1) - var(--side-w) - 48px) / 2 - 25px); }
 }
 .side { position: fixed; z-index: 45; left: 0; top: 0; bottom: 0; width: var(--side-w); display: flex; flex-direction: column; gap: 16px; padding: 18px 14px 14px;
   overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
@@ -224,11 +228,18 @@ section[id^="view-"].view-in { animation: uiViewIn .42s cubic-bezier(.2, .7, .2,
 .pcd.pcd-drop .pcd-info > :nth-child(2) { animation-delay: .22s; }
 .pcd.pcd-drop .pcd-info > :nth-child(3) { animation-delay: .26s; }
 .pcd.pcd-drop .pcd-info > :nth-child(n+4) { animation-delay: .3s; }
+/* ---------- Compact: a servant's page opens the same way (56-compact-open.js) ---------- */
+html[data-layout="compact"] .dossier.open.cmp-drop, .cmp-x.cmp-drop { animation: uiDrop .52s cubic-bezier(.2, .9, .3, 1.12) both; }
+.cmp-veil.cmp-drop { animation: uiFade .26s ease-out both; }
+.dossier .cmp-card { animation: uiCard .7s cubic-bezier(.2, .85, .25, 1.12) both; animation-delay: .08s; }
+.dossier .cmp-rise { animation: uiViewIn .46s cubic-bezier(.2, .7, .2, 1) both; animation-delay: var(--cd, .18s); }
+html.cmp-dropping .ds-frame { opacity: 0; }
+.ds-frame { transition: opacity .18s ease; }
 @keyframes uiFade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes uiDrop { from { opacity: 0; transform: translateY(-34px) scale(.965); } to { opacity: 1; transform: none; } }
 @keyframes uiCard { 0% { opacity: 0; transform: translateY(-70px) rotate(-4deg) scale(1.05); } 60% { opacity: 1; } 100% { opacity: 1; transform: none; } }
 
 @media (prefers-reduced-motion: reduce) {
-  section[id^="view-"].view-in, #view-servants.view-in > *, #view-servants.view-in .workspace > .list, .pcd.pcd-drop, .pcd.pcd-drop .pcd-panel, .pcd.pcd-drop .pcd-frame, .pcd.pcd-drop .pcd-info > * { animation: none !important; }
+  section[id^="view-"].view-in, #view-servants.view-in > *, #view-servants.view-in .workspace > .list, .pcd.pcd-drop, .pcd.pcd-drop .pcd-panel, .pcd.pcd-drop .pcd-frame, .pcd.pcd-drop .pcd-info > *, .dossier.cmp-drop, .cmp-x.cmp-drop, .cmp-veil.cmp-drop, .dossier .cmp-card, .dossier .cmp-rise { animation: none !important; }
   .side, .side-mark, .side-scrim, .side-cog .cog { transition: none !important; }
 }

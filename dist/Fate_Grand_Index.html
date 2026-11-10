@@ -4546,6 +4546,10 @@ html.has-side.side-mini { --side-w: 76px; }
   html.has-side .shell { margin-inline: auto; max-width: max(1260px, min(calc((100vw / var(--ui-z, 1) - var(--side-w)) * .9), 1720px)); padding-top: 22px; }
   html.has-side .side-btn, html.has-side .top-logo { display: none; }
   html.has-side .side-scrim { display: none; }
+  /* 0.52.0: the Compact window is centred in the room beside the sidebar. It was centred on the whole screen, so on a
+     screen under about 1680 px wide its left edge (the picture, the first words of each line) lay under the sidebar */
+  html.has-side[data-layout="compact"] .dossier { left: var(--side-w); width: min(1180px, calc(100vw / var(--ui-z, 1) - var(--side-w) - 48px)); }
+  html.has-side .cmp-x { left: calc(50% + var(--side-w) / 2 + min(1180px, 100vw / var(--ui-z, 1) - var(--side-w) - 48px) / 2 - 25px); }
 }
 .side { position: fixed; z-index: 45; left: 0; top: 0; bottom: 0; width: var(--side-w); display: flex; flex-direction: column; gap: 16px; padding: 18px 14px 14px;
   overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
@@ -4689,12 +4693,19 @@ section[id^="view-"].view-in { animation: uiViewIn .42s cubic-bezier(.2, .7, .2,
 .pcd.pcd-drop .pcd-info > :nth-child(2) { animation-delay: .22s; }
 .pcd.pcd-drop .pcd-info > :nth-child(3) { animation-delay: .26s; }
 .pcd.pcd-drop .pcd-info > :nth-child(n+4) { animation-delay: .3s; }
+/* ---------- Compact: a servant's page opens the same way (56-compact-open.js) ---------- */
+html[data-layout="compact"] .dossier.open.cmp-drop, .cmp-x.cmp-drop { animation: uiDrop .52s cubic-bezier(.2, .9, .3, 1.12) both; }
+.cmp-veil.cmp-drop { animation: uiFade .26s ease-out both; }
+.dossier .cmp-card { animation: uiCard .7s cubic-bezier(.2, .85, .25, 1.12) both; animation-delay: .08s; }
+.dossier .cmp-rise { animation: uiViewIn .46s cubic-bezier(.2, .7, .2, 1) both; animation-delay: var(--cd, .18s); }
+html.cmp-dropping .ds-frame { opacity: 0; }
+.ds-frame { transition: opacity .18s ease; }
 @keyframes uiFade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes uiDrop { from { opacity: 0; transform: translateY(-34px) scale(.965); } to { opacity: 1; transform: none; } }
 @keyframes uiCard { 0% { opacity: 0; transform: translateY(-70px) rotate(-4deg) scale(1.05); } 60% { opacity: 1; } 100% { opacity: 1; transform: none; } }
 
 @media (prefers-reduced-motion: reduce) {
-  section[id^="view-"].view-in, #view-servants.view-in > *, #view-servants.view-in .workspace > .list, .pcd.pcd-drop, .pcd.pcd-drop .pcd-panel, .pcd.pcd-drop .pcd-frame, .pcd.pcd-drop .pcd-info > * { animation: none !important; }
+  section[id^="view-"].view-in, #view-servants.view-in > *, #view-servants.view-in .workspace > .list, .pcd.pcd-drop, .pcd.pcd-drop .pcd-panel, .pcd.pcd-drop .pcd-frame, .pcd.pcd-drop .pcd-info > *, .dossier.cmp-drop, .cmp-x.cmp-drop, .cmp-veil.cmp-drop, .dossier .cmp-card, .dossier .cmp-rise { animation: none !important; }
   .side, .side-mark, .side-scrim, .side-cog .cog { transition: none !important; }
 }
 /* ===== 0.50.0-beta: the Battle page (49a-battle-engine.js, 49b-battle-ui.js) =====
@@ -22254,6 +22265,42 @@ playSummon = function (who) {
 // for the tests: how long each kind of summon takes, in seconds
 window.__fgiSummon = {plan: (r, k) => { const tier = smTierOf(k || "s", r), servant = (k || "s") !== "c", n = tier === "none" ? 0 : clamp(r, 3, 5);
   return {tier: tier, layers: n, seconds: tier === "none" ? 0 : s3Plan(n, tier, servant).end * s3Speed(tier, servant) / 1000}; }};
+/* ================= 0.52.0-beta: Compact opens the way Past Chaldea's window does =================
+   In the Compact layout a servant's page is a window over the list. It used to fade in over a fifth of a second;
+   now it opens like a servant's window in Past Chaldea: the page behind dims, the window drops in, the picture lands
+   like a card and the lines beside it rise in one after another (the same keyframes: uiFade, uiDrop, uiCard,
+   uiViewIn in 32-ui.css). On a phone the Compact page is a sheet, and its picture and lines arrive the same way.
+
+   The classes go on the parts that are there when it opens, not on the window as a rule for whatever is inside it:
+   the page redraws itself while it's open (a + pressed, a picture arriving), and what's drawn later must not play
+   the entrance again. The gold frame of a Lv 100 servant is placed from the window's box, so it waits until the
+   window has landed. */
+let cmpDropT = 0, cmpWasOpen = false;
+function cmpDropEnd() {
+  clearTimeout(cmpDropT); cmpDropT = 0;
+  document.querySelectorAll(".cmp-drop, .cmp-card, .cmp-rise").forEach((el) => { el.classList.remove("cmp-drop", "cmp-card", "cmp-rise"); el.style.removeProperty("--cd"); });
+  if (document.documentElement.classList.contains("cmp-dropping")) { document.documentElement.classList.remove("cmp-dropping"); if (typeof queueDsFrame === "function") queueDsFrame(); }
+}
+function cmpDropSync() {
+  const d = document.getElementById("dossier"); if (!d) return;
+  const open = pageLayout === "compact" && S.tab === "servants" && !!S.selected && d.classList.contains("open") && !S.editing;
+  if (open && !cmpWasOpen && !RM.matches && d.querySelector(".cmp-top")) {
+    cmpDropEnd();
+    d.classList.add("cmp-drop"); cmpVeil.classList.add("cmp-drop"); cmpX.classList.add("cmp-drop");
+    const card = d.querySelector(".cmp-l"); if (card) card.classList.add("cmp-card");
+    let i = 0;
+    d.querySelectorAll(".cmp-r > *").forEach((el) => { el.classList.add("cmp-rise"); el.style.setProperty("--cd", (0.18 + Math.min(i++, 3) * 0.04).toFixed(2) + "s"); });
+    Array.from(d.children).forEach((el) => { if (!el.classList.contains("cmp-top")) { el.classList.add("cmp-rise"); el.style.setProperty("--cd", ".3s"); } });
+    document.documentElement.classList.add("cmp-dropping");
+    cmpDropT = setTimeout(cmpDropEnd, 900);
+  }
+  if (!open && cmpWasOpen) cmpDropEnd();
+  cmpWasOpen = open;
+}
+const renderDossier56 = renderDossier;
+renderDossier = function () { const r = renderDossier56.apply(this, arguments); cmpDropSync(); return r; };
+const renderChrome56 = renderChrome;
+renderChrome = function () { const r = renderChrome56.apply(this, arguments); cmpDropSync(); return r; };
 // Where the page is scrolled when it opens (0.23.1):
 // - While the page builds itself, the browser's scroll anchoring followed the footer down as the views filled in, so a
 //   reload on a phone ended at the bottom. Anchoring is off until the page has settled.

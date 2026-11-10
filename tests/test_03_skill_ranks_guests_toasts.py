@@ -71,6 +71,7 @@ with sync_playwright() as p:
     for t, nm in [(700, "a"), (1500, "b"), (2250, "c"), (2600, "d"), (3300, "e"), (4000, "f"), (5100, "g"), (8200, "h")]:
         pg.wait_for_timeout(t - (0 if nm == "a" else prev)); prev = t
         pg.screenshot(path=f"{sp}/v7-summon-{nm}.png")
+    pg.wait_for_function("document.getElementById('summon').classList.contains('info')", timeout=30000)  # 0.52.0: a ★5's rite takes about 13 s
     check("summon overlay revealed", pg.evaluate("document.getElementById('summon').classList.contains('info')"))
     check("page behind is inert", pg.evaluate("document.querySelector('.shell').inert"))
     pg.click(".sm-done"); pg.wait_for_timeout(700)

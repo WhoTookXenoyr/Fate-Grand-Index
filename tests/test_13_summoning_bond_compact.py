@@ -163,8 +163,8 @@ with sync_playwright() as p:
     go_tab(pg, "past"); pg.wait_for_timeout(400)
     pg.fill('[data-pc-q="q"]', "emiya"); pg.wait_for_timeout(300); pg.click('.pc-card[data-no="11"]'); pg.wait_for_timeout(300)
     t0 = time.time(); pg.click('.pcd-panel [data-action="pc-summon"]')
-    pg.wait_for_function("document.getElementById('summon').classList.contains('info')", timeout=15000); dt = time.time() - t0
-    check(f"a ★4 servant gets the gold ceremony, quicker than a ★5 ({dt:.1f}s)", pg.evaluate("document.getElementById('summon').dataset.look") == "gold" and 3.0 < dt < 5.6 and pg.locator("#summon .s2-pillars").count() == 1)
+    pg.wait_for_function("document.getElementById('summon').classList.contains('info')", timeout=30000); dt = time.time() - t0
+    check(f"a ★4 servant gets the gold ceremony, quicker than a ★5 ({dt:.1f}s)", pg.evaluate("document.getElementById('summon').dataset.look") == "gold" and 9.0 < dt < 13.2 and pg.locator("#summon .s3-pillar").count() == 1)
     pg.click(".sm-done"); pg.wait_for_timeout(800)
     check("Emiya (★4) has beige stars on his page", "st-r4" in pg.locator("#dossier .d-meta .stars").get_attribute("class"))
     pg.mouse.move(10, 10)

@@ -68,7 +68,7 @@ with sync_playwright() as p:
     pg.click('[data-action="cancel-edit"]'); pg.wait_for_timeout(300)
     # summon shows the art on the card
     go_tab(pg, "summon"); pg.wait_for_timeout(600); pg.click('.smg [data-action="summon"][data-id="morgan"]'); pg.wait_for_timeout(300); pg.keyboard.press("Escape"); pg.wait_for_timeout(1500)
-    check("summon card shows the stage picture", pg.locator(".s2-front img.s2-art:not(.mark)").count() == 1)
+    check("summon card shows the stage picture", pg.locator(".s3-side.face img.s3-art:not(.mark)").count() == 1)
     pg.screenshot(path=f"{sp}/v71-summon.png")
     pg.click(".sm-done"); pg.wait_for_timeout(800)
     st = pg.evaluate(LS + ".servants.find(s=>s.id==='morgan')")

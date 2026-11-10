@@ -85,7 +85,7 @@ with sync_playwright() as p:
     pg.keyboard.press("Escape"); pg.fill('[data-pc-q="q"]', ""); pg.wait_for_timeout(300)
     pg.click('.pc-card[data-no="2"]'); pg.wait_for_timeout(300)
     pg.click('.pcd-panel [data-action="pc-summon"]')
-    pg.wait_for_function("document.getElementById('summon').classList.contains('info')", timeout=15000)
+    pg.wait_for_function("document.getElementById('summon').classList.contains('info')", timeout=30000)
     pg.click(".sm-done"); pg.wait_for_timeout(900)
     a = next(x for x in docs(pg) if x.get("atlas") == 2)
     sw = pg.locator('#dossier [data-action="skup"]')

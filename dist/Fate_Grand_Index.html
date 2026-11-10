@@ -23542,7 +23542,7 @@ function bg3dSync() {
   if (!want || !host) {
     // nothing wanted: it fades out and is taken away
     if (host) host.classList.remove("on");
-    flags(null);
+    flags(null); bg3dPaint();
     if (bg3d) bg3dT = setTimeout(() => { if (!bg3dWant()) bg3dKill(); else bg3dSync(); }, 650);
     return;
   }

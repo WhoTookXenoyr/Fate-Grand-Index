@@ -1,0 +1,172 @@
+/* ================= 0.52.0-beta: the summoning rite (55-summon-rite.js) =================
+   Layers are still drawings that are only turned, moved and faded. --k is the speed (1 for a ★5 servant), --uv how long
+   the palette takes to sink down the card. */
+.summon.s3 { --k: 1; --uv: 3600ms; --fw: min(92vw, 78vh, 720px); background: #03060f; }
+.s3-defs { position: absolute; }
+.s3-bg { position: absolute; inset: 0; background: radial-gradient(120% 80% at 50% 62%, #101e46 0%, #060b1c 55%, #02040b 100%); }
+.s3-bg i { position: absolute; inset: 0; opacity: 0; transition: opacity calc(.9s * var(--k)) ease; }
+.s3-bg .g { background: radial-gradient(110% 76% at 50% 62%, rgba(128, 90, 20, .8) 0%, rgba(34, 22, 8, .62) 48%, rgba(3, 3, 10, 0) 100%); }
+.s3-bg .r { background: radial-gradient(110% 76% at 50% 62%, rgba(84, 46, 160, .82) 0%, rgba(18, 16, 58, .62) 48%, rgba(2, 4, 11, 0) 100%); }
+.summon.s3.t4 .s3-bg .g { opacity: 1; }
+.summon.s3.t5 .s3-bg .g { opacity: 0; }
+.summon.s3.t5 .s3-bg .r { opacity: 1; }
+.s3-flash { position: absolute; inset: 0; background: #fff6dc; opacity: 0; pointer-events: none; }
+.summon.s3.fl .s3-flash { animation: s3Flash calc(.7s * var(--k)) ease-out; }
+.summon.s3.fl2 .s3-flash { animation: s3Flash2 calc(.9s * var(--k)) ease-out; }
+.summon.s3[data-look="rainbow"].fl2 .s3-flash { background: #fff; }
+@keyframes s3Flash { 0% { opacity: 0; } 25% { opacity: .34; } 100% { opacity: 0; } }
+@keyframes s3Flash2 { 0% { opacity: 0; } 22% { opacity: .5; } 100% { opacity: 0; } }
+
+/* the card stands in the middle of the screen during the rite, and moves up to make room for the name at the end */
+.s3-stage { z-index: 2; gap: 14px; transform: translateY(8vh); transition: transform calc(.9s * var(--k)) cubic-bezier(.2, .8, .2, 1); }
+.summon.s3.hss .s3-stage { transform: none; }
+.s3-wrap { position: relative; width: min(50vw, 236px, 30vh); aspect-ratio: 512 / 875; }
+
+/* ---------- the field: one layer for each star, the far halves behind the card and the near halves in front ---------- */
+.s3-field { position: absolute; left: 50%; top: 0; width: 0; height: 100%; pointer-events: none; transition: opacity calc(1s * var(--k)) ease; }
+.s3-field.back { z-index: 0; }
+.s3-field.front { z-index: 3; }
+.s3-layer { position: absolute; left: 0; top: calc(94% - var(--i) * 19.5%); width: calc(var(--fw) * var(--sz)); aspect-ratio: 1; transform: translate(-50%, -50%) scaleY(.32); }
+.s3-half { position: absolute; left: -8%; width: 116%; height: 58%; overflow: hidden; }
+.s3-field.back .s3-half { top: -8%; }
+.s3-field.front .s3-half { top: 50%; }
+.s3-full { position: absolute; left: 6.897%; width: 86.207%; height: 172.414%; }
+.s3-field.back .s3-full { top: 13.793%; }
+.s3-field.front .s3-full { top: -86.207%; }
+.s3-ign, .s3-surge, .s3-spin { position: absolute; inset: 0; }
+.s3-ign { opacity: 0; transform: scale(.35); }
+.s3-spin { will-change: transform; }
+.s3-spin svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; overflow: visible; transition: opacity calc(.7s * var(--k)) ease; }
+.s3-spin svg.g, .s3-spin svg.r { opacity: 0; }
+.summon.s3.t4 .s3-spin svg.n { opacity: 0; }
+.summon.s3.t4 .s3-spin svg.g { opacity: 1; }
+.summon.s3.t5 .s3-spin svg.g { opacity: 0; }
+.summon.s3.t5 .s3-spin svg.r { opacity: 1; }
+.summon.s3.l1 .l1 .s3-ign, .summon.s3.l2 .l2 .s3-ign, .summon.s3.l3 .l3 .s3-ign, .summon.s3.l4 .l4 .s3-ign, .summon.s3.l5 .l5 .s3-ign { animation: s3Ignite calc(.85s * var(--k)) cubic-bezier(.2, .9, .25, 1.12) forwards; }
+@keyframes s3Ignite { 0% { opacity: 0; transform: scale(.35); } 50% { opacity: 1; } 100% { opacity: 1; transform: none; } }
+.summon.s3.go .s3-spin { animation: s3Spin var(--sp, 20s) linear infinite; }
+.s3-layer.l1 { --sp: 26s; --sg: 360deg; }
+.s3-layer.l2 { --sp: 19s; --sg: -360deg; }
+.s3-layer.l3 { --sp: 14s; --sg: 360deg; }
+.s3-layer.l4 { --sp: 11s; --sg: -360deg; }
+.s3-layer.l5 { --sp: 8s; --sg: 360deg; }
+.s3-layer.l2 .s3-spin, .s3-layer.l4 .s3-spin { animation-direction: reverse; }
+@keyframes s3Spin { to { transform: rotate(360deg); } }
+/* the light gathers: every layer whirls round once more before the card rises */
+.summon.s3.gather .s3-surge { animation: s3Surge calc(2.6s * var(--k)) cubic-bezier(.5, 0, .2, 1) forwards; }
+@keyframes s3Surge { to { transform: rotate(var(--sg)); } }
+/* a ring of light as each layer catches */
+.s3-pulse { position: absolute; inset: -4%; border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, .5) 0%, rgba(190, 215, 255, .26) 40%, rgba(190, 215, 255, 0) 68%); opacity: 0; transform: scale(.5); }
+.summon.s3[data-look="gold"] .l4 .s3-pulse, .summon.s3[data-look="gold"] .l5 .s3-pulse, .summon.s3[data-look="rainbow"] .l4 .s3-pulse { background: radial-gradient(circle, rgba(255, 250, 225, .6) 0%, rgba(255, 206, 110, .32) 40%, rgba(255, 206, 110, 0) 68%); }
+.summon.s3[data-look="rainbow"] .l5 .s3-pulse { background: radial-gradient(circle, rgba(255, 255, 255, .7) 0%, rgba(255, 140, 200, .34) 30%, rgba(120, 220, 255, .28) 48%, rgba(196, 139, 255, 0) 70%); }
+.summon.s3.l1 .l1 .s3-pulse, .summon.s3.l2 .l2 .s3-pulse, .summon.s3.l3 .l3 .s3-pulse, .summon.s3.l4 .l4 .s3-pulse, .summon.s3.l5 .l5 .s3-pulse { animation: s3Pulse calc(1s * var(--k)) ease-out forwards; }
+@keyframes s3Pulse { 0% { opacity: 0; transform: scale(.5); } 28% { opacity: 1; } 100% { opacity: 0; transform: scale(1.22); } }
+/* once the card is up the near halves thin out, and they're gone while the picture is uncovered */
+.summon.s3.card .s3-field.front { opacity: .6; }
+.summon.s3.unveil .s3-field.front { opacity: 0; }
+.summon.s3.unveil .s3-field.back { opacity: .75; }
+.summon.s3.end .s3-field.back { opacity: .4; }
+
+/* ---------- the pillar and the motes that rise in it ---------- */
+.s3-pillar { position: absolute; z-index: 0; left: 50%; bottom: 6%; width: calc(var(--fw) * .46); height: 80vh; transform: translateX(-50%) scaleY(0); transform-origin: 50% 100%; opacity: 0; pointer-events: none;
+  background: radial-gradient(50% 100% at 50% 100%, rgba(255, 250, 225, .88) 0%, rgba(255, 206, 110, .46) 26%, rgba(255, 206, 110, 0) 70%); }
+.summon.s3[data-look="rainbow"] .s3-pillar { background: radial-gradient(24% 100% at 30% 100%, rgba(255, 107, 139, .5), rgba(255, 107, 139, 0) 70%), radial-gradient(24% 100% at 70% 100%, rgba(107, 208, 255, .5), rgba(107, 208, 255, 0) 70%),
+  radial-gradient(50% 100% at 50% 100%, rgba(255, 255, 255, .92) 0%, rgba(255, 222, 150, .44) 24%, rgba(196, 139, 255, .2) 48%, rgba(196, 139, 255, 0) 72%); }
+.summon.s3.gather .s3-pillar { animation: s3Pillar calc(2.7s * var(--k)) cubic-bezier(.3, .7, .3, 1) forwards; }
+@keyframes s3Pillar { 0% { opacity: 0; transform: translateX(-50%) scaleY(0); } 20% { opacity: 1; } 46% { opacity: 1; transform: translateX(-50%) scaleY(1); } 100% { opacity: 0; transform: translateX(-50%) scaleY(1); } }
+.s3-orbs { position: absolute; z-index: 1; left: 50%; top: 94%; width: 0; height: 0; pointer-events: none; }
+.s3-orbs i { position: absolute; left: 0; top: 0; width: var(--sz); height: var(--sz); margin: calc(var(--sz) / -2); border-radius: 50%; opacity: 0; background: radial-gradient(circle, #fff 0 30%, rgba(255, 214, 120, .95) 45%, rgba(255, 214, 120, 0) 72%); }
+.summon.s3[data-look="rainbow"] .s3-orbs i:nth-child(3n) { background: radial-gradient(circle, #fff 0 30%, rgba(107, 208, 255, .95) 45%, rgba(107, 208, 255, 0) 72%); }
+.summon.s3[data-look="rainbow"] .s3-orbs i:nth-child(3n+1) { background: radial-gradient(circle, #fff 0 30%, rgba(255, 107, 139, .95) 45%, rgba(255, 107, 139, 0) 72%); }
+.summon.s3[data-look="rainbow"] .s3-orbs i:nth-child(3n+2) { background: radial-gradient(circle, #fff 0 30%, rgba(125, 255, 168, .95) 45%, rgba(125, 255, 168, 0) 72%); }
+.summon.s3.gather .s3-orbs i { animation: s3Orb calc(1.9s * var(--k)) cubic-bezier(.4, 0, .6, 1) calc(var(--dl) * var(--k)) forwards; }
+@keyframes s3Orb { 0% { opacity: 0; transform: translate(calc(var(--x) * var(--fw) * .46), calc(var(--y) * var(--fw) * .15)) scale(.5); } 22% { opacity: 1; }
+  100% { opacity: 0; transform: translate(0, calc(var(--fw) * -.5)) scale(1.2); } }
+
+/* ---------- the card: its back, then its class on the palette, then the picture ---------- */
+/* the card rises (and fades in) as one box; the turning happens on a box inside it, which is never faded: a faded
+   box is flattened by the browser, and both sides of a flattened card show its back */
+.s3-card { position: absolute; inset: 0; z-index: 2; perspective: 1100px; opacity: 0; transform: translateY(34%) scale(.55); }
+.summon.s3.card .s3-card { animation: s3CardIn calc(1.05s * var(--k)) cubic-bezier(.2, .8, .2, 1) forwards; }
+@keyframes s3CardIn { 0% { opacity: 0; transform: translateY(34%) scale(.55); } 40% { opacity: 1; } 100% { opacity: 1; transform: none; } }
+.s3-flipper { position: absolute; inset: 0; transform-style: preserve-3d; }
+.summon.s3.flip .s3-flipper { animation: s3Flip calc(1s * var(--k)) cubic-bezier(.45, .05, .25, 1) forwards; }
+@keyframes s3Flip { 0% { transform: rotateY(0deg) scale(1); } 50% { transform: rotateY(90deg) scale(1.06); } 100% { transform: rotateY(180deg) scale(1); } }
+.s3-side { position: absolute; inset: 0; border-radius: 13px; overflow: hidden; background: #0b1230; box-shadow: 0 22px 46px -18px #000; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.s3-side.face { transform: rotateY(180deg); }
+.s3-side.back > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.s3-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 14%; }
+/* the palette over the picture. It's taller than the card, with a soft top edge, and sinks until it's off the card */
+.s3-veil { position: absolute; left: 0; right: 0; top: 0; height: 130%; transform: translateY(-23.08%); will-change: transform;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 23%); mask-image: linear-gradient(to bottom, transparent 0, #000 23%); }
+.s3-veil .pal { position: absolute; inset: 0; background: radial-gradient(90% 46% at 50% 50%, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 72%), linear-gradient(160deg, #6b7682, #d9dee4 30%, #ffffff 46%, #b9c2cc 62%, #6b7682 84%, #d9dee4); }
+.summon.s3[data-look="gold"] .s3-veil .pal { background: radial-gradient(90% 46% at 50% 50%, rgba(255, 250, 225, .5), rgba(255, 250, 225, 0) 72%), linear-gradient(160deg, #7a5208, #e8b93e 22%, #fff3c4 40%, #c9922b 58%, #8a6210 78%, #e8b93e); }
+.summon.s3[data-look="rainbow"] .s3-veil .pal { background: radial-gradient(90% 46% at 50% 50%, rgba(255, 255, 255, .5), rgba(255, 255, 255, 0) 72%), linear-gradient(160deg, #ff6b8b, #ffd36b 22%, #7dffa8 44%, #6bd0ff 66%, #c48bff 86%, #ff8fb0); }
+.s3-veil .sheen { position: absolute; top: -10%; bottom: -10%; left: -60%; width: 220%; background: linear-gradient(110deg, rgba(255, 255, 255, 0) 42%, rgba(255, 255, 255, .55) 50%, rgba(255, 255, 255, 0) 58%); transform: translateX(-45%); }
+.summon.s3.flip .s3-veil .sheen { animation: s3Sheen 2.4s ease-in-out infinite; }
+@keyframes s3Sheen { 0%, 15% { transform: translateX(-45%); } 85%, 100% { transform: translateX(45%); } }
+.s3-veil .line { position: absolute; left: 0; right: 0; top: 23%; height: 3px; margin-top: -1px; background: #fff; box-shadow: 0 0 14px 4px rgba(255, 255, 255, .8); opacity: 0; }
+.summon.s3.unveil .s3-veil .line { opacity: 1; }
+.summon.s3.unveil .s3-veil { animation: s3Unveil calc(var(--uv) * var(--k)) cubic-bezier(.45, .05, .4, 1) forwards; }
+@keyframes s3Unveil { to { transform: translateY(80%); } }
+/* its class, on the palette */
+.s3-crest { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6%; padding-bottom: 4%; transition: opacity calc(.9s * var(--k)) ease; }
+.s3-emb { width: 50%; aspect-ratio: 187 / 300; background: rgba(255, 255, 255, .94); -webkit-mask: var(--m) center / contain no-repeat; mask: var(--m) center / contain no-repeat; }
+.s3-emb.gem { width: 30%; aspect-ratio: 1; -webkit-mask: none; mask: none; background: none; border: 3px solid rgba(255, 255, 255, .92); transform: rotate(45deg); }
+.s3-cls { font-family: var(--f-display); font-weight: 700; font-size: clamp(13px, 2.3vh, 19px); letter-spacing: .26em; margin-right: -.26em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 6px rgba(20, 10, 40, .55); text-align: center; }
+.summon.s3[data-look="silver"] .s3-emb { background: rgba(34, 46, 70, .82); }
+.summon.s3[data-look="silver"] .s3-emb.gem { background: none; border-color: rgba(34, 46, 70, .82); }
+.summon.s3[data-look="silver"] .s3-cls { color: #222e46; text-shadow: none; }
+.summon.s3.flip .s3-emb { animation: s3Stamp calc(.75s * var(--k)) cubic-bezier(.2, .8, .2, 1) calc(.45s * var(--k)) both; }
+.summon.s3.flip .s3-cls { animation: s3ClsIn calc(.6s * var(--k)) ease calc(.75s * var(--k)) both; }
+@keyframes s3Stamp { from { opacity: 0; transform: scale(1.5); } to { opacity: 1; transform: none; } }
+.summon.s3.flip .s3-emb.gem { animation-name: s3StampGem; }
+@keyframes s3StampGem { from { opacity: 0; transform: rotate(45deg) scale(1.5); } to { opacity: 1; transform: rotate(45deg); } }
+@keyframes s3ClsIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.summon.s3.unveil .s3-crest { opacity: 0; }
+
+/* the frame and glow come on once the picture is uncovered */
+.summon.s3 .sm-edge, .summon.s3 .sm-halo { inset: -5px; opacity: 0; }
+.summon.s3 .sm-halo { z-index: 1; animation: none; }
+.summon.s3.lit .sm-edge, .summon.s3.lit .sm-halo { opacity: 1; }
+.summon.s3.lit[data-tier="gold5"] .sm-halo { animation: smHalo 1.4s ease-in-out infinite alternate; }
+
+/* Done kept its dark text but lost its gold in the new look (0.50.0): its own rule, strong enough for both looks */
+html .summon .sm-info .sm-done { background: #ffe08a; color: #1d1405; border-color: #ffe08a; box-shadow: none; }
+html .summon .sm-info .sm-done:hover { background: #ffeab0; border-color: #ffeab0; }
+
+/* ---------- the stars: each layer lights one ---------- */
+.s3-stars { display: flex; justify-content: center; gap: 5px; margin: 0; height: 28px; font-size: 24px; line-height: 28px; }
+.s3-stars i { position: relative; width: 25px; height: 28px; font-style: normal; }
+.s3-stars b { position: absolute; inset: 0; text-align: center; font-weight: 400; }
+.s3-stars .o { color: rgba(255, 255, 255, .26); transition: opacity calc(.7s * var(--k)) ease; }
+.s3-stars .f { color: #ffd76a; text-shadow: 0 0 10px rgba(255, 206, 110, .7); opacity: 0; transform: scale(.2) rotate(-50deg); }
+.summon.s3[data-look="silver"] .s3-stars .f { color: #e6ecf5; text-shadow: 0 0 10px rgba(214, 226, 245, .6); }
+.summon.s3.l1 .s3-stars i:nth-child(1) .f, .summon.s3.l2 .s3-stars i:nth-child(2) .f, .summon.s3.l3 .s3-stars i:nth-child(3) .f, .summon.s3.l4 .s3-stars i:nth-child(4) .f, .summon.s3.l5 .s3-stars i:nth-child(5) .f {
+  animation: s3Star calc(.6s * var(--k)) cubic-bezier(.2, .9, .3, 1.4) forwards; }
+@keyframes s3Star { to { opacity: 1; transform: none; } }
+.summon.s3.gather .s3-stars .o { opacity: 0; }
+.summon.s3[data-layers="0"] .s3-stars .f { opacity: 1; transform: none; }
+
+/* ---------- skipped, or shown at once: the end of the rite ---------- */
+.summon.s3.now .s3-ign { animation: none; opacity: 1; transform: none; }
+.summon.s3.now .s3-surge { animation: none; }
+.summon.s3.now .s3-card { animation: none; opacity: 1; transform: none; }
+.summon.s3.now .s3-flipper { animation: none; transform: rotateY(180deg); }
+.summon.s3.now .s3-veil { animation: none; transform: translateY(80%); }
+.summon.s3.now .s3-crest { opacity: 0; transition: none; }
+.summon.s3.now .s3-pillar, .summon.s3.now .s3-orbs, .summon.s3.now .s3-flash, .summon.s3.now .s3-pulse { display: none; }
+.summon.s3.now .s3-stars .f { animation: none; opacity: 1; transform: none; }
+.summon.s3.now .s3-stars .o { opacity: 0; transition: none; }
+.summon.s3.now .s3-field, .summon.s3.now .s3-bg i, .summon.s3.now .s3-spin svg, .summon.s3.now .s3-stage { transition: none; }
+
+@media (max-height: 620px) { .s3-wrap { width: min(40vw, 170px, 30vh); } .s3-stage { gap: 8px; } .s3-stars { height: 22px; font-size: 19px; line-height: 22px; } .s3-stars i { width: 20px; height: 22px; } }
+@media (prefers-reduced-motion: reduce) {
+  .summon.s3 * { animation: none !important; transition: none !important; }
+  .summon.s3 .s3-ign { opacity: 1; transform: none; }
+  .summon.s3 .s3-card { opacity: 1; transform: none; }
+  .summon.s3 .s3-flipper { transform: rotateY(180deg); }
+  .summon.s3 .s3-veil { transform: translateY(80%); }
+  .summon.s3 .s3-crest { opacity: 0; }
+  .summon.s3 .s3-stars .f { opacity: 1; transform: none; }
+}

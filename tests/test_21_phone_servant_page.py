@@ -12,6 +12,8 @@ def check(label, ok):
     if not ok: fails.append(label)
 INIT = "localStorage.setItem('spirit-origin-list:v1:intro','1');localStorage.setItem('spirit-origin-list:v1:news','9.9.9');if(!localStorage.getItem('spirit-origin-list:v1:summon'))localStorage.setItem('spirit-origin-list:v1:summon',JSON.stringify({anim:false}))"
 BEHIND = [".shell", ".aura", ".page-emblem", ".page-class", ".page-fx", ".idle-bg"]
+# (0.52: the page's particle canvas isn't on screen while it has nothing on it, so it doesn't count as "drawn as usual")
+USUAL = [s for s in BEHIND if s != ".page-fx"]
 def page(b, w, h, mobile):
     ctx = b.new_context(viewport={"width": w, "height": h}, is_mobile=mobile, has_touch=mobile); pg = ctx.new_page()
     pg.add_init_script(INIT); pg.on("pageerror", lambda e: errs.append(str(e)))
@@ -32,7 +34,7 @@ with sync_playwright() as p:
     ctx, pg = page(b, 390, 844, True)
     pg.goto(SEEDED + "#servants"); pg.wait_for_timeout(1500)
     pg.mouse.wheel(0, 600); pg.wait_for_timeout(300); y0 = pg.evaluate("scrollY")
-    check("with no servant open, the page is drawn as usual", not on(pg) and all(vis(pg, s) == "visible" for s in BEHIND))
+    check("with no servant open, the page is drawn as usual", not on(pg) and all(vis(pg, s) == "visible" for s in USUAL))
     open_sv(pg, "oberon")
     check("a servant's page on a phone marks the screen as covered", on(pg))
     check(f"it's solid (background alpha {alpha(pg)})", alpha(pg) == 1)
@@ -53,7 +55,7 @@ with sync_playwright() as p:
     check("the Craft Essence picker opened from it is visible", pg.evaluate("(() => { const c = document.querySelector('.cep'); return !!c && !c.hidden && getComputedStyle(c).visibility === 'visible' && getComputedStyle(c).display !== 'none'; })()"))
     pg.keyboard.press("Escape"); pg.wait_for_timeout(300)
     close_sv(pg)
-    check(f"closing it draws the page again, at the same place in the list ({y0} -> {pg.evaluate('scrollY')})", not on(pg) and all(vis(pg, s) == "visible" for s in BEHIND) and pg.evaluate("scrollY") == y0)
+    check(f"closing it draws the page again, at the same place in the list ({y0} -> {pg.evaluate('scrollY')})", not on(pg) and all(vis(pg, s) == "visible" for s in USUAL) and pg.evaluate("scrollY") == y0)
     # a grailed servant keeps the gold frame
     open_sv(pg, "cu-chulainn-alter")
     check("a grailed servant's gold frame is still drawn", pg.evaluate("(() => { const f = document.querySelector('.ds-frame'); return !!f && !f.hidden && getComputedStyle(f).visibility === 'visible'; })()"))

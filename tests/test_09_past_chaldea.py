@@ -91,14 +91,14 @@ with sync_playwright() as p:
     # ---- summoning straight to the roster, paced by rarity
     import time
     go_tab(pg, "past"); pg.wait_for_timeout(700)
-    # 0.16.0: ★1–2 have no ceremony, ★3 a short silver one, ★5 the full rainbow one
+    # 0.16.0: ★1–2 have no ceremony, ★3 a short silver one, ★5 the full rainbow one (0.52.0: the rite, about 13 s for a ★5)
     for no, want, edge in ((16, "none", 0), (13, "brisk", 1), (119, "full", 1)):
         if not pg.locator(f'.pc-card[data-no="{no}"]').count(): pg.click('[data-action="pc-more"]'); pg.wait_for_timeout(300)
         pg.click(f'.pc-card[data-no="{no}"]'); pg.wait_for_timeout(400)
         t0 = time.time(); pg.click('.pcd-panel [data-action="pc-summon"]')
-        pg.wait_for_function("document.getElementById('summon').classList.contains('info')", timeout=15000); dt = time.time() - t0
+        pg.wait_for_function("document.getElementById('summon').classList.contains('info')", timeout=30000); dt = time.time() - t0
         tier = pg.evaluate("document.getElementById('summon').dataset.tier")
-        check(f"No. {no}: {want} summon ({dt:.1f}s, {tier}, outline {pg.locator('#summon .sm-edge').count()})", pg.evaluate("document.getElementById('summon').dataset.speed") == want and pg.locator("#summon .sm-edge").count() == edge and dt < {"none": 1.4, "brisk": 2.4, "full": 7.2}[want] and dt > {"none": 0, "brisk": 0.7, "full": 4.6}[want])
+        check(f"No. {no}: {want} summon ({dt:.1f}s, {tier}, outline {pg.locator('#summon .sm-edge').count()})", pg.evaluate("document.getElementById('summon').dataset.speed") == want and pg.locator("#summon .sm-edge").count() == edge and dt < {"none": 1.4, "brisk": 5.0, "full": 17.5}[want] and dt > {"none": 0, "brisk": 2.6, "full": 12.5}[want])
         pg.click(".sm-done"); pg.wait_for_timeout(900)
         d = next((x for x in docs(pg) if x.get("atlas") == no), None)
         check(f"No. {no} joined the roster at the start", d and not d.get("wish") and d["level"] == 1 and d["skills"] == [1, "Locked", "Locked"] and pg.evaluate("location.hash") == "#servants" and pg.locator("#dossier h2").first.inner_text() == d["name"])

@@ -50,7 +50,8 @@ const UI_SET_ROWS = [
     ["layout", "Servant page", "Modern puts the servant beside your list; Compact opens them in a window."],
     ["menu", "Sidebar", "The pages' names and icons, or only the icons."],
     ["fonts", "Text", "The page's fonts."],
-    ["fps", "Animations", "Fewer frames a second are lighter on a slow computer."]]],
+    ["fps", "Animations", "Fewer frames a second are lighter on a slow computer."],
+    ["power", "Power saving", "The background moves at half the frame rate and rests after a minute without input. Cooler and quieter on a laptop."]]],
   ["Your data", [
     ["export", "Backup", "Download your servants, parties and pictures, or a spreadsheet."],
     ["import", "Bring a list in", "A backup from this page, a spreadsheet (.csv) or a planner's .json export."]]],
@@ -61,7 +62,8 @@ const UI_SET_ROWS = [
 function uiSetHTML() {
   const seg = (k) => k === "look"
     ? `<div class="seg set-seg" role="group" aria-label="Look"><button type="button" data-action="ui-look" data-v="beta">New</button><button type="button" data-action="ui-look" data-v="classic">Classic</button></div>`
-    : k === "menu" ? `<div class="seg set-seg" role="group" aria-label="Sidebar"><button type="button" data-action="ui-mini" data-v="0">Names and icons</button><button type="button" data-action="ui-mini" data-v="1">Only icons</button></div>` : "";
+    : k === "menu" ? `<div class="seg set-seg" role="group" aria-label="Sidebar"><button type="button" data-action="ui-mini" data-v="0">Names and icons</button><button type="button" data-action="ui-mini" data-v="1">Only icons</button></div>`
+    : k === "power" ? `<div class="seg set-seg" role="group" aria-label="Power saving"><button type="button" data-action="power" data-v="1">On</button><button type="button" data-action="power" data-v="0">Off</button></div>` : "";
   return `<button type="button" id="tab-settings" class="set-tab" data-action="tab" data-tab="settings" hidden tabindex="-1" aria-hidden="true">Settings</button>
     <div class="set-grid">${UI_SET_ROWS.map(([h, rows]) => `<section class="set-card" aria-labelledby="set-h-${esc(h.replace(/\W+/g, "-").toLowerCase())}"><h3 id="set-h-${esc(h.replace(/\W+/g, "-").toLowerCase())}">${esc(h)}</h3>
       ${rows.map(([k, t, d]) => `<div class="set-row set-${k}"><div class="set-l"><b>${esc(t)}</b>${d ? `<small>${esc(d)}</small>` : ""}</div><div class="set-c" data-set="${k}">${seg(k)}</div></div>`).join("")}</section>`).join("")}</div>`;

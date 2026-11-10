@@ -101,12 +101,15 @@ with sync_playwright() as p:
     go_tab(pg, "home"); pg.wait_for_timeout(1000)
     on = pg.evaluate("document.documentElement.classList.contains('story-on')")
     bg = pg.evaluate("(() => { const b = document.getElementById('story-bg'); return b ? [b.dataset.m, b.classList.contains('on'), b.style.getPropertyValue('--c1'), b.querySelectorAll('i').length] : null; })()")
-    check(f"on Home the page wears Fuyuki's look ({bg})", on and bg and bg[0] == "embers" and bg[1] and bg[2] == "#d9542b" and bg[3] >= 10)
+    check(f"on Home the page wears Fuyuki's look ({bg})", on and bg and bg[0] in ("embers", "motes") and bg[1] and bg[2] == "#d9542b" and 8 <= bg[3] <= 16)
     check(f"and its colours ({pg.evaluate(G1)} vs {g1_default})", pg.evaluate(G1) != g1_default)
     plate = pg.evaluate("(() => { const p = document.getElementById('story-plate'); return p && !p.hidden ? p.querySelector('img').getAttribute('src') : null; })()")
     check(f"its plate sits next to the logo ({plate})", plate and plate.endswith("questboard_cap100.png"))
     anims = pg.evaluate("(() => { const i = document.querySelector('#story-bg i'); const cs = getComputedStyle(i); return [cs.animationName, getComputedStyle(document.getElementById('story-bg')).position]; })()")
-    check(f"the backdrop moves with CSS only ({anims})", anims[0] == "sb-rise" and anims[1] == "fixed")
+    check(f"the backdrop moves with CSS only ({anims})", anims[0] in ("sb-rise", "sb-mote") and anims[1] == "fixed")
+    # 0.52: the look is a scene with depth, one of the chapter's own
+    sc = pg.evaluate("(() => { const n = window.__fgiScene.now(), pl = window.__fgiScene.planes(); return {n: n, pl: pl.length, zs: pl.map((p) => p.z)}; })()")
+    check(f"the look is one of Fuyuki's scenes, in sheets one behind the other ({sc})", sc["n"] and sc["n"]["w"] == 100 and sc["n"]["of"] == 2 and sc["pl"] >= 3 and min(sc["zs"]) < -1000 and max(sc["zs"]) == 0)
     pg.click("#story-plate"); pg.wait_for_timeout(600)
     check("the plate opens the Story page", pg.evaluate("location.hash") == "#story")
     pg.uncheck("#story input[data-st-theme]"); pg.wait_for_timeout(700)
@@ -165,12 +168,12 @@ with sync_playwright() as p:
     check("and opens it again", pg.locator('#story .st-row.open').get_attribute("data-q") == "3000710")
     pg.locator('#story .st-row[data-q="3000720"] .st-row-h').click(); pg.wait_for_timeout(600)
     check("another row's heading opens that one instead", pg.locator('#story .st-row.open').get_attribute("data-q") == "3000720" and pg.locator("#story .st-row.open .st-bat").count() == 2)
-    # Archetype Inception: no plate on NA yet, so one is drawn
-    pg.click('#story [data-action="st-part"][data-k="oc"]'); pg.wait_for_timeout(300)
-    ai = pg.evaluate("(() => { const b = document.querySelector('#story .st-ch[data-w=\"404\"]'), p = b.querySelector('.st-plate'); return [p.classList.contains('drawn'), !!p.querySelector('img'), p.querySelector('.st-txt').innerText.replace(/\\s+/g, ' ')]; })()")
-    check(f"Archetype Inception's plate is drawn in its colours ({ai})", ai[0] and not ai[1] and "archetype inception" in ai[2].lower() and "ordeal call iii" in ai[2].lower())
+    # Archetype Inception: no plate on NA yet. 0.52: Japan's is asked for, and the drawn one stands in when it doesn't come
+    pg.click('#story [data-action="st-part"][data-k="oc"]'); pg.wait_for_timeout(500)
+    ai = pg.evaluate("(() => { const b = document.querySelector('#story .st-ch[data-w=\"404\"]'), p = b.querySelector('.st-plate'), i = p.querySelector('img'), t = p.querySelector('.st-txt'); return [i ? i.getAttribute('src') : '', !!i && i.classList.contains('bad'), t.hidden, t.innerText.replace(/\\s+/g, ' ')]; })()")
+    check(f"Archetype Inception asks for Japan's plate, and without it shows the drawn one ({ai})", ai[0].endswith("/JP/Banner/questboard_cap404.png") and ai[1] != ai[2] and "archetype inception" in ai[3].lower() and "ordeal call iii" in ai[3].lower())
     pg.click('#story [data-action="st-ch"][data-w="404"]'); pg.wait_for_timeout(1200)
-    check("on its page too, not NA's closed placeholder", pg.locator("#story .st-title .st-plate.drawn").count() == 1 and pg.locator("#story .st-title img").count() == 0)
+    check("on its page too, not NA's closed placeholder", pg.evaluate("(() => { const i = document.querySelector('#story .st-title .st-plate img'); return !!i && /JP\\/Banner\\/questboard_cap404/.test(i.src) && !!document.querySelector('#story .st-title .st-txt'); })()"))
     ctx.close()
 
     # ---------- a phone ----------

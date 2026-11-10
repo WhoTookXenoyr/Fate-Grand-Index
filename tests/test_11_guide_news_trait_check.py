@@ -83,7 +83,7 @@ with sync_playwright() as p:
     # ---- summon Morgan, then quick set
     pg.click('.pc-card[data-no="309"]'); pg.wait_for_timeout(300)
     pg.click('.pcd-panel [data-action="pc-summon"]')
-    pg.wait_for_function("document.getElementById('summon').classList.contains('info')", timeout=15000)
+    pg.wait_for_function("document.getElementById('summon').classList.contains('info')", timeout=30000)
     pg.click(".sm-done"); pg.wait_for_timeout(900)
     m = next(x for x in docs(pg) if x.get("atlas") == 309)
     check("summoned Morgan comes with her alignment", m["lawOrder"] == ["Lawful"] and m["moral"] == ["Evil"] and m["attr"] == "Earth")

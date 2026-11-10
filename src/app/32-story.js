@@ -47,8 +47,11 @@ const STORY_BY = new Map(STORY_CH.map((c) => [c.id, c]));
 // each chapter's title plate: from Lostbelt No.3 on, the picture's number isn't the chapter's (Atlas Academy's war
 // data, 26 Oct 2026); Archetype Inception has no plate on NA yet, so a drawn one stands in
 const STORY_CAP = {303: 304, 304: 305, 305: 307, 306: 308, 307: 309, 308: 312, 309: 313, 310: 315, 311: 317, 404: 0};
-const capUrl = (id) => { const n = Object.prototype.hasOwnProperty.call(STORY_CAP, id) ? STORY_CAP[id] : id; return n ? "https://static.atlasacademy.io/NA/Banner/questboard_cap" + n + ".png" : ""; };
-const plateUrl = (c) => { const w = ST.wars[c.id], b = w && w.b; return b && !/_closed\.png$/.test(b) ? b : capUrl(c.id); };
+// (0.52: where NA has no plate, Japan's is shown, the game's own label in Japanese; if that doesn't load either, the
+// drawn plate with the English name stands in. NA's own is used as soon as its war data names a real one)
+const STORY_CAP_JP = {404: 404};
+const capUrl = (id) => { const n = Object.prototype.hasOwnProperty.call(STORY_CAP, id) ? STORY_CAP[id] : id; return n ? "https://static.atlasacademy.io/NA/Banner/questboard_cap" + n + ".png" : STORY_CAP_JP[id] ? "https://static.atlasacademy.io/JP/Banner/questboard_cap" + STORY_CAP_JP[id] + ".png" : ""; };
+const plateUrl = (c) => { const w = ST.wars[c.id], b = w && w.b; return b && !/_closed\.png$/.test(b) && (!STORY_CAP_JP[c.id] || /questboard_cap\d+\.png$/.test(b)) ? b : capUrl(c.id); };
 const palVars = (c) => `--c1:${c.pal[0]};--c2:${c.pal[1]};--c3:${c.pal[2]}`;
 // the plate itself, or (no plate on NA, or it didn't load) one drawn in the chapter's colours
 function plateHTML(c, big) {
@@ -398,6 +401,11 @@ document.addEventListener("error", (e) => {
   if (t.classList.contains("st-face")) t.classList.add("bad");
   if (t.classList.contains("story-plate")) { t.classList.add("bad"); if (!t.nextElementSibling) t.insertAdjacentHTML("afterend", `<span class="story-plate txt">${esc(t.alt)}</span>`); }
   if (t.classList.contains("st-cap")) { t.classList.add("bad"); const tx = t.parentElement && t.parentElement.querySelector(".st-txt"); if (tx) tx.hidden = false; }
+}, true);
+// a plate that loads as an empty placeholder (a few pixels) is no plate: the drawn one stands in
+document.addEventListener("load", (e) => {
+  const t = e.target; if (!t || !t.classList || !(t.classList.contains("st-cap") || t.classList.contains("story-plate")) || t.naturalWidth >= 40) return;
+  t.dispatchEvent(new Event("error"));
 }, true);
 const renderChrome24s = renderChrome;
 renderChrome = function () {

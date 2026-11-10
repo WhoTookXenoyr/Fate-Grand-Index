@@ -172,6 +172,14 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
 - **Workshop damage** (`58-workshop-damage.js`): `wsdBuffs` reads a skill's effects at a skill level, `wsdNp` and `wsdCard` are the formulas, `wsSkDmgHTML` the table. `tests/test_46_workshop_damage.py` works every number out again.
 - **Compact** opens with `cmpDropSync` (`56-compact-open.js`).
 
+## 0.53.0-beta: the 3D background (vanta.js)
+
+- `59-bg3d.js`, `38-bg3d.css`. One WebGL canvas (`#bg3d`, right after `.page-bg`) drawn by [vanta.js](https://www.vantajs.com/) on three.js r134. The libraries are in `src/vendor/` (MIT, licences beside them) and are put into the page by `@@include:vendor/...@@` inside `bg3dLoad()`, so they only run when a 3D background is wanted.
+- `bg3dWant()` says what should be up: on the usual pages the picked effect (`spirit-origin-list:v1:bg3d-fx`, the globe when absent) in the page's `--g1..3`; with a story scene, `bg3dActKind(act)` picks from the scene's weather and parts (an act can name one with `v`). A sea (`waves` on a scene with a `flat` row) puts the camera just above the water with the far edge of the mesh on the scene's waterline (`bg3dSea`). `bg3dSync()` starts, recolours or swaps the effect; `html.bg3d-on / .bg3d-story / .bg3d-sea` switch off what the picture replaces (the summoning circle, a scene's drawn sky, a sea's drawn floors).
+- Cost: `BG3D_PX` megapixels for each effect (`bg3d-q` = `full` gives four times as many); `bg3dDrive` replaces vanta's loop with one at `ambFps()` that stops while `resting`, `idleRest`, the tab is hidden, the summoning is up or a phone's sheet covers the page. Reduced motion, no WebGL or a lost context fall back to the drawn background (`bg3dDead` says why on Settings). `spirit-origin-list:v1:bg3d` = `off` switches it off.
+- The light/dark switch: `setTheme` sends an `fgi-theme` event once the theme has changed. The story scene and a servant's backdrop redraw on it (they used to redraw on the click, before the view transition had switched the theme).
+- `window.__fgi3d` has `state`, `want`, `kindOf`, `sync`. `tests/test_48_bg3d.py` launches Chromium with SwiftShader for WebGL.
+
 ## Your data
 
 Your roster is stored in your browser: `localStorage` key `spirit-origin-list:v1`, pictures in IndexedDB `spirit-origin-list-images`. These names never change, so existing saves keep working with every new version. Signed in on the hosted site, the same data is also kept in your account (0.26.0); the file opened from your computer never talks to a server.
@@ -180,4 +188,4 @@ Importing a backup or a spreadsheet replaces entries that share an ID, so the pa
 
 ## Credits
 
-Servant and Craft Essence data and the pictures loaded at runtime come from [Atlas Academy](https://atlasacademy.io/). Fate/Grand Order is © TYPE-MOON / FGO PROJECT. This is an unofficial fan project, not affiliated with TYPE-MOON, Aniplex or Lasengle.
+Servant and Craft Essence data and the pictures loaded at runtime come from [Atlas Academy](https://atlasacademy.io/). Fate/Grand Order is © TYPE-MOON / FGO PROJECT. This is an unofficial fan project, not affiliated with TYPE-MOON, Aniplex or Lasengle. The 3D background uses [three.js](https://threejs.org/) (© 2010-2021 three.js authors) and [vanta.js](https://www.vantajs.com/) (© 2020 Teng Bao), both under the MIT licence; the texts are in `src/vendor/`.

@@ -1,0 +1,20 @@
+/* ================= 0.53.0-beta: the 3D background (59-bg3d.js) =================
+   One WebGL canvas right above the page's own background and under everything else. It fades in and out with opacity
+   only. --b3a is how much of the canvas shows over what lies under it (the page's colours, or a scene's sky). */
+.bg3d { position: fixed; top: 0; left: 0; width: 100%; height: var(--bg-h, 100lvh); z-index: 0; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity .45s ease; contain: strict; }
+.bg3d.on { opacity: 1; }
+.bg3d-cv { position: absolute; inset: 0; opacity: var(--b3a, 1); }
+.bg3d.flip .bg3d-cv { transform: scaleY(-1); }
+/* a story scene: its sky is the 3D picture's now, and a sea is the mesh (the drawn landmarks stay) */
+html.bg3d-story .story-bg .sc { background: none !important; }
+html.bg3d-sea .story-bg .sc-ff, html.bg3d-sea .story-bg .sc-flat { visibility: hidden; }
+html.bg3d-sea .story-bg .sc-far { clip-path: inset(0 0 var(--cutb, 0px) 0); }
+/* a phone's servant sheet covers the page: nothing to show (and nothing is drawn meanwhile) */
+@media (max-width: 900px) { html.sheet-on .bg3d { visibility: hidden; } }
+.set-seg-wrap { flex-wrap: wrap; }
+.bg3d-note { display: block; margin-top: 6px; max-width: 34ch; color: var(--muted, inherit); opacity: .85; }
+.bg3d-note[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { .bg3d { transition: none; } }
+/* behind the usual pages the 3D picture stands in for the summoning circle (two moving pictures at once are busy, and
+   it's one less thing to draw); with the Story look the circle stays, as it did */
+html.bg3d-on:not(.bg3d-story) .idle-bg { visibility: hidden; }

@@ -548,10 +548,15 @@ function scPlanes(act, M) {
     if (r[0][0] === "flat") {
       const zn = i < n - 1 ? -SC_FAR * (n - 2 - i) / (n - 1) - 2 : 620, sc = (SC_P - z) / SC_P, line = M.H - (560 - r[0][2]) * M.k;
       out.splice(out.length - 1, 0, {k: "floor", z: z, zn: zn, c: r[0][1], first: !out.some((o) => o.k === "floor"), line: line, Yw: M.Oy + (line - M.Oy) * sc});
+      out[out.length - 1].flat = true; // (this sheet is the water or ground itself: the 3D sea of 59-bg3d.js takes its place)
       // (the row's own things, a ship, stand on the far edge: they go on a sheet after the floor)
       if (r.length > 1) { out[out.length - 1].h = scLandSVG([r[0]]); out.push({k: "land", z: z, h: scLandSVG(r.slice(1))}); }
     }
   });
+  // (what lies beyond the first water or ground reaches down behind it; under a 3D sea, which is behind every sheet,
+  // those sheets are cut off at the waterline so the sea shows: 59-bg3d.js, 38-bg3d.css)
+  const f0 = out.findIndex((o) => o.k === "floor");
+  if (f0 > 0) out.slice(0, f0).forEach((o) => { if (o.k === "land") o.cut = out[f0].line; });
   return out;
 }
 // (drawn at a quarter of its size and scaled up: it's soft bands of colour, and a floor this long would be a huge picture)
@@ -600,7 +605,7 @@ function scSheetHTML(pl, M, jobs) {
   const top = pl.k === "top", y0 = top ? -60 : Math.max(-230, Math.floor(pl.y0 == null ? -230 : pl.y0) - 8), y1 = top ? Math.min(560, Math.ceil(pl.y1 == null ? 560 : pl.y1) + 8) : 640, wi = M.W + SC_MX * 2, hi = (y1 - y0) * M.k, vw = wi / M.k, y = top ? y0 * M.k : M.H - (560 - y0) * M.k;
   const rs = Math.min(window.devicePixelRatio || 1, 1.25), cw = Math.max(2, Math.round(wi * rs)), ch = Math.max(2, Math.round(hi * rs));
   jobs.push({svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${cw}" height="${ch}" viewBox="${(800 - vw / 2).toFixed(1)} ${y0} ${vw.toFixed(1)} ${y1 - y0}" preserveAspectRatio="none">${pl.h}</svg>`, w: cw, h: ch});
-  return `<canvas class="sc-pl sc-${pl.k}" width="${cw}" height="${ch}" data-job="${jobs.length - 1}" style="${scPlVars(pl.z)};left:${-SC_MX}px;width:${wi.toFixed(1)}px;top:${y.toFixed(1)}px;height:${hi.toFixed(1)}px;transform-origin:50% ${(M.Oy - y).toFixed(1)}px" aria-hidden="true"></canvas>`;
+  return `<canvas class="sc-pl sc-${pl.k}${pl.flat ? " sc-flat" : ""}${pl.cut != null ? " sc-far" : ""}" width="${cw}" height="${ch}" data-job="${jobs.length - 1}" style="${scPlVars(pl.z)};${pl.cut != null ? `--cutb:${Math.max(0, y + hi - pl.cut).toFixed(1)}px;` : ""}left:${-SC_MX}px;width:${wi.toFixed(1)}px;top:${y.toFixed(1)}px;height:${hi.toFixed(1)}px;transform-origin:50% ${(M.Oy - y).toFixed(1)}px" aria-hidden="true"></canvas>`;
 }
 function scRaster(el, jobs) {
   el.querySelectorAll("canvas[data-job]").forEach((cv) => {
@@ -610,11 +615,14 @@ function scRaster(el, jobs) {
     im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(j.svg);
   });
 }
+// the sky's three colours in this theme, top to horizon
+// (in the dark theme the horizon is pulled a little towards the sky above it: the page's words lie on it)
+const scSky = (act) => (isDark() ? [act.sky[0], act.sky[1], scMix(act.sky[2], act.sky[1], 0.32)] : act.sky).map(scTone);
+const scSkyCss = (sky) => `linear-gradient(to bottom, ${sky[0]} 0%, ${sky[1]} 46%, ${sky[2]} 84%, ${scMix(sky[2], sky[1], 0.5)} 100%)`;
 function scSceneHTML(act, M) {
   const jobs = [];
-  // (in the dark theme the horizon is pulled a little towards the sky above it: the page's words lie on it)
-  const sky = (isDark() ? [act.sky[0], act.sky[1], scMix(act.sky[2], act.sky[1], 0.32)] : act.sky).map(scTone);
-  return {bg: `linear-gradient(to bottom, ${sky[0]} 0%, ${sky[1]} 46%, ${sky[2]} 84%, ${scMix(sky[2], sky[1], 0.5)} 100%)`,
+  const sky = scSky(act);
+  return {bg: scSkyCss(sky),
     html: `${act.stars && isDark() ? `<div class="sc-stars s${act.stars}"></div>` : ""}<div class="sc-cam">${scMeasure(scPlanes(act, M)).map((pl) => pl.k === "floor" ? scFloorHTML(pl, act, M) : scSheetHTML(pl, M, jobs)).join("")}</div><div class="sc-veil"></div>`, jobs: jobs};
 }
 

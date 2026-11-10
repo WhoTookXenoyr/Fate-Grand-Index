@@ -185,7 +185,7 @@ function bg3dSea(fx, sea) {
   fx.plane.scale.set(S, 2, S);
   fx.scene.fog = new T.Fog(bg3dNum(sea.far), D * 0.82, D * 1.12);
   // the light stands low over the far water, so the facets that face it glint and the ones that don't stay dark
-  fx.scene.children.forEach((o) => { if (o.isPointLight) { o.position.set(-300, 420, zc - D * 0.95); o.intensity = 1.15; o.distance = 0; } else if (o.isAmbientLight) o.intensity = 0.62; });
+  fx.scene.children.forEach((o) => { if (o.isPointLight) { o.position.set(-300, 420, zc - D * 0.95); o.intensity = 0.8; o.distance = 0; } else if (o.isAmbientLight) o.intensity = 0.5; });
   // the pointer moves the eye a little, never under the water
   fx.onMouseMove = (x, y) => { c.tx = (x - 0.5) * 110; c.ty = h + (0.5 - y) * 30; c.tz = zc; };
 }

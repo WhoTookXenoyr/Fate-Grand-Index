@@ -22809,7 +22809,7 @@ const SCENES = {
     {n: "The white titan's light", at: 0.87, re: /Altera|Attila|Flauros|Titan|Final/i, sky: ["#06091a", "#141e44", "#3a4a8a"], stars: 2, t: [PART1_RING], d: [["p", "beam", 800, 470, 1, "#bfe0ff", 14], ["hills", "#121b3a", 91, 380, 50, 300], ["city", "#0b1226", 92, 450, "ruin", 30, 120, 60, "#bfe0ff"], ["hills", "#05081a", 93, 520, 22, 300]], m: "motes", pn: 10, fx: ["pulse"]}]},
   103: {acts: [
     {n: "The open sea", sky: ["#081a3a", "#1a5a9a", "#8ad0e8"], t: [PART1_RING, ["flock", "#0a2238", 5, 101, 420, 120, 420, 90, 0.8]], d: [["orb", 1200, 190, 44, "#fff2c0", 0.8], ["hills", "#1c5a8a", 101, 380, 50, 560], ["flat", "#0e3f6e", 384], ["p", "ship", 770, 392, 1.1, "#0a2238", "#d9e8f2"], ["flat", "#0a3258", 446], ["flat", "#06223e", 506]], m: "waves", pn: 3, fx: ["shine"]},
-    {n: "Storm over the sealed seas", at: 0.4, re: /Storm|Blackbeard|Hektor|Pirate|Queen Anne/i, sky: ["#070b14", "#1c2a3e", "#4a5a6a"], t: [["ring", "#8a93a0"]], d: [["peaks", "#121c2a", 111, 384, 130, 420], ["flat", "#0c1a2a", 388], ["p", "ship", 620, 396, 1.15, "#060d16", "#2a3644"], ["p", "ship", 1080, 394, 0.7, "#060d16", "#2a3644"], ["flat", "#081320", 450], ["flat", "#050c16", 508]], m: "rain", pn: 14, fx: ["flash"]},
+    {n: "Storm over the sealed seas", v: "waves", at: 0.4, re: /Storm|Blackbeard|Hektor|Pirate|Queen Anne/i, sky: ["#070b14", "#1c2a3e", "#4a5a6a"], t: [["ring", "#8a93a0"]], d: [["peaks", "#121c2a", 111, 384, 130, 420], ["flat", "#0c1a2a", 388], ["p", "ship", 620, 396, 1.15, "#060d16", "#2a3644"], ["p", "ship", 1080, 394, 0.7, "#060d16", "#2a3644"], ["flat", "#081320", 450], ["flat", "#050c16", 508]], m: "rain", pn: 14, fx: ["flash"]},
     {n: "The Argo at sunset", at: 0.72, re: /Argo|Heracles|Jason|Ark|Medea|Forneus|Final/i, sky: ["#1a0e2a", "#6a2a4a", "#e88a4a"], t: [PART1_RING], d: [["orb", 800, 382, 62, "#ffb060", 0.95], ["hills", "#4a1f3e", 121, 384, 40, 620], ["flat", "#3a1c3a", 388], ["p", "ship", 560, 396, 1.3, "#170a1c", "#3a1c34"], ["p", "ship", 1100, 394, 0.8, "#170a1c", "#3a1c34"], ["flat", "#24102a", 452], ["flat", "#130818", 510]], m: "waves", pn: 3, fx: ["shine"]}]},
   104: {acts: [
     {n: "The Mist City", sky: ["#0b0e12", "#232b33", "#5a6570"], t: [["ring", "#c9b27a"]], d: [["orb", 1250, 120, 34, "#d8dde0", 0.5], ["city", "#1c242b", 131, 390, "house", 60, 150, 0, "#e8c070"], ["p", "bigben", 880, 452, 0.78, "#11181d", "#f2d48a"], ["city", "#0f1519", 132, 458, "house", 40, 110, 0, "#e8c070"], ["p", "lights", 800, 476, 1, "#f2d48a", 14, 133, 1700, 8], ["flat", "#080c0f", 524]], m: "fog", pn: 4, fx: ["mist", "mist2"]},
@@ -23475,7 +23475,7 @@ function bg3dSea(fx, sea) {
   fx.plane.scale.set(S, 2, S);
   fx.scene.fog = new T.Fog(bg3dNum(sea.far), D * 0.82, D * 1.12);
   // the light stands low over the far water, so the facets that face it glint and the ones that don't stay dark
-  fx.scene.children.forEach((o) => { if (o.isPointLight) { o.position.set(-300, 420, zc - D * 0.95); o.intensity = 1.15; o.distance = 0; } else if (o.isAmbientLight) o.intensity = 0.62; });
+  fx.scene.children.forEach((o) => { if (o.isPointLight) { o.position.set(-300, 420, zc - D * 0.95); o.intensity = 0.8; o.distance = 0; } else if (o.isAmbientLight) o.intensity = 0.5; });
   // the pointer moves the eye a little, never under the water
   fx.onMouseMove = (x, y) => { c.tx = (x - 0.5) * 110; c.ty = h + (0.5 - y) * 30; c.tz = zc; };
 }

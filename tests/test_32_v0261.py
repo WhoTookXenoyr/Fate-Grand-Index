@@ -125,7 +125,8 @@ with sync_playwright() as p:
         glows: s ? s.querySelectorAll('.sb-glow').length : 0, rays: s ? s.querySelectorAll('.sb-rays').length : 0, heat: s ? s.querySelectorAll('.sb-heat').length : 0,
         parts: s ? s.querySelectorAll('.sb-parts i').length : 0, on: !!s && s.classList.contains('on')}; })()""")
     check(f"the summoning circle stays behind the chapter, in its colours ({look})", look["idle"] and look["c1"] == "#d9542b")
-    check("with glows, light around the circle, more embers and Fuyuki's heat", look["on"] and look["glows"] == 3 and look["rays"] == 1 and look["heat"] == 1 and look["parts"] == 35)
+    # (0.52: the glows and the wheel of light made way for a drawn scene; a dozen specks are left)
+    check(f"with a scene of the chapter behind it and a few specks over it ({look})", look["on"] and look["glows"] == 0 and 8 <= look["parts"] <= 16 and pg.evaluate("document.querySelectorAll('#story-bg .sc .sc-pl').length") >= 3)
     props = pg.evaluate("""[...new Set(document.getAnimations().filter(a => a.effect && a.effect.target && a.effect.target.closest && a.effect.target.closest('#story-bg')).flatMap(a => a.effect.getKeyframes().flatMap(k => Object.keys(k).filter(x => !['offset', 'easing', 'composite', 'computedOffset'].includes(x)))))]""")
     check(f"which only move and fade (nothing the graphics card has to repaint: {props})", props and all(x in ("transform", "opacity", "translate") for x in props))
     pg.evaluate("document.querySelector('#theme-tgl').click()"); pg.wait_for_timeout(900)

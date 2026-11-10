@@ -1,0 +1,69 @@
+/* ================= 0.52.0-beta: story scenes (57-story-scenes.js) =================
+   A scene is a still drawing in a box on the bottom of the window (and one hanging from the top). Wider screens see
+   more of its sides, a phone its middle. Nothing in it moves; the few moving things lie over it. */
+.sc { position: absolute; inset: 0; overflow: hidden; perspective: 1000px; perspective-origin: 50% 70%; }
+.story-bg { --scw: min(max(100vw, 1000px), 175vh); }
+/* the camera: everything with depth hangs in it, and only its transform ever changes (37: the sheets aren't repainted) */
+.sc-cam { position: absolute; inset: 0; transform-style: preserve-3d; transform-origin: 50% 70%; will-change: transform;
+  transform: translate3d(var(--cx, 0px), var(--cy, 0px), 0) rotateY(var(--ry, 0deg)) rotateX(var(--rx, 0deg)); transition: transform 1.2s cubic-bezier(.2, .7, .2, 1); }
+/* a sheet: pushed back by --z and scaled up by --s about the eye's point, so that at rest it's where the flat drawing had it */
+.sc-pl { position: absolute; left: calc(50% - var(--scw) / 2); width: var(--scw); aspect-ratio: 1600 / 560; overflow: visible; display: block; transform: translateZ(var(--z, 0px)) scale(var(--s, 1)); backface-visibility: hidden; }
+.sc-land { bottom: 0; transform-origin: 50% calc(100% - var(--sch, 100vh) * .3); }
+.sc-top { top: 0; transform-origin: 50% calc(var(--sch, 100vh) * .7); }
+/* at rest (57: scDepth) the same sheets lie flat: same picture, a third of the work */
+.story-bg.flat .sc { perspective: none; }
+.story-bg.flat .sc-cam { transform: none; transform-style: flat; transition: none; will-change: auto; }
+.story-bg.flat .sc-pl { transform: none; }
+.story-bg.flat .sc-floor { display: none; }
+.sc-ff { position: absolute; left: 0; right: 0; display: none; }
+.story-bg.flat .sc-ff { display: block; }
+/* level ground and water: a floor lying down from its line towards the eye. Its height is worked out (57: scPlanes) from where the flat
+   drawing had the line at this depth; bands across it show the distance */
+.sc-pl.sc-floor { aspect-ratio: auto; left: calc(50% - var(--scw) * .5); width: var(--scw); height: var(--fd); bottom: auto; overflow: hidden; backface-visibility: visible;
+  transform-origin: 50% 0; transform: translateZ(var(--z, 0px)) rotateX(90deg) scale(4);
+  background: linear-gradient(to bottom, var(--f1) 0%, transparent 34%), repeating-linear-gradient(to bottom, transparent 0 13px, color-mix(in srgb, var(--f3) 34%, transparent) 13px 14.5px), linear-gradient(to bottom, var(--f1), var(--f2) 55%); }
+/* the page's words lie on this: a veil keeps the sky behind them quiet, heaviest where the titles are */
+.sc-veil { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(5, 7, 16, .5) 0%, rgba(5, 7, 16, .26) 38%, rgba(5, 7, 16, .12) 70%, rgba(5, 7, 16, .34) 100%); }
+.story-bg.lt .sc-veil { background: linear-gradient(to bottom, rgba(244, 246, 251, .5) 0%, rgba(244, 246, 251, .2) 45%, rgba(244, 246, 251, .1) 100%); }
+/* stars: dots that are part of the drawing (the twinkling ones are specks over it) */
+.sc-stars { position: absolute; left: 0; right: 0; top: 0; height: 70%; opacity: .7;
+  background-image: radial-gradient(1.2px 1.2px at 12% 18%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 31% 42%, #fff 50%, transparent 51%), radial-gradient(1.4px 1.4px at 54% 12%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 71% 33%, #fff 50%, transparent 51%), radial-gradient(1.2px 1.2px at 88% 9%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 8% 61%, #fff 50%, transparent 51%),
+    radial-gradient(1.3px 1.3px at 44% 70%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 63% 55%, #fff 50%, transparent 51%), radial-gradient(1.1px 1.1px at 93% 48%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 23% 84%, #fff 50%, transparent 51%);
+  background-size: 340px 300px; -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent); mask-image: linear-gradient(to bottom, #000 40%, transparent); }
+.sc-stars.s2 { background-size: 230px 210px; opacity: .85; }
+/* a new scene comes in over the old one; in a chapter that goes down (Nahui Mictlān) the old one leaves upwards */
+.sc.in { animation: scIn 1.7s ease both; }
+.sc.out { animation: scOut 1.5s ease both; }
+.sc.in .sc-cam { animation: scCamIn 2.1s cubic-bezier(.16, .8, .2, 1) backwards; }
+.sc.out .sc-cam { animation: scCamOut 1.6s cubic-bezier(.5, 0, .9, .5) forwards; }
+.sc.in.back .sc-cam { animation-name: scCamInBack; }
+.sc.out.back .sc-cam { animation-name: scCamOutBack; }
+.sc.in.from-below .sc-cam { animation-name: scCamFromBelow; }
+.sc.in.from-above .sc-cam { animation-name: scCamFromAbove; }
+.sc.out.to-above .sc-cam { animation-name: scCamToAbove; }
+.sc.out.to-below .sc-cam { animation-name: scCamToBelow; }
+@keyframes scIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scOut { from { opacity: 1; } 55% { opacity: .5; } to { opacity: 0; } }
+@keyframes scCamIn { from { transform: translate3d(0, 0, -1100px); } }
+@keyframes scCamOut { to { transform: translate3d(0, 0, 640px); } }
+@keyframes scCamInBack { from { transform: translate3d(0, 0, 560px); } }
+@keyframes scCamOutBack { to { transform: translate3d(0, 0, -1100px); } }
+@keyframes scCamFromBelow { from { transform: translate3d(0, 85vh, -260px); } }
+@keyframes scCamFromAbove { from { transform: translate3d(0, -85vh, -260px); } }
+@keyframes scCamToAbove { to { transform: translate3d(0, -85vh, 120px); } }
+@keyframes scCamToBelow { to { transform: translate3d(0, 85vh, 120px); } }
+.sc-live { position: absolute; inset: 0; }
+/* the northern lights breathe */
+.sb-aurora { left: 0; right: 0; top: 0; height: 46%; background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--c3) 26%, transparent) 40%, transparent); }
+.story-bg.on .sb-aurora { animation: sbAurora 9s ease-in-out infinite alternate; }
+@keyframes sbAurora { from { opacity: .15; transform: translate3d(-3%, 0, 0); } to { opacity: .75; transform: translate3d(3%, 0, 0); } }
+/* with a scene up, the summoning circle steps back: it's the page's mark, the scene is the place */
+html.story-on .idle-bg.st-tint { opacity: .24; }
+/* and the page's drifting glows aren't drawn: the scene is the colour now (three big blurred layers fewer to move) */
+html.story-on .aura { display: none; }
+/* the Story page says which scene is up */
+.st-scene { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+.st-scene b { color: var(--ink); font-weight: 600; }
+@media (max-width: 640px) { .st-scene span { display: none; } }
+@media (prefers-reduced-motion: reduce) { .sc.in, .sc.out, .sc .sc-cam { animation: none !important; transition: none; } .sc.out { display: none; } }

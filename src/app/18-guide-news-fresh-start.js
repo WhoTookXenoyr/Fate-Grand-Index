@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until 0.50.0, beta from there until the full website and app: 1.0.0
-const APP_VER = "0.51.0-beta";
+const APP_VER = "0.52.0-beta";
 const APP_STAGE = /-beta\b/.test(APP_VER) ? "beta" : "alpha", APP_NUM = APP_VER.replace(/-.*$/, "");
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
@@ -164,6 +164,15 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.52.0-beta", d: "10 Nov 2026", t: "A summoning rite, story scenes with depth, a cooler laptop, and damage numbers for custom skills", i: [
+    "<b>Summoning is a rite now.</b> A ★5 servant lights five layers of the summoning field one after another, the fifth turns them rainbow, the card comes down and turns, its class shows over a rainbow veil, and the veil sinks down the picture slowly. A ★4 gets four layers in gold with a gold veil, a ★3 three in silver and a quick turn. Skip (or Escape) still shows the result at once.",
+    "<b>Story backdrops are scenes with depth</b>, drawn for each chapter from where it takes place: 97 of them across the 29 chapters. The scene follows your place in the chapter. In Nahui Mictlān you go down stratum by stratum, the old one rising past as the next comes up. The rows of a scene stand one behind the other, so the view shifts as you move the pointer or scroll, and seas and plains run towards you. The Story page says which scene is up.",
+    "<b>Power saving</b> (Settings, on to begin with): the background moves at half the frame rate, everything that loops rests after a minute without input, and nothing is drawn for parts you can't see. Story scenes lie flat while the view is still. Measured on the page, the work per second for the graphics card is down by about half to three quarters depending on the page.",
+    "<b>Workshop</b>: under each skill, <b>What it adds to damage</b>. The Noble Phantasm and each of the servant's cards the skill touches, without and with the skill: a hit, a critical, against a class it beats, and both.",
+    "In Compact, a servant's page opens the way Past Chaldea's window does, and it no longer lies partly under the sidebar on narrower screens.",
+    "Archetype Inception shows Japan's title plate until NA has its own.",
+    "Fixes: the account button is centred in the folded sidebar; the Done button after a summon was dark on dark; small links and buttons are easier to hit on a phone."
+  ]},
   {v: "0.51.0-beta", d: "8 Nov 2026", t: "Coming to NA: the next servants, locked until their release", i: [
     "<b>Past Chaldea</b> has a <b>Coming to NA</b> row: servants JP already has that NA doesn't yet. That's Tutankhamun and Van Gogh (Miner) from Mystery House Crafters, Louhi and Abigail Williams (Santa) from Christmas, and Phantasmoon.",
     "Their page stays locked until NA gets them. It shows their picture blurred, the event that brings them and a countdown to NA's release in your own time. Their skills, Noble Phantasm and numbers stay hidden.",

@@ -164,11 +164,12 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
-  {v: "0.53.0-beta", d: "10 Nov 2026", t: "3D backgrounds", i: [
+  {v: "0.53.0-beta", d: "10 Nov 2026", t: "3D backgrounds, black and cream", i: [
     "<b>A 3D background</b>, drawn by vanta.js. Behind the usual pages it's a wire globe in the page's colours; <b>Settings → 3D effect</b> has five more (Net, Haze, Waves, Clouds, Cells).",
     "<b>With the Story look, each scene picks its own</b>: a 3D sea under the waterline where the scene has water, clouds over open country by day, a net of stars under a night sky, drifting haze elsewhere. The drawn landmarks stay in front.",
     "It's kept light: drawn small and stretched, at the background's frame rate (half the chosen one with Power saving), and not at all while the page rests, the tab is hidden or the summoning plays. <b>Settings → 3D quality</b> has Full for a sharper picture, and <b>3D background</b> has Off, which is the lightest.",
     "With \"reduce motion\", or in a browser without WebGL, the drawn background of 0.52 is used.",
+    "<b>Black and cream</b>: a second set of colours on <b>Settings → Colours</b>. Dark mode is true black, which an AMOLED screen shows by switching pixels off, and light mode is cream white. Gold stays the accent. Chaldea blue is still there and is what the page starts with.",
     "Fixed: after switching between light and dark, a story scene (and a servant's own backdrop) stayed in the theme you'd just left."
   ]},
   {v: "0.52.2-beta", d: "10 Nov 2026", t: "Story scenes in Firefox", i: [

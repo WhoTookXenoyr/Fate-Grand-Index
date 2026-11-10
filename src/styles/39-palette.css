@@ -1,0 +1,46 @@
+/* ================= 0.53.0-beta: black and cream (60-palette.js) =================
+   A second set of colours, picked on Settings: html[data-pal="mono"]. Dark is true black, for screens that switch
+   black pixels off (AMOLED); light is cream white. Gold stays the accent in both. Everything on the page takes its
+   colours from these variables, so this file only has to give them other values; it comes after 32-ui.css and
+   carries the same weight as its rules, so it wins in both looks. The page's own background (--g1..3) is set from
+   JavaScript for each servant and chapter: 60-palette.js keeps it black, or cream with a breath of their colour. */
+html[data-pal="mono"] {
+  --bg: #f3ecdd; --panel: #fffaf0; --sunken: #ece4d2; --raised: #fffdf8; --line: #dbd1bc; --ink: #1c1915; --muted: #675f52;
+  --accent: #1c1915; --on-accent: #f6edd8; --gold: #8f6c1f; --focus: #2d6dd4; --term: #2d6dd4;
+  --warn-bg: #f1e6c8; --warn-ink: #56400f; --bar: #8f6c1f;
+  --shadow: 0 1px 0 rgba(40, 32, 16, .04), 0 16px 36px -22px rgba(40, 32, 16, .45);
+  --g1: #f3ecdd; --g2: #ece3cf; --g3: #faf5ea;
+  --sd-bg1: #fffaf0; --sd-bg2: #f6efdf; --sd-ink: #1c1915; --sd-muted: #675f52; --sd-gold: #8f6c1f; --sd-line: rgba(40, 32, 16, .14);
+  --sd-panel: #fffdf8; --sd-raised: #fffdf8; --sd-sunken: rgba(40, 32, 16, .05); --sd-focus: #2d6dd4; --sd-trim: rgba(143, 108, 31, .34);
+  --sd-shadow: 6px 0 24px -18px rgba(40, 32, 16, .4); --sd-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  html[data-pal="mono"]:not([data-theme="light"]) {
+    --bg: #000000; --panel: #0b0b0c; --sunken: #050505; --raised: #151517; --line: #27272b; --ink: #f2efe8; --muted: #9d998f;
+    --accent: #e2c47e; --on-accent: #0a0a0a; --gold: #d9b86c; --focus: #7cc4ff; --term: #7cc4ff;
+    --warn-bg: #15120a; --warn-ink: #f0d690; --bar: #d9b86c;
+    --shadow: 0 16px 36px -20px rgba(0, 0, 0, .9);
+    --g1: #000000; --g2: #000000; --g3: #000000;
+    --sd-bg1: #000000; --sd-bg2: #000000; --sd-ink: #f2efe8; --sd-muted: #a5a197; --sd-gold: #e0c27a; --sd-line: rgba(224, 194, 122, .24);
+    --sd-panel: rgba(255, 255, 255, .05); --sd-raised: rgba(255, 255, 255, .09); --sd-sunken: rgba(255, 255, 255, .06); --sd-focus: #8fd0ff; --sd-trim: rgba(224, 194, 122, .5);
+    --sd-shadow: none; --sd-scheme: dark;
+    color-scheme: dark;
+  }
+}
+html[data-pal="mono"][data-theme="dark"] {
+  --bg: #000000; --panel: #0b0b0c; --sunken: #050505; --raised: #151517; --line: #27272b; --ink: #f2efe8; --muted: #9d998f;
+  --accent: #e2c47e; --on-accent: #0a0a0a; --gold: #d9b86c; --focus: #7cc4ff; --term: #7cc4ff;
+  --warn-bg: #15120a; --warn-ink: #f0d690; --bar: #d9b86c;
+  --shadow: 0 16px 36px -20px rgba(0, 0, 0, .9);
+  --g1: #000000; --g2: #000000; --g3: #000000;
+  --sd-bg1: #000000; --sd-bg2: #000000; --sd-ink: #f2efe8; --sd-muted: #a5a197; --sd-gold: #e0c27a; --sd-line: rgba(224, 194, 122, .24);
+  --sd-panel: rgba(255, 255, 255, .05); --sd-raised: rgba(255, 255, 255, .09); --sd-sunken: rgba(255, 255, 255, .06); --sd-focus: #8fd0ff; --sd-trim: rgba(224, 194, 122, .5);
+  --sd-shadow: none; --sd-scheme: dark;
+  color-scheme: dark;
+}
+
+/* ---------- the few parts that were navy in both themes ("FGO's blue and gold") go black and gold with it ---------- */
+html[data-pal="mono"] .an-stream { background: radial-gradient(120% 90% at 100% 0%, rgba(214, 176, 98, .26), transparent 60%), linear-gradient(160deg, #19181a, #050505 70%); }
+html[data-pal="mono"] .smh-banner { background: radial-gradient(120% 95% at 78% 18%, #3a3122 0%, #15130f 46%, #000000 100%); box-shadow: inset 0 0 0 1px rgba(232, 185, 62, .5), 0 18px 40px -22px rgba(0, 0, 0, .8); }
+html[data-pal="mono"] .smh-banner::after { background: linear-gradient(90deg, rgba(0, 0, 0, .88) 0%, rgba(0, 0, 0, .55) 42%, transparent 72%), linear-gradient(0deg, rgba(0, 0, 0, .7), transparent 45%); }
+html[data-pal="mono"] .theme-tgl[aria-pressed="true"] { background: linear-gradient(180deg, #000000, #1d1d22); }

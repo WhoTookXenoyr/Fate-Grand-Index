@@ -168,12 +168,12 @@ with sync_playwright() as p:
     check("and opens it again", pg.locator('#story .st-row.open').get_attribute("data-q") == "3000710")
     pg.locator('#story .st-row[data-q="3000720"] .st-row-h').click(); pg.wait_for_timeout(600)
     check("another row's heading opens that one instead", pg.locator('#story .st-row.open').get_attribute("data-q") == "3000720" and pg.locator("#story .st-row.open .st-bat").count() == 2)
-    # Archetype Inception: no plate on NA yet, so one is drawn
-    pg.click('#story [data-action="st-part"][data-k="oc"]'); pg.wait_for_timeout(300)
-    ai = pg.evaluate("(() => { const b = document.querySelector('#story .st-ch[data-w=\"404\"]'), p = b.querySelector('.st-plate'); return [p.classList.contains('drawn'), !!p.querySelector('img'), p.querySelector('.st-txt').innerText.replace(/\\s+/g, ' ')]; })()")
-    check(f"Archetype Inception's plate is drawn in its colours ({ai})", ai[0] and not ai[1] and "archetype inception" in ai[2].lower() and "ordeal call iii" in ai[2].lower())
+    # Archetype Inception: no plate on NA yet. 0.52: Japan's is asked for, and the drawn one stands in when it doesn't come
+    pg.click('#story [data-action="st-part"][data-k="oc"]'); pg.wait_for_timeout(500)
+    ai = pg.evaluate("(() => { const b = document.querySelector('#story .st-ch[data-w=\"404\"]'), p = b.querySelector('.st-plate'), i = p.querySelector('img'), t = p.querySelector('.st-txt'); return [i ? i.getAttribute('src') : '', !!i && i.classList.contains('bad'), t.hidden, t.innerText.replace(/\\s+/g, ' ')]; })()")
+    check(f"Archetype Inception asks for Japan's plate, and without it shows the drawn one ({ai})", ai[0].endswith("/JP/Banner/questboard_cap404.png") and ai[1] != ai[2] and "archetype inception" in ai[3].lower() and "ordeal call iii" in ai[3].lower())
     pg.click('#story [data-action="st-ch"][data-w="404"]'); pg.wait_for_timeout(1200)
-    check("on its page too, not NA's closed placeholder", pg.locator("#story .st-title .st-plate.drawn").count() == 1 and pg.locator("#story .st-title img").count() == 0)
+    check("on its page too, not NA's closed placeholder", pg.evaluate("(() => { const i = document.querySelector('#story .st-title .st-plate img'); return !!i && /JP\\/Banner\\/questboard_cap404/.test(i.src) && !!document.querySelector('#story .st-title .st-txt'); })()"))
     ctx.close()
 
     # ---------- a phone ----------

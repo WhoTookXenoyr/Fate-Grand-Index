@@ -51,7 +51,7 @@ syncPageTheme = function () { const r = syncPageTheme25o.apply(this, arguments);
 const renderChrome25o = renderChrome;
 renderChrome = function () { const r = renderChrome25o.apply(this, arguments); ownBgPaint(); return r; };
 DARK_Q.addEventListener("change", ownBgPaint);
-document.addEventListener("click", (e) => { if (e.target.closest && e.target.closest('[data-action="theme"]')) setTimeout(ownBgPaint, 0); });
+document.addEventListener("fgi-theme", ownBgPaint);
 // the servant page attaches the class canvas itself when it draws
 const renderDossier25o = renderDossier;
 renderDossier = function () { const r = renderDossier25o.apply(this, arguments); ownBgPaint(); return r; };

@@ -11,6 +11,9 @@ function setTheme(t) {
   document.documentElement.setAttribute("data-theme", t);
   try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
   paintPage(); syncThemeBtn(); drawIdleWords();
+  // 0.53.0: everything that draws in the theme's colours hears about it here, once the switch has really happened.
+  // (They used to listen for the click on the button, and the switch comes a moment after the click, so they drew the old theme.)
+  try { document.dispatchEvent(new CustomEvent("fgi-theme", {detail: t})); } catch (e) {}
 }
 function toggleTheme(btn) {
   const next = isDark() ? "light" : "dark", root = document.documentElement;

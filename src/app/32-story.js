@@ -476,7 +476,7 @@ function storyRepaint() { storyPalKey = ""; themeKey9 = ""; syncPageTheme(); set
 const applyTheme24s = applyTheme;
 applyTheme = async function (s) { const r = await applyTheme24s(s); storyPaint(); return r; };
 DARK_Q.addEventListener("change", () => { storyPalKey = ""; storyPaint(); });
-// the theme toggle switches light/dark on the page itself
-document.addEventListener("click", (e) => { if (e.target.closest && e.target.closest('[data-action="theme"]')) setTimeout(() => { storyPalKey = ""; storyPaint(); }, 0); });
+// the light/dark switch: the backdrop and the page's colours are drawn again once the theme has changed (0.53.0: see setTheme)
+document.addEventListener("fgi-theme", () => { storyPalKey = ""; storyPaint(); });
 storyPaint();
 if (ST.pos) storyWar(ST.pos.w).then((w) => { if (w) storyPaint(); });

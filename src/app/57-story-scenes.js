@@ -592,7 +592,9 @@ function scActOf(c, pos) {
   let best = 0;
   sc.acts.forEach((a, k) => {
     if (!k) return;
-    const hit = byName && named[k] >= 0 ? named[k] <= wh.i : wh.frac >= (a.at == null ? 2 : a.at) - 1e-9;
+    // (a scene whose name isn't in the data goes by how far through the chapter you are, but never past a named
+    // scene you haven't reached)
+    const hit = byName && named[k] >= 0 ? named[k] <= wh.i : wh.frac >= (a.at == null ? 2 : a.at) - 1e-9 && !(byName && named.some((v, j) => j < k && v > wh.i));
     if (hit) best = k;
   });
   return best;

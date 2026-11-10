@@ -47,19 +47,19 @@ html.vt-theme::view-transition-old(root) { z-index: 1; } html.vt-theme::view-tra
 .idle-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity 1.4s ease; }
 .idle-bg.on { opacity: 1; }
 .ib-circle { position: absolute; top: 50%; left: 62%; width: min(124vmin, 1240px); aspect-ratio: 1; transform: translate(-50%, -50%); }
-.ib-ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; fill: none; stroke: var(--idle-ink); stroke-width: 1.4; will-change: transform; }
+.ib-ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; fill: none; stroke: var(--idle-ink); stroke-width: 1.4; }
+.ib-turn { position: absolute; inset: 0; will-change: transform; }
+.ib-ring.r5 { will-change: transform; }
 .ib-ring .thin { stroke-width: .8; } .ib-ring .gold { stroke: var(--idle-gold); stroke-width: 1.6; } .ib-ring .dash { stroke-dasharray: 2 7; stroke-width: 1.2; }
 .ib-ring .dot { fill: var(--idle-gold); stroke: none; }
 .ib-runes { stroke: var(--idle-gold); stroke-width: 1.6; stroke-linecap: round; }
 .ib-words { fill: var(--idle-ink); stroke: none; font-family: var(--f-data); font-size: 15px; letter-spacing: .32em; }
-.idle-bg.on .r1 { animation: ibspin 260s linear infinite; }
-.idle-bg.on .r2 { animation: ibspin 200s linear infinite reverse; }
-.idle-bg.on .r3, .idle-bg.on .ib-marks { animation: ibspin 330s linear infinite; }
-.idle-bg.on .r4 { animation: ibspin 140s linear infinite reverse; }
+.idle-bg.on .ta { animation: ibspin 290s linear infinite; }
+.idle-bg.on .tb { animation: ibspin 170s linear infinite reverse; }
 .r5 { transform: scale(1); }
 .idle-bg.on .r5 { animation: ibspin 46s linear infinite; }
 @keyframes ibspin { to { transform: rotate(360deg); } }
-.ib-marks { position: absolute; inset: 0; will-change: transform; }
+.ib-marks { position: absolute; inset: 0; }
 .ib-mark { position: absolute; width: 5.2%; aspect-ratio: 187 / 300; transform: translate(-50%, -50%); background: var(--idle-gold); -webkit-mask: var(--m) center / contain no-repeat; mask: var(--m) center / contain no-repeat; opacity: .85; }
 .idle-bg.on .ib-mark { animation: ibmark 9s ease-in-out infinite; }
 .ib-mark:nth-child(2) { animation-delay: -1.3s; } .ib-mark:nth-child(3) { animation-delay: -2.6s; } .ib-mark:nth-child(4) { animation-delay: -3.9s; } .ib-mark:nth-child(5) { animation-delay: -5.2s; } .ib-mark:nth-child(6) { animation-delay: -6.5s; } .ib-mark:nth-child(7) { animation-delay: -7.8s; }
@@ -78,7 +78,7 @@ html.vt-theme::view-transition-old(root) { z-index: 1; } html.vt-theme::view-tra
 .idle-bg.on .ib-motes i { animation: ibmote var(--d) linear var(--w) infinite; }
 @keyframes ibmote { 0% { opacity: 0; transform: translate(0, 0); } 10% { opacity: .9; } 85% { opacity: .5; } 100% { opacity: 0; transform: translate(var(--x), -105vh); } }
 @media (max-width: 900px) { .ib-circle { left: 50%; width: 150vmin; } }
-@media (prefers-reduced-motion: reduce) { .idle-bg .ib-ring, .idle-bg .ib-marks, .idle-bg .ib-mark, .idle-bg .ib-core, .idle-bg .ib-stars i, .idle-bg .ib-shoot, .idle-bg .ib-motes i { animation: none !important; } .ib-motes { display: none; } }
+@media (prefers-reduced-motion: reduce) { .idle-bg .ib-ring, .idle-bg .ib-turn, .idle-bg .ib-marks, .idle-bg .ib-mark, .idle-bg .ib-core, .idle-bg .ib-stars i, .idle-bg .ib-shoot, .idle-bg .ib-motes i { animation: none !important; } .ib-motes { display: none; } }
 
 /* ----- stage art: crossfade, and an accent from the art on borders and numbers ----- */
 .art-frame img.art-in { animation: artIn .65s cubic-bezier(.2,.7,.2,1) both; }

@@ -63,16 +63,22 @@ function idleBackdropHTML() {
   let spokes = ""; for (let i = 0; i < 24; i++) { const a = i / 24 * 6.2832, [x1, y1] = pt(a, 120), [x2, y2] = pt(a, i % 2 ? 176 : 196); spokes += `M${x1} ${y1}L${x2} ${y2}`; }
   let stars = ""; for (let i = 0; i < 46; i++) stars += `<i style="left:${f(rr() * 100)}%;top:${f(rr() * 100)}%;--d:${f(2 + rr() * 5)}s;--w:${f(-rr() * 6)}s;--s:${f(1 + rr() * 2.2)}px"></i>`;
   let motes = ""; for (let i = 0; i < 18; i++) motes += `<i style="left:${f(rr() * 100)}%;--d:${f(16 + rr() * 22)}s;--w:${f(-rr() * 30)}s;--x:${f(-30 + rr() * 60)}px;--s:${f(2 + rr() * 3)}px"></i>`;
-  // each ring turns as a plain box holding a still drawing, which the GPU can spin without redrawing it
+  // each ring is a plain box holding a still drawing, which the GPU can spin without redrawing it. 0.52.0: the rings that
+  // turn the same way share one turning box (.ib-turn), so the graphics card lays three big layers over the page on
+  // each step instead of seven; the ring of words is a picture made once from its canvas, not a layer of its own
   const svg = (cls, body) => `<div class="ib-ring ${cls}"><svg viewBox="-500 -500 1000 1000" aria-hidden="true" focusable="false">${body}</svg></div>`;
   return `<div id="idle-bg" class="idle-bg" aria-hidden="true">
     <div class="ib-stars">${stars}<b class="ib-shoot s1"></b><b class="ib-shoot s2"></b></div>
     <div class="ib-circle">
-      ${svg("r1", `<circle r="492" class="thin"/><circle r="480"/><path d="${ticks}" class="thin"/><g class="ib-runes">${runes}</g><circle r="430" class="gold"/>`)}
-      <div class="ib-ring r2"><svg viewBox="-500 -500 1000 1000" aria-hidden="true" focusable="false"><circle r="418" class="thin"/><circle r="390" class="dash"/><circle r="372"/></svg><canvas class="ib-words-cv" data-words="${esc(words)}"></canvas></div>
-      ${svg("r3", `<path d="${heptA}" class="gold"/><path d="${heptB}" class="thin"/>${nodes}<circle r="336" class="thin"/>`)}
-      <div class="ib-marks">${marks}</div>
-      ${svg("r4", `<circle r="262"/><path d="${hexA}"/><path d="${hexB}"/><circle r="214" class="dash"/><path d="${spokes}" class="thin"/><circle r="118" class="gold"/>`)}
+      <div class="ib-turn ta">
+        ${svg("r1", `<circle r="492" class="thin"/><circle r="480"/><path d="${ticks}" class="thin"/><g class="ib-runes">${runes}</g><circle r="430" class="gold"/>`)}
+        ${svg("r3", `<path d="${heptA}" class="gold"/><path d="${heptB}" class="thin"/>${nodes}<circle r="336" class="thin"/>`)}
+        <div class="ib-marks">${marks}</div>
+      </div>
+      <div class="ib-turn tb">
+        <div class="ib-ring r2"><svg viewBox="-500 -500 1000 1000" aria-hidden="true" focusable="false"><circle r="418" class="thin"/><circle r="390" class="dash"/><circle r="372"/></svg><canvas class="ib-words-cv" data-words="${esc(words)}" hidden></canvas><img class="ib-words-img" alt="" hidden></div>
+        ${svg("r4", `<circle r="262"/><path d="${hexA}"/><path d="${hexB}"/><circle r="214" class="dash"/><path d="${spokes}" class="thin"/><circle r="118" class="gold"/>`)}
+      </div>
       ${svg("r5", `<ellipse rx="170" ry="62" class="thin"/><circle cx="170" r="6" class="dot"/><ellipse rx="150" ry="60" transform="rotate(60)" class="thin"/><circle cx="150" r="4.5" class="dot" transform="rotate(60)"/><ellipse rx="150" ry="60" transform="rotate(120)" class="thin"/><circle cx="-150" r="5" class="dot" transform="rotate(120)"/>`)}
       <div class="ib-core"></div>
     </div>
@@ -80,9 +86,13 @@ function idleBackdropHTML() {
   </div>`;
 }
 // the words around the circle are drawn once onto a canvas: SVG text would be laid out again on every turn
+let idleWordsTries = 0;
 function drawIdleWords() {
   const cv = document.querySelector(".ib-words-cv"); if (!cv) return;
-  const w = cv.clientWidth; if (!w) { requestAnimationFrame(drawIdleWords); return; }
+  const box = cv.parentElement, w = box ? box.clientWidth : 0;
+  // not laid out yet (the backdrop was only just added): look again shortly, a few times, never on every frame
+  if (!w) { if (idleWordsTries++ < 20) setTimeout(drawIdleWords, 150); return; }
+  idleWordsTries = 0;
   const dpr = Math.min(2, window.devicePixelRatio || 1), k = w / 1000, cx = cv.getContext("2d");
   cv.width = Math.round(w * dpr); cv.height = Math.round(w * dpr);
   cx.setTransform(dpr * k, 0, 0, dpr * k, dpr * w / 2, dpr * w / 2); cx.clearRect(-500, -500, 1000, 1000);
@@ -96,6 +106,8 @@ function drawIdleWords() {
     cx.save(); cx.rotate(a + step / 2 + Math.PI / 2); cx.fillText(ch, 0, -R); cx.restore();
     a += step;
   }
+  const img = box.querySelector(".ib-words-img");
+  if (img) { try { img.src = cv.toDataURL("image/png"); img.hidden = false; } catch (e) { cv.hidden = false; } }
 }
 let idleWT = 0;
 // the ring of words only depends on the width: a phone's address bar sliding in or out (height only) doesn't redraw it

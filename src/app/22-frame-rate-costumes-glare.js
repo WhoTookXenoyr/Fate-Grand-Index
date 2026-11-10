@@ -10,15 +10,23 @@ limiterTick = function () { limRaf = 0; };
 document.getAnimations().forEach((a) => { if (heldAnims.has(a) && a.playState === "paused" && !animOff(a)) a.play(); });
 demoteAll();
 const tickMs = () => 1000 / motionFps;
+// 0.52.0, power saving: anything that loops forever (the background, glints, twinkles) is "ambient" and steps at half the
+// chosen rate; things that play once (a page sliding in, a window opening) keep the full rate. Both sit on the same
+// clock, so an ambient step always lands on a full-rate step. The switch and the idle rest are in 54-power.js.
+const POWER_KEY = "spirit-origin-list:v1:power";
+let powerSave = lsGet(POWER_KEY) !== "full";
+const ambFps = () => powerSave ? Math.max(15, motionFps / 2) : motionFps;
+const ambMs = () => 1000 / ambFps();
+const fpsOf = (o) => o.amb ? ambFps() : motionFps;
 const STEPPED = new WeakMap();
 // a still element's animation is left alone; the summon's own clockwork is timed in JavaScript, so it runs free
 const inSummon = (a) => { const t = a.effect && a.effect.target; return !!(t && t.closest && t.closest("#summon")); };
-function alignAnim(a, again) {
+function alignAnim(a, again, step) {
   if (a.playState !== "running") return;
   const st = a.startTime;
   // not started yet: try once more when it has (never again after that, so it can't keep calling itself)
-  if (st == null) { if (!again) a.ready.then(() => alignAnim(a, true)).catch(() => {}); return; }
-  const k = tickMs(), g = Math.round(st / k) * k;
+  if (st == null) { if (!again) a.ready.then(() => alignAnim(a, true, step)).catch(() => {}); return; }
+  const o = STEPPED.get(a), k = step || (o && o.fps ? 1000 / o.fps : tickMs()), g = Math.round(st / k) * k;
   if (Math.abs(g - st) > 0.5) { try { a.startTime = g; } catch (e) {} }
 }
 function stepAnim(a) {
@@ -28,14 +36,14 @@ function stepAnim(a) {
   if (!o) {
     const t = ef.getTiming();
     if (typeof t.duration !== "number" || !(t.duration > 0)) return;
-    o = {d: t.duration, dl: t.delay || 0, fps: 0}; STEPPED.set(a, o);
+    o = {d: t.duration, dl: t.delay || 0, fps: 0, amb: t.iterations === Infinity}; STEPPED.set(a, o);
   }
-  if (o.fps !== motionFps) {
-    const k = tickMs(), n = Math.max(1, Math.round(o.d / k));
+  if (o.fps !== fpsOf(o)) {
+    const k = 1000 / fpsOf(o), n = Math.max(1, Math.round(o.d / k));
     try { ef.updateTiming({duration: n * k, delay: Math.round(o.dl / k) * k, easing: "steps(" + n + ", end)"}); } catch (e) { return; }
-    o.fps = motionFps;
+    o.fps = fpsOf(o);
   }
-  alignAnim(a);
+  alignAnim(a, false, 1000 / o.fps);
 }
 // 0.24.0: many animations are stepped in two passes, reading first and changing after. Reading an animation's state
 // right after changing another one makes the browser redo the page's styles each time, once per animation.
@@ -43,19 +51,20 @@ function stepAnim(a) {
 // cost as much as a style update each); twice at most, so nothing keeps calling itself
 let stepLater = [], stepLaterT = 0;
 function stepMany(list, tries) {
-  const k = tickMs(), rows = [], later = [];
+  const rows = [], later = [];
   for (const a of list) {
     if (!isCssAnim(a) || inSummon(a)) continue;
     const ef = a.effect; if (!ef || !ef.getTiming) continue;
     let o = STEPPED.get(a);
-    if (!o) { const t = ef.getTiming(); if (typeof t.duration !== "number" || !(t.duration > 0)) continue; o = {d: t.duration, dl: t.delay || 0, fps: 0}; STEPPED.set(a, o); }
+    if (!o) { const t = ef.getTiming(); if (typeof t.duration !== "number" || !(t.duration > 0)) continue; o = {d: t.duration, dl: t.delay || 0, fps: 0, amb: t.iterations === Infinity}; STEPPED.set(a, o); }
     rows.push([a, o, a.playState, a.startTime]);
   }
   for (const [a, o, ps, st] of rows) {
-    if (o.fps !== motionFps) {
+    const k = 1000 / fpsOf(o);
+    if (o.fps !== fpsOf(o)) {
       const n = Math.max(1, Math.round(o.d / k));
       try { a.effect.updateTiming({duration: n * k, delay: Math.round(o.dl / k) * k, easing: "steps(" + n + ", end)"}); } catch (e) { continue; }
-      o.fps = motionFps;
+      o.fps = fpsOf(o);
     }
     if (ps !== "running") continue;
     if (st == null) { later.push(a); continue; }
@@ -80,7 +89,7 @@ function stepNewSoon() {
   if (stepT) return;
   stepT = setTimeout(() => {
     stepT = 0; if (resting) return;
-    stepMany(document.getAnimations().filter((a) => { const o = STEPPED.get(a); return !o || o.fps !== motionFps; }));
+    stepMany(document.getAnimations().filter((a) => { const o = STEPPED.get(a); return !o || o.fps !== fpsOf(o); }));
   }, 60);
 }
 document.addEventListener("animationstart", stepNewSoon, true);
@@ -103,30 +112,40 @@ fxSize = function (F) {
   F.cx.setTransform(dpr, 0, 0, dpr, 0, 0); F.w = w; F.h = h; return true;
 };
 fxLoop = function (now) {
-  fxRaf = 0; let live = false;
-  // the same steps as the CSS animations, so a canvas update and a CSS step share one redraw
-  const slot = Math.floor((now + 0.5) / tickMs());
+  fxRaf = 0; let live = false, drew = false;
+  // the same steps as the looping CSS animations, so a canvas update and a CSS step share one redraw
+  const tk = ambMs(), slot = Math.floor((now + 0.5) / tk);
   for (const F of [SCENE, PAGE]) {
     if (F.cv && !F.cv.isConnected) { F.cv = null; F.p = null; F.key = ""; }
     if (!F.cv || !F.p) continue;
     live = true;
-    if (document.hidden || resting) continue;
+    if (document.hidden || resting || idleRest) continue;
     if (F === PAGE && S.selected && !isWide()) continue;
     if (F === SCENE && F.cv.closest("[data-off]")) continue;
+    // 0.52.0: a canvas nobody can see (the servant page's own, while another page is open) isn't a reason to wake up
+    if (!fxSize(F)) continue;
+    drew = true;
     if (F.slot === slot) continue;
     F.slot = slot; fxFrame(F, now);
   }
-  if (live && !resting) {
-    // sleep until just before the next step instead of waking on every frame of a fast screen
-    const wait = (slot + 1) * tickMs() - performance.now() - 7;
+  if (live && !resting && !idleRest) {
+    // sleep until just before the next step instead of waking on every frame of a fast screen; with nothing to draw
+    // (a hidden or scrolled-away canvas), look again a few times a second instead of on every frame
+    const wait = drew ? (slot + 1) * tk - performance.now() - 7 : 350;
     if (wait > 6) { fxRaf = -1; setTimeout(() => { fxRaf = requestAnimationFrame(fxLoop); }, wait); }
     else fxRaf = requestAnimationFrame(fxLoop);
   }
 };
 
 /* ---------- the background rests while this window isn't the one you're using (a game, another app) ---------- */
-let resting = false;
-const restHeld = new Set();
+let resting = false, idleRest = false;
+const restHeld = new Set(), idleHeld = new Set();
+// what was resting comes back; something that scrolled out of sight meanwhile is handed to the off-screen watcher,
+// which starts it again when it's back in view (left paused and forgotten, it would never move again)
+function wakeHeld(set) {
+  set.forEach((a) => { if (a.playState !== "paused") return; if (animOff(a)) offPaused.add(a); else { a.play(); alignAnim(a); } });
+  set.clear();
+}
 function setResting(on) {
   if (on === resting) return;
   if (on && document.querySelector("#summon.go")) return;
@@ -134,9 +153,26 @@ function setResting(on) {
   if (on) {
     document.getAnimations().forEach((a) => { if (isCssAnim(a) && a.playState === "running" && !inSummon(a)) { a.pause(); restHeld.add(a); } });
   } else {
-    restHeld.forEach((a) => { if (a.playState === "paused" && !animOff(a)) { a.play(); alignAnim(a); } });
-    restHeld.clear(); stepAll();
-    if (!fxRaf) fxRaf = requestAnimationFrame(fxLoop);
+    wakeHeld(restHeld); stepAll();
+    if (!fxRaf && !idleRest) fxRaf = requestAnimationFrame(fxLoop);
+  }
+}
+/* ---------- 0.52.0: after a while without a touch, a key or the mouse, the looping animations rest too ----------
+   Only the ones that loop forever: something playing once (a fight, a window opening) is never stopped halfway.
+   The first move, key, scroll or touch wakes them on the same clock. Who decides when: 54-power.js. */
+const isAmbientAnim = (a) => { const o = STEPPED.get(a); if (o) return o.amb; try { return a.effect.getTiming().iterations === Infinity; } catch (e) { return false; } };
+function idlePausePass() {
+  if (!idleRest) return;
+  document.getAnimations().forEach((a) => { if (isCssAnim(a) && a.playState === "running" && !inSummon(a) && isAmbientAnim(a)) { a.pause(); idleHeld.add(a); } });
+}
+function setIdleRest(on) {
+  if (on === idleRest) return;
+  idleRest = on;
+  document.documentElement.classList.toggle("idle-rest", on);
+  if (on) idlePausePass();
+  else {
+    wakeHeld(idleHeld);
+    if (!resting) { stepAll(); if (!fxRaf) fxRaf = requestAnimationFrame(fxLoop); }
   }
 }
 window.addEventListener("blur", () => setResting(true));

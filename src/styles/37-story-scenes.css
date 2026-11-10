@@ -6,21 +6,18 @@
 .sc-cam { position: absolute; inset: 0; }
 /* a sheet follows the camera by its depth (57: scPlVars): a 2D move, eased. Each is its own layer so that a move
    never paints anything */
-.sc-pl { position: absolute; left: calc(50% - var(--scw) / 2); width: var(--scw); aspect-ratio: 1600 / 560; overflow: visible; display: block; will-change: transform;
-  transform: translate3d(calc(var(--cx, 0px) * var(--c, 0)), calc(var(--cy, 0px) * var(--c, 0)), 0); transition: transform .9s var(--sce, steps(27, end)); }
-.sc-land { bottom: 0; transform-origin: 50% calc(100% - var(--sch, 100vh) * .3); }
-.sc-top { top: 0; transform-origin: 50% calc(var(--sch, 100vh) * .7); }
+.sc-pl { position: absolute; display: block; transform: translate3d(calc(var(--cx, 0px) * var(--c, 0)), calc(var(--cy, 0px) * var(--c, 0)), 0); transition: transform .9s var(--sce, steps(27, end)); }
 /* level ground and water: the floor as it looks from where the camera rests, one gradient with the bands of distance in it */
-.sc-pl.sc-ff { aspect-ratio: auto; left: -60px; right: -60px; width: auto; }
+.sc-pl.sc-ff { left: -60px; right: -60px; }
 /* the page's words lie on this: a veil keeps the sky behind them quiet, heaviest where the titles are */
 .sc-veil { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(5, 7, 16, .5) 0%, rgba(5, 7, 16, .26) 38%, rgba(5, 7, 16, .12) 70%, rgba(5, 7, 16, .34) 100%); }
 .story-bg.lt .sc-veil { background: linear-gradient(to bottom, rgba(244, 246, 251, .5) 0%, rgba(244, 246, 251, .2) 45%, rgba(244, 246, 251, .1) 100%); }
 /* stars: dots that are part of the drawing (the twinkling ones are specks over it) */
-.sc-stars { position: absolute; left: 0; right: 0; top: 0; height: 70%; opacity: .7;
+.sc-stars { position: absolute; left: 0; right: 0; top: 0; height: 52%; opacity: .7;
   background-image: radial-gradient(1.2px 1.2px at 12% 18%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 31% 42%, #fff 50%, transparent 51%), radial-gradient(1.4px 1.4px at 54% 12%, #fff 50%, transparent 51%),
     radial-gradient(1px 1px at 71% 33%, #fff 50%, transparent 51%), radial-gradient(1.2px 1.2px at 88% 9%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 8% 61%, #fff 50%, transparent 51%),
     radial-gradient(1.3px 1.3px at 44% 70%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 63% 55%, #fff 50%, transparent 51%), radial-gradient(1.1px 1.1px at 93% 48%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 23% 84%, #fff 50%, transparent 51%);
-  background-size: 340px 300px; -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent); mask-image: linear-gradient(to bottom, #000 40%, transparent); }
+  background-size: 340px 300px; }
 .sc-stars.s2 { background-size: 230px 210px; opacity: .85; }
 /* a new scene comes in over the old one; in a chapter that goes down (Nahui Mictlān) the old one leaves upwards */
 .sc.in { animation: scIn 1.7s ease both; }

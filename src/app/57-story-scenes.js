@@ -577,11 +577,45 @@ function scFloorHTML(pl, act, M) {
   stops.sort((a, b) => a[0] - b[0]);
   return `<div class="sc-pl sc-ff" style="${scPlVars(pl.z)};top:${pl.line.toFixed(1)}px;height:${(Math.max(0, end) + 90).toFixed(1)}px;transform-origin:50% ${(M.Oy - pl.line).toFixed(1)}px;background:linear-gradient(to bottom, ${stops.map((st) => st[1] + " " + st[0].toFixed(1) + "px").join(", ")})"></div>`;
 }
+/* A sheet is a picture, drawn once (0.52.2). The drawing is vector paths, and it used to stay an <svg> on the page.
+   Firefox draws SVG on the processor and did so again whenever something moved over or with it, which cost Noyr most
+   of his frame rate there (Edge kept it as a texture). So each sheet's paths are drawn a single time into a still
+   canvas the size of the window plus a margin, and from then on the browser only moves a bitmap. Nothing is ever
+   drawn on these canvases again: they are pictures, not animations. */
+const SC_MX = 110;
+// how high each sheet's drawing reaches (and how low the sky's things hang), so its picture is no bigger than it has
+// to be: a picture's empty part still costs the graphics card on every frame
+function scMeasure(planes) {
+  const ns = "http://www.w3.org/2000/svg", sv = document.createElementNS(ns, "svg");
+  sv.setAttribute("style", "position:absolute;left:-9999px;top:0;width:10px;height:10px;visibility:hidden;overflow:hidden");
+  try {
+    sv.innerHTML = planes.map((pl) => `<g>${pl.h || ""}</g>`).join("");
+    document.body.appendChild(sv);
+    Array.from(sv.children).forEach((g, i) => { const pl = planes[i]; if (!pl.h) return; const b = g.getBBox(); if (b && b.height > 0) { pl.y0 = b.y; pl.y1 = b.y + b.height; } });
+  } catch (e) {}
+  sv.remove();
+  return planes;
+}
+function scSheetHTML(pl, M, jobs) {
+  const top = pl.k === "top", y0 = top ? -60 : Math.max(-230, Math.floor(pl.y0 == null ? -230 : pl.y0) - 8), y1 = top ? Math.min(560, Math.ceil(pl.y1 == null ? 560 : pl.y1) + 8) : 640, wi = M.W + SC_MX * 2, hi = (y1 - y0) * M.k, vw = wi / M.k, y = top ? y0 * M.k : M.H - (560 - y0) * M.k;
+  const rs = Math.min(window.devicePixelRatio || 1, 1.25), cw = Math.max(2, Math.round(wi * rs)), ch = Math.max(2, Math.round(hi * rs));
+  jobs.push({svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${cw}" height="${ch}" viewBox="${(800 - vw / 2).toFixed(1)} ${y0} ${vw.toFixed(1)} ${y1 - y0}" preserveAspectRatio="none">${pl.h}</svg>`, w: cw, h: ch});
+  return `<canvas class="sc-pl sc-${pl.k}" width="${cw}" height="${ch}" data-job="${jobs.length - 1}" style="${scPlVars(pl.z)};left:${-SC_MX}px;width:${wi.toFixed(1)}px;top:${y.toFixed(1)}px;height:${hi.toFixed(1)}px;transform-origin:50% ${(M.Oy - y).toFixed(1)}px" aria-hidden="true"></canvas>`;
+}
+function scRaster(el, jobs) {
+  el.querySelectorAll("canvas[data-job]").forEach((cv) => {
+    const j = jobs[Number(cv.dataset.job)]; if (!j) return;
+    const im = new Image();
+    im.onload = () => { try { cv.getContext("2d").drawImage(im, 0, 0, j.w, j.h); cv.dataset.drawn = "1"; } catch (e) {} };
+    im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(j.svg);
+  });
+}
 function scSceneHTML(act, M) {
+  const jobs = [];
   // (in the dark theme the horizon is pulled a little towards the sky above it: the page's words lie on it)
   const sky = (isDark() ? [act.sky[0], act.sky[1], scMix(act.sky[2], act.sky[1], 0.32)] : act.sky).map(scTone);
   return {bg: `linear-gradient(to bottom, ${sky[0]} 0%, ${sky[1]} 46%, ${sky[2]} 84%, ${scMix(sky[2], sky[1], 0.5)} 100%)`,
-    html: `${act.stars && isDark() ? `<div class="sc-stars s${act.stars}"></div>` : ""}<div class="sc-cam">${scPlanes(act, M).map((pl) => pl.k === "floor" ? scFloorHTML(pl, act, M) : `<svg class="sc-pl sc-${pl.k}" style="${scPlVars(pl.z)}" viewBox="0 0 1600 560" aria-hidden="true" focusable="false">${pl.h}</svg>`).join("")}</div><div class="sc-veil"></div>`};
+    html: `${act.stars && isDark() ? `<div class="sc-stars s${act.stars}"></div>` : ""}<div class="sc-cam">${scMeasure(scPlanes(act, M)).map((pl) => pl.k === "floor" ? scFloorHTML(pl, act, M) : scSheetHTML(pl, M, jobs)).join("")}</div><div class="sc-veil"></div>`, jobs: jobs};
 }
 
 /* ---------- which act ---------- */
@@ -628,7 +662,7 @@ function scPaint() {
   bg.dataset.m = act.m || ""; bg.dataset.ch = String(c.id); bg.dataset.act = String(now.a);
   const built = scSceneHTML(act, M), el = document.createElement("div");
   el.className = "sc" + (moved ? " in" + (vert ? (down ? " from-below" : " from-above") : down ? "" : " back") : "");
-  el.style.background = built.bg; el.innerHTML = built.html;
+  el.style.background = built.bg; el.innerHTML = built.html; scRaster(el, built.jobs);
   // (the old look's glows and wheel of light, if the page drew them before this file ran, go too)
   bg.querySelectorAll(".sc-live, .sb-parts, :scope > b").forEach((x) => x.remove());
   const olds = Array.from(bg.querySelectorAll(".sc"));

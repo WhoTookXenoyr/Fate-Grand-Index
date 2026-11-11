@@ -59,7 +59,9 @@ with sync_playwright() as p:
     def np_(card_up=0, atk=0, npup=0, pow_=0, dp=0, eff=1): return ATK * 0.23 * 4.5 * CARD["Arts"] * (1 + (terr + card_up) / 100) * C * (1 + atk / 100) * (1 + (pow_ + npup) / 100) * eff + dp
     def card(c, card_up=0, atk=0, crit=None, pow_=0, dp=0, eff=1): return ATK * 0.23 * CARD[c] * (1 + ((terr if c == "Arts" else 0) + card_up) / 100) * C * (1 + atk / 100) * (1 + (pow_ + (crit or 0)) / 100) * (2 if crit is not None else 1) * eff + dp
     t = table(pg)
-    check(f"the table has the Arts NP and the Arts card, and no row for cards the skill doesn't touch ({sorted(t.keys())})", sorted(t.keys()) == ["Arts", "np"])
+    # (since 0.53.0 every row is shown, as Noyr asked to see the whole deck: the ones the skill doesn't touch stay the same)
+    rows = sorted(["np", "extra"] + [c for c in CARD if c[0] in K(pg)["deck"]])
+    check(f"the table has every row; only the Arts NP and the Arts card change ({sorted(t.keys())})", sorted(t.keys()) == rows and all(t[r][0][0] == t[r][0][1] for r in t if r not in ("Arts", "np")) and t["Arts"][0][0] != t["Arts"][0][1])
     check(f"Arts NP: {t['np'][0]} is {round(np_())} → {round(np_(50))}", near(t["np"][0][0], np_()) and near(t["np"][0][1], np_(50)))
     check(f"the NP has no critical, and against a class it beats it's double ({t['np']})", t["np"][1] is None and t["np"][3] is None and near(t["np"][2][0], np_(eff=2)) and near(t["np"][2][1], np_(50, eff=2)))
     a = t["Arts"]
@@ -83,7 +85,7 @@ with sync_playwright() as p:
     v10 = {f["e"]: f["v"][1] for f in sk["fx"]}
     check(f"ATK up (all allies), Critical damage up, NP Strength up and Damage Plus are on the skill ({v10})", set(v10) == {"card", "atk", "crit", "np", "dp"})
     t = table(pg)
-    check(f"now every card has a row ({sorted(t.keys())})", sorted(t.keys()) == sorted(["np"] + [c for c in CARD if c[0] in k["deck"]]))
+    check(f"now every card changes, and the Extra attack with the ATK up ({sorted(t.keys())})", sorted(t.keys()) == sorted(["np", "extra"] + [c for c in CARD if c[0] in k["deck"]]) and all(t[r][0][0] != t[r][0][1] for r in t))
     want = np_(50, v10["atk"], v10["np"], 0, v10["dp"])
     check(f"the NP: card up and ATK up multiply, NP Strength is its own factor, Damage Plus is added ({t['np'][0][1]} is {round(want)})", near(t["np"][0][1], want))
     want = card("Buster", 0, v10["atk"], None, 0, v10["dp"])

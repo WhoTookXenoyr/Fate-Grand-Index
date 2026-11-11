@@ -35,7 +35,7 @@ with sync_playwright() as p:
     before = roster(pg)
     check(f"the new look is on from the start ({look(pg)})", look(pg) == "beta" and pg.evaluate("document.documentElement.classList.contains('has-side')"))
     tabs = pg.evaluate("Array.from(document.querySelectorAll('#side .side-nav .tab')).map((t) => t.dataset.tab)")
-    check(f"the sidebar has every page, Battle before Past Chaldea ({tabs})", tabs[:2] == ["home", "servants"] and "battle" in tabs and tabs.index("battle") == tabs.index("past") - 1 and len(tabs) >= 9)
+    check(f"the sidebar has every page, Battle and Mystic Codes before Past Chaldea ({tabs})", tabs[:2] == ["home", "servants"] and tabs[-3:] == ["battle", "mystic", "past"] and len(tabs) >= 10)
     check("each page has its icon and its name", pg.locator("#side .side-nav .tab .tab-ic svg").count() == len(tabs) and pg.locator("#side .side-nav .tab .tab-t").count() == len(tabs))
     check("the logo and the tools are in it too", pg.locator("#side .side-top .brand").count() == 1 and pg.locator("#side .side-tools .mast-actions").count() == 1)
     chip = pg.locator("#side .ver-chip").inner_text()

@@ -518,11 +518,13 @@ function scPartsHTML(c, act) {
   return h;
 }
 /* ---------- depth ----------
-   The drawing is taken apart into sheets (the sky's things, each row of silhouettes with its landmarks) that stand
-   one behind the other in real perspective, each scaled so that with the camera at rest the picture is exactly the
-   flat drawing. The camera then moves (with the pointer, with the page's scroll, and through the scene when the story
-   moves on), and near sheets pass far ones as they would. Only the camera's transform ever changes: nothing is
-   repainted, the graphics card just lays the same sheets down again. */
+   The drawing is taken apart into sheets (the sky's things, each row of silhouettes with its landmarks), each with a
+   depth. A camera moves (with the pointer, with the page's scroll, and through the scene when the story moves on) and
+   near sheets pass far ones as they would in perspective.
+   0.52.1: the sheets used to hang in a real CSS 3D space. That made every sheet a drawing pass of its own for the
+   graphics card (7 to 12 full-screen passes a frame), and Noyr's frame rate dropped. Now each sheet is moved and
+   sized with a plain 2D transform worked out from its depth: the same motion, one pass. Only transforms change; the
+   sheets are never painted again. */
 const SC_P = 1000, SC_FAR = 1400, SC_MAXPL = 5;
 const scIsRow = (it) => it[0] === "city" || it[0] === "flat" || !!SCG[it[0]];
 // the window's measures the depth is worked out from (the same numbers the CSS uses, written onto #story-bg)
@@ -553,6 +555,13 @@ function scPlanes(act, M) {
   return out;
 }
 // (drawn at a quarter of its size and scaled up: it's soft bands of colour, and a floor this long would be a huge picture)
+// what a sheet at depth z needs to move as depth would move it, with plain 2D transforms: --c how far it follows the
+// camera (1 for the nearest, about 0 for the furthest, a little the other way for the sky), --f how much of a move
+// up or down reaches it, --kin and --kout its size when the camera is far behind the scene or flying into it
+function scPlVars(z) {
+  const f = SC_P / (SC_P - z);
+  return `--z:${Math.round(z)}px;--c:${((f - 0.45) / 0.55).toFixed(3)};--f:${f.toFixed(3)};--kin:${((SC_P - z) / (SC_P - z + 1100)).toFixed(3)};--kout:${((SC_P - z) / (SC_P - z - 640)).toFixed(3)}`;
+}
 function scFloorHTML(pl, act, M) {
   const s = (SC_P - pl.z) / SC_P, c = scTone(pl.c), far = scTone(scMix(pl.c, act.sky[2], pl.first ? 0.2 : 0)), line = scTone(scMix(pl.c, act.sky[2], 0.6)), L = pl.zn - pl.z;
   // its twin for the flat picture: the same floor as it looks with the camera home, as one gradient down the window
@@ -566,14 +575,13 @@ function scFloorHTML(pl, act, M) {
     stops.push([ya, cc[0]], [ya, band], [yb, band], [yb, cc[0]]);
   }
   stops.sort((a, b) => a[0] - b[0]);
-  return `<div class="sc-pl sc-floor" style="--z:${Math.round(pl.z)}px;--s:${s.toFixed(4)};top:${pl.Yw.toFixed(1)}px;--fd:${Math.round(L / 4)}px;--f1:${far};--f2:${c};--f3:${line}"></div>` +
-    `<div class="sc-ff" style="top:${pl.line.toFixed(1)}px;height:${Math.max(0, end).toFixed(1)}px;background:linear-gradient(to bottom, ${stops.map((st) => st[1] + " " + st[0].toFixed(1) + "px").join(", ")})"></div>`;
+  return `<div class="sc-pl sc-ff" style="${scPlVars(pl.z)};top:${pl.line.toFixed(1)}px;height:${(Math.max(0, end) + 90).toFixed(1)}px;transform-origin:50% ${(M.Oy - pl.line).toFixed(1)}px;background:linear-gradient(to bottom, ${stops.map((st) => st[1] + " " + st[0].toFixed(1) + "px").join(", ")})"></div>`;
 }
 function scSceneHTML(act, M) {
   // (in the dark theme the horizon is pulled a little towards the sky above it: the page's words lie on it)
   const sky = (isDark() ? [act.sky[0], act.sky[1], scMix(act.sky[2], act.sky[1], 0.32)] : act.sky).map(scTone);
   return {bg: `linear-gradient(to bottom, ${sky[0]} 0%, ${sky[1]} 46%, ${sky[2]} 84%, ${scMix(sky[2], sky[1], 0.5)} 100%)`,
-    html: `${act.stars && isDark() ? `<div class="sc-stars s${act.stars}"></div>` : ""}<div class="sc-cam">${scPlanes(act, M).map((pl) => pl.k === "floor" ? scFloorHTML(pl, act, M) : `<svg class="sc-pl sc-${pl.k}" style="--z:${Math.round(pl.z)}px;--s:${((SC_P - pl.z) / SC_P).toFixed(4)}" viewBox="0 0 1600 560" aria-hidden="true" focusable="false">${pl.h}</svg>`).join("")}</div><div class="sc-veil"></div>`};
+    html: `${act.stars && isDark() ? `<div class="sc-stars s${act.stars}"></div>` : ""}<div class="sc-cam">${scPlanes(act, M).map((pl) => pl.k === "floor" ? scFloorHTML(pl, act, M) : `<svg class="sc-pl sc-${pl.k}" style="${scPlVars(pl.z)}" viewBox="0 0 1600 560" aria-hidden="true" focusable="false">${pl.h}</svg>`).join("")}</div><div class="sc-veil"></div>`};
 }
 
 /* ---------- which act ---------- */
@@ -615,7 +623,7 @@ function scPaint() {
   // chapter that goes down (Nahui Mictlān) it sinks, the old stratum rising past
   const prev = scKey.split("|"), same = prev[0] === String(c.id), moved = !!scKey && prev[2] === (isDark() ? "d" : "l") && !RM.matches && !!bg.querySelector(".sc");
   const down = !same || now.a > Number(prev[1]), vert = same && sc.dir === "down";
-  const M = scCamSize(); scDepth(true); scRestSoon(2600);
+  const M = scCamSize();
   scKey = key;
   bg.dataset.m = act.m || ""; bg.dataset.ch = String(c.id); bg.dataset.act = String(now.a);
   const built = scSceneHTML(act, M), el = document.createElement("div");
@@ -635,35 +643,34 @@ function scPaint() {
 /* ---------- the camera ----------
    It leans after the pointer and sinks a little as the page scrolls. One style write at most every 110 ms, eased by a
    CSS transition; nothing runs while the pointer is still. */
-let scCamX = 0, scCamY = 0, scCamS = 0, scCamT = 0, scCamHold = null, scFlatT = 0;
-/* At rest the sheets lie flat. With the camera home the picture in depth is exactly the flat drawing (that's what each
-   sheet's scale is for), and flat it costs the graphics card a third of the work on every frame the specks move. So
-   depth is switched on when the camera is about to move and off again a few seconds after it's back home. (A floor
-   can't lie flat: its twin, a gradient of the floor as it looks from home, stands in for it.) */
-function scDepth(on) {
-  const bg = document.getElementById("story-bg"); if (!bg) return;
-  clearTimeout(scFlatT); scFlatT = 0;
-  if (on) { bg.classList.remove("flat"); return; }
-  if (bg.querySelector(".sc.in, .sc.out")) return;
-  bg.classList.add("flat");
+let scCamX = 0, scCamY = 0, scCamS = 0, scCamT = 0, scCamHold = null;
+// Settings: the scene can be kept still (spirit-origin-list:v1:scenecam = "off")
+const SCCAM_KEY = "spirit-origin-list:v1:scenecam";
+let scCamOn = lsGet(SCCAM_KEY) !== "off";
+function scCamPaintSet() { document.querySelectorAll('[data-action="scenecam"]').forEach((b) => b.setAttribute("aria-pressed", String((b.dataset.v === "1") === scCamOn))); }
+function setSceneCam(on, quiet) {
+  scCamOn = !!on; try { if (scCamOn) localStorage.removeItem(SCCAM_KEY); else localStorage.setItem(SCCAM_KEY, "off"); } catch (e) {}
+  scCamPaintSet(); scCamApply();
+  if (!quiet) toastAction(scCamOn ? "Story scenes follow the pointer again." : "Story scenes stay still now.", "Undo", () => setSceneCam(!scCamOn, true));
 }
-const scCamHome = () => RM.matches || (!(scCamHold ? scCamHold[0] || scCamHold[1] : scCamX || scCamY) && !scCamS);
-function scRestSoon(ms) { clearTimeout(scFlatT); scFlatT = setTimeout(() => { scFlatT = 0; if (scCamHome()) scDepth(false); else scRestSoon(4000); }, ms); }
-// the pointer left the window, or hasn't moved for a while: the camera goes home
+document.addEventListener("click", (e) => { const b = e.target.closest && e.target.closest('[data-action="scenecam"]'); if (!b) return; const on = b.dataset.v === "1"; if (on !== scCamOn) setSceneCam(on); });
+// the pointer hasn't moved for a while: the camera goes home
 let scHomeT = 0;
 function scHomeSoon() { clearTimeout(scHomeT); scHomeT = setTimeout(() => { if (scCamHold) return; scCamX = 0; scCamY = 0; scCamApply(); }, 6000); }
 function scCamSize() { const bg = document.getElementById("story-bg"), M = scMetrics(); if (bg) { bg.style.setProperty("--sch", M.H + "px"); bg.style.setProperty("--scw", M.scw.toFixed(1) + "px"); } return M; }
 function scCamApply() {
   scCamT = 0;
   const bg = document.getElementById("story-bg"); if (!bg || !bg.querySelector(".sc")) return;
-  scDepth(true); scRestSoon(scCamHome() ? 1500 : 4000);
-  const still = RM.matches, x = still ? 0 : scCamHold ? scCamHold[0] : scCamX, y = still ? 0 : scCamHold ? scCamHold[1] : scCamY, sy = still ? 0 : scCamS;
-  bg.style.setProperty("--cx", (-x * 40).toFixed(1) + "px"); bg.style.setProperty("--cy", (-y * 16 + sy * 30).toFixed(1) + "px");
-  bg.style.setProperty("--ry", (-x * 1.5).toFixed(3) + "deg"); bg.style.setProperty("--rx", (y * 0.8 - sy * 0.6).toFixed(3) + "deg");
+  // the move is eased in steps at the background's frame rate (half the chosen one with power saving): a smooth 60 a
+  // second here would make the whole window redraw twice as often as everything else on the page asks for
+  const fpsNow = typeof ambFps === "function" ? ambFps() : 30;
+  bg.style.setProperty("--sce", fpsNow >= 60 ? "cubic-bezier(.2, .7, .2, 1)" : `steps(${Math.max(6, Math.round(0.9 * fpsNow))}, end)`);
+  const still = RM.matches || !scCamOn, x = still ? 0 : scCamHold ? scCamHold[0] : scCamX, y = still ? 0 : scCamHold ? scCamHold[1] : scCamY, sy = still ? 0 : scCamS;
+  bg.style.setProperty("--cx", (-x * 44).toFixed(1) + "px"); bg.style.setProperty("--cy", (-y * 18 + sy * 30).toFixed(1) + "px");
 }
 const scCamAsk = () => { if (!scCamT && scKey) scCamT = setTimeout(scCamApply, 110); };
-window.addEventListener("pointermove", (e) => { if (e.pointerType === "touch" || !scKey) return; scCamX = clamp(e.clientX / window.innerWidth * 2 - 1, -1, 1); scCamY = clamp(e.clientY / window.innerHeight * 2 - 1, -1, 1); scCamAsk(); scHomeSoon(); }, {passive: true});
-window.addEventListener("scroll", () => { if (!scKey) return; scCamS = clamp(window.scrollY / 900, 0, 1); scCamAsk(); }, {passive: true});
+window.addEventListener("pointermove", (e) => { if (e.pointerType === "touch" || !scKey) return; scCamX = clamp(e.clientX / window.innerWidth * 2 - 1, -1, 1); scCamY = clamp(e.clientY / window.innerHeight * 2 - 1, -1, 1); if (!scCamOn) return; scCamAsk(); scHomeSoon(); }, {passive: true});
+window.addEventListener("scroll", () => { if (!scKey || !scCamOn) return; scCamS = clamp(window.scrollY / 900, 0, 1); scCamAsk(); }, {passive: true});
 // a floor's place is worked out in pixels: a window of another size gets the scene laid out again
 let scSizeT = 0;
 window.addEventListener("resize", () => { clearTimeout(scSizeT); scSizeT = setTimeout(() => { if (!scKey) return; scKey = ""; try { scPaint(); } catch (e) {} }, 250); });
@@ -690,10 +697,9 @@ window.__fgiScene = {
   // (for the tests) travel from the scene that's up to another one, as the story moving on does
   go: (w, a) => { scForce = {w: w, a: a | 0}; scPaint(); },
   // (for the tests) put the camera somewhere: x and y from -1 to 1; null gives it back to the pointer
-  flat: () => { const bg = document.getElementById("story-bg"); return !!bg && bg.classList.contains("flat"); },
-  rest: () => { clearTimeout(scFlatT); if (scCamHome()) scDepth(false); },
+  camOn: () => scCamOn,
   cam: (x, y) => { scCamHold = x == null ? null : [x, y]; scCamApply(); },
-  planes: () => Array.from(document.querySelectorAll("#story-bg .sc:not(.out) .sc-pl")).map((e) => ({k: e.classList.contains("sc-top") ? "top" : e.classList.contains("sc-floor") ? "floor" : "land", z: parseFloat(e.style.getPropertyValue("--z"))})),
+  planes: () => Array.from(document.querySelectorAll("#story-bg .sc:not(.out) .sc-pl")).map((e) => ({k: e.classList.contains("sc-top") ? "top" : e.classList.contains("sc-ff") ? "floor" : "land", z: parseFloat(e.style.getPropertyValue("--z"))})),
   list: () => Object.keys(SCENES).map((k) => ({w: Number(k), n: STORY_BY.get(Number(k)).n, acts: SCENES[k].acts.map((a) => a.n), dir: SCENES[k].dir || "fade"})),
   now: () => { const n = scNow(); return n ? {w: n.c.id, a: n.a, n: SCENES[n.c.id].acts[n.a].n, of: SCENES[n.c.id].acts.length} : null; },
   actFor: (w, names, i) => { const c = STORY_BY.get(w); const keep = ST.wars[w]; ST.wars[w] = {q: names.map((n, k) => ({id: k + 1, n: n, sp: "", lab: ""}))}; const a = scActOf(c, {w: w, q: i + 1, ph: 1}); if (keep) ST.wars[w] = keep; else delete ST.wars[w]; return a; },
@@ -711,3 +717,6 @@ window.__fgiScene = {
     scPaint();
   }
 };
+scCamPaintSet();
+const renderSettings57 = typeof renderSettings === "function" ? renderSettings : null;
+if (renderSettings57) renderSettings = function () { const r = renderSettings57.apply(this, arguments); scCamPaintSet(); return r; };

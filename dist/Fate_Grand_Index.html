@@ -5178,27 +5178,17 @@ html .summon .sm-info .sm-done:hover { background: #ffeab0; border-color: #ffeab
 /* ================= 0.52.0-beta: story scenes (57-story-scenes.js) =================
    A scene is a still drawing in a box on the bottom of the window (and one hanging from the top). Wider screens see
    more of its sides, a phone its middle. Nothing in it moves; the few moving things lie over it. */
-.sc { position: absolute; inset: 0; overflow: hidden; perspective: 1000px; perspective-origin: 50% 70%; }
+.sc { position: absolute; inset: 0; overflow: hidden; }
 .story-bg { --scw: min(max(100vw, 1000px), 175vh); }
-/* the camera: everything with depth hangs in it, and only its transform ever changes (37: the sheets aren't repainted) */
-.sc-cam { position: absolute; inset: 0; transform-style: preserve-3d; transform-origin: 50% 70%; will-change: transform;
-  transform: translate3d(var(--cx, 0px), var(--cy, 0px), 0) rotateY(var(--ry, 0deg)) rotateX(var(--rx, 0deg)); transition: transform 1.2s cubic-bezier(.2, .7, .2, 1); }
-/* a sheet: pushed back by --z and scaled up by --s about the eye's point, so that at rest it's where the flat drawing had it */
-.sc-pl { position: absolute; left: calc(50% - var(--scw) / 2); width: var(--scw); aspect-ratio: 1600 / 560; overflow: visible; display: block; transform: translateZ(var(--z, 0px)) scale(var(--s, 1)); backface-visibility: hidden; }
+.sc-cam { position: absolute; inset: 0; }
+/* a sheet follows the camera by its depth (57: scPlVars): a 2D move, eased. Each is its own layer so that a move
+   never paints anything */
+.sc-pl { position: absolute; left: calc(50% - var(--scw) / 2); width: var(--scw); aspect-ratio: 1600 / 560; overflow: visible; display: block; will-change: transform;
+  transform: translate3d(calc(var(--cx, 0px) * var(--c, 0)), calc(var(--cy, 0px) * var(--c, 0)), 0); transition: transform .9s var(--sce, steps(27, end)); }
 .sc-land { bottom: 0; transform-origin: 50% calc(100% - var(--sch, 100vh) * .3); }
 .sc-top { top: 0; transform-origin: 50% calc(var(--sch, 100vh) * .7); }
-/* at rest (57: scDepth) the same sheets lie flat: same picture, a third of the work */
-.story-bg.flat .sc { perspective: none; }
-.story-bg.flat .sc-cam { transform: none; transform-style: flat; transition: none; will-change: auto; }
-.story-bg.flat .sc-pl { transform: none; }
-.story-bg.flat .sc-floor { display: none; }
-.sc-ff { position: absolute; left: 0; right: 0; display: none; }
-.story-bg.flat .sc-ff { display: block; }
-/* level ground and water: a floor lying down from its line towards the eye. Its height is worked out (57: scPlanes) from where the flat
-   drawing had the line at this depth; bands across it show the distance */
-.sc-pl.sc-floor { aspect-ratio: auto; left: calc(50% - var(--scw) * .5); width: var(--scw); height: var(--fd); bottom: auto; overflow: hidden; backface-visibility: visible;
-  transform-origin: 50% 0; transform: translateZ(var(--z, 0px)) rotateX(90deg) scale(4);
-  background: linear-gradient(to bottom, var(--f1) 0%, transparent 34%), repeating-linear-gradient(to bottom, transparent 0 13px, color-mix(in srgb, var(--f3) 34%, transparent) 13px 14.5px), linear-gradient(to bottom, var(--f1), var(--f2) 55%); }
+/* level ground and water: the floor as it looks from where the camera rests, one gradient with the bands of distance in it */
+.sc-pl.sc-ff { aspect-ratio: auto; left: -60px; right: -60px; width: auto; }
 /* the page's words lie on this: a veil keeps the sky behind them quiet, heaviest where the titles are */
 .sc-veil { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(5, 7, 16, .5) 0%, rgba(5, 7, 16, .26) 38%, rgba(5, 7, 16, .12) 70%, rgba(5, 7, 16, .34) 100%); }
 .story-bg.lt .sc-veil { background: linear-gradient(to bottom, rgba(244, 246, 251, .5) 0%, rgba(244, 246, 251, .2) 45%, rgba(244, 246, 251, .1) 100%); }
@@ -5212,24 +5202,25 @@ html .summon .sm-info .sm-done:hover { background: #ffeab0; border-color: #ffeab
 /* a new scene comes in over the old one; in a chapter that goes down (Nahui Mictlān) the old one leaves upwards */
 .sc.in { animation: scIn 1.7s ease both; }
 .sc.out { animation: scOut 1.5s ease both; }
-.sc.in .sc-cam { animation: scCamIn 2.1s cubic-bezier(.16, .8, .2, 1) backwards; }
-.sc.out .sc-cam { animation: scCamOut 1.6s cubic-bezier(.5, 0, .9, .5) forwards; }
-.sc.in.back .sc-cam { animation-name: scCamInBack; }
-.sc.out.back .sc-cam { animation-name: scCamOutBack; }
-.sc.in.from-below .sc-cam { animation-name: scCamFromBelow; }
-.sc.in.from-above .sc-cam { animation-name: scCamFromAbove; }
-.sc.out.to-above .sc-cam { animation-name: scCamToAbove; }
-.sc.out.to-below .sc-cam { animation-name: scCamToBelow; }
+.sc.in .sc-pl { animation: scPlIn 2.1s cubic-bezier(.16, .8, .2, 1) backwards; }
+.sc.out .sc-pl { animation: scPlOut 1.6s cubic-bezier(.5, 0, .9, .5) forwards; }
+.sc.in.back .sc-pl { animation-name: scPlInBack; }
+.sc.out.back .sc-pl { animation-name: scPlOutBack; }
+.sc.in.from-below .sc-pl { animation-name: scPlFromBelow; }
+.sc.in.from-above .sc-pl { animation-name: scPlFromAbove; }
+.sc.out.to-above .sc-pl { animation-name: scPlToAbove; }
+.sc.out.to-below .sc-pl { animation-name: scPlToBelow; }
 @keyframes scIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes scOut { from { opacity: 1; } 55% { opacity: .5; } to { opacity: 0; } }
-@keyframes scCamIn { from { transform: translate3d(0, 0, -1100px); } }
-@keyframes scCamOut { to { transform: translate3d(0, 0, 640px); } }
-@keyframes scCamInBack { from { transform: translate3d(0, 0, 560px); } }
-@keyframes scCamOutBack { to { transform: translate3d(0, 0, -1100px); } }
-@keyframes scCamFromBelow { from { transform: translate3d(0, 85vh, -260px); } }
-@keyframes scCamFromAbove { from { transform: translate3d(0, -85vh, -260px); } }
-@keyframes scCamToAbove { to { transform: translate3d(0, -85vh, 120px); } }
-@keyframes scCamToBelow { to { transform: translate3d(0, 85vh, 120px); } }
+/* the camera comes from far behind the scene (every sheet small, the near ones smallest) or flies into it */
+@keyframes scPlIn { from { transform: scale(var(--kin)); } }
+@keyframes scPlOut { to { transform: scale(var(--kout)); } }
+@keyframes scPlInBack { from { transform: scale(var(--kout)); } }
+@keyframes scPlOutBack { to { transform: scale(var(--kin)); } }
+@keyframes scPlFromBelow { from { transform: translate3d(0, calc(85vh * var(--f)), 0); } }
+@keyframes scPlFromAbove { from { transform: translate3d(0, calc(-85vh * var(--f)), 0); } }
+@keyframes scPlToAbove { to { transform: translate3d(0, calc(-85vh * var(--f)), 0); } }
+@keyframes scPlToBelow { to { transform: translate3d(0, calc(85vh * var(--f)), 0); } }
 .sc-live { position: absolute; inset: 0; }
 /* the northern lights breathe */
 .sb-aurora { left: 0; right: 0; top: 0; height: 46%; background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--c3) 26%, transparent) 40%, transparent); }
@@ -5243,7 +5234,7 @@ html.story-on .aura { display: none; }
 .st-scene { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
 .st-scene b { color: var(--ink); font-weight: 600; }
 @media (max-width: 640px) { .st-scene span { display: none; } }
-@media (prefers-reduced-motion: reduce) { .sc.in, .sc.out, .sc .sc-cam { animation: none !important; transition: none; } .sc.out { display: none; } }
+@media (prefers-reduced-motion: reduce) { .sc.in, .sc.out, .sc .sc-pl { animation: none !important; transition: none; } .sc.out { display: none; } }
 </style>
 </head>
 <body>
@@ -11738,7 +11729,7 @@ renderAll = function () { renderAll13(); renderFillNote(); };
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until 0.50.0, beta from there until the full website and app: 1.0.0
-const APP_VER = "0.52.0-beta";
+const APP_VER = "0.52.1-beta";
 const APP_STAGE = /-beta\b/.test(APP_VER) ? "beta" : "alpha", APP_NUM = APP_VER.replace(/-.*$/, "");
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
@@ -11901,6 +11892,11 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.52.1-beta", d: "10 Nov 2026", t: "Story scenes no longer cost frames", i: [
+    "The story scenes dropped the frame rate. Their depth was a real 3D space, which made the graphics card draw every row of a scene as a separate full-screen pass, 7 to 12 of them for each frame. The same depth is now worked out per row and applied as a simple move, so a scene is drawn in one pass like the rest of the page.",
+    "While the scene follows the pointer it moves at the background's frame rate (half the chosen one with Power saving), so it no longer makes the whole window redraw 60 times a second.",
+    "<b>Settings</b> has a new switch, <b>Story scenes follow the pointer</b>. Off keeps the scene still."
+  ]},
   {v: "0.52.0-beta", d: "10 Nov 2026", t: "A summoning rite, story scenes with depth, a cooler laptop, and damage numbers for custom skills", i: [
     "<b>Summoning is a rite now.</b> A ★5 servant lights five layers of the summoning field one after another, the fifth turns them rainbow, the card comes down and turns, its class shows over a rainbow veil, and the veil sinks down the picture slowly. A ★4 gets four layers in gold with a gold veil, a ★3 three in silver and a quick turn. Skip (or Escape) still shows the result at once.",
     "<b>Story backdrops are scenes with depth</b>, drawn for each chapter from where it takes place: 97 of them across the 29 chapters. The scene follows your place in the chapter. In Nahui Mictlān you go down stratum by stratum, the old one rising past as the next comes up. The rows of a scene stand one behind the other, so the view shifts as you move the pointer or scroll, and seas and plains run towards you. The Story page says which scene is up.",
@@ -21324,7 +21320,8 @@ const UI_SET_ROWS = [
     ["menu", "Sidebar", "The pages' names and icons, or only the icons."],
     ["fonts", "Text", "The page's fonts."],
     ["fps", "Animations", "Fewer frames a second are lighter on a slow computer."],
-    ["power", "Power saving", "The background moves at half the frame rate and rests after a minute without input. Cooler and quieter on a laptop."]]],
+    ["power", "Power saving", "The background moves at half the frame rate and rests after a minute without input. Cooler and quieter on a laptop."],
+    ["scenecam", "Story scenes follow the pointer", "The chapter's scene shifts in depth as you move the pointer or scroll. Off keeps it still, which is lighter for the graphics card."]]],
   ["Your data", [
     ["export", "Backup", "Download your servants, parties and pictures, or a spreadsheet."],
     ["import", "Bring a list in", "A backup from this page, a spreadsheet (.csv) or a planner's .json export."]]],
@@ -21336,6 +21333,7 @@ function uiSetHTML() {
   const seg = (k) => k === "look"
     ? `<div class="seg set-seg" role="group" aria-label="Look"><button type="button" data-action="ui-look" data-v="beta">New</button><button type="button" data-action="ui-look" data-v="classic">Classic</button></div>`
     : k === "menu" ? `<div class="seg set-seg" role="group" aria-label="Sidebar"><button type="button" data-action="ui-mini" data-v="0">Names and icons</button><button type="button" data-action="ui-mini" data-v="1">Only icons</button></div>`
+    : k === "scenecam" ? `<div class="seg set-seg" role="group" aria-label="Story scenes follow the pointer"><button type="button" data-action="scenecam" data-v="1">On</button><button type="button" data-action="scenecam" data-v="0">Off</button></div>`
     : k === "power" ? `<div class="seg set-seg" role="group" aria-label="Power saving"><button type="button" data-action="power" data-v="1">On</button><button type="button" data-action="power" data-v="0">Off</button></div>` : "";
   return `<button type="button" id="tab-settings" class="set-tab" data-action="tab" data-tab="settings" hidden tabindex="-1" aria-hidden="true">Settings</button>
     <div class="set-grid">${UI_SET_ROWS.map(([h, rows]) => `<section class="set-card" aria-labelledby="set-h-${esc(h.replace(/\W+/g, "-").toLowerCase())}"><h3 id="set-h-${esc(h.replace(/\W+/g, "-").toLowerCase())}">${esc(h)}</h3>
@@ -22933,11 +22931,13 @@ function scPartsHTML(c, act) {
   return h;
 }
 /* ---------- depth ----------
-   The drawing is taken apart into sheets (the sky's things, each row of silhouettes with its landmarks) that stand
-   one behind the other in real perspective, each scaled so that with the camera at rest the picture is exactly the
-   flat drawing. The camera then moves (with the pointer, with the page's scroll, and through the scene when the story
-   moves on), and near sheets pass far ones as they would. Only the camera's transform ever changes: nothing is
-   repainted, the graphics card just lays the same sheets down again. */
+   The drawing is taken apart into sheets (the sky's things, each row of silhouettes with its landmarks), each with a
+   depth. A camera moves (with the pointer, with the page's scroll, and through the scene when the story moves on) and
+   near sheets pass far ones as they would in perspective.
+   0.52.1: the sheets used to hang in a real CSS 3D space. That made every sheet a drawing pass of its own for the
+   graphics card (7 to 12 full-screen passes a frame), and Noyr's frame rate dropped. Now each sheet is moved and
+   sized with a plain 2D transform worked out from its depth: the same motion, one pass. Only transforms change; the
+   sheets are never painted again. */
 const SC_P = 1000, SC_FAR = 1400, SC_MAXPL = 5;
 const scIsRow = (it) => it[0] === "city" || it[0] === "flat" || !!SCG[it[0]];
 // the window's measures the depth is worked out from (the same numbers the CSS uses, written onto #story-bg)
@@ -22968,6 +22968,13 @@ function scPlanes(act, M) {
   return out;
 }
 // (drawn at a quarter of its size and scaled up: it's soft bands of colour, and a floor this long would be a huge picture)
+// what a sheet at depth z needs to move as depth would move it, with plain 2D transforms: --c how far it follows the
+// camera (1 for the nearest, about 0 for the furthest, a little the other way for the sky), --f how much of a move
+// up or down reaches it, --kin and --kout its size when the camera is far behind the scene or flying into it
+function scPlVars(z) {
+  const f = SC_P / (SC_P - z);
+  return `--z:${Math.round(z)}px;--c:${((f - 0.45) / 0.55).toFixed(3)};--f:${f.toFixed(3)};--kin:${((SC_P - z) / (SC_P - z + 1100)).toFixed(3)};--kout:${((SC_P - z) / (SC_P - z - 640)).toFixed(3)}`;
+}
 function scFloorHTML(pl, act, M) {
   const s = (SC_P - pl.z) / SC_P, c = scTone(pl.c), far = scTone(scMix(pl.c, act.sky[2], pl.first ? 0.2 : 0)), line = scTone(scMix(pl.c, act.sky[2], 0.6)), L = pl.zn - pl.z;
   // its twin for the flat picture: the same floor as it looks with the camera home, as one gradient down the window
@@ -22981,14 +22988,13 @@ function scFloorHTML(pl, act, M) {
     stops.push([ya, cc[0]], [ya, band], [yb, band], [yb, cc[0]]);
   }
   stops.sort((a, b) => a[0] - b[0]);
-  return `<div class="sc-pl sc-floor" style="--z:${Math.round(pl.z)}px;--s:${s.toFixed(4)};top:${pl.Yw.toFixed(1)}px;--fd:${Math.round(L / 4)}px;--f1:${far};--f2:${c};--f3:${line}"></div>` +
-    `<div class="sc-ff" style="top:${pl.line.toFixed(1)}px;height:${Math.max(0, end).toFixed(1)}px;background:linear-gradient(to bottom, ${stops.map((st) => st[1] + " " + st[0].toFixed(1) + "px").join(", ")})"></div>`;
+  return `<div class="sc-pl sc-ff" style="${scPlVars(pl.z)};top:${pl.line.toFixed(1)}px;height:${(Math.max(0, end) + 90).toFixed(1)}px;transform-origin:50% ${(M.Oy - pl.line).toFixed(1)}px;background:linear-gradient(to bottom, ${stops.map((st) => st[1] + " " + st[0].toFixed(1) + "px").join(", ")})"></div>`;
 }
 function scSceneHTML(act, M) {
   // (in the dark theme the horizon is pulled a little towards the sky above it: the page's words lie on it)
   const sky = (isDark() ? [act.sky[0], act.sky[1], scMix(act.sky[2], act.sky[1], 0.32)] : act.sky).map(scTone);
   return {bg: `linear-gradient(to bottom, ${sky[0]} 0%, ${sky[1]} 46%, ${sky[2]} 84%, ${scMix(sky[2], sky[1], 0.5)} 100%)`,
-    html: `${act.stars && isDark() ? `<div class="sc-stars s${act.stars}"></div>` : ""}<div class="sc-cam">${scPlanes(act, M).map((pl) => pl.k === "floor" ? scFloorHTML(pl, act, M) : `<svg class="sc-pl sc-${pl.k}" style="--z:${Math.round(pl.z)}px;--s:${((SC_P - pl.z) / SC_P).toFixed(4)}" viewBox="0 0 1600 560" aria-hidden="true" focusable="false">${pl.h}</svg>`).join("")}</div><div class="sc-veil"></div>`};
+    html: `${act.stars && isDark() ? `<div class="sc-stars s${act.stars}"></div>` : ""}<div class="sc-cam">${scPlanes(act, M).map((pl) => pl.k === "floor" ? scFloorHTML(pl, act, M) : `<svg class="sc-pl sc-${pl.k}" style="${scPlVars(pl.z)}" viewBox="0 0 1600 560" aria-hidden="true" focusable="false">${pl.h}</svg>`).join("")}</div><div class="sc-veil"></div>`};
 }
 
 /* ---------- which act ---------- */
@@ -23030,7 +23036,7 @@ function scPaint() {
   // chapter that goes down (Nahui Mictlān) it sinks, the old stratum rising past
   const prev = scKey.split("|"), same = prev[0] === String(c.id), moved = !!scKey && prev[2] === (isDark() ? "d" : "l") && !RM.matches && !!bg.querySelector(".sc");
   const down = !same || now.a > Number(prev[1]), vert = same && sc.dir === "down";
-  const M = scCamSize(); scDepth(true); scRestSoon(2600);
+  const M = scCamSize();
   scKey = key;
   bg.dataset.m = act.m || ""; bg.dataset.ch = String(c.id); bg.dataset.act = String(now.a);
   const built = scSceneHTML(act, M), el = document.createElement("div");
@@ -23050,35 +23056,34 @@ function scPaint() {
 /* ---------- the camera ----------
    It leans after the pointer and sinks a little as the page scrolls. One style write at most every 110 ms, eased by a
    CSS transition; nothing runs while the pointer is still. */
-let scCamX = 0, scCamY = 0, scCamS = 0, scCamT = 0, scCamHold = null, scFlatT = 0;
-/* At rest the sheets lie flat. With the camera home the picture in depth is exactly the flat drawing (that's what each
-   sheet's scale is for), and flat it costs the graphics card a third of the work on every frame the specks move. So
-   depth is switched on when the camera is about to move and off again a few seconds after it's back home. (A floor
-   can't lie flat: its twin, a gradient of the floor as it looks from home, stands in for it.) */
-function scDepth(on) {
-  const bg = document.getElementById("story-bg"); if (!bg) return;
-  clearTimeout(scFlatT); scFlatT = 0;
-  if (on) { bg.classList.remove("flat"); return; }
-  if (bg.querySelector(".sc.in, .sc.out")) return;
-  bg.classList.add("flat");
+let scCamX = 0, scCamY = 0, scCamS = 0, scCamT = 0, scCamHold = null;
+// Settings: the scene can be kept still (spirit-origin-list:v1:scenecam = "off")
+const SCCAM_KEY = "spirit-origin-list:v1:scenecam";
+let scCamOn = lsGet(SCCAM_KEY) !== "off";
+function scCamPaintSet() { document.querySelectorAll('[data-action="scenecam"]').forEach((b) => b.setAttribute("aria-pressed", String((b.dataset.v === "1") === scCamOn))); }
+function setSceneCam(on, quiet) {
+  scCamOn = !!on; try { if (scCamOn) localStorage.removeItem(SCCAM_KEY); else localStorage.setItem(SCCAM_KEY, "off"); } catch (e) {}
+  scCamPaintSet(); scCamApply();
+  if (!quiet) toastAction(scCamOn ? "Story scenes follow the pointer again." : "Story scenes stay still now.", "Undo", () => setSceneCam(!scCamOn, true));
 }
-const scCamHome = () => RM.matches || (!(scCamHold ? scCamHold[0] || scCamHold[1] : scCamX || scCamY) && !scCamS);
-function scRestSoon(ms) { clearTimeout(scFlatT); scFlatT = setTimeout(() => { scFlatT = 0; if (scCamHome()) scDepth(false); else scRestSoon(4000); }, ms); }
-// the pointer left the window, or hasn't moved for a while: the camera goes home
+document.addEventListener("click", (e) => { const b = e.target.closest && e.target.closest('[data-action="scenecam"]'); if (!b) return; const on = b.dataset.v === "1"; if (on !== scCamOn) setSceneCam(on); });
+// the pointer hasn't moved for a while: the camera goes home
 let scHomeT = 0;
 function scHomeSoon() { clearTimeout(scHomeT); scHomeT = setTimeout(() => { if (scCamHold) return; scCamX = 0; scCamY = 0; scCamApply(); }, 6000); }
 function scCamSize() { const bg = document.getElementById("story-bg"), M = scMetrics(); if (bg) { bg.style.setProperty("--sch", M.H + "px"); bg.style.setProperty("--scw", M.scw.toFixed(1) + "px"); } return M; }
 function scCamApply() {
   scCamT = 0;
   const bg = document.getElementById("story-bg"); if (!bg || !bg.querySelector(".sc")) return;
-  scDepth(true); scRestSoon(scCamHome() ? 1500 : 4000);
-  const still = RM.matches, x = still ? 0 : scCamHold ? scCamHold[0] : scCamX, y = still ? 0 : scCamHold ? scCamHold[1] : scCamY, sy = still ? 0 : scCamS;
-  bg.style.setProperty("--cx", (-x * 40).toFixed(1) + "px"); bg.style.setProperty("--cy", (-y * 16 + sy * 30).toFixed(1) + "px");
-  bg.style.setProperty("--ry", (-x * 1.5).toFixed(3) + "deg"); bg.style.setProperty("--rx", (y * 0.8 - sy * 0.6).toFixed(3) + "deg");
+  // the move is eased in steps at the background's frame rate (half the chosen one with power saving): a smooth 60 a
+  // second here would make the whole window redraw twice as often as everything else on the page asks for
+  const fpsNow = typeof ambFps === "function" ? ambFps() : 30;
+  bg.style.setProperty("--sce", fpsNow >= 60 ? "cubic-bezier(.2, .7, .2, 1)" : `steps(${Math.max(6, Math.round(0.9 * fpsNow))}, end)`);
+  const still = RM.matches || !scCamOn, x = still ? 0 : scCamHold ? scCamHold[0] : scCamX, y = still ? 0 : scCamHold ? scCamHold[1] : scCamY, sy = still ? 0 : scCamS;
+  bg.style.setProperty("--cx", (-x * 44).toFixed(1) + "px"); bg.style.setProperty("--cy", (-y * 18 + sy * 30).toFixed(1) + "px");
 }
 const scCamAsk = () => { if (!scCamT && scKey) scCamT = setTimeout(scCamApply, 110); };
-window.addEventListener("pointermove", (e) => { if (e.pointerType === "touch" || !scKey) return; scCamX = clamp(e.clientX / window.innerWidth * 2 - 1, -1, 1); scCamY = clamp(e.clientY / window.innerHeight * 2 - 1, -1, 1); scCamAsk(); scHomeSoon(); }, {passive: true});
-window.addEventListener("scroll", () => { if (!scKey) return; scCamS = clamp(window.scrollY / 900, 0, 1); scCamAsk(); }, {passive: true});
+window.addEventListener("pointermove", (e) => { if (e.pointerType === "touch" || !scKey) return; scCamX = clamp(e.clientX / window.innerWidth * 2 - 1, -1, 1); scCamY = clamp(e.clientY / window.innerHeight * 2 - 1, -1, 1); if (!scCamOn) return; scCamAsk(); scHomeSoon(); }, {passive: true});
+window.addEventListener("scroll", () => { if (!scKey || !scCamOn) return; scCamS = clamp(window.scrollY / 900, 0, 1); scCamAsk(); }, {passive: true});
 // a floor's place is worked out in pixels: a window of another size gets the scene laid out again
 let scSizeT = 0;
 window.addEventListener("resize", () => { clearTimeout(scSizeT); scSizeT = setTimeout(() => { if (!scKey) return; scKey = ""; try { scPaint(); } catch (e) {} }, 250); });
@@ -23105,10 +23110,9 @@ window.__fgiScene = {
   // (for the tests) travel from the scene that's up to another one, as the story moving on does
   go: (w, a) => { scForce = {w: w, a: a | 0}; scPaint(); },
   // (for the tests) put the camera somewhere: x and y from -1 to 1; null gives it back to the pointer
-  flat: () => { const bg = document.getElementById("story-bg"); return !!bg && bg.classList.contains("flat"); },
-  rest: () => { clearTimeout(scFlatT); if (scCamHome()) scDepth(false); },
+  camOn: () => scCamOn,
   cam: (x, y) => { scCamHold = x == null ? null : [x, y]; scCamApply(); },
-  planes: () => Array.from(document.querySelectorAll("#story-bg .sc:not(.out) .sc-pl")).map((e) => ({k: e.classList.contains("sc-top") ? "top" : e.classList.contains("sc-floor") ? "floor" : "land", z: parseFloat(e.style.getPropertyValue("--z"))})),
+  planes: () => Array.from(document.querySelectorAll("#story-bg .sc:not(.out) .sc-pl")).map((e) => ({k: e.classList.contains("sc-top") ? "top" : e.classList.contains("sc-ff") ? "floor" : "land", z: parseFloat(e.style.getPropertyValue("--z"))})),
   list: () => Object.keys(SCENES).map((k) => ({w: Number(k), n: STORY_BY.get(Number(k)).n, acts: SCENES[k].acts.map((a) => a.n), dir: SCENES[k].dir || "fade"})),
   now: () => { const n = scNow(); return n ? {w: n.c.id, a: n.a, n: SCENES[n.c.id].acts[n.a].n, of: SCENES[n.c.id].acts.length} : null; },
   actFor: (w, names, i) => { const c = STORY_BY.get(w); const keep = ST.wars[w]; ST.wars[w] = {q: names.map((n, k) => ({id: k + 1, n: n, sp: "", lab: ""}))}; const a = scActOf(c, {w: w, q: i + 1, ph: 1}); if (keep) ST.wars[w] = keep; else delete ST.wars[w]; return a; },
@@ -23126,6 +23130,9 @@ window.__fgiScene = {
     scPaint();
   }
 };
+scCamPaintSet();
+const renderSettings57 = typeof renderSettings === "function" ? renderSettings : null;
+if (renderSettings57) renderSettings = function () { const r = renderSettings57.apply(this, arguments); scCamPaintSet(); return r; };
 /* ================= 0.52.0-beta: what a custom skill adds to damage =================
    In the Workshop, under each skill: the damage of the Noble Phantasm and of the servant's own cards without the
    skill and with it, so that "Arts up 30%" reads as numbers. The game's formulas, the same ones the NP calculator

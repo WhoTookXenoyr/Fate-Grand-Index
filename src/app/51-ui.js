@@ -51,7 +51,8 @@ const UI_SET_ROWS = [
     ["menu", "Sidebar", "The pages' names and icons, or only the icons."],
     ["fonts", "Text", "The page's fonts."],
     ["fps", "Animations", "Fewer frames a second are lighter on a slow computer."],
-    ["power", "Power saving", "The background moves at half the frame rate and rests after a minute without input. Cooler and quieter on a laptop."]]],
+    ["power", "Power saving", "The background moves at half the frame rate and rests after a minute without input. Cooler and quieter on a laptop."],
+    ["scenecam", "Story scenes follow the pointer", "The chapter's scene shifts in depth as you move the pointer or scroll. Off keeps it still, which is lighter for the graphics card."]]],
   ["Your data", [
     ["export", "Backup", "Download your servants, parties and pictures, or a spreadsheet."],
     ["import", "Bring a list in", "A backup from this page, a spreadsheet (.csv) or a planner's .json export."]]],
@@ -63,6 +64,7 @@ function uiSetHTML() {
   const seg = (k) => k === "look"
     ? `<div class="seg set-seg" role="group" aria-label="Look"><button type="button" data-action="ui-look" data-v="beta">New</button><button type="button" data-action="ui-look" data-v="classic">Classic</button></div>`
     : k === "menu" ? `<div class="seg set-seg" role="group" aria-label="Sidebar"><button type="button" data-action="ui-mini" data-v="0">Names and icons</button><button type="button" data-action="ui-mini" data-v="1">Only icons</button></div>`
+    : k === "scenecam" ? `<div class="seg set-seg" role="group" aria-label="Story scenes follow the pointer"><button type="button" data-action="scenecam" data-v="1">On</button><button type="button" data-action="scenecam" data-v="0">Off</button></div>`
     : k === "power" ? `<div class="seg set-seg" role="group" aria-label="Power saving"><button type="button" data-action="power" data-v="1">On</button><button type="button" data-action="power" data-v="0">Off</button></div>` : "";
   return `<button type="button" id="tab-settings" class="set-tab" data-action="tab" data-tab="settings" hidden tabindex="-1" aria-hidden="true">Settings</button>
     <div class="set-grid">${UI_SET_ROWS.map(([h, rows]) => `<section class="set-card" aria-labelledby="set-h-${esc(h.replace(/\W+/g, "-").toLowerCase())}"><h3 id="set-h-${esc(h.replace(/\W+/g, "-").toLowerCase())}">${esc(h)}</h3>

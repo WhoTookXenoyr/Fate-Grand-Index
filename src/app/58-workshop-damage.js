@@ -11,17 +11,19 @@
 const WSD_KIND = {atk: "atk", np: "np", crit: "crit", vs: "pow", dp: "dp", defdown: "atk"};
 // what one skill gives this servant at a skill level: {atk, np, crit, pow, dp, card: {Buster, Arts, Quick}} in % (dp in damage)
 function wsdBuffs(s, lv) {
-  const B = {atk: 0, np: 0, crit: 0, pow: 0, dp: 0, card: {Buster: 0, Arts: 0, Quick: 0}, used: [], left: []};
+  const B = {atk: 0, np: 0, crit: 0, pow: 0, dp: 0, card: {Buster: 0, Arts: 0, Quick: 0}, used: [], left: [], plain: []};
   for (const f of (s && s.fx) || []) {
     const def = FX_BY[f.e]; if (!def) continue;
     const v = def.v && f.v ? num(skVals(num(f.v[0]) || 0, num(f.v[1]) || 0)[clamp(lv, 1, 10) - 1]) || 0 : 0;
     const label = fxLabel(f, W.k.np.card) || def.t, card = CARDS.includes(f.card) ? f.card : "Buster";
     const kind = f.e === "card" || f.e === "resdown" ? "card" : WSD_KIND[f.e];
-    if (!kind) { if (f.e === "own" && (f.txt || f.l)) B.left.push((f.l || "Your own effect") + ": written by hand, so it can't be counted"); continue; }
+    // an effect written by hand is read from its words (61-skill-reader.js): never "can't be counted"
+    if (f.e === "own") { srInto(B, f, lv); continue; }
+    if (!kind) continue;
     if (f.tg === "x") { B.left.push(label + ": it goes to the other allies, not to this servant"); continue; }
     if (!v) continue;
     if (kind === "card") B.card[card] += v; else B[kind] += v;
-    B.used.push({t: label, v: v, u: def.u === "damage" ? "" : "%", note: f.e === "vs" ? "only against " + (String(f.vs || "").trim() || "its trait") : f.e === "crit" ? "on criticals" : ""});
+    B.used.push({t: label, v: v, u: def.u === "damage" ? "" : "%", k: kind, card: kind === "card" ? card : "", note: f.e === "vs" ? "only against " + (String(f.vs || "").trim() || "its trait") : f.e === "crit" ? "on criticals" : ""});
   }
   return B;
 }

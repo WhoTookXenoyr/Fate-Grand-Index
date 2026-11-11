@@ -89,7 +89,7 @@ with sync_playwright() as p:
     check("Go to Summoning opens the page at that Guest", pg.evaluate("location.hash") == "#summon" and pg.locator("#smg-merlin").count() == 1)
 
     # ---- Summoning page
-    check("nine tabs, Story then Summoning after Servants (Story joined in 0.24.0, Battle in 0.50.0)", pg.locator(".tabs .tab").count() == 9 and pg.locator(".tabs .tab").nth(2).inner_text() == "Story" and pg.locator(".tabs .tab").nth(3).inner_text() == "Summoning")
+    check("ten tabs, Story then Summoning after Servants (Story joined in 0.24.0, Battle in 0.50.0, Mystic Codes in 0.53.0)", pg.locator(".tabs .tab").count() == 10 and pg.locator(".tabs .tab").nth(2).inner_text() == "Story" and pg.locator(".tabs .tab").nth(3).inner_text() == "Summoning")
     check("Guests can be summoned here", pg.locator('.smg [data-action="summon"]').count() == 5)
     n35 = pg.evaluate("(" + LS + ").servants") ; n35 = len([x for x in (n35.values() if isinstance(n35, dict) else n35) if x.get("rarity") in (3, 4, 5)])
     check(f"drop chances list every ★3–★5 servant ({pg.locator('.smc').count()} of {n35})", pg.locator(".smc").count() == n35)

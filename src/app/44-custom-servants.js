@@ -294,12 +294,21 @@ function customKit(s) {
     d: String(k.deck || ""), np: {n: (k.np || {}).name || "", tg: (k.np || {}).tg || "", cd: card.charAt(0)},
     sk: [0, 1, 2].map((i) => {
       const sk = (k.sk || [])[i] || {};
-      const b = (sk.fx || []).map((f) => {
+      const b = (sk.fx || []).flatMap((f) => {
+        // an effect written by hand counts too: it's read from its words (61-skill-reader.js, 0.53.0)
+        if (f.e === "own" && typeof srRead === "function") return srRead(f, 10).map((r) => {
+          const c = {atk: "a", card: "c", np: "n", pow: "p", dmg: "p", dp: "f", def: "d", res: "r"}[r.k]; if (!c) return null;
+          const all = /all allies|\bparty\b|every ally/i.test(String(f.txt || "")), row = [c, r.k === "def" || r.k === "res" ? "e" : r.others ? "x" : all ? "a" : "s", r.card ? r.card.charAt(0) : "", skVals(r.v1, r.v10)];
+          if (r.k === "pow") { const m = /against (.+)$/.exec(r.label); row.push(vsNeed(m ? m[1] : "")); }
+          return row;
+        });
+        return [(() => {
         const def = FX_BY[f.e]; if (!def || !def.c || !def.v || !Array.isArray(f.v)) return null;
         const v1 = num(f.v[0]), v10 = num(f.v[1]); if (v1 == null || v10 == null) return null;
         const tg = def.tgs.includes(f.tg) ? f.tg : def.tg, row = [def.c, tg === "E" ? "e" : tg, def.card ? (CARDS.includes(f.card) ? f.card : card).charAt(0) : "", skVals(v1, v10)];
         if (def.vsPick) row.push(vsNeed(f.vs));
         return row;
+        })()];
       }).filter(Boolean);
       return {n: [sk.name, sk.rank].filter(Boolean).join(" ") || "Skill " + (i + 1), ic: "", b: b};
     })};

@@ -63,7 +63,7 @@ function footHTML() {
       </ul></div>
     </div>
     <div class="sf-bottom">
-      <p>Servant and Craft Essence data and pictures from <a href="https://atlasacademy.io" target="_blank" rel="noopener">Atlas Academy</a>; skill notes from the <a href="https://fategrandorder.fandom.com" target="_blank" rel="noopener">Fate/Grand Order Wiki</a>.</p>
+      <p>Servant and Craft Essence data and pictures from <a href="https://atlasacademy.io" target="_blank" rel="noopener">Atlas Academy</a>; skill notes from the <a href="https://fategrandorder.fandom.com" target="_blank" rel="noopener">Fate/Grand Order Wiki</a>. 3D background by <a href="https://www.vantajs.com" target="_blank" rel="noopener">vanta.js</a> and <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> (MIT).</p>
       <p>Fate/Grand Index is a fan project, not affiliated with or endorsed by TYPE-MOON, Aniplex or Lasengle. Fate/Grand Order and its characters belong to their owners.</p>
       <button type="button" class="sf-top" data-action="to-top">Back to top ↑</button>
     </div>`;

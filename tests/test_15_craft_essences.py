@@ -30,7 +30,7 @@ with sync_playwright() as p:
     ctx, pg = page(p, w=1800, h=1000, init="localStorage.setItem('spirit-origin-list:v1:fps','30');")
     pg.goto(SEEDED + "#servants"); pg.wait_for_timeout(1600); pg.keyboard.press("Escape")
     pg.evaluate("document.querySelector('#side .side-cog').click()"); pg.wait_for_timeout(500)  # (the tools are on Settings since 0.50.0)
-    guide = lambda: pg.evaluate("(() => { const g = [...document.querySelectorAll('#view-settings button')].find(b => b.textContent.trim() === 'Guide'); const r = g.getBoundingClientRect(); return [Math.round(r.left), Math.round(r.top)]; })()")
+    guide = lambda: pg.evaluate("(() => { const g = [...document.querySelectorAll('#view-settings button')].find(b => b.textContent.trim() === 'Guide'); const r = g.getBoundingClientRect(); return [Math.round(r.left), Math.round(r.top + window.scrollY)]; })()")  # (its place on the page: since 0.53.0 Settings is long enough that clicking the frame-rate button scrolls it a little)
     logo = pg.evaluate("document.querySelector('.brand-logo').getBoundingClientRect().bottom")
     g30 = guide()
     pg.click("#fps-btn"); pg.wait_for_timeout(500)

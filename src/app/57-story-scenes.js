@@ -359,7 +359,7 @@ const SCENES = {
     {n: "The white titan's light", at: 0.87, re: /Altera|Attila|Flauros|Titan|Final/i, sky: ["#06091a", "#141e44", "#3a4a8a"], stars: 2, t: [PART1_RING], d: [["p", "beam", 800, 470, 1, "#bfe0ff", 14], ["hills", "#121b3a", 91, 380, 50, 300], ["city", "#0b1226", 92, 450, "ruin", 30, 120, 60, "#bfe0ff"], ["hills", "#05081a", 93, 520, 22, 300]], m: "motes", pn: 10, fx: ["pulse"]}]},
   103: {acts: [
     {n: "The open sea", sky: ["#081a3a", "#1a5a9a", "#8ad0e8"], t: [PART1_RING, ["flock", "#0a2238", 5, 101, 420, 120, 420, 90, 0.8]], d: [["orb", 1200, 190, 44, "#fff2c0", 0.8], ["hills", "#1c5a8a", 101, 380, 50, 560], ["flat", "#0e3f6e", 384], ["p", "ship", 770, 392, 1.1, "#0a2238", "#d9e8f2"], ["flat", "#0a3258", 446], ["flat", "#06223e", 506]], m: "waves", pn: 3, fx: ["shine"]},
-    {n: "Storm over the sealed seas", at: 0.4, re: /Storm|Blackbeard|Hektor|Pirate|Queen Anne/i, sky: ["#070b14", "#1c2a3e", "#4a5a6a"], t: [["ring", "#8a93a0"]], d: [["peaks", "#121c2a", 111, 384, 130, 420], ["flat", "#0c1a2a", 388], ["p", "ship", 620, 396, 1.15, "#060d16", "#2a3644"], ["p", "ship", 1080, 394, 0.7, "#060d16", "#2a3644"], ["flat", "#081320", 450], ["flat", "#050c16", 508]], m: "rain", pn: 14, fx: ["flash"]},
+    {n: "Storm over the sealed seas", v: "waves", at: 0.4, re: /Storm|Blackbeard|Hektor|Pirate|Queen Anne/i, sky: ["#070b14", "#1c2a3e", "#4a5a6a"], t: [["ring", "#8a93a0"]], d: [["peaks", "#121c2a", 111, 384, 130, 420], ["flat", "#0c1a2a", 388], ["p", "ship", 620, 396, 1.15, "#060d16", "#2a3644"], ["p", "ship", 1080, 394, 0.7, "#060d16", "#2a3644"], ["flat", "#081320", 450], ["flat", "#050c16", 508]], m: "rain", pn: 14, fx: ["flash"]},
     {n: "The Argo at sunset", at: 0.72, re: /Argo|Heracles|Jason|Ark|Medea|Forneus|Final/i, sky: ["#1a0e2a", "#6a2a4a", "#e88a4a"], t: [PART1_RING], d: [["orb", 800, 382, 62, "#ffb060", 0.95], ["hills", "#4a1f3e", 121, 384, 40, 620], ["flat", "#3a1c3a", 388], ["p", "ship", 560, 396, 1.3, "#170a1c", "#3a1c34"], ["p", "ship", 1100, 394, 0.8, "#170a1c", "#3a1c34"], ["flat", "#24102a", 452], ["flat", "#130818", 510]], m: "waves", pn: 3, fx: ["shine"]}]},
   104: {acts: [
     {n: "The Mist City", sky: ["#0b0e12", "#232b33", "#5a6570"], t: [["ring", "#c9b27a"]], d: [["orb", 1250, 120, 34, "#d8dde0", 0.5], ["city", "#1c242b", 131, 390, "house", 60, 150, 0, "#e8c070"], ["p", "bigben", 880, 452, 0.78, "#11181d", "#f2d48a"], ["city", "#0f1519", 132, 458, "house", 40, 110, 0, "#e8c070"], ["p", "lights", 800, 476, 1, "#f2d48a", 14, 133, 1700, 8], ["flat", "#080c0f", 524]], m: "fog", pn: 4, fx: ["mist", "mist2"]},
@@ -548,10 +548,15 @@ function scPlanes(act, M) {
     if (r[0][0] === "flat") {
       const zn = i < n - 1 ? -SC_FAR * (n - 2 - i) / (n - 1) - 2 : 620, sc = (SC_P - z) / SC_P, line = M.H - (560 - r[0][2]) * M.k;
       out.splice(out.length - 1, 0, {k: "floor", z: z, zn: zn, c: r[0][1], first: !out.some((o) => o.k === "floor"), line: line, Yw: M.Oy + (line - M.Oy) * sc});
+      out[out.length - 1].flat = true; // (this sheet is the water or ground itself: the 3D sea of 59-bg3d.js takes its place)
       // (the row's own things, a ship, stand on the far edge: they go on a sheet after the floor)
       if (r.length > 1) { out[out.length - 1].h = scLandSVG([r[0]]); out.push({k: "land", z: z, h: scLandSVG(r.slice(1))}); }
     }
   });
+  // (what lies beyond the first water or ground reaches down behind it; under a 3D sea, which is behind every sheet,
+  // those sheets are cut off at the waterline so the sea shows: 59-bg3d.js, 38-bg3d.css)
+  const f0 = out.findIndex((o) => o.k === "floor");
+  if (f0 > 0) out.slice(0, f0).forEach((o) => { if (o.k === "land") o.cut = out[f0].line; });
   return out;
 }
 // (drawn at a quarter of its size and scaled up: it's soft bands of colour, and a floor this long would be a huge picture)
@@ -600,7 +605,7 @@ function scSheetHTML(pl, M, jobs) {
   const top = pl.k === "top", y0 = top ? -60 : Math.max(-230, Math.floor(pl.y0 == null ? -230 : pl.y0) - 8), y1 = top ? Math.min(560, Math.ceil(pl.y1 == null ? 560 : pl.y1) + 8) : 640, wi = M.W + SC_MX * 2, hi = (y1 - y0) * M.k, vw = wi / M.k, y = top ? y0 * M.k : M.H - (560 - y0) * M.k;
   const rs = Math.min(window.devicePixelRatio || 1, 1.25), cw = Math.max(2, Math.round(wi * rs)), ch = Math.max(2, Math.round(hi * rs));
   jobs.push({svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${cw}" height="${ch}" viewBox="${(800 - vw / 2).toFixed(1)} ${y0} ${vw.toFixed(1)} ${y1 - y0}" preserveAspectRatio="none">${pl.h}</svg>`, w: cw, h: ch});
-  return `<canvas class="sc-pl sc-${pl.k}" width="${cw}" height="${ch}" data-job="${jobs.length - 1}" style="${scPlVars(pl.z)};left:${-SC_MX}px;width:${wi.toFixed(1)}px;top:${y.toFixed(1)}px;height:${hi.toFixed(1)}px;transform-origin:50% ${(M.Oy - y).toFixed(1)}px" aria-hidden="true"></canvas>`;
+  return `<canvas class="sc-pl sc-${pl.k}${pl.flat ? " sc-flat" : ""}${pl.cut != null ? " sc-far" : ""}" width="${cw}" height="${ch}" data-job="${jobs.length - 1}" style="${scPlVars(pl.z)};${pl.cut != null ? `--cutb:${Math.max(0, y + hi - pl.cut).toFixed(1)}px;` : ""}left:${-SC_MX}px;width:${wi.toFixed(1)}px;top:${y.toFixed(1)}px;height:${hi.toFixed(1)}px;transform-origin:50% ${(M.Oy - y).toFixed(1)}px" aria-hidden="true"></canvas>`;
 }
 function scRaster(el, jobs) {
   el.querySelectorAll("canvas[data-job]").forEach((cv) => {
@@ -610,11 +615,14 @@ function scRaster(el, jobs) {
     im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(j.svg);
   });
 }
+// the sky's three colours in this theme, top to horizon
+// (in the dark theme the horizon is pulled a little towards the sky above it: the page's words lie on it)
+const scSky = (act) => (isDark() ? [act.sky[0], act.sky[1], scMix(act.sky[2], act.sky[1], 0.32)] : act.sky).map(scTone);
+const scSkyCss = (sky) => `linear-gradient(to bottom, ${sky[0]} 0%, ${sky[1]} 46%, ${sky[2]} 84%, ${scMix(sky[2], sky[1], 0.5)} 100%)`;
 function scSceneHTML(act, M) {
   const jobs = [];
-  // (in the dark theme the horizon is pulled a little towards the sky above it: the page's words lie on it)
-  const sky = (isDark() ? [act.sky[0], act.sky[1], scMix(act.sky[2], act.sky[1], 0.32)] : act.sky).map(scTone);
-  return {bg: `linear-gradient(to bottom, ${sky[0]} 0%, ${sky[1]} 46%, ${sky[2]} 84%, ${scMix(sky[2], sky[1], 0.5)} 100%)`,
+  const sky = scSky(act);
+  return {bg: scSkyCss(sky),
     html: `${act.stars && isDark() ? `<div class="sc-stars s${act.stars}"></div>` : ""}<div class="sc-cam">${scMeasure(scPlanes(act, M)).map((pl) => pl.k === "floor" ? scFloorHTML(pl, act, M) : scSheetHTML(pl, M, jobs)).join("")}</div><div class="sc-veil"></div>`, jobs: jobs};
 }
 

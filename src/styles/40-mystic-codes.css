@@ -1,0 +1,41 @@
+/* ================= 0.53.0-beta: Mystic Codes (62-mystic-codes.js) ================= */
+.mc-head h3 small { font-weight: 500; color: var(--muted); }
+.mc-lead { margin: 0 0 12px; max-width: 72ch; color: var(--muted); line-height: 1.5; }
+.mc-ctl { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; }
+.mc-f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); }
+.mc-f select { min-width: 8rem; min-height: 34px; padding: 2px 8px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; font-size: 13px; font-weight: 500; }
+.mc-pick select, .mc-picklv select { min-height: 32px; padding: 2px 8px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; font-size: 13px; font-weight: 500; }
+@media (pointer: coarse) { .mc-f select, .mc-pick select, .mc-picklv select { min-height: 40px; } }
+.mc-eq { margin: 12px 0 0; }
+.mc-eq b, .mc-best b { color: var(--ink); }
+.mc-best { margin: 8px 0 0; padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line)); border-radius: 12px; background: var(--sunken); line-height: 1.5; }
+.mc-grid { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); gap: 12px; }
+.mc-card { border: 1px solid var(--line); border-radius: var(--r-panel, 14px); background: var(--panel); padding: 12px 14px; min-width: 0; }
+.mc-card.on { border-color: color-mix(in srgb, var(--gold) 75%, var(--line)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 40%, transparent) inset; }
+.mc-top { display: grid; grid-template-columns: 64px 1fr auto; gap: 12px; align-items: center; }
+.mc-pic { width: 64px; height: 64px; object-fit: contain; border-radius: 12px; background: var(--sunken); }
+.mc-pic.sm { width: 44px; height: 44px; border-radius: 10px; }
+.mc-name { min-width: 0; }
+.mc-name h3 { margin: 0; font-size: 16px; line-height: 1.25; }
+.mc-sum { margin: 6px 0 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.mc-sum span { font-size: 11.5px; padding: 1px 7px; border-radius: 99px; border: 1px solid var(--line); background: var(--sunken); }
+.mc-sum span.key { border-color: var(--gold); color: var(--ink); font-weight: 700; }
+.mc-sum.none { font-size: 12px; color: var(--muted); }
+.mc-sks { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; }
+.mc-sks li { display: grid; grid-template-columns: 36px 1fr; gap: 10px; align-items: start; }
+.mc-skic { width: 36px; height: 36px; object-fit: contain; }
+.mc-skn { margin: 0; font-size: 13.5px; }
+.mc-skn small { color: var(--muted); font-weight: 500; }
+.mc-skt { margin: 2px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+.mc-skv { margin: 4px 0 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.mc-skv span { font-size: 11.5px; padding: 1px 7px; border-radius: 6px; background: color-mix(in srgb, var(--gold) 12%, transparent); color: var(--ink); }
+/* in the calculators */
+.npc-who.mc .npc-wh { flex-wrap: wrap; gap: 8px; }
+.npc-ic.mc-ic { width: 28px; height: 28px; object-fit: contain; flex: none; }
+.mc-picklv select { min-width: 4rem; }
+.ws-dmg-bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: end; justify-content: space-between; margin: 0 0 10px; }
+.ws-dmg-bar .ws-dmg-scope { margin: 0; }
+.ws-dmg-mc { display: flex; gap: 8px; align-items: end; }
+.ws-dmg-used li.mc { border-color: color-mix(in srgb, var(--gold) 55%, var(--line)); }
+.bt-mcrow { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+@media (max-width: 520px) { .mc-top { grid-template-columns: 48px 1fr; } .mc-top .btn { grid-column: 1 / -1; justify-self: start; } .mc-pic { width: 48px; height: 48px; } }

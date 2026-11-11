@@ -5293,6 +5293,47 @@ html .theme-tgl[aria-pressed="true"] { background: linear-gradient(180deg, #0000
 /* the logo is white letters: on cream it gets a dark edge twice over, so it reads */
 html:not([data-theme="dark"]) .brand-logo, html:not([data-theme="dark"]) .sf-logo, html:not([data-theme="dark"]) .top-logo img { filter: drop-shadow(0 0 1px rgba(28, 25, 21, .95)) drop-shadow(0 0 1px rgba(28, 25, 21, .85)) drop-shadow(0 1px 3px rgba(28, 25, 21, .4)); }
 @media (prefers-color-scheme: dark) { html:not([data-theme]) .brand-logo, html:not([data-theme]) .sf-logo, html:not([data-theme]) .top-logo img { filter: none; } }
+/* ================= 0.54.0-beta: Mystic Codes (62-mystic-codes.js) ================= */
+.mc-head h3 small { font-weight: 500; color: var(--muted); }
+.mc-lead { margin: 0 0 12px; max-width: 72ch; color: var(--muted); line-height: 1.5; }
+.mc-ctl { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; }
+.mc-f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); }
+.mc-f select { min-width: 8rem; min-height: 34px; padding: 2px 8px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; font-size: 13px; font-weight: 500; }
+.mc-pick select, .mc-picklv select { min-height: 32px; padding: 2px 8px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; font-size: 13px; font-weight: 500; }
+@media (pointer: coarse) { .mc-f select, .mc-pick select, .mc-picklv select { min-height: 40px; } }
+.mc-eq { margin: 12px 0 0; }
+.mc-eq b, .mc-best b { color: var(--ink); }
+.mc-best { margin: 8px 0 0; padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line)); border-radius: 12px; background: var(--sunken); line-height: 1.5; }
+.mc-grid { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); gap: 12px; }
+.mc-card { border: 1px solid var(--line); border-radius: var(--r-panel, 14px); background: var(--panel); padding: 12px 14px; min-width: 0; }
+.mc-card.on { border-color: color-mix(in srgb, var(--gold) 75%, var(--line)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 40%, transparent) inset; }
+.mc-top { display: grid; grid-template-columns: 64px 1fr auto; gap: 12px; align-items: center; }
+.mc-pic { width: 64px; height: 64px; object-fit: contain; border-radius: 12px; background: var(--sunken); }
+.mc-pic.sm { width: 44px; height: 44px; border-radius: 10px; }
+.mc-name { min-width: 0; }
+.mc-name h3 { margin: 0; font-size: 16px; line-height: 1.25; }
+.mc-sum { margin: 6px 0 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.mc-sum span { font-size: 11.5px; padding: 1px 7px; border-radius: 99px; border: 1px solid var(--line); background: var(--sunken); }
+.mc-sum span.key { border-color: var(--gold); color: var(--ink); font-weight: 700; }
+.mc-sum.none { font-size: 12px; color: var(--muted); }
+.mc-sks { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; }
+.mc-sks li { display: grid; grid-template-columns: 36px 1fr; gap: 10px; align-items: start; }
+.mc-skic { width: 36px; height: 36px; object-fit: contain; }
+.mc-skn { margin: 0; font-size: 13.5px; }
+.mc-skn small { color: var(--muted); font-weight: 500; }
+.mc-skt { margin: 2px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+.mc-skv { margin: 4px 0 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.mc-skv span { font-size: 11.5px; padding: 1px 7px; border-radius: 6px; background: color-mix(in srgb, var(--gold) 12%, transparent); color: var(--ink); }
+/* in the calculators */
+.npc-who.mc .npc-wh { flex-wrap: wrap; gap: 8px; }
+.npc-ic.mc-ic { width: 28px; height: 28px; object-fit: contain; flex: none; }
+.mc-picklv select { min-width: 4rem; }
+.ws-dmg-bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: end; justify-content: space-between; margin: 0 0 10px; }
+.ws-dmg-bar .ws-dmg-scope { margin: 0; }
+.ws-dmg-mc { display: flex; gap: 8px; align-items: end; }
+.ws-dmg-used li.mc { border-color: color-mix(in srgb, var(--gold) 55%, var(--line)); }
+.bt-mcrow { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+@media (max-width: 520px) { .mc-top { grid-template-columns: 48px 1fr; } .mc-top .btn { grid-column: 1 / -1; justify-self: start; } .mc-pic { width: 48px; height: 48px; } }
 </style>
 </head>
 <body>
@@ -11790,7 +11831,7 @@ renderAll = function () { renderAll13(); renderFillNote(); };
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until 0.50.0, beta from there until the full website and app: 1.0.0
-const APP_VER = "0.53.0-beta";
+const APP_VER = "0.54.0-beta";
 const APP_STAGE = /-beta\b/.test(APP_VER) ? "beta" : "alpha", APP_NUM = APP_VER.replace(/-.*$/, "");
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
@@ -11953,6 +11994,12 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.54.0-beta", d: "11 Nov 2026", t: "Mystic Codes, and skills you write yourself", i: [
+    "<b>Mystic Codes</b>, a new page: all of NA's Master outfits and their three skills at the level you pick. Sort them by NP charge, NP Gain, NP Strength, ATK, a card type or critical damage. (Jordan asked which gives the most NP: for charge it's the Mage's Association Uniform and Summer Streetwear, 20% each; for NP Gain, A Fragment of 2004, 50%.)",
+    "<b>Equip one</b> and it counts: in the NP calculator on a servant's page (its skills ticked on, like a support's), in the damage under a skill in the Workshop, and in the Battle simulator, where the Master uses its skills.",
+    "<b>Skills you write yourself are read</b>. “Grants 1 Waterside Battlefield Buster+” counts as Buster up. A number in the words is used, else the Lv 1 → Lv 10 boxes, else the usual amount for that kind of effect, marked as an estimate. Under the effect it says what it was read as. They count in the NP calculator and the Battle simulator too.",
+    "<b>The whole deck</b> under a skill in the Workshop: every card, the Extra attack and the NP, each with what the skill gives it. <b>All skills together</b> adds the three up."
+  ]},
   {v: "0.53.0-beta", d: "10 Nov 2026", t: "3D backgrounds, black and cream", i: [
     "<b>A 3D background</b>, drawn by vanta.js. Behind the usual pages it's a wire globe in the page's colours; <b>Settings → 3D effect</b> has five more (Net, Haze, Waves, Clouds, Cells).",
     "<b>With the Story look, each scene picks its own</b>: a 3D sea under the waterline where the scene has water, clouds over open country by day, a net of stars under a night sky, drifting haze elsewhere. The drawn landmarks stay in front.",
@@ -18480,12 +18527,21 @@ function customKit(s) {
     d: String(k.deck || ""), np: {n: (k.np || {}).name || "", tg: (k.np || {}).tg || "", cd: card.charAt(0)},
     sk: [0, 1, 2].map((i) => {
       const sk = (k.sk || [])[i] || {};
-      const b = (sk.fx || []).map((f) => {
+      const b = (sk.fx || []).flatMap((f) => {
+        // an effect written by hand counts too: it's read from its words (61-skill-reader.js, 0.54.0)
+        if (f.e === "own" && typeof srRead === "function") return srRead(f, 10).map((r) => {
+          const c = {atk: "a", card: "c", np: "n", pow: "p", dmg: "p", dp: "f", def: "d", res: "r"}[r.k]; if (!c) return null;
+          const all = /all allies|\bparty\b|every ally/i.test(String(f.txt || "")), row = [c, r.k === "def" || r.k === "res" ? "e" : r.others ? "x" : all ? "a" : "s", r.card ? r.card.charAt(0) : "", skVals(r.v1, r.v10)];
+          if (r.k === "pow") { const m = /against (.+)$/.exec(r.label); row.push(vsNeed(m ? m[1] : "")); }
+          return row;
+        });
+        return [(() => {
         const def = FX_BY[f.e]; if (!def || !def.c || !def.v || !Array.isArray(f.v)) return null;
         const v1 = num(f.v[0]), v10 = num(f.v[1]); if (v1 == null || v10 == null) return null;
         const tg = def.tgs.includes(f.tg) ? f.tg : def.tg, row = [def.c, tg === "E" ? "e" : tg, def.card ? (CARDS.includes(f.card) ? f.card : card).charAt(0) : "", skVals(v1, v10)];
         if (def.vsPick) row.push(vsNeed(f.vs));
         return row;
+        })()];
       }).filter(Boolean);
       return {n: [sk.name, sk.rank].filter(Boolean).join(" ") || "Skill " + (i + 1), ic: "", b: b};
     })};
@@ -20379,12 +20435,24 @@ function btNpNA(np) {
 }
 
 /* ---------- a custom servant's kit, as it is ---------- */
+// an effect written by hand, read from its words (61-skill-reader.js): the parts that change damage fight too (0.54.0)
+const BT_SR = {atk: "atk", card: "card", np: "np", crit: "crit", pow: "vs", dmg: "vs", dp: "dp", def: "defdown", res: "resdown"};
+function btOwnFx(f) {
+  if (typeof srRead !== "function") return [];
+  const t = btTurns(String(f.txt || ""));
+  return srRead(f, 10).filter((r) => BT_SR[r.k] && !r.others).map((r) => {
+    const foe = r.k === "def" || r.k === "res", all = /all allies|\bparty\b|every ally/i.test(String(f.txt || ""));
+    return {k: BT_SR[r.k], tg: foe ? (/all enemies/i.test(String(f.txt || "")) ? "E" : "e") : all ? "a" : "s", v: skVals(r.v1, r.v10), d: t.d || 3, n: t.n || 0,
+      card: r.card ? BT_LETTER[r.card] || "" : "", vs: r.k === "pow" ? (/against (.+)$/.exec(r.label) || [])[1] || "" : "", p: 1, txt: String(f.txt || f.l || "")};
+  });
+}
 function btSkillKit(sk, lv) {
-  const fx = (sk.fx || []).filter((f) => FX_BY[f.e] && f.e !== "own").map((f) => {
+  const own = (sk.fx || []).filter((f) => f.e === "own").flatMap(btOwnFx);
+  const fx = own.concat((sk.fx || []).filter((f) => FX_BY[f.e] && f.e !== "own").map((f) => {
     const def = FX_BY[f.e], tg = def.tgs ? (def.tgs.includes(f.tg) ? f.tg : def.tg) : "s";
     const v = def.v ? skVals(num((f.v || [])[0]) != null ? num(f.v[0]) : def.v[0], num((f.v || [])[1]) != null ? num(f.v[1]) : def.v[1]) : null;
     return {k: f.e, tg: tg === "" ? "s" : tg, v: v, d: num(f.d) != null ? num(f.d) : def.d || 0, n: num(f.n) || def.n || 0, card: f.card ? BT_LETTER[f.card] || "" : "", vs: f.vs || "", p: f.e === "stun" || f.e === "charm" ? null : 1, txt: fxLine(f)};
-  });
+  }));
   return {n: [sk.name, sk.rank].filter(Boolean).join(" ") || "Skill", ic: "", cd: clamp(num(sk.cd) || 7, 1, 20), lv: clamp(num(lv) || 10, 1, 10), fx: fx, lines: (sk.fx || []).map((f) => fxLine(f)).filter(Boolean)};
 }
 function btNpKit(np) {
@@ -20507,6 +20575,10 @@ function btBattle(setup, seed) {
   const B = {seed: seed, turn: 0, wave: 0, waves: setup.waves.map((w) => w.map((t) => btUnit(t, "foe"))), allies: setup.party.slice(0, 3).filter(Boolean).map((t) => btUnit(t, "ally")),
     back: setup.party.slice(3).filter(Boolean).map((t) => btUnit(t, "ally")), foes: [], stars: 0, deck: [], hand: [], ev: [], over: false, result: "", target: null};
   const all = B.allies.concat(B.back);
+  // the Master, with the Mystic Code's three skills (0.54.0); not a fighter: no HP, never targeted, not in the snapshots
+  const M = setup.mc && setup.mc.sk ? {id: btUid++, side: "ally", master: true, name: setup.mc.name || "Master", cls: "", alive: true, stun: 0, cd: [0, 0, 0], buffs: [], hp: 1, max: 1, np: 0,
+    t: {sk: setup.mc.sk, face: setup.mc.face || "", hp: 0}, stat: {dmg: 0, nps: 0, taken: 0, kills: 0, cards: 0, skills: 0}, chargeMax: 0} : null;
+  B.master = M;
   B.everyone = () => all.concat(...B.waves);
   const snap = () => ({turn: B.turn, wave: B.wave, stars: Math.floor(B.stars), u: B.allies.concat(B.back, B.foes).map((u) => ({id: u.id, hp: Math.max(0, Math.round(u.hp)), max: u.max, np: Math.floor(u.np), charge: u.charge,
     chargeMax: u.chargeMax, bars: u.bars.length, alive: u.alive, stun: u.stun > 0, buffs: u.buffs.map((b) => b.k + (b.card ? ":" + b.card : "")).filter((v, i, a) => a.indexOf(v) === i).slice(0, 10), front: B.allies.includes(u) || B.foes.includes(u)}))});
@@ -20539,7 +20611,7 @@ function btBattle(setup, seed) {
         case "stars": B.stars = Math.min(50, B.stars + (v || 0)); break;
         case "heal": t.hp = Math.min(t.max, t.hp + (v || 0)); break;
         case "cleanse": t.buffs = t.buffs.filter((b) => !BT_DEBUFF.has(b.k)); t.stun = 0; break;
-        case "cd": t.cd = t.cd.map((c) => Math.max(0, c - 1)); break;
+        case "cd": t.cd = t.cd.map((c) => Math.max(0, c - clamp(Math.round(v || 1), 1, 3))); break;
         case "chargedown": t.charge = Math.max(0, t.charge - 1); break;
         case "maxhp": t.max += v || 0; t.hp += v || 0; t.buffs.push({k: "maxhp", v: v || 0, d: fx.d || 3, n: 0}); break;
         case "stun": case "charm": t.stun = Math.max(t.stun, fx.d || 1); t.buffs.push({k: fx.k, v: 0, d: fx.d || 1, n: 0}); break;
@@ -20605,7 +20677,7 @@ function btBattle(setup, seed) {
   /* a Noble Phantasm */
   function useNp(u, chainAt, firstCard, ocBonus) {
     const np = u.t.np; if (!np || u.np < 100 || !u.alive || u.stun > 0) return;
-    const oc = clamp(1 + (u.np >= 300 ? 2 : u.np >= 200 ? 1 : 0) + (ocBonus || 0), 1, 5), lvl = u.npLv;
+    const oc = clamp(1 + (u.np >= 300 ? 2 : u.np >= 200 ? 1 : 0) + (ocBonus || 0) + Math.round(btMod(u, "oc")), 1, 5), lvl = u.npLv;
     u.np = 0; u.stat.nps++;
     const val = (f) => { const vs = f.vals || [0]; return f.by === "oc" ? vs[oc - 1] : f.by === "fix" ? vs[0] : vs[lvl - 1]; };
     const pre = np.fx.filter((f) => f.when === "pre").map((f) => ({k: f.k, to: apply(u, f, val(f), null, np.n)}));
@@ -20719,6 +20791,7 @@ function btBattle(setup, seed) {
       u.buffs = u.buffs.filter((b) => b.d > 0 || b.keep);
       if (u.stun > 0) u.stun -= 1;
       u.cd = u.cd.map((c) => Math.max(0, c - 1));
+      if (M && u === B.allies.concat(B.foes).find((x) => x.alive)) M.cd = M.cd.map((c) => Math.max(0, c - 1));
     });
     // the fallen leave the front; whoever waits behind steps in
     for (let i = 0; i < B.allies.length; i++) if (!B.allies[i].alive && B.back.length) { const n = B.back.shift(); emit("swap", {out: B.allies[i].id, in: n.id}); B.allies[i] = n; }
@@ -20729,7 +20802,9 @@ function btBattle(setup, seed) {
   const AI = setup.ai || BT_AUTO;
   while (!B.over) {
     turnStart();
+    if (M) btMasterSkills(B, M, useSkill, 0);
     AI.skills(B, {use: useSkill, mod: btMod});
+    if (M) btMasterSkills(B, M, useSkill, 1);
     if (!B.foes.some((x) => x.alive)) { if (B.wave >= B.waves.length) { B.over = true; B.result = "win"; break; } nextWave(); continue; }
     const plan = AI.cards(B, {dmgOf: dmgOf, npGain: npGain});
     emit("plan", {hand: B.hand.map((c) => ({who: c.u.id, card: c.card, crit: !!c.crit})), pick: plan.map((p) => p.np ? {who: p.u.id, np: true} : {who: p.u.id, card: p.card, h: B.hand.indexOf(p)}), target: B.target ? B.target.id : null});
@@ -20762,7 +20837,41 @@ function btBattle(setup, seed) {
     if (B.turn >= BT_MAX_TURNS) { B.over = true; B.result = "time"; break; }
   }
   emit("end", {result: B.result, turns: B.turn, wave: B.wave});
-  return {events: B.ev, result: B.result, turns: B.turn, wave: B.wave, waves: B.waves.length, units: B.everyone().map((u) => ({id: u.id, side: u.side, name: u.name, cls: u.cls, face: u.t.face, max: u.t.hp, stat: u.stat, t: u.t, chargeMax: u.chargeMax})), seed: seed};
+  return {events: B.ev, result: B.result, turns: B.turn, wave: B.wave, waves: B.waves.length, units: B.everyone().concat(M ? [M] : []).map((u) => ({id: u.id, side: u.master ? "master" : u.side, name: u.name, cls: u.cls, face: u.t.face, max: u.t.hp, stat: u.stat, t: u.t, chargeMax: u.chargeMax})), seed: seed};
+}
+// the Master's turn: charges first (pass 0, before the servants decide), the rest after them (pass 1)
+function btMasterSkills(B, M, cast, pass) {
+  const allies = B.allies.filter((x) => x.alive), foes = B.foes.filter((x) => x.alive); if (!allies.length) return;
+  const last = B.wave >= B.waves.length, hot = foes.filter((f) => f.charge >= f.chargeMax);
+  const danger = hot.length > 0 || allies.some((x) => x.hp < x.max * 0.4);
+  const nukers = allies.filter((x) => x.t.np && x.t.np.mult);
+  const nuker = nukers.slice().sort((x, y) => (y.np >= 100) - (x.np >= 100) || y.atk * (y.t.np.mult[y.t.npLv - 1] || 0) - x.atk * (x.t.np.mult[x.t.npLv - 1] || 0))[0] || null;
+  M.t.sk.forEach((sk, i) => {
+    if (!sk || M.cd[i] > 0 || !sk.fx.length) return;
+    const ks = sk.fx.map((f) => f.k), ch = sk.fx.find((f) => f.k === "charge");
+    if ((pass === 0) !== !!ch) return;
+    let use = false, pick = null;
+    if (ch) {
+      const v = ch.v ? ch.v[sk.lv - 1] : 0;
+      if (ch.tg === "o") { const c = nukers.filter((x) => x.np < 100).sort((a, b) => b.np - a.np); pick = c.find((x) => x.np + v >= 100) || (last ? c[0] : null) || null; use = !!pick; }
+      else use = allies.some((x) => x.np < 100 && x.np + v >= 100) || (last && allies.some((x) => x.np < 100));
+    } else {
+      const willNp = allies.filter((x) => x.np >= 100 && x.t.np && x.t.np.mult);
+      const help = ks.some((k) => ["atk", "card", "np", "crit", "oc", "pierce"].includes(k));
+      if (help && willNp.length) {
+        const cf = sk.fx.find((f) => f.k === "card");
+        pick = (cf && willNp.find((x) => x.t.np.card === cf.card)) || willNp.find((x) => x === nuker) || willNp[0];
+        use = !cf || pick.t.np.card === cf.card || sk.fx.some((f) => f.k !== "card" && ["atk", "np", "oc"].includes(f.k));
+      }
+      if (!use && ks.some((k) => ["evade", "invinc", "guts", "maxhp", "immune"].includes(k)) && danger) { use = true; pick = allies.slice().sort((a, b) => a.hp / a.max - b.hp / b.max)[0]; }
+      if (!use && ks.includes("heal") && allies.some((x) => x.hp < x.max * 0.6)) { use = true; pick = allies.slice().sort((a, b) => a.hp / a.max - b.hp / b.max)[0]; }
+      if (!use && ks.includes("cleanse") && allies.some((x) => x.buffs.some((b) => BT_DEBUFF.has(b.k)))) { use = true; pick = allies.find((x) => x.buffs.some((b) => BT_DEBUFF.has(b.k))); }
+      if (!use && (ks.includes("stun") || ks.includes("chargedown")) && hot.length) { use = true; pick = hot[0]; }
+      if (!use && ks.includes("cd")) { const w = allies.filter((x) => x.cd.some((c) => c > 1)).sort((a, b) => b.cd.reduce((s, c) => s + c, 0) - a.cd.reduce((s, c) => s + c, 0))[0]; if (w) { use = true; pick = w; } }
+      if (!use && ks.every((k) => ["stars", "gather", "drop", "gain", "regen"].includes(k))) { use = true; pick = nuker || allies[0]; }
+    }
+    if (use) cast(M, i, pick);
+  });
 }
 
 /* ---------- the auto-battle: which skills, which target, which cards ---------- */
@@ -23821,10 +23930,12 @@ function wsdExtra(k, B, crit, eff) {
 wsSkDmgHTML = function () {
   const k = W.k, si = W.sk, lv3 = [0, 1, 2].map((i) => clamp(W.copy ? num(W.copy.skills[i]) || 10 : 10, 1, 10)), lv = lv3[si], npLv = clamp(W.copy ? num(W.copy.np) || 1 : 1, 1, 5);
   const A = wsdBase(k), Z = wsdZero(), B = WSD_ALL ? wsdSum(k, lv3) : wsdBuffs(k.sk[si], lv);
-  const tabs = `<div class="seg sm ws-dmg-scope" role="group" aria-label="Which skills"><button type="button" data-wsd="one" aria-pressed="${!WSD_ALL}">This skill</button><button type="button" data-wsd="all" aria-pressed="${WSD_ALL}">All skills together</button></div>`;
-  if (!WSD_ALL && !k.sk[si].fx.length) return tabs + `<p class="muted">Add an effect and its damage shows here.</p>`;
+  // the equipped Mystic Code's damage skills, on top (62-mystic-codes.js)
+  if (typeof mcDmgInto === "function") mcDmgInto(B);
+  const tabs = `<div class="ws-dmg-bar"><div class="seg sm ws-dmg-scope" role="group" aria-label="Which skills"><button type="button" data-wsd="one" aria-pressed="${!WSD_ALL}">This skill</button><button type="button" data-wsd="all" aria-pressed="${WSD_ALL}">All skills together</button></div>${typeof mcPickHTML === "function" ? `<div class="ws-dmg-mc">${mcPickHTML("wsd-mc", "ws-mini")}</div>` : ""}</div>`;
+  if (!WSD_ALL && !k.sk[si].fx.length && !(typeof mcOn === "function" && mcOn())) return tabs + `<p class="muted">Add an effect and its damage shows here.</p>`;
   const val = (u) => (u.v >= 0 ? "+" : "−") + String(Math.round(Math.abs(u.v) * 100) / 100) + u.u;
-  const used = B.used.map((u) => `<li class="${u.est ? "est" : ""}${u.read ? " read" : ""}">${u.sk ? `<span class="n">S${u.sk}</span>` : ""}${esc(u.t)} <b>${esc(val(u))}</b>${u.est ? ` <small class="assumed">estimate: no number written, so the usual ${esc(u.range || val(u))} for this kind of effect</small>` : ""}${u.note ? ` <small>${esc(u.note)}</small>` : ""}</li>`).join("");
+  const used = B.used.map((u) => `<li class="${u.est ? "est" : ""}${u.read ? " read" : ""}${u.mc ? " mc" : ""}">${u.sk ? `<span class="n">S${u.sk}</span>` : ""}${u.mc ? `<span class="n">MC</span>` : ""}${esc(u.t)} <b>${esc(val(u))}</b>${u.est ? ` <small class="assumed">estimate: no number written, so the usual ${esc(u.range || val(u))} for this kind of effect</small>` : ""}${u.note ? ` <small>${esc(u.note)}</small>` : ""}</li>`).join("");
   const plain = B.plain.length ? `<p class="ws-dmg-left">Also in ${WSD_ALL ? "these skills" : "this skill"}, without a hand in damage: ${B.plain.map(esc).join(", ")}.</p>` : "";
   const left = B.left.length ? `<p class="ws-dmg-left warn">${B.left.map(esc).join(" · ")}</p>` : "";
   // the deck, card by card
@@ -23861,7 +23972,7 @@ wsSkDmgHTML = function () {
     <ul class="ws-deck">${deck.join("")}</ul>
     <div class="ws-dmg-scroll"><table class="ws-ntab ws-dmg-t"><thead><tr><th></th><th>Hit</th><th>Critical</th><th>Effective</th><th>Effective critical</th></tr></thead>
     <tbody>${rows.map((x) => `<tr class="c-${x.card.toLowerCase()}" data-k="${x.k}"><th>${CARD_IMG[x.card] ? `<img src="${CARD_IMG[x.card]}" alt="">` : ""}${esc(x.t)}${x.k === "np" ? ` <small>NP${npLv}</small>` : ""}</th>${x.cells.map(c2).join("")}</tr>`).join("")}</tbody></table></div>
-    <p class="ws-dmg-note">Without ${WSD_ALL ? "the skills" : "the skill"}, then with ${WSD_ALL ? "them" : "it"}, at skill level ${WSD_ALL ? lv3.join(" / ") : lv}. ATK ${fmt(A.atk)} (max level, with the passives, no Craft Essence), a neutral enemy, the average roll, one card on its own. The Extra attack is the one after three of this servant's cards (× 2).${A.eff ? ` Effective: a class ${esc(k.cls)} beats (× ${A.eff}).` : ""}${any ? "" : ""}</p>${plain}${left}`;
+    <p class="ws-dmg-note">Without ${WSD_ALL ? "the skills" : "the skill"}, then with ${WSD_ALL ? "them" : "it"}${typeof mcOn === "function" && mcOn() ? " and the Mystic Code's (" + esc(mcOn().n) + ", Lv " + mcLv() + ")" : ""}, at skill level ${WSD_ALL ? lv3.join(" / ") : lv}. ATK ${fmt(A.atk)} (max level, with the passives, no Craft Essence), a neutral enemy, the average roll, one card on its own. The Extra attack is the one after three of this servant's cards (× 2).${A.eff ? ` Effective: a class ${esc(k.cls)} beats (× ${A.eff}).` : ""}${any ? "" : ""}</p>${plain}${left}`;
 };
 document.addEventListener("click", (e) => {
   const b = e.target.closest && e.target.closest("[data-wsd]"); if (!b) return;
@@ -23879,6 +23990,243 @@ WS_LIVE.srline = (d) => { try { const m = /^sk\.(\d)\.fx\.(\d+)$/.exec(d.p || ""
 window.__fgiSkillRead = (txt, o) => srRead(Object.assign({e: "own", txt: txt}, o || {}), (o && o.lv) || 10);
 const fgiSkillDmg61 = window.__fgiSkillDmg;
 window.__fgiSkillDmg = (si, all) => { const o = fgiSkillDmg61(si); if (all) { const lv3 = [0, 1, 2].map((i) => clamp(W.copy ? num(W.copy.skills[i]) || 10 : 10, 1, 10)); o.buffs = wsdSum(W.k, lv3); } o.extra = (B) => wsdExtra(W.k, B || o.buffs); return o; };
+/* ================= 0.54.0-beta: Mystic Codes =================
+   Jordan (Noyr's tester) asked for every Master equipment, to see which gives the most NP gain and NP charge, and Noyr
+   for them to count in the damage numbers. Here:
+   - NA's Mystic Codes (MC_NA, from Atlas Academy's nice_mystic_code.json; when the page is online it looks again once
+     a week and keeps a newer list in this browser), each with its three skills, as [kind, target, Lv 1, Lv 10, turns,
+     times, what it's limited to]. Values grow like a servant skill's (skVals); cooldowns drop by 1 at Lv 6 and Lv 10.
+   - a page, Mystic Codes: all of them at the level you pick, sorted by NP charge, NP Gain, NP Strength, ATK, a card
+     type or critical damage, with an Equip button. Kept: spirit-origin-list:v1:mc = {id, lv, g}.
+   - the equipped one counts where damage is worked out: the NP calculator on a servant's page (its skills listed with
+     tick boxes, like a support's), the damage under a skill in the Workshop, and the Battle simulator (the Master uses
+     its skills: charges before the servants act, buffs on whoever is about to use their NP, Evade and the like when
+     the enemy is about to strike). */
+const MC_KEY = "spirit-origin-list:v1:mc";
+const MC_NA = [[1,"Chaldea",[["First Aid","Greatly restore one ally's HP",600,9,7,[["heal","o",1000,3000,0,0]]],["Instant Enhancement","Significantly increase one ally's ATK (1 turn)",300,15,13,[["atk","o",30,50,1,0]]],["Emergency Evade","Apply Evade for one ally (1 turn)",402,15,13,[["evade","o",0,0,1,0]]]]],[20,"Chaldea Combat Uniform",[["Buff All Allies","Increase all allies' ATK (1 turn)",300,12,10,[["atk","a",20,30,1,0]]],["Gandr","Inflict Stun to one enemy (1 turn)",508,15,13,[["stun","e",0,0,1,0]]],["Order Change","Switch one active member with a sub-member",704,15,13,[["swap","w",1,1,0,0]]]]],[30,"Mage's Association Uniform",[["Cure-All","Restore all allies' HP",600,12,10,[["heal","a",800,2800,0,0]]],["Spiritron Transfer","Increase NP Gauge for one ally",601,15,13,[["charge","o",20,20,0,0]]],["Command Shuffle","Redistribute Command Cards",703,15,13,[["shuffle","s",1,1,0,0]]]]],[40,"Atlas Institute Uniform",[["Dust of Osiris","Apply Invincible to one ally (1 turn)",403,15,13,[["invinc","o",0,0,1,0]]],["Rain of Isis","Remove one ally's Debuffs",608,15,13,[["cleanse","o",0,0,0,0]]],["Eyes of Medjed","Reduce one ally's skill cooldown by 2",609,15,13,[["cd","o",2,2,0,0]]]]],[50,"Anniversary Blonde",[["Mana Burst","Significantly increase one ally's Buster Card effectiveness (1 turn)",306,15,13,[["card","o",40,60,1,0,"cardBuster"]]],["Confident in Victory","Gain large amounts of C. Stars",603,12,10,[["stars","a",0,0,0,0],["stars","s",10,20,0,0]]],["Knight's Oath","Apply Guts to one ally (1 time, 1 turn)",404,15,13,[["guts","o",2000,4000,1,1]]]]],[60,"Royal Brand",[["Reaction Reinforcement ","Increase one ally's Quick Card effectiveness (1 turn)",304,15,13,[["card","o",30,50,1,0,"cardQuick"]]],["Iron Devotion","Increase one ally's C. Star Gather Rate (1 turn)",311,12,10,[["gather","o",500,1000,1,0]]],["Inescapable","Apply Sure Hit to one ally (1 turn)",310,10,8,[["surehit","o",0,0,1,0]]]]],[70,"Brilliant Summer",[["Rumble Party","Increase Quick Card effectiveness for all allies (1 turn)",304,15,13,[["card","a",20,30,1,0,"cardQuick"]]],["Deadly Trident","Apply Ignore Invincible for a single ally (1 turn)",312,12,10,[["pierce","o",0,0,1,0]]],["Beach House Shower","Restore HP & increase NP Gauge for a single ally",600,12,10,[["heal","o",1000,3000,0,0],["charge","o",10,10,0,0]]]]],[80,"Memories of the Lunar Sea",[["Spiritron Boost","Increase an ally's Arts Card effectiveness (1 turn)",305,15,13,[["card","o",30,50,1,0,"cardArts"]]],["Stepping Stone to Ultimate Victory","Increase an ally's Critical Star drop rate (1 turn)",604,12,10,[["drop","o",50,100,1,0]]],["Punishment","Apply Nullify Buff to a single enemy (1 time)",521,15,13,[["immune","e",0,0,0,1,"buffPositiveEffect"]]]]],[90,"Memories of the Far Side of the Moon",[["Spiritron Boost (All)","Increase all allies' Arts Card effectiveness (1 turn)",305,15,13,[["card","a",20,30,1,0,"cardArts"]]],["Stepping Stone To Survival","Apply Debuff Immune (1 time) for one ally",411,12,10,[["immune","o",0,0,0,1,"buffNegativeEffect"]]],["Dial Down","Decrease one enemy's Charge by 1",513,15,13,[["chargedown","e",1,1,0,0]]]]],[100,"A Fragment of 2004",[["Code: F","Increase NP Strength (1 turn) for one ally",302,12,10,[["np","o",30,50,1,0]]],["Code: U","Increase Buster Card C. Star Gather Rate (1 turn) for one ally",308,12,10,[["gather","o",5000,10000,1,0,"cardBuster"]]],["Code: H","Increase NP Gain (1 turn) for one ally",602,12,10,[["gain","o",30,50,1,0]]]]],[110,"Chaldea Uniform - Arctic",[["Purifying Recovery","Restore HP & remove DEF Debuffs for one ally",600,12,10,[["heal","o",1000,3000,0,0],["cleanse","o",0,0,0,0]]],["Illusionary Buff","Increase ATK (1 turn) & increase NP Strength (1 turn) for one ally",300,15,13,[["atk","o",20,40,1,0],["np","o",10,20,1,0]]],["Predictive Evasion","Apply Evade to one ally (1 time, 3 turns)",402,12,10,[["evade","o",0,0,3,1]]]]],[120,"Tropical Summer",[["Blue Splash","Increase Arts Card effectiveness (1 turn) & NP Strength (1 turn) for a single ally",305,15,13,[["card","o",20,30,1,0,"cardArts"],["np","o",10,20,1,0]]],["Surprise Water","Increase a single ally's Arts Card's C. Star Gather Rate (1 turn)",309,12,10,[["gather","o",5000,10000,1,0,"cardArts"]]],["Safety Oil","Increase Buff Removal Resist (1 turn) & NP Gauge for a single ally",416,12,10,[["bufres","o",50,100,1,0,"buffPositiveEffect,buffIncreaseDamage,buffIncreaseDefence,buffAtkUp,buffDefUp,buffCritDamageUp,buffEvade,buffEvadeAndInvincible,buffGuts,buffNpDamageUp,buffCritRateUp,buffSureHit"],["charge","o",10,10,0,0]]]]],[130,"Splendid New Year",[["First Shine","Increase all allies' NP Strength (1 turn)",302,12,10,[["np","a",25,35,1,0]]],["Little Gift","Increase NP Gauge + gain C. Stars for one ally",601,12,10,[["charge","o",10,10,0,0],["stars","a",0,0,0,0],["stars","s",5,15,0,0]]],["Osechi Package","Increase Max HP (1 turn) for one ally",412,10,8,[["maxhp","o",1000,3000,1,0]]]]],[150,"Captain Chaldea",[["Overcharger","Increase NP Strength (1 turn) & remove ATK Debuff for one ally",302,15,13,[["np","o",30,50,1,0],["cleanse","o",0,0,0,0]]],["Star Blaster","Increase Critical Strength (1 turn) for one ally",303,12,10,[["crit","o",30,50,1,0]]],["Escape Pod","Apply Evade (1 time, 3 turns) & restore HP for one ally",402,15,13,[["evade","o",0,0,3,1],["heal","o",1000,3000,0,0]]]]],[160,"Chaldea Uniform - True Ether",[["All-out Charge","Increase Buster Card effectiveness (1 turn) for all allies",306,15,13,[["card","a",25,35,1,0,"cardBuster"]]],["Triple Restoration","Restore HP each turn for one ally (3 turns)",606,12,10,[["regen","o",1000,2000,3,0]]],["Mana Conversion","Increase NP Gauge & NP Gain (1 turn) for one ally",601,12,10,[["charge","o",10,10,0,0],["gain","o",20,40,1,0]]]]],[170,"Chaldea Pathfinder",[["Orienting","Increase Quick Card effectiveness (1 turn) & increase NP Strength (1 turn) for a single ally",304,15,13,[["card","o",20,30,1,0,"cardQuick"],["np","o",10,20,1,0]]],["Campfire","Increase Critical Strength (1 turn) for all allies",303,12,10,[["crit","a",20,30,1,0]]],["Survival Kit","Remove Poison, Curse, Burn & increase NP Gauge for a single ally",608,12,10,[["cleanse","o",0,0,0,0],["charge","o",10,10,0,0]]]]],[190,"Halloween Royalty",[["Brilliant Escort","Increase Buster Card effectiveness (1 turn) & NP Strength (1 turn) for a single ally",306,15,13,[["card","o",20,30,1,0,"cardBuster"],["np","o",10,20,1,0]]],["Pure Coordination","Apply Invincible to one ally (2 times, 1 turn)",403,12,10,[["invinc","o",0,0,1,2]]],["Blessed Regenerate","Remove Incapacitate/Seal & increase NP Gauge for a single ally",608,12,10,[["cleanse","o",0,0,0,0],["charge","o",10,10,0,0]]]]],[210,"Chaldea Uniform - Decisive Battle",[["Decisive Battle Power-Up","Increase ATK (1 turn) & increase NP Strength (1 turn) for all allies",300,15,13,[["atk","a",10,20,1,0],["np","a",10,20,1,0]]],["Front Line Recovery","Restore HP & remove ATK Debuffs for a single ally",600,12,10,[["heal","o",1000,3000,0,0],["cleanse","o",0,0,0,0]]],["Order Change","Switch one active member with a sub-member",704,15,13,[["swap","w",1,1,0,0]]]]],[240,"Souya High School Uniform",[["Premium Curry Bread","Increase Buster Card effectiveness (1 turn) & restore HP for one ally",306,15,13,[["card","o",30,50,1,0,"cardBuster"],["heal","o",1000,2000,0,0]]],["Seeing Borders","Decrease Death resistance (1 turn) for one enemy + Gain C. Stars",514,12,10,[["deathdown","e",30,50,1,0],["stars","a",0,0,0,0],["stars","s",5,15,0,0]]],["Sunset Classroom","Remove all Mental Debuff Effects & increase NP Gauge for a single ally",608,12,10,[["cleanse","o",0,0,0,0],["charge","o",10,10,0,0]]]]],[260,"New Year's Wardrobe",[["Let No Disaster Befall You","Increase NP Strength (1 turn) & NP gain (1 turn) for all allies",302,12,10,[["np","a",15,25,1,0],["gain","a",10,20,1,0]]],["May Your Wishes Come True","Increase Overcharge level by 1 (1 turn) & increase NP Gauge for one ally",313,12,10,[["oc","o",1,1,1,0],["charge","o",10,10,0,0]]],["Live in Good Health","Apply Debuff Immune (1 time, 3 turns) for one ally + Gain C. Stars",411,12,10,[["immune","o",0,0,3,1,"buffNegativeEffect"],["stars","a",0,0,0,0],["stars","s",5,15,0,0]]]]],[330,"Summer Streetwear",[["Sky Blue","Increase Arts Card effectiveness (1 turn) & Critical Strength (1 turn) for one ally",305,12,10,[["card","o",20,30,1,0,"cardArts"],["crit","o",20,30,1,0]]],["Wind Green","Apply Evade (1 time, 3 turns) & increase NP Gauge for one ally",402,15,13,[["evade","o",0,0,3,1],["charge","o",10,10,0,0]]],["Lightning Yellow","Increase Arts Card's C. Star Gather Rate (1 turn) & NP Gauge for one ally",309,15,13,[["gather","o",5000,10000,1,0,"cardArts"],["charge","o",10,10,0,0]]]]],[340,"White Christmas",[["Holy Shine","Increase NP Strength (1 turn) & NP Gain (1 turn) for a single ally",302,15,13,[["np","o",30,50,1,0],["gain","o",20,30,1,0]]],["Powder Snow","Restore HP & remove Poison, Curse, Burn for a single ally",600,12,10,[["heal","o",1000,3000,0,0],["cleanse","o",0,0,0,0]]],["Little Present","Gain C. Stars + Slightly increase NP Gauge for all allies",603,9,7,[["stars","a",0,0,0,0],["stars","s",5,15,0,0],["charge","a",5,5,0,0]]]]],[360,"Misaki High School Uniform",[["Assemble","Increase Arts Card effectiveness (1 turn) & Buster Card effectiveness (1 turn) for all allies",315,15,13,[["card","a",10,20,1,0,"cardArts"],["card","a",10,20,1,0,"cardBuster"]]],["Go For It","Increase C. Star Gather Rate (1 turn) + Gain C. Stars for a single ally",311,15,13,[["gather","o",500,1000,1,0],["stars","a",0,0,0,0],["stars","s",5,15,0,0]]],["Never Give Up","Apply Guts (1 time, 1 turn) & increase NP Gauge for a single ally",404,15,13,[["guts","o",1000,2000,1,1],["charge","o",10,10,0,0]]]]]];
+const MC_CARD = {cardBuster: "Buster", cardArts: "Arts", cardQuick: "Quick"};
+// [id, name, [[skill, text, icon, cd Lv 1, cd Lv 10, [[kind, target, v1, v10, turns, times, limit]]] × 3]] → objects
+function mcNorm(raw) {
+  return (raw || []).map((m) => ({id: m[0], n: String(m[1]).replace(/^Mystic Code: /, "").trim(), sk: (m[2] || []).map((s) => ({n: String(s[0]).trim(), t: String(s[1]).trim(), ic: num(s[2]) || 0, cd: [num(s[3]) || 0, num(s[4]) || 0],
+    fx: (s[5] || []).filter((f) => !(f[0] === "stars" && !f[2] && !f[3])).map((f) => ({k: f[0] === "immune" && f[1] === "e" ? "nullbuff" : f[0], tg: f[1], v1: num(f[2]) || 0, v10: num(f[3]) || 0, d: num(f[4]) || 0, n: num(f[5]) || 0,
+      card: MC_CARD[String(f[6] || "").split(",")[0]] || ""}))}))})).filter((m) => m.id && m.sk.length);
+}
+let MC_LIST = mcNorm(MC_NA);
+let mcPrefs = (() => { try { const v = JSON.parse(lsGet(MC_KEY) || "{}"); return v && typeof v === "object" ? v : {}; } catch (e) { return {}; } })();
+const mcSave = () => lsSet(MC_KEY, JSON.stringify(mcPrefs));
+const mcLv = () => clamp(num(mcPrefs.lv) || 10, 1, 10);
+const mcById = (id) => MC_LIST.find((m) => m.id === num(id)) || null;
+const mcOn = () => mcById(mcPrefs.id);
+function mcSet(o) { Object.assign(mcPrefs, o); if (!mcById(mcPrefs.id)) delete mcPrefs.id; mcSave(); mcChanged(); }
+const MC_IMG = "https://static.atlasacademy.io/NA/";
+const mcPic = (m, g) => MC_IMG + "Items/masterequip" + String(m.id === 1 ? (g === "m" ? 1 : 2) : m.id + (g === "m" ? 1 : 2)).padStart(5, "0") + ".png";
+const mcSkPic = (ic) => MC_IMG + "SkillIcons/skill_" + String(ic).padStart(5, "0") + ".png";
+const mcG = () => mcPrefs.g === "m" ? "m" : "f";
+const mcVal = (f, lv) => num(skVals(f.v1, f.v10)[clamp(lv, 1, 10) - 1]) || 0;
+const mcCd = (sk, lv) => Math.max(1, sk.cd[0] - (lv >= 10 ? 2 : lv >= 6 ? 1 : 0));
+
+/* ---------- what a skill does, in words and numbers ---------- */
+const MC_TG = {o: "one ally", a: "all allies", s: "", e: "one enemy", w: ""};
+function mcFxText(f, lv) {
+  const v = mcVal(f, lv), p = (x) => String(Math.round(x * 100) / 100), F = (x) => fmt(Math.round(x));
+  const t = {atk: "ATK +" + p(v) + "%", card: (f.card || "Card") + " +" + p(v) + "%", np: "NP Strength +" + p(v) + "%", crit: "Critical damage +" + p(v) + "%", gain: "NP Gain +" + p(v) + "%",
+    charge: "NP +" + p(v) + "%", heal: "Restores " + F(v) + " HP", regen: F(v) + " HP each turn", maxhp: "Max HP +" + F(v), guts: "Guts with " + F(v) + " HP", stars: "+" + p(v) + " stars",
+    gather: (f.card ? f.card + " card " : "") + "star gather +" + p(v) + "%", drop: "Star drop +" + p(v) + "%", evade: "Evade", invinc: "Invincible", surehit: "Sure Hit", pierce: "Ignore Invincible",
+    stun: "Stun", swap: "Order Change", shuffle: "New command cards", cleanse: "Removes debuffs", cd: "Skill cooldowns −" + p(v), chargedown: "Enemy charge −" + p(v), oc: "Overcharge +" + p(v) + " level",
+    deathdown: "Death resist −" + p(v) + "%", bufres: "Buff removal resist +" + p(v) + "%", nullbuff: "Removes a buff", immune: "Debuff Immune"}[f.k] || f.k;
+  const last = [f.n ? f.n + (f.n === 1 ? " time" : " times") : "", f.d ? f.d + (f.d === 1 ? " turn" : " turns") : ""].filter(Boolean).join(", ");
+  return t + (MC_TG[f.tg] ? " for " + MC_TG[f.tg] : "") + (last ? " (" + last + ")" : "");
+}
+// what one servant can get from it at a level: the numbers the page sorts by
+function mcTot(m, lv) {
+  const T = {charge: 0, gain: 0, np: 0, atk: 0, Buster: 0, Arts: 0, Quick: 0, crit: 0, chargeAll: 0};
+  m.sk.forEach((sk) => sk.fx.forEach((f) => {
+    if (!["o", "a", "s"].includes(f.tg)) return;
+    const v = mcVal(f, lv);
+    if (f.k === "charge") { T.charge += v; if (f.tg === "a") T.chargeAll += v; }
+    else if (f.k === "card" && f.card) T[f.card] += v;
+    else if (["gain", "np", "atk", "crit"].includes(f.k)) T[f.k] += v;
+  }));
+  return T;
+}
+const MC_SORT = [["", "Release order"], ["charge", "NP charge"], ["gain", "NP Gain"], ["np", "NP Strength"], ["atk", "ATK"], ["Buster", "Buster"], ["Arts", "Arts"], ["Quick", "Quick"], ["crit", "Critical damage"]];
+const MC_SORT_T = {charge: "NP charge", gain: "NP Gain", np: "NP Strength", atk: "ATK", Buster: "Buster", Arts: "Arts", Quick: "Quick", crit: "Critical damage"};
+
+/* ---------- the page ---------- */
+TABS.push("mystic");
+UI_IC.mystic = '<path d="M8 4.5h8l1.5 3.5-2 1.5V20h-7V9.5l-2-1.5z"/><path d="M10 4.5c.4 1.4 1.1 2 2 2s1.6-.6 2-2"/><path d="M12 12.5v4"/>';
+(function () {
+  const nav = document.querySelector("nav.tabs"), before = document.getElementById("tab-past");
+  const b = document.createElement("button");
+  b.className = "tab"; b.setAttribute("role", "tab"); b.id = "tab-mystic"; b.dataset.action = "tab"; b.dataset.tab = "mystic"; b.setAttribute("aria-selected", "false");
+  b.innerHTML = `<i class="tab-ic">${uiIcon("mystic")}</i><span class="tab-t">Mystic Codes</span>`; b.title = "Mystic Codes";
+  if (nav) nav.insertBefore(b, before && before.parentNode === nav ? before : null);
+  const sec = document.createElement("section");
+  sec.id = "view-mystic"; sec.setAttribute("aria-labelledby", "tab-mystic"); sec.hidden = true; sec.innerHTML = `<div id="mystic" class="mc"></div>`;
+  const after = document.getElementById("view-battle") || document.getElementById("view-versus"); if (after) after.after(sec); else document.querySelector(".shell").appendChild(sec);
+  if ((location.hash || "").slice(1) === "mystic") S.tab = "mystic";
+})();
+if (typeof FOOT_TABS !== "undefined") {
+  const i = FOOT_TABS.findIndex((x) => x[0] === "past"); FOOT_TABS.splice(i >= 0 ? i : FOOT_TABS.length, 0, ["mystic", "Mystic Codes"]);
+  try { if (typeof foot !== "undefined" && foot) { foot.innerHTML = footHTML(); renderFoot(); } } catch (e) {}
+}
+function mcCardHTML(m, lv, key) {
+  const T = mcTot(m, lv), on = mcPrefs.id === m.id, p = (x) => String(Math.round(x * 100) / 100);
+  const chips = [["charge", T.charge ? "NP +" + p(T.charge) + "%" + (T.chargeAll && T.chargeAll === T.charge ? " (all allies)" : "") : ""], ["gain", T.gain ? "NP Gain +" + p(T.gain) + "%" : ""], ["np", T.np ? "NP Strength +" + p(T.np) + "%" : ""],
+    ["atk", T.atk ? "ATK +" + p(T.atk) + "%" : ""], ["Buster", T.Buster ? "Buster +" + p(T.Buster) + "%" : ""], ["Arts", T.Arts ? "Arts +" + p(T.Arts) + "%" : ""], ["Quick", T.Quick ? "Quick +" + p(T.Quick) + "%" : ""],
+    ["crit", T.crit ? "Critical +" + p(T.crit) + "%" : ""]].filter((c) => c[1]);
+  return `<li class="mc-card${on ? " on" : ""}" data-mc="${m.id}">
+    <div class="mc-top"><img class="mc-pic" src="${esc(mcPic(m, mcG()))}" alt="" loading="lazy" width="64" height="64">
+      <div class="mc-name"><h3>${esc(m.n)}</h3>${chips.length ? `<p class="mc-sum">${chips.map((c) => `<span class="${c[0] === key ? "key" : ""}">${esc(c[1])}</span>`).join("")}</p>` : `<p class="mc-sum none">Nothing for damage or NP</p>`}</div>
+      <button type="button" class="btn sm${on ? " primary" : ""}" data-mc-eq="${on ? 0 : m.id}" aria-pressed="${on}">${on ? "Equipped" : "Equip"}</button></div>
+    <ol class="mc-sks">${m.sk.map((sk) => `<li><img class="mc-skic" src="${esc(mcSkPic(sk.ic))}" alt="" loading="lazy" width="36" height="36"><div>
+      <p class="mc-skn"><b>${esc(sk.n)}</b> <small>cooldown ${mcCd(sk, lv)}</small></p><p class="mc-skt">${esc(sk.t)}</p>
+      <p class="mc-skv">${sk.fx.map((f) => `<span>${esc(mcFxText(f, lv))}</span>`).join("")}</p></div></li>`).join("")}</ol></li>`;
+}
+function mcPageHTML() {
+  const lv = mcLv(), key = MC_SORT.some((s) => s[0] === mcPrefs.sort) ? mcPrefs.sort || "" : "", eq = mcOn();
+  const list = MC_LIST.slice().sort((a, b) => key ? (mcTot(b, lv)[key] - mcTot(a, lv)[key]) || a.id - b.id : a.id - b.id);
+  const top = key ? list.filter((m) => mcTot(m, lv)[key] > 0) : [];
+  const best = key ? (top.length ? `<p class="mc-best">Most ${esc(MC_SORT_T[key])} at Lv ${lv}: ${top.slice(0, 3).map((m, i) => `<b>${esc(m.n)}</b> (+${Math.round(mcTot(m, lv)[key] * 100) / 100}%${key === "charge" && mcTot(m, lv).chargeAll === mcTot(m, lv).charge ? ", to all allies" : ""})`).join(", then ")}.${key === "charge" ? " Charge counts what one servant can get from all three skills." : ""}</p>` : `<p class="mc-best">No Mystic Code gives ${esc(MC_SORT_T[key])}.</p>`) : "";
+  return `<section class="d-sec mc-head">
+      <p class="mc-lead">All ${MC_LIST.length} of NA's Master outfits and their three skills, at the level you pick. The one you equip counts in the NP calculator on a servant's page, in the damage under a skill in the Workshop, and in the Battle simulator.</p>
+      <div class="mc-ctl">
+        <label class="mc-f"><span>Level</span><select data-mc-lv>${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => `<option value="${i}"${i === lv ? " selected" : ""}>Lv ${i}</option>`).join("")}</select></label>
+        <label class="mc-f"><span>Sort by</span><select data-mc-sort>${MC_SORT.map((s) => `<option value="${s[0]}"${s[0] === key ? " selected" : ""}>${esc(s[1])}</option>`).join("")}</select></label>
+        <div class="seg sm" role="group" aria-label="Master"><button type="button" data-mc-g="f" aria-pressed="${mcG() === "f"}">Female</button><button type="button" data-mc-g="m" aria-pressed="${mcG() === "m"}">Male</button></div>
+      </div>
+      <p class="mc-eq">${eq ? `Equipped: <b>${esc(eq.n)}</b>, Lv ${lv}. <button type="button" class="linkish" data-mc-eq="0">Take it off</button>` : "Nothing equipped: the calculators count no Mystic Code."}</p>
+      ${best}</section>
+    <ol class="mc-grid">${list.map((m) => mcCardHTML(m, lv, key)).join("")}</ol>`;
+}
+function mcRender() { const box = document.getElementById("mystic"); if (box) box.innerHTML = mcPageHTML(); }
+const renderAll62 = renderAll;
+renderAll = function () { const r = renderAll62.apply(this, arguments); try { if (S.tab === "mystic") mcRender(); } catch (e) { console.error(e); } return r; };
+const renderChrome62 = renderChrome;
+renderChrome = function () { const r = renderChrome62.apply(this, arguments); try { if (S.tab === "mystic") { const b = document.getElementById("mystic"); if (b && !b.childElementCount) mcRender(); mcFetch(); } } catch (e) { console.error(e); } return r; };
+// anything that shows the equipped one is drawn again
+function mcChanged() {
+  if (S.tab === "mystic") mcRender();
+  document.querySelectorAll(".npc[data-npc-for]").forEach((box) => { try { npcPaint(box, true); } catch (e) {} });
+  if (typeof W !== "undefined" && W && W.k) { const el = document.querySelector('[data-live="skdmg"]'); if (el) el.innerHTML = wsSkDmgHTML(); }
+  if (S.tab === "battle" && typeof BT !== "undefined" && !BT.run) { try { btRender(); } catch (e) {} }
+}
+document.addEventListener("click", (e) => {
+  const t = e.target.closest && e.target.closest("[data-mc-eq], [data-mc-g]"); if (!t) return;
+  if (t.dataset.mcEq != null) {
+    const id = num(t.dataset.mcEq), was = mcPrefs.id;
+    mcSet({id: id || undefined});
+    const m = mcById(id);
+    toastAction(m ? m.n + " is equipped: it counts in the NP calculator, the Workshop and Battle." : "No Mystic Code equipped.", "Undo", () => mcSet({id: was}));
+  } else mcSet({g: t.dataset.mcG === "m" ? "m" : "f"});
+});
+document.addEventListener("change", (e) => {
+  const t = e.target; if (!t || !t.dataset) return;
+  if (t.dataset.mcLv != null || t.dataset.npcMclv != null || t.dataset.btMclv != null || t.dataset.wsdMclv != null) mcSet({lv: clamp(num(t.value) || 10, 1, 10)});
+  else if (t.dataset.mcSort != null) { mcPrefs.sort = t.value || undefined; mcSave(); mcRender(); }
+  else if (t.dataset.npcMc != null || t.dataset.btMc != null || t.dataset.wsdMc != null) mcSet({id: num(t.value) || undefined});
+});
+// a select of every Mystic Code and one of the level, for the calculators
+function mcPickHTML(attr, cls) {
+  const eq = mcOn(), lv = mcLv();
+  return `<label class="${cls} mc-pick"><span>Mystic Code</span><select data-${attr}>${[`<option value="0"${eq ? "" : " selected"}>None</option>`].concat(MC_LIST.map((m) => `<option value="${m.id}"${eq && eq.id === m.id ? " selected" : ""}>${esc(m.n)}</option>`)).join("")}</select></label>`
+    + (eq ? `<label class="${cls} mc-picklv"><span>Lv</span><select data-${attr}lv>${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => `<option value="${i}"${i === lv ? " selected" : ""}>${i}</option>`).join("")}</select></label>` : "");
+}
+
+/* ---------- the NP calculator on a servant's page ---------- */
+const MC_NPC = {atk: "a", card: "c", np: "n"};
+// its skills in the calculator's own form: [field, target, card letter, values Lv 1–10]
+function mcNpcSkills(m) {
+  return m.sk.map((sk, i) => ({i: i, n: sk.n, ic: sk.ic, fx: sk.fx.filter((f) => MC_NPC[f.k] && ["o", "a"].includes(f.tg)).map((f) => [MC_NPC[f.k], f.tg, f.card ? f.card.charAt(0) : "", skVals(f.v1, f.v10)])})).filter((x) => x.fx.length);
+}
+const npcTeam62 = npcTeam;
+npcTeam = function (s, np, I) {
+  const T = npcTeam62.apply(this, arguments), m = mcOn(); if (!m) return T;
+  const me = calcKitOf(s), lv = mcLv();
+  mcNpcSkills(m).forEach((k) => { if (!npcIsOn("mc:" + m.id + "|" + k.i)) return; k.fx.forEach((b) => { const x = npcFx(b, lv, np, me, I); if (x.ok) T[NPC_FIELD[b[0]]] += x.v; }); });
+  return T;
+};
+const npcTeamHTML62 = npcTeamHTML;
+npcTeamHTML = function (s, np, I) {
+  const h = npcTeamHTML62.apply(this, arguments), m = mcOn(), me = calcKitOf(s), lv = mcLv();
+  let list = "";
+  if (m) {
+    const ks = mcNpcSkills(m);
+    list = ks.length ? `<div class="npc-sks">${ks.map((k) => { const key = "mc:" + m.id + "|" + k.i, on = npcIsOn(key);
+      return `<label class="npc-sk${on ? "" : " off"}"><input type="checkbox" data-npc-sk="${esc(key)}"${on ? " checked" : ""}><img class="npc-ic mc-ic" src="${esc(mcSkPic(k.ic))}" alt="" loading="lazy"><span class="npc-skm"><b>${esc(k.n)}</b><span>${k.fx.map((b) => npcFxText(b, lv, np, me, I)).join("")}</span></span><i class="npc-lv">Lv ${lv}</i></label>`; }).join("")}</div>`
+      : `<p class="npc-none">None of ${esc(m.n)}'s skills change NP damage.</p>`;
+  }
+  return h + `<div class="npc-who mc"><div class="npc-wh">${m ? `<img class="npc-face" src="${esc(mcPic(m, mcG()))}" alt="" loading="lazy">` : ""}${mcPickHTML("npc-mc", "npc-f")}</div>${list}</div>`;
+};
+
+/* ---------- the Workshop: the damage under a skill (61-skill-reader.js) ---------- */
+// its damage buffs into the Workshop's {atk, np, crit, pow, dp, card, used}
+function mcDmgInto(B) {
+  const m = mcOn(); if (!m) return;
+  const lv = mcLv();
+  m.sk.forEach((sk) => sk.fx.forEach((f) => {
+    if (!["o", "a"].includes(f.tg) || !["atk", "card", "np", "crit"].includes(f.k)) return;
+    const v = mcVal(f, lv);
+    if (f.k === "card") B.card[f.card] += v; else B[f.k] += v;
+    B.used.push({t: (f.k === "card" ? f.card + " up" : {atk: "ATK up", np: "NP Strength up", crit: "Critical damage up"}[f.k]), v: v, u: "%", k: f.k, card: f.card || "", mc: sk.n, note: f.k === "crit" ? "on criticals" : ""});
+  }));
+}
+
+/* ---------- the Battle simulator: the Master ---------- */
+const MC_BT = {atk: "atk", card: "card", np: "np", crit: "crit", charge: "charge", gain: "gain", heal: "heal", regen: "regen", maxhp: "maxhp", guts: "guts", evade: "evade", invinc: "invinc",
+  stars: "stars", gather: "gather", drop: "drop", cleanse: "cleanse", cd: "cd", stun: "stun", chargedown: "chargedown", pierce: "pierce", oc: "oc", surehit: "surehit"};
+function mcBattle(m, lv) {
+  return {name: "Master", mc: m.n, face: mcPic(m, mcG()), sk: m.sk.map((sk) => ({n: sk.n, ic: "", cd: sk.cd[0], lv: lv, lines: [sk.t],
+    fx: sk.fx.filter((f) => MC_BT[f.k]).map((f) => ({k: MC_BT[f.k], tg: f.k === "stars" ? "s" : f.tg, v: f.k === "stun" ? skVals(100, 100) : skVals(f.v1, f.v10), d: f.d || (["charge", "heal", "stars", "cleanse", "cd", "chargedown"].includes(f.k) ? 0 : 1),
+      n: f.n || 0, card: f.card ? BT_LETTER[f.card] : "", vs: "", p: 1, txt: sk.t}))}))};
+}
+const btBattle62 = btBattle;
+btBattle = function (setup, seed) {
+  const m = mcOn();
+  if (m && setup && !setup.mc && !setup.noMc) setup = Object.assign({}, setup, {mc: mcBattle(m, mcLv())});
+  return btBattle62.call(this, setup, seed);
+};
+const btSetupHTML62 = btSetupHTML;
+btSetupHTML = function () {
+  const h = btSetupHTML62.apply(this, arguments), m = mcOn(), at = '<section class="d-sec bt-card"><h3>The enemies</h3>';
+  const sec = `<section class="d-sec bt-card bt-mc"><h3>Mystic Code <small>the Master's three skills</small></h3><div class="bt-mcrow">${m ? `<img class="mc-pic sm" src="${esc(mcPic(m, mcG()))}" alt="" width="44" height="44">` : ""}${mcPickHTML("bt-mc", "mc-f")}</div>
+    <p class="bt-note">${m ? `The Master uses them on their own: NP charge before the servants act, the buffs on whoever is about to use their NP, Evade, Invincible or Guts when the enemy is about to strike.` : `None: the party fights without the Master's skills.`}</p></section>`;
+  return h.includes(at) ? h.replace(at, sec + at) : h;
+};
+
+/* ---------- a newer list from NA, once a week when online ---------- */
+const MC_SVALS = {gainNp: 100};
+const MC_BUFF = {upAtk: "atk", upCommandall: "card", upNpdamage: "np", upCriticaldamage: "crit", upDropnp: "gain", upStarweight: "gather", upCriticalpoint: "drop", avoidance: "evade", invincible: "invinc", guts: "guts",
+  breakAvoidance: "surehit", pierceInvincible: "pierce", donotAct: "stun", avoidState: "immune", upToleranceSubstate: "bufres", addMaxhp: "maxhp", regainHp: "regen", upNonresistInstantdeath: "deathdown", upChagetd: "oc"};
+const MC_FUNC = {gainHp: "heal", gainNp: "charge", gainStar: "stars", subState: "cleanse", shortenSkill: "cd", replaceMember: "swap", cardReset: "shuffle", delayNpturn: "chargedown"};
+const MC_TGT = {ptOne: "o", ptAll: "a", self: "s", enemy: "e", ptselectOneSub: "w"};
+// Atlas's nice_mystic_code.json → the compact form of MC_NA (the same conversion that made MC_NA)
+function mcFromNice(d) {
+  return (Array.isArray(d) ? d : []).map((m) => [m.id, String(m.name || "").replace(/^Mystic Code: /, ""), (m.skills || []).map((s) => [s.name, String(s.detail || "").trim(), Number((/skill_0*(\d+)/.exec(s.icon || "") || [])[1] || 0),
+    (s.coolDown || [])[0], (s.coolDown || [])[(s.coolDown || []).length - 1], (s.functions || []).map((f) => {
+      const b = (f.buffs || [])[0], code = b ? MC_BUFF[b.type] : MC_FUNC[f.funcType]; if (!code) return null;
+      const sc = b ? (["guts", "maxhp", "regen", "oc"].includes(code) ? 1 : 10) : MC_SVALS[f.funcType] || 1, v = f.svals || [], a = v[0] || {}, z = v[v.length - 1] || {};
+      const r = [code, MC_TGT[f.funcTargetType] || f.funcTargetType, (a.Value || 0) / sc, (z.Value || 0) / sc, a.Turn > 0 ? a.Turn : 0, a.Count > 0 ? a.Count : 0];
+      const ex = b ? (b.ckSelfIndv || []).concat(b.ckOpIndv || []).map((x) => x.name).join(",") : ""; if (ex) r.push(ex);
+      return r;
+    }).filter(Boolean)])]);
+}
+let mcFetching = false;
+async function mcFetch() {
+  if (mcFetching || typeof liveOn !== "function" || !liveOn() || !navigator.onLine) return;
+  const kept = await kv.get("mystic-codes").catch(() => null);
+  if (kept && Array.isArray(kept.list) && kept.list.length >= MC_NA.length && MC_LIST.length < kept.list.length) { MC_LIST = mcNorm(kept.list); if (S.tab === "mystic") mcRender(); }
+  if (kept && Date.now() - (kept.at || 0) < 7 * 86400e3) return;
+  mcFetching = true;
+  try {
+    const r = await fetch(LIVE_API + "nice_mystic_code.json", {cache: "no-cache"}); if (!r.ok) throw new Error(r.status);
+    const list = mcFromNice(await r.json());
+    if (list.length >= MC_NA.length) { await kv.set("mystic-codes", {at: Date.now(), list: list}); MC_LIST = mcNorm(list); if (S.tab === "mystic") mcRender(); }
+  } catch (e) { /* offline or Atlas down: the list in the page stands */ }
+  finally { mcFetching = false; }
+}
+// for the tests
+window.__fgiMc = {list: () => MC_LIST, tot: (id, lv) => mcTot(mcById(id), lv || mcLv()), prefs: () => mcPrefs, set: (o) => mcSet(o), fromNice: mcFromNice, battle: (id, lv) => mcBattle(mcById(id), lv || 10), text: (id, i, lv) => mcById(id).sk[i].fx.map((f) => mcFxText(f, lv || 10))};
 // Where the page is scrolled when it opens (0.23.1):
 // - While the page builds itself, the browser's scroll anchoring followed the footer down as the views filled in, so a
 //   reload on a phone ended at the bottom. Anchoring is off until the page has settled.

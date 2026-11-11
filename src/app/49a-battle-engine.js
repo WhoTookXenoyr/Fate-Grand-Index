@@ -160,12 +160,24 @@ function btNpNA(np) {
 }
 
 /* ---------- a custom servant's kit, as it is ---------- */
+// an effect written by hand, read from its words (61-skill-reader.js): the parts that change damage fight too (0.54.0)
+const BT_SR = {atk: "atk", card: "card", np: "np", crit: "crit", pow: "vs", dmg: "vs", dp: "dp", def: "defdown", res: "resdown"};
+function btOwnFx(f) {
+  if (typeof srRead !== "function") return [];
+  const t = btTurns(String(f.txt || ""));
+  return srRead(f, 10).filter((r) => BT_SR[r.k] && !r.others).map((r) => {
+    const foe = r.k === "def" || r.k === "res", all = /all allies|\bparty\b|every ally/i.test(String(f.txt || ""));
+    return {k: BT_SR[r.k], tg: foe ? (/all enemies/i.test(String(f.txt || "")) ? "E" : "e") : all ? "a" : "s", v: skVals(r.v1, r.v10), d: t.d || 3, n: t.n || 0,
+      card: r.card ? BT_LETTER[r.card] || "" : "", vs: r.k === "pow" ? (/against (.+)$/.exec(r.label) || [])[1] || "" : "", p: 1, txt: String(f.txt || f.l || "")};
+  });
+}
 function btSkillKit(sk, lv) {
-  const fx = (sk.fx || []).filter((f) => FX_BY[f.e] && f.e !== "own").map((f) => {
+  const own = (sk.fx || []).filter((f) => f.e === "own").flatMap(btOwnFx);
+  const fx = own.concat((sk.fx || []).filter((f) => FX_BY[f.e] && f.e !== "own").map((f) => {
     const def = FX_BY[f.e], tg = def.tgs ? (def.tgs.includes(f.tg) ? f.tg : def.tg) : "s";
     const v = def.v ? skVals(num((f.v || [])[0]) != null ? num(f.v[0]) : def.v[0], num((f.v || [])[1]) != null ? num(f.v[1]) : def.v[1]) : null;
     return {k: f.e, tg: tg === "" ? "s" : tg, v: v, d: num(f.d) != null ? num(f.d) : def.d || 0, n: num(f.n) || def.n || 0, card: f.card ? BT_LETTER[f.card] || "" : "", vs: f.vs || "", p: f.e === "stun" || f.e === "charm" ? null : 1, txt: fxLine(f)};
-  });
+  }));
   return {n: [sk.name, sk.rank].filter(Boolean).join(" ") || "Skill", ic: "", cd: clamp(num(sk.cd) || 7, 1, 20), lv: clamp(num(lv) || 10, 1, 10), fx: fx, lines: (sk.fx || []).map((f) => fxLine(f)).filter(Boolean)};
 }
 function btNpKit(np) {
@@ -288,6 +300,10 @@ function btBattle(setup, seed) {
   const B = {seed: seed, turn: 0, wave: 0, waves: setup.waves.map((w) => w.map((t) => btUnit(t, "foe"))), allies: setup.party.slice(0, 3).filter(Boolean).map((t) => btUnit(t, "ally")),
     back: setup.party.slice(3).filter(Boolean).map((t) => btUnit(t, "ally")), foes: [], stars: 0, deck: [], hand: [], ev: [], over: false, result: "", target: null};
   const all = B.allies.concat(B.back);
+  // the Master, with the Mystic Code's three skills (0.54.0); not a fighter: no HP, never targeted, not in the snapshots
+  const M = setup.mc && setup.mc.sk ? {id: btUid++, side: "ally", master: true, name: setup.mc.name || "Master", cls: "", alive: true, stun: 0, cd: [0, 0, 0], buffs: [], hp: 1, max: 1, np: 0,
+    t: {sk: setup.mc.sk, face: setup.mc.face || "", hp: 0}, stat: {dmg: 0, nps: 0, taken: 0, kills: 0, cards: 0, skills: 0}, chargeMax: 0} : null;
+  B.master = M;
   B.everyone = () => all.concat(...B.waves);
   const snap = () => ({turn: B.turn, wave: B.wave, stars: Math.floor(B.stars), u: B.allies.concat(B.back, B.foes).map((u) => ({id: u.id, hp: Math.max(0, Math.round(u.hp)), max: u.max, np: Math.floor(u.np), charge: u.charge,
     chargeMax: u.chargeMax, bars: u.bars.length, alive: u.alive, stun: u.stun > 0, buffs: u.buffs.map((b) => b.k + (b.card ? ":" + b.card : "")).filter((v, i, a) => a.indexOf(v) === i).slice(0, 10), front: B.allies.includes(u) || B.foes.includes(u)}))});
@@ -320,7 +336,7 @@ function btBattle(setup, seed) {
         case "stars": B.stars = Math.min(50, B.stars + (v || 0)); break;
         case "heal": t.hp = Math.min(t.max, t.hp + (v || 0)); break;
         case "cleanse": t.buffs = t.buffs.filter((b) => !BT_DEBUFF.has(b.k)); t.stun = 0; break;
-        case "cd": t.cd = t.cd.map((c) => Math.max(0, c - 1)); break;
+        case "cd": t.cd = t.cd.map((c) => Math.max(0, c - clamp(Math.round(v || 1), 1, 3))); break;
         case "chargedown": t.charge = Math.max(0, t.charge - 1); break;
         case "maxhp": t.max += v || 0; t.hp += v || 0; t.buffs.push({k: "maxhp", v: v || 0, d: fx.d || 3, n: 0}); break;
         case "stun": case "charm": t.stun = Math.max(t.stun, fx.d || 1); t.buffs.push({k: fx.k, v: 0, d: fx.d || 1, n: 0}); break;
@@ -386,7 +402,7 @@ function btBattle(setup, seed) {
   /* a Noble Phantasm */
   function useNp(u, chainAt, firstCard, ocBonus) {
     const np = u.t.np; if (!np || u.np < 100 || !u.alive || u.stun > 0) return;
-    const oc = clamp(1 + (u.np >= 300 ? 2 : u.np >= 200 ? 1 : 0) + (ocBonus || 0), 1, 5), lvl = u.npLv;
+    const oc = clamp(1 + (u.np >= 300 ? 2 : u.np >= 200 ? 1 : 0) + (ocBonus || 0) + Math.round(btMod(u, "oc")), 1, 5), lvl = u.npLv;
     u.np = 0; u.stat.nps++;
     const val = (f) => { const vs = f.vals || [0]; return f.by === "oc" ? vs[oc - 1] : f.by === "fix" ? vs[0] : vs[lvl - 1]; };
     const pre = np.fx.filter((f) => f.when === "pre").map((f) => ({k: f.k, to: apply(u, f, val(f), null, np.n)}));
@@ -500,6 +516,7 @@ function btBattle(setup, seed) {
       u.buffs = u.buffs.filter((b) => b.d > 0 || b.keep);
       if (u.stun > 0) u.stun -= 1;
       u.cd = u.cd.map((c) => Math.max(0, c - 1));
+      if (M && u === B.allies.concat(B.foes).find((x) => x.alive)) M.cd = M.cd.map((c) => Math.max(0, c - 1));
     });
     // the fallen leave the front; whoever waits behind steps in
     for (let i = 0; i < B.allies.length; i++) if (!B.allies[i].alive && B.back.length) { const n = B.back.shift(); emit("swap", {out: B.allies[i].id, in: n.id}); B.allies[i] = n; }
@@ -510,7 +527,9 @@ function btBattle(setup, seed) {
   const AI = setup.ai || BT_AUTO;
   while (!B.over) {
     turnStart();
+    if (M) btMasterSkills(B, M, useSkill, 0);
     AI.skills(B, {use: useSkill, mod: btMod});
+    if (M) btMasterSkills(B, M, useSkill, 1);
     if (!B.foes.some((x) => x.alive)) { if (B.wave >= B.waves.length) { B.over = true; B.result = "win"; break; } nextWave(); continue; }
     const plan = AI.cards(B, {dmgOf: dmgOf, npGain: npGain});
     emit("plan", {hand: B.hand.map((c) => ({who: c.u.id, card: c.card, crit: !!c.crit})), pick: plan.map((p) => p.np ? {who: p.u.id, np: true} : {who: p.u.id, card: p.card, h: B.hand.indexOf(p)}), target: B.target ? B.target.id : null});
@@ -543,7 +562,41 @@ function btBattle(setup, seed) {
     if (B.turn >= BT_MAX_TURNS) { B.over = true; B.result = "time"; break; }
   }
   emit("end", {result: B.result, turns: B.turn, wave: B.wave});
-  return {events: B.ev, result: B.result, turns: B.turn, wave: B.wave, waves: B.waves.length, units: B.everyone().map((u) => ({id: u.id, side: u.side, name: u.name, cls: u.cls, face: u.t.face, max: u.t.hp, stat: u.stat, t: u.t, chargeMax: u.chargeMax})), seed: seed};
+  return {events: B.ev, result: B.result, turns: B.turn, wave: B.wave, waves: B.waves.length, units: B.everyone().concat(M ? [M] : []).map((u) => ({id: u.id, side: u.master ? "master" : u.side, name: u.name, cls: u.cls, face: u.t.face, max: u.t.hp, stat: u.stat, t: u.t, chargeMax: u.chargeMax})), seed: seed};
+}
+// the Master's turn: charges first (pass 0, before the servants decide), the rest after them (pass 1)
+function btMasterSkills(B, M, cast, pass) {
+  const allies = B.allies.filter((x) => x.alive), foes = B.foes.filter((x) => x.alive); if (!allies.length) return;
+  const last = B.wave >= B.waves.length, hot = foes.filter((f) => f.charge >= f.chargeMax);
+  const danger = hot.length > 0 || allies.some((x) => x.hp < x.max * 0.4);
+  const nukers = allies.filter((x) => x.t.np && x.t.np.mult);
+  const nuker = nukers.slice().sort((x, y) => (y.np >= 100) - (x.np >= 100) || y.atk * (y.t.np.mult[y.t.npLv - 1] || 0) - x.atk * (x.t.np.mult[x.t.npLv - 1] || 0))[0] || null;
+  M.t.sk.forEach((sk, i) => {
+    if (!sk || M.cd[i] > 0 || !sk.fx.length) return;
+    const ks = sk.fx.map((f) => f.k), ch = sk.fx.find((f) => f.k === "charge");
+    if ((pass === 0) !== !!ch) return;
+    let use = false, pick = null;
+    if (ch) {
+      const v = ch.v ? ch.v[sk.lv - 1] : 0;
+      if (ch.tg === "o") { const c = nukers.filter((x) => x.np < 100).sort((a, b) => b.np - a.np); pick = c.find((x) => x.np + v >= 100) || (last ? c[0] : null) || null; use = !!pick; }
+      else use = allies.some((x) => x.np < 100 && x.np + v >= 100) || (last && allies.some((x) => x.np < 100));
+    } else {
+      const willNp = allies.filter((x) => x.np >= 100 && x.t.np && x.t.np.mult);
+      const help = ks.some((k) => ["atk", "card", "np", "crit", "oc", "pierce"].includes(k));
+      if (help && willNp.length) {
+        const cf = sk.fx.find((f) => f.k === "card");
+        pick = (cf && willNp.find((x) => x.t.np.card === cf.card)) || willNp.find((x) => x === nuker) || willNp[0];
+        use = !cf || pick.t.np.card === cf.card || sk.fx.some((f) => f.k !== "card" && ["atk", "np", "oc"].includes(f.k));
+      }
+      if (!use && ks.some((k) => ["evade", "invinc", "guts", "maxhp", "immune"].includes(k)) && danger) { use = true; pick = allies.slice().sort((a, b) => a.hp / a.max - b.hp / b.max)[0]; }
+      if (!use && ks.includes("heal") && allies.some((x) => x.hp < x.max * 0.6)) { use = true; pick = allies.slice().sort((a, b) => a.hp / a.max - b.hp / b.max)[0]; }
+      if (!use && ks.includes("cleanse") && allies.some((x) => x.buffs.some((b) => BT_DEBUFF.has(b.k)))) { use = true; pick = allies.find((x) => x.buffs.some((b) => BT_DEBUFF.has(b.k))); }
+      if (!use && (ks.includes("stun") || ks.includes("chargedown")) && hot.length) { use = true; pick = hot[0]; }
+      if (!use && ks.includes("cd")) { const w = allies.filter((x) => x.cd.some((c) => c > 1)).sort((a, b) => b.cd.reduce((s, c) => s + c, 0) - a.cd.reduce((s, c) => s + c, 0))[0]; if (w) { use = true; pick = w; } }
+      if (!use && ks.every((k) => ["stars", "gather", "drop", "gain", "regen"].includes(k))) { use = true; pick = nuker || allies[0]; }
+    }
+    if (use) cast(M, i, pick);
+  });
 }
 
 /* ---------- the auto-battle: which skills, which target, which cards ---------- */

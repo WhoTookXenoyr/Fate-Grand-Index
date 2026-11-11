@@ -172,6 +172,15 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
 - **Workshop damage** (`58-workshop-damage.js`): `wsdBuffs` reads a skill's effects at a skill level, `wsdNp` and `wsdCard` are the formulas, `wsSkDmgHTML` the table. `tests/test_46_workshop_damage.py` works every number out again.
 - **Compact** opens with `cmpDropSync` (`56-compact-open.js`).
 
+## 0.54.0-beta: Mystic Codes; skills written by hand are read
+
+- **Mystic Codes** (`62-mystic-codes.js`, `40-mystic-codes.css`): `MC_NA` holds NA's Mystic Codes in a compact form made from Atlas Academy's `nice_mystic_code.json` (checked byte for byte against it, SHA-256, when it was put in): `[id, name, [[skill, text, icon, cd Lv 1, cd Lv 10, [[kind, target, v1, v10, turns, times, limit]]] × 3]]`. Values grow like a servant skill's (`skVals`); cooldowns drop by 1 at Lv 6 and Lv 10. When online (and live data is on), the page fetches the file again once a week (`mcFromNice`, kept in IndexedDB as `mystic-codes`) and uses it if it has at least as many.
+  - The page: `#view-mystic`, tab `mystic`. Level, sort (NP charge, NP Gain, NP Strength, ATK, Buster/Arts/Quick, critical damage), Master female/male for the pictures, Equip. Kept in `spirit-origin-list:v1:mc` = `{id, lv, g, sort}`.
+  - The equipped one counts in the NP calculator (`npcTeam`/`npcTeamHTML` wrapped; its skills tick on and off as `mc:<id>|<i>`), in the Workshop's damage block (`mcDmgInto`), and in the Battle simulator (`setup.mc`; the Master is a unit with `side: "master"` in the results, not a fighter; `btMasterSkills` charges before the servants act and buffs whoever is about to NP).
+- **Skills written by hand** (`61-skill-reader.js`): `srRead(f, lv)` reads a "Write your own" effect's words into damage effects (card up, ATK, NP Strength, critical, special attack, damage up, Damage Plus, DEF down, card resistance down) and names the rest (NP Gain, stars, Evade …). The number comes from the words, else the effect's Lv 1 → Lv 10 boxes, else `SR_TYPICAL` (marked as an estimate). Conditions and chances are counted as met. Used by the Workshop's damage block, `customKit` (the NP calculator) and `btSkillKit` (the Battle simulator).
+- The Workshop's damage block shows the whole deck (`.ws-deck`), the Extra attack, and has **All skills together**.
+- Tests: `test_50_skill_reader.py` (28 checks), `test_51_mystic_codes.py` (28 checks).
+
 ## 0.53.0-beta: the 3D background (vanta.js)
 
 - `59-bg3d.js`, `38-bg3d.css`. One WebGL canvas (`#bg3d`, right after `.page-bg`) drawn by [vanta.js](https://www.vantajs.com/) on three.js r134. The libraries are in `src/vendor/` (MIT, licences beside them) and are put into the page by `@@include:vendor/...@@` inside `bg3dLoad()`, so they only run when a 3D background is wanted.

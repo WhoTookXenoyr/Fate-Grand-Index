@@ -133,10 +133,12 @@ function wsdExtra(k, B, crit, eff) {
 wsSkDmgHTML = function () {
   const k = W.k, si = W.sk, lv3 = [0, 1, 2].map((i) => clamp(W.copy ? num(W.copy.skills[i]) || 10 : 10, 1, 10)), lv = lv3[si], npLv = clamp(W.copy ? num(W.copy.np) || 1 : 1, 1, 5);
   const A = wsdBase(k), Z = wsdZero(), B = WSD_ALL ? wsdSum(k, lv3) : wsdBuffs(k.sk[si], lv);
-  const tabs = `<div class="seg sm ws-dmg-scope" role="group" aria-label="Which skills"><button type="button" data-wsd="one" aria-pressed="${!WSD_ALL}">This skill</button><button type="button" data-wsd="all" aria-pressed="${WSD_ALL}">All skills together</button></div>`;
-  if (!WSD_ALL && !k.sk[si].fx.length) return tabs + `<p class="muted">Add an effect and its damage shows here.</p>`;
+  // the equipped Mystic Code's damage skills, on top (62-mystic-codes.js)
+  if (typeof mcDmgInto === "function") mcDmgInto(B);
+  const tabs = `<div class="ws-dmg-bar"><div class="seg sm ws-dmg-scope" role="group" aria-label="Which skills"><button type="button" data-wsd="one" aria-pressed="${!WSD_ALL}">This skill</button><button type="button" data-wsd="all" aria-pressed="${WSD_ALL}">All skills together</button></div>${typeof mcPickHTML === "function" ? `<div class="ws-dmg-mc">${mcPickHTML("wsd-mc", "ws-mini")}</div>` : ""}</div>`;
+  if (!WSD_ALL && !k.sk[si].fx.length && !(typeof mcOn === "function" && mcOn())) return tabs + `<p class="muted">Add an effect and its damage shows here.</p>`;
   const val = (u) => (u.v >= 0 ? "+" : "−") + String(Math.round(Math.abs(u.v) * 100) / 100) + u.u;
-  const used = B.used.map((u) => `<li class="${u.est ? "est" : ""}${u.read ? " read" : ""}">${u.sk ? `<span class="n">S${u.sk}</span>` : ""}${esc(u.t)} <b>${esc(val(u))}</b>${u.est ? ` <small class="assumed">estimate: no number written, so the usual ${esc(u.range || val(u))} for this kind of effect</small>` : ""}${u.note ? ` <small>${esc(u.note)}</small>` : ""}</li>`).join("");
+  const used = B.used.map((u) => `<li class="${u.est ? "est" : ""}${u.read ? " read" : ""}${u.mc ? " mc" : ""}">${u.sk ? `<span class="n">S${u.sk}</span>` : ""}${u.mc ? `<span class="n">MC</span>` : ""}${esc(u.t)} <b>${esc(val(u))}</b>${u.est ? ` <small class="assumed">estimate: no number written, so the usual ${esc(u.range || val(u))} for this kind of effect</small>` : ""}${u.note ? ` <small>${esc(u.note)}</small>` : ""}</li>`).join("");
   const plain = B.plain.length ? `<p class="ws-dmg-left">Also in ${WSD_ALL ? "these skills" : "this skill"}, without a hand in damage: ${B.plain.map(esc).join(", ")}.</p>` : "";
   const left = B.left.length ? `<p class="ws-dmg-left warn">${B.left.map(esc).join(" · ")}</p>` : "";
   // the deck, card by card
@@ -173,7 +175,7 @@ wsSkDmgHTML = function () {
     <ul class="ws-deck">${deck.join("")}</ul>
     <div class="ws-dmg-scroll"><table class="ws-ntab ws-dmg-t"><thead><tr><th></th><th>Hit</th><th>Critical</th><th>Effective</th><th>Effective critical</th></tr></thead>
     <tbody>${rows.map((x) => `<tr class="c-${x.card.toLowerCase()}" data-k="${x.k}"><th>${CARD_IMG[x.card] ? `<img src="${CARD_IMG[x.card]}" alt="">` : ""}${esc(x.t)}${x.k === "np" ? ` <small>NP${npLv}</small>` : ""}</th>${x.cells.map(c2).join("")}</tr>`).join("")}</tbody></table></div>
-    <p class="ws-dmg-note">Without ${WSD_ALL ? "the skills" : "the skill"}, then with ${WSD_ALL ? "them" : "it"}, at skill level ${WSD_ALL ? lv3.join(" / ") : lv}. ATK ${fmt(A.atk)} (max level, with the passives, no Craft Essence), a neutral enemy, the average roll, one card on its own. The Extra attack is the one after three of this servant's cards (× 2).${A.eff ? ` Effective: a class ${esc(k.cls)} beats (× ${A.eff}).` : ""}${any ? "" : ""}</p>${plain}${left}`;
+    <p class="ws-dmg-note">Without ${WSD_ALL ? "the skills" : "the skill"}, then with ${WSD_ALL ? "them" : "it"}${typeof mcOn === "function" && mcOn() ? " and the Mystic Code's (" + esc(mcOn().n) + ", Lv " + mcLv() + ")" : ""}, at skill level ${WSD_ALL ? lv3.join(" / ") : lv}. ATK ${fmt(A.atk)} (max level, with the passives, no Craft Essence), a neutral enemy, the average roll, one card on its own. The Extra attack is the one after three of this servant's cards (× 2).${A.eff ? ` Effective: a class ${esc(k.cls)} beats (× ${A.eff}).` : ""}${any ? "" : ""}</p>${plain}${left}`;
 };
 document.addEventListener("click", (e) => {
   const b = e.target.closest && e.target.closest("[data-wsd]"); if (!b) return;

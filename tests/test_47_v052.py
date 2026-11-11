@@ -69,8 +69,13 @@ with sync_playwright() as p:
     zs = [x["z"] for x in pl]
     check(f"a scene is sheets one behind the other ({zs})", len(pl) >= 3 and min(zs) < -1300 and max(zs) == 0 and len(set(zs)) >= 3)
     # 0.52.1: depth is worked out per sheet and applied as plain 2D transforms (a real 3D space cost a drawing pass per sheet)
-    geo = pg.evaluate("(() => { const s = document.querySelector('#story-bg .sc'), c = s.querySelector('.sc-cam'); return [getComputedStyle(s).perspective, getComputedStyle(c).transformStyle, document.querySelectorAll('#story-bg canvas').length, Array.from(s.querySelectorAll('.sc-pl')).every((e) => !getComputedStyle(e).transform.startsWith('matrix3d'))]; })()")
-    check(f"no 3D space and no canvas: each sheet gets a 2D transform ({geo})", geo[0] == "none" and geo[1] == "flat" and geo[2] == 0 and geo[3])
+    geo = pg.evaluate("(() => { const s = document.querySelector('#story-bg .sc'), c = s.querySelector('.sc-cam'), pl = Array.from(s.querySelectorAll('.sc-pl')); return [getComputedStyle(s).perspective, getComputedStyle(c).transformStyle, pl.every((e) => !getComputedStyle(e).transform.startsWith('matrix3d')), s.querySelectorAll('svg').length, pl.filter((e) => e.tagName === 'CANVAS').every((e) => e.dataset.drawn === '1')]; })()")
+    check(f"no 3D space: each sheet gets a 2D transform ({geo})", geo[0] == "none" and geo[1] == "flat" and geo[2])
+    # 0.52.2: Firefox drew the sheets' vector paths again and again; each sheet is a picture now, drawn once
+    check(f"the sheets are pictures drawn once, with no SVG left on the page ({geo[3:]})", geo[3] == 0 and geo[4])
+    ink = pg.evaluate("(() => { const cv = Array.from(document.querySelectorAll('#story-bg .sc canvas.sc-pl')).pop(), d = cv.getContext('2d').getImageData(0, cv.height - 30, cv.width, 4).data; let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 200) n++; return [n, cv.width * 4]; })()")
+    check(f"the nearest sheet has its ground drawn on it ({ink})", ink[0] > ink[1] * 0.9)
+    pg.evaluate("window.__sheet0 = document.querySelector('#story-bg .sc canvas.sc-pl')")
     box = lambda: pg.evaluate("Array.from(document.querySelectorAll('#story-bg .sc:not(.out) .sc-pl')).map((e) => Math.round(e.getBoundingClientRect().left * 10) / 10)")
     x0 = box(); pg.evaluate("window.__fgiScene.cam(1, 0)"); pg.wait_for_timeout(1500); x1 = box()
     mv = [round(a - b_, 1) for a, b_ in zip(x1, x0)]
@@ -89,6 +94,7 @@ with sync_playwright() as p:
     pg.mouse.move(1250, 300); pg.wait_for_timeout(1400); x4 = box()
     check(f"and Undo lets it follow the pointer again ({x4[-1] - x0[-1]:.1f}, {pg.evaluate('window.__fgiScene.camOn()')})", pg.evaluate("window.__fgiScene.camOn()") is True and abs(x4[-1] - x0[-1]) > 10 and pg.evaluate("document.querySelector('[data-action=\"scenecam\"][data-v=\"1\"]').getAttribute('aria-pressed')") == "true")
     pg.evaluate("window.__fgiScene.cam(0, 0)"); pg.wait_for_timeout(300)
+    check("moving the camera made no new picture: the same canvases are still there", pg.evaluate("window.__sheet0 === document.querySelector('#story-bg .sc canvas.sc-pl')"))
     pg.evaluate("window.__fgiScene.go(311, 2)"); pg.wait_for_timeout(250)
     tr = pg.evaluate("Array.from(document.querySelectorAll('#story-bg .sc')).map((e) => e.className)")
     check(f"going down a stratum: the old scene leaves upwards as the new one comes from below ({tr})", len(tr) == 2 and "to-above" in tr[0] and "from-below" in tr[1])

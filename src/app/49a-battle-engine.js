@@ -160,7 +160,7 @@ function btNpNA(np) {
 }
 
 /* ---------- a custom servant's kit, as it is ---------- */
-// an effect written by hand, read from its words (61-skill-reader.js): the parts that change damage fight too (0.54.0)
+// an effect written by hand, read from its words (61-skill-reader.js): the parts that change damage fight too (0.53.0)
 const BT_SR = {atk: "atk", card: "card", np: "np", crit: "crit", pow: "vs", dmg: "vs", dp: "dp", def: "defdown", res: "resdown"};
 function btOwnFx(f) {
   if (typeof srRead !== "function") return [];
@@ -300,7 +300,7 @@ function btBattle(setup, seed) {
   const B = {seed: seed, turn: 0, wave: 0, waves: setup.waves.map((w) => w.map((t) => btUnit(t, "foe"))), allies: setup.party.slice(0, 3).filter(Boolean).map((t) => btUnit(t, "ally")),
     back: setup.party.slice(3).filter(Boolean).map((t) => btUnit(t, "ally")), foes: [], stars: 0, deck: [], hand: [], ev: [], over: false, result: "", target: null};
   const all = B.allies.concat(B.back);
-  // the Master, with the Mystic Code's three skills (0.54.0); not a fighter: no HP, never targeted, not in the snapshots
+  // the Master, with the Mystic Code's three skills (0.53.0); not a fighter: no HP, never targeted, not in the snapshots
   const M = setup.mc && setup.mc.sk ? {id: btUid++, side: "ally", master: true, name: setup.mc.name || "Master", cls: "", alive: true, stun: 0, cd: [0, 0, 0], buffs: [], hp: 1, max: 1, np: 0,
     t: {sk: setup.mc.sk, face: setup.mc.face || "", hp: 0}, stat: {dmg: 0, nps: 0, taken: 0, kills: 0, cards: 0, skills: 0}, chargeMax: 0} : null;
   B.master = M;

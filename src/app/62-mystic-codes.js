@@ -1,4 +1,4 @@
-/* ================= 0.54.0-beta: Mystic Codes =================
+/* ================= 0.53.0-beta: Mystic Codes =================
    Jordan (Noyr's tester) asked for every Master equipment, to see which gives the most NP gain and NP charge, and Noyr
    for them to count in the damage numbers. Here:
    - NA's Mystic Codes (MC_NA, from Atlas Academy's nice_mystic_code.json; when the page is online it looks again once

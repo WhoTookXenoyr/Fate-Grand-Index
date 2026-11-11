@@ -1,5 +1,5 @@
 import os
-# 0.54.0-beta: a skill effect written by hand is read from its words and counted, and the damage block under a skill
+# 0.53.0-beta: a skill effect written by hand is read from its words and counted, and the damage block under a skill
 # shows the whole deck. The same custom Caster as test_46; every number is worked out again here from the formula.
 import sys, json, re
 from playwright.sync_api import sync_playwright

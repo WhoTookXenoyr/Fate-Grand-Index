@@ -295,7 +295,7 @@ function customKit(s) {
     sk: [0, 1, 2].map((i) => {
       const sk = (k.sk || [])[i] || {};
       const b = (sk.fx || []).flatMap((f) => {
-        // an effect written by hand counts too: it's read from its words (61-skill-reader.js, 0.54.0)
+        // an effect written by hand counts too: it's read from its words (61-skill-reader.js, 0.53.0)
         if (f.e === "own" && typeof srRead === "function") return srRead(f, 10).map((r) => {
           const c = {atk: "a", card: "c", np: "n", pow: "p", dmg: "p", dp: "f", def: "d", res: "r"}[r.k]; if (!c) return null;
           const all = /all allies|\bparty\b|every ally/i.test(String(f.txt || "")), row = [c, r.k === "def" || r.k === "res" ? "e" : r.others ? "x" : all ? "a" : "s", r.card ? r.card.charAt(0) : "", skVals(r.v1, r.v10)];

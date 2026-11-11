@@ -1,4 +1,4 @@
-/* ================= 0.54.0-beta: skills written by hand are read, and the whole deck is shown =================
+/* ================= 0.53.0-beta: skills written by hand are read, and the whole deck is shown =================
    Noyr: a skill he writes himself ("Grants 1 Waterside Battlefield Buster+") got "written by hand, so it can't be
    counted" under it, and no damage. That line is gone. An effect written by hand is read from its words:
 

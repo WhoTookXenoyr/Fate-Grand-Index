@@ -172,7 +172,7 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
 - **Workshop damage** (`58-workshop-damage.js`): `wsdBuffs` reads a skill's effects at a skill level, `wsdNp` and `wsdCard` are the formulas, `wsSkDmgHTML` the table. `tests/test_46_workshop_damage.py` works every number out again.
 - **Compact** opens with `cmpDropSync` (`56-compact-open.js`).
 
-## 0.54.0-beta: Mystic Codes; skills written by hand are read
+## 0.53.0-beta (also): Mystic Codes; skills written by hand are read
 
 - **Mystic Codes** (`62-mystic-codes.js`, `40-mystic-codes.css`): `MC_NA` holds NA's Mystic Codes in a compact form made from Atlas Academy's `nice_mystic_code.json` (checked byte for byte against it, SHA-256, when it was put in): `[id, name, [[skill, text, icon, cd Lv 1, cd Lv 10, [[kind, target, v1, v10, turns, times, limit]]] × 3]]`. Values grow like a servant skill's (`skVals`); cooldowns drop by 1 at Lv 6 and Lv 10. When online (and live data is on), the page fetches the file again once a week (`mcFromNice`, kept in IndexedDB as `mystic-codes`) and uses it if it has at least as many.
   - The page: `#view-mystic`, tab `mystic`. Level, sort (NP charge, NP Gain, NP Strength, ATK, Buster/Arts/Quick, critical damage), Master female/male for the pictures, Equip. Kept in `spirit-origin-list:v1:mc` = `{id, lv, g, sort}`.

@@ -1,5 +1,5 @@
 import os
-# 0.54.0-beta: Mystic Codes. NA's 23, from Atlas Academy's data (checked against it when they were put in); a page that
+# 0.53.0-beta: Mystic Codes. NA's 23, from Atlas Academy's data (checked against it when they were put in); a page that
 # lists and sorts them; the equipped one counted in the NP calculator, the Workshop's damage block and the Battle
 # simulator, where the Master uses its skills.
 import sys, json, re

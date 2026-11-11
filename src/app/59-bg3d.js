@@ -117,8 +117,8 @@ function bg3dWant() {
   const soft = kind3 === "fog" || kind3 === "cells";
   const sky = soft ? [scMix(g[1], "#000000", dark ? 0.3 : 0.06), g[0], scMix(g[2], "#ffffff", dark ? 0.2 : 0.4)] : [g[1], g[0], g[2]], hi = scMix(g[2], dark ? "#ffffff" : "#fff6d8", 0.5);
   const o3 = bg3dOpts(kind3, sky, hi, dark);
-  // black and cream (60-palette.js): on true black the page's tones are all black, so the picture takes the gold
-  if (dark && typeof palMono !== "undefined" && palMono) {
+  // on true black the page's tones are all black (60-palette.js), so the picture takes the gold
+  if (dark) {
     if (kind3 === "net" || kind3 === "globe") { o3.color = "#b39a5e"; if (o3.color2) o3.color2 = "#ecdcae"; }
     else Object.assign(o3, bg3dOpts(kind3, ["#000000", "#0c0a06", "#4a3d22"], "#d9b86c", true));
   }

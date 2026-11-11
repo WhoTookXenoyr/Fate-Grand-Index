@@ -46,7 +46,6 @@ TABS.push("settings");
 const UI_SET_ROWS = [
   ["Look and feel", [
     ["theme", "Light or dark", ""],
-    ["palette", "Colours", "Chaldea blue is the page as it was. Black and cream is true black in dark mode (kind to AMOLED screens) and cream white in light mode."],
     ["look", "Look", "Classic is the page as it was before 0.50."],
     ["layout", "Servant page", "Modern puts the servant beside your list; Compact opens them in a window."],
     ["menu", "Sidebar", "The pages' names and icons, or only the icons."],
@@ -69,7 +68,6 @@ function uiSetHTML() {
     ? `<div class="seg set-seg" role="group" aria-label="Look"><button type="button" data-action="ui-look" data-v="beta">New</button><button type="button" data-action="ui-look" data-v="classic">Classic</button></div>`
     : k === "menu" ? `<div class="seg set-seg" role="group" aria-label="Sidebar"><button type="button" data-action="ui-mini" data-v="0">Names and icons</button><button type="button" data-action="ui-mini" data-v="1">Only icons</button></div>`
     : k === "scenecam" ? `<div class="seg set-seg" role="group" aria-label="Story scenes follow the pointer"><button type="button" data-action="scenecam" data-v="1">On</button><button type="button" data-action="scenecam" data-v="0">Off</button></div>`
-    : k === "palette" ? `<div class="seg set-seg" role="group" aria-label="Colours"><button type="button" data-action="palette" data-v="blue">Chaldea blue</button><button type="button" data-action="palette" data-v="mono">Black and cream</button></div>`
     : k === "bg3d" ? `<div class="seg set-seg" role="group" aria-label="3D background"><button type="button" data-action="bg3d" data-v="1">On</button><button type="button" data-action="bg3d" data-v="0">Off</button></div><small class="bg3d-note" hidden></small>`
     : k === "bg3dfx" ? `<div class="seg set-seg set-seg-wrap" role="group" aria-label="3D effect">${[["globe", "Globe"], ["net", "Net"], ["fog", "Haze"], ["waves", "Waves"], ["clouds", "Clouds"], ["cells", "Cells"]].map((x) => `<button type="button" data-action="bg3d-fx" data-v="${x[0]}">${x[1]}</button>`).join("")}</div>`
     : k === "bg3dq" ? `<div class="seg set-seg" role="group" aria-label="3D quality"><button type="button" data-action="bg3d-q" data-v="light">Light</button><button type="button" data-action="bg3d-q" data-v="full">Full</button></div>`
@@ -263,8 +261,8 @@ const syncNewsDot51 = syncNewsDot;
 syncNewsDot = function () { const r = syncNewsDot51.apply(this, arguments); try { uiSync(); } catch (e) {} return r; };
 if (typeof acctPaint === "function") { const acctPaint51 = acctPaint; acctPaint = function () { const r = acctPaint51.apply(this, arguments); try { uiSync(); } catch (e) {} return r; }; }
 
-/* ---------- the background when no servant gives it colours: Chaldea's blue in the new look ---------- */
-const UI_PAL = ["#8394c2", "#46598f", "#b8c4e2"];
+/* ---------- the background when no servant gives it colours: gold in the new look (Chaldea's blue until 0.53.0) ---------- */
+const UI_PAL = ["#c9ad6a", "#8a6f35", "#e8d9a8"];
 const paintPage51 = paintPage;
 paintPage = function () {
   const keep = curPal, swap = uiLook() === "beta" && curPal === DEFAULT_PAL;

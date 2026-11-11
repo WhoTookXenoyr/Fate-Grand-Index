@@ -1,44 +1,10 @@
 /* ===== 0.50.0-beta: the new look (the Chaldea terminal), the sidebar, moving between pages (51-ui.js) =====
-   New look: html[data-ui="beta"]. Navy and gold like the game's own menus; the sidebar is white in light mode and the
-   game's navy in dark mode. Classic: html[data-ui="classic"], the 0.28 page, with the sidebar on phones only.
+   New look: html[data-ui="beta"]. Black and gold in dark mode, cream and gold in light mode (0.53.0: 39-palette.css;
+   it was navy and gold before). Classic: html[data-ui="classic"], the 0.28 page, with the sidebar on phones only.
    Only transform and opacity move. */
 
-/* ---------- the new look's colours ---------- */
-html[data-ui="beta"] {
-  --bg: #e5ebf6; --panel: #fbfcff; --sunken: #e8edf7; --raised: #ffffff; --line: #ccd4e5; --ink: #0f1a38; --muted: #54607e;
-  --accent: #14224b; --on-accent: #f4e8c8; --gold: #98762c; --focus: #2d6dd4; --term: #2d6dd4;
-  --warn-bg: #e8eefb; --warn-ink: #1b2d5e; --bar: #98762c;
-  --shadow: 0 1px 0 rgba(15, 26, 56, .04), 0 16px 36px -22px rgba(15, 26, 56, .5);
-  --g1: #dfe6f4; --g2: #d0daee; --g3: #eef2fa;
-  --page-muted: color-mix(in srgb, var(--ink) 82%, transparent);
-  --r-panel: 16px; --r-row: 10px;
-  /* the sidebar: white in light mode (0.50.0-beta, Noyr's fix), the game's navy in dark mode */
-  --sd-bg1: #ffffff; --sd-bg2: #f3f6fc; --sd-ink: #16224a; --sd-muted: #56638a; --sd-gold: #94701f; --sd-line: rgba(22, 34, 74, .13);
-  --sd-panel: #ffffff; --sd-raised: #ffffff; --sd-sunken: rgba(22, 34, 74, .05); --sd-focus: #2d6dd4; --sd-trim: rgba(148, 112, 31, .32);
-  --sd-shadow: 6px 0 24px -18px rgba(22, 34, 74, .4); --sd-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  html[data-ui="beta"]:not([data-theme="light"]) {
-    --bg: #0a1229; --panel: #111a36; --sunken: #0c1430; --raised: #172248; --line: #26345a; --ink: #ecf0fa; --muted: #94a1c2;
-    --accent: #e2c47e; --on-accent: #0c1430; --gold: #d9b86c; --focus: #7cc4ff; --term: #7cc4ff;
-    --warn-bg: #17244b; --warn-ink: #f0d690; --bar: #d9b86c;
-    --shadow: 0 16px 36px -20px rgba(0, 0, 0, .85);
-    --g1: #121d42; --g2: #0a1229; --g3: #1a2955;
-    --sd-bg1: #101b40; --sd-bg2: #070e25; --sd-ink: #eef1fa; --sd-muted: #a6b1d1; --sd-gold: #e0c27a; --sd-line: rgba(224, 194, 122, .22);
-    --sd-panel: rgba(255, 255, 255, .05); --sd-raised: rgba(255, 255, 255, .08); --sd-sunken: rgba(255, 255, 255, .06); --sd-focus: #8fd0ff; --sd-trim: rgba(224, 194, 122, .5);
-    --sd-shadow: 6px 0 28px -18px rgba(5, 10, 30, .7); --sd-scheme: dark;
-  }
-}
-html[data-ui="beta"][data-theme="dark"] {
-  --bg: #0a1229; --panel: #111a36; --sunken: #0c1430; --raised: #172248; --line: #26345a; --ink: #ecf0fa; --muted: #94a1c2;
-  --accent: #e2c47e; --on-accent: #0c1430; --gold: #d9b86c; --focus: #7cc4ff; --term: #7cc4ff;
-  --warn-bg: #17244b; --warn-ink: #f0d690; --bar: #d9b86c;
-  --shadow: 0 16px 36px -20px rgba(0, 0, 0, .85);
-  --g1: #121d42; --g2: #0a1229; --g3: #1a2955;
-  --sd-bg1: #101b40; --sd-bg2: #070e25; --sd-ink: #eef1fa; --sd-muted: #a6b1d1; --sd-gold: #e0c27a; --sd-line: rgba(224, 194, 122, .22);
-  --sd-panel: rgba(255, 255, 255, .05); --sd-raised: rgba(255, 255, 255, .08); --sd-sunken: rgba(255, 255, 255, .06); --sd-focus: #8fd0ff; --sd-trim: rgba(224, 194, 122, .5);
-  --sd-shadow: 6px 0 28px -18px rgba(5, 10, 30, .7); --sd-scheme: dark;
-}
+/* ---------- the new look's own measures (its colours are the page's: 39-palette.css) ---------- */
+html[data-ui="beta"] { --page-muted: color-mix(in srgb, var(--ink) 82%, transparent); --r-panel: 16px; --r-row: 10px; }
 
 /* ---------- the new look's parts ---------- */
 /* buttons: plates with a light top edge; the main one is gold in dark mode, navy in light */
@@ -96,7 +62,7 @@ html[data-ui="beta"] .side { background: linear-gradient(180deg, var(--sd-bg1), 
 html[data-ui="beta"] .side::after { content: ""; position: fixed; top: 0; bottom: 0; left: calc(var(--side-w) - 4px); width: 1px; pointer-events: none;
   background: linear-gradient(180deg, transparent, var(--sd-trim) 18%, var(--sd-trim) 82%, transparent); }
 /* (in light mode the logo gets the same thin navy outline it has on the light page, so its white letters read on white) */
-html:not([data-theme="dark"]) .top-logo img { filter: drop-shadow(0 0 1px rgba(18, 30, 72, .9)) drop-shadow(0 1px 3px rgba(18, 30, 72, .45)); }
+html:not([data-theme="dark"]) .top-logo img { filter: drop-shadow(0 0 1px rgba(28, 25, 21, .9)) drop-shadow(0 1px 3px rgba(28, 25, 21, .45)); }
 @media (prefers-color-scheme: dark) { html:not([data-theme]) .top-logo img { filter: none; } }
 .side-top { display: flex; flex-direction: column; gap: 6px; padding: 0 4px; }
 .side .brand { margin: 0; }

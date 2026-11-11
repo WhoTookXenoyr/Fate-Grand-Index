@@ -42,14 +42,14 @@ with sync_playwright() as p:
     check(f"the version says beta ({chip!r})", re.search(r"0\.\d+\.\d+", chip) and "beta" in chip and "alpha" not in chip)
     sx = pg.evaluate("[document.getElementById('side').getBoundingClientRect().right, document.querySelector('.shell').getBoundingClientRect().left]")
     check(f"the page sits beside the sidebar ({sx})", 200 <= sx[0] <= 260 and sx[0] - 1 <= sx[1] <= sx[0] + 80)
-    # light mode: a white sidebar; dark mode: the game's navy (Noyr's fix)
+    # light mode: a cream white sidebar; dark mode: true black (0.53.0; it was white and the game's navy)
     bgs = {}
     for th in ("light", "dark"):
         pg.evaluate(f"document.documentElement.setAttribute('data-theme', '{th}')"); pg.wait_for_timeout(150)
         bgs[th] = pg.evaluate("getComputedStyle(document.getElementById('side')).backgroundImage")
     pg.evaluate("document.documentElement.setAttribute('data-theme', 'light')")
-    check(f"light mode: the sidebar is white ({bgs['light'][:60]})", "rgb(255, 255, 255)" in bgs["light"])
-    check(f"dark mode: the sidebar is navy ({bgs['dark'][:60]})", "rgb(16, 27, 64)" in bgs["dark"])
+    check(f"light mode: the sidebar is cream white ({bgs['light'][:60]})", "rgb(255, 250, 240)" in bgs["light"])
+    check(f"dark mode: the sidebar is black ({bgs['dark'][:60]})", "rgb(0, 0, 0), rgb(0, 0, 0)" in bgs["dark"])
     # the class name behind the page starts beside the sidebar (it was half under it)
     pg.locator('#list .row').first.evaluate("(e) => e.click()"); pg.wait_for_timeout(1200)
     cw = lambda: pg.evaluate("[document.querySelector('.pc-word').getBoundingClientRect().left, document.getElementById('side').getBoundingClientRect().right]")

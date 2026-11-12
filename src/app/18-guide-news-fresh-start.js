@@ -164,17 +164,19 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
-  {v: "0.53.0-beta", d: "11 Nov 2026", t: "3D backgrounds, black and cream, Mystic Codes", i: [
+  {v: "0.53.0-beta", d: "12 Nov 2026", t: "3D backgrounds for every class, black and cream, Mystic Codes", i: [
     "<b>A 3D background</b>, drawn by vanta.js. Behind the usual pages it's a wire globe in the page's colours; <b>Settings → 3D effect</b> has five more (Net, Haze, Waves, Clouds, Cells).",
     "<b>With the Story look, each scene picks its own</b>: a 3D sea under the waterline where the scene has water, clouds over open country by day, a net of stars under a night sky, drifting haze elsewhere. The drawn landmarks stay in front.",
     "It's kept light: drawn small and stretched, at the background's frame rate (half the chosen one with Power saving), and not at all while the page rests, the tab is hidden or the summoning plays. <b>Settings → 3D quality</b> has Full for a sharper picture, and <b>3D background</b> has Off, which is the lightest.",
     "With \"reduce motion\", or in a browser without WebGL, the drawn background of 0.52 is used.",
-    "<b>Black and cream</b> are the page's colours now. Dark mode is true black, which an AMOLED screen shows by switching pixels off, and light mode is cream white. Gold stays the accent. The navy is gone.",
+    "<b>Every class has its own 3D background</b>, behind a servant's page: swords of light for Saber, a falling volley for Archer, a charge for Lancer, a flock for Rider, a turning magic circle for Caster, low mist for Assassin, a heartbeat for Berserker, light from above for Ruler, dark fire for Avenger, SE.RA.PH's grid for Moon Cancer, a sea of data for Alter Ego, the outer dark for Foreigner, a web for Pretender and a barrier of hexagons for Shielder. The Beasts get a storm; Draco a crimson vortex with gold petals falling, and Space Ereshkigal stars streaming past the ring of her underworld. Each takes the colours of the servant's picture. <b>Settings → Class backgrounds</b> switches them off.",
+    "<b>Black and cream</b> are the page's colours now. Dark mode is true black, which an AMOLED screen shows by switching pixels off, and light mode is cream white. Gold stays the accent. The navy is gone. A servant whose picture you gave them still colours the page: their tones on black, or cream with their tone.",
     "<b>Mystic Codes</b>, a new page: all of NA's Master outfits and their three skills at the level you pick. Sort them by NP charge, NP Gain, NP Strength, ATK, a card type or critical damage. (Jordan asked which gives the most NP: for charge it's the Mage's Association Uniform and Summer Streetwear, 20% each; for NP Gain, A Fragment of 2004, 50%.)",
     "<b>Equip one</b> and it counts: in the NP calculator on a servant's page (its skills ticked on, like a support's), in the damage under a skill in the Workshop, and in the Battle simulator, where the Master uses its skills.",
     "<b>Skills you write yourself are read</b>. “Grants 1 Waterside Battlefield Buster+” counts as Buster up. A number in the words is used, else the Lv 1 → Lv 10 boxes, else the usual amount for that kind of effect, marked as an estimate. Under the effect it says what it was read as. They count in the NP calculator and the Battle simulator too.",
     "<b>The whole deck</b> under a skill in the Workshop: every card, the Extra attack and the NP, each with what the skill gives it. <b>All skills together</b> adds the three up.",
-    "Fixed: after switching between light and dark, a story scene (and a servant's own backdrop) stayed in the theme you'd just left."
+    "Fixed: after switching between light and dark, a story scene (and a servant's own backdrop) stayed in the theme you'd just left.",
+    "Fixed: in the first black-and-cream builds, a servant's picture no longer coloured the page (a red servant left it black, or cream). It does again."
   ]},
   {v: "0.52.2-beta", d: "10 Nov 2026", t: "Story scenes in Firefox", i: [
     "In Firefox the story scenes still cost a lot of frames. Each row of a scene was vector drawing left on the page, and Firefox works that out on the processor, again and again while things move. Every row is now a picture that's drawn once when the scene comes up; after that the browser only moves pictures.",

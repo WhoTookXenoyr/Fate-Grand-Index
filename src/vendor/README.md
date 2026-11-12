@@ -6,7 +6,9 @@ These files are copied unchanged from npm and are put into the page by `tools/bu
 | File | Package | Version | Licence |
 |---|---|---|---|
 | `three.min.js` | [three](https://www.npmjs.com/package/three) | 0.134.0 (r134, the release vanta.js is made for) | MIT, `LICENSE-three.txt` |
-| `vanta.waves.min.js`, `vanta.fog.min.js`, `vanta.clouds.min.js`, `vanta.net.min.js`, `vanta.globe.min.js`, `vanta.cells.min.js` | [vanta](https://www.npmjs.com/package/vanta) | 0.5.24 | MIT, `LICENSE-vanta.txt` |
+| `vanta.waves.min.js`, `vanta.fog.min.js`, `vanta.clouds.min.js`, `vanta.net.min.js`, `vanta.globe.min.js`, `vanta.cells.min.js`, `vanta.birds.min.js`, `vanta.dots.min.js` | [vanta](https://www.npmjs.com/package/vanta) | 0.5.24 | MIT, `LICENSE-vanta.txt` |
 
 To update: `npm install vanta three@0.134.0`, then copy `node_modules/three/build/three.min.js` and
 `node_modules/vanta/dist/vanta.<effect>.min.js` over these files.
+
+The class backgrounds of `src/app/63-class-bg.js` are effects of our own, built on vanta's `VANTA.VantaBase` and registered with `VANTA.register`.

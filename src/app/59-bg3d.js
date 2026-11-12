@@ -22,6 +22,7 @@ const BG3D_PX = {globe: 1, net: 1, waves: 0.8, fog: 0.5, cells: 0.3, clouds: 0.1
 // processor, and every page of every suite would pay for it)
 const bg3dAuto = !navigator.webdriver;
 let bg3dOn = lsGet(BG3D_KEY) === "on" || (bg3dAuto && lsGet(BG3D_KEY) !== "off");
+const BG3D_BROKEN = {}; // effects that wouldn't start in this browser
 let bg3dPick = BG3D_KINDS.some((k) => k[0] === lsGet(BG3D_FX_KEY)) ? lsGet(BG3D_FX_KEY) : "globe";
 let bg3dFull = lsGet(BG3D_Q_KEY) === "full";
 let bg3d = null;       // what's running: {kind, fx, sig, sea}
@@ -50,6 +51,10 @@ function bg3dLoad() {
 ;
 @@include:vendor/vanta.cells.min.js@@
 ;
+@@include:vendor/vanta.birds.min.js@@
+;
+@@include:vendor/vanta.dots.min.js@@
+;
     }).call(window);
     bg3dLib = window.THREE && window.VANTA && window.VANTA.FOG ? 1 : -1;
   } catch (e) { console.error(e); bg3dLib = -1; }
@@ -70,6 +75,7 @@ function bg3dCan() {
 }
 
 /* ---------- what should be up ---------- */
+// (the keys ending in a colour: color, color2, backgroundColor…; birds' colorMode is a word)
 const bg3dNum = (c) => { const n = parseInt(String(c).replace("#", ""), 16); return Number.isFinite(n) ? n : 0; };
 // which effect a story scene gets: the scene can name one (v), otherwise its weather and what's drawn in it decide
 function bg3dActKind(act) {
@@ -206,13 +212,18 @@ function bg3dStart(want) {
   const host = bg3dHost(); if (!host || !bg3dCan() || !bg3dLoad()) return false;
   const make = window.VANTA[want.kind.toUpperCase()]; if (!make) return false;
   const el = host.querySelector(".bg3d-cv"), sc = bg3dScale(want.kind, host), o = {};
-  Object.keys(want.opts).forEach((k) => { o[k] = /color/i.test(k) ? bg3dNum(want.opts[k]) : want.opts[k]; });
+  Object.keys(want.opts).forEach((k) => { o[k] = /colou?r\d?$/i.test(k) ? bg3dNum(want.opts[k]) : want.opts[k]; });
   let fx = null;
   try {
     fx = make(Object.assign(o, {el: el, THREE: window.THREE, scale: sc, scaleMobile: sc, mouseControls: scCamOn && !isCoarse(), touchControls: false, gyroControls: false, minHeight: 100, minWidth: 100}));
   } catch (e) { console.error(e); fx = null; }
   const cv = fx && fx.renderer && fx.renderer.domElement;
-  if (!cv || !cv.isConnected) { try { if (fx) fx.destroy(); } catch (e) {} bg3dDead = "The 3D background couldn't start on this graphics card, so the drawn background is used."; bg3dPaint(); return false; }
+  if (!cv || !cv.isConnected) {
+    try { if (fx) fx.destroy(); } catch (e) {}
+    // (a class background that won't start here gives way to haze; only the usual one switches 3D off)
+    if (want.cls) { BG3D_BROKEN[want.kind] = 1; setTimeout(bg3dSoon, 0); return false; }
+    bg3dDead = "The 3D background couldn't start on this graphics card, so the drawn background is used."; bg3dPaint(); return false;
+  }
   bg3d = {kind: want.kind, fx: fx, sig: "", sea: !!want.sea, scale: sc, lost: (e) => { e.preventDefault(); bg3dDead = "The graphics card stopped the 3D background, so the drawn background is used."; bg3dKill(); bg3dSync(); bg3dPaint(); }};
   cv.addEventListener("webglcontextlost", bg3d.lost);
   bg3dSleep = false;
@@ -230,12 +241,12 @@ function bg3dApply(want, fresh) {
   if (bg3d.sig === sig) return;
   bg3d.sig = sig;
   const fx = bg3d.fx, o = {};
-  Object.keys(want.opts).forEach((k) => { o[k] = /color/i.test(k) ? bg3dNum(want.opts[k]) : want.opts[k]; });
+  Object.keys(want.opts).forEach((k) => { o[k] = /colou?r\d?$/i.test(k) ? bg3dNum(want.opts[k]) : want.opts[k]; });
   try {
     if (!fresh) {
       fx.setOptions(o);
       // lines and dots take their colours when they're made, so those are made again (the renderer stays)
-      if (bg3d.kind === "net" || bg3d.kind === "globe") fx.restart();
+      if (["net", "globe", "birds", "dots"].includes(bg3d.kind)) fx.restart();
     }
     if (want.sea && fx.plane) bg3dSea(fx, want.sea);
     bg3dGlow(fx);

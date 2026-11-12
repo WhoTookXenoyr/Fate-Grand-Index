@@ -5244,6 +5244,9 @@ html.bg3d-sea .story-bg .sc-far { clip-path: inset(0 0 var(--cutb, 0px) 0); }
 /* behind the usual pages the 3D picture stands in for the summoning circle (two moving pictures at once are busy, and
    it's one less thing to draw); with the Story look the circle stays, as it did */
 html.bg3d-on:not(.bg3d-story) .idle-bg { visibility: hidden; }
+/* a class's own background (63-class-bg.js) already carries the servant's colours: the aura's glow on top of it (and the
+   Beast's, which turns through every hue) only muddies it, so it isn't drawn meanwhile */
+html.bg3d-cls .aura { display: none; }
 /* ================= 0.53.0-beta: the page's colours: black and cream =================
    Dark mode is true black, for screens that switch black pixels off (AMOLED); light mode is cream white. Gold is the
    accent in both. (The navy of 0.50 to 0.52 is gone: Noyr tried this as a second set of colours, liked it, and made it
@@ -12001,17 +12004,19 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
-  {v: "0.53.0-beta", d: "11 Nov 2026", t: "3D backgrounds, black and cream, Mystic Codes", i: [
+  {v: "0.53.0-beta", d: "12 Nov 2026", t: "3D backgrounds for every class, black and cream, Mystic Codes", i: [
     "<b>A 3D background</b>, drawn by vanta.js. Behind the usual pages it's a wire globe in the page's colours; <b>Settings → 3D effect</b> has five more (Net, Haze, Waves, Clouds, Cells).",
     "<b>With the Story look, each scene picks its own</b>: a 3D sea under the waterline where the scene has water, clouds over open country by day, a net of stars under a night sky, drifting haze elsewhere. The drawn landmarks stay in front.",
     "It's kept light: drawn small and stretched, at the background's frame rate (half the chosen one with Power saving), and not at all while the page rests, the tab is hidden or the summoning plays. <b>Settings → 3D quality</b> has Full for a sharper picture, and <b>3D background</b> has Off, which is the lightest.",
     "With \"reduce motion\", or in a browser without WebGL, the drawn background of 0.52 is used.",
-    "<b>Black and cream</b> are the page's colours now. Dark mode is true black, which an AMOLED screen shows by switching pixels off, and light mode is cream white. Gold stays the accent. The navy is gone.",
+    "<b>Every class has its own 3D background</b>, behind a servant's page: swords of light for Saber, a falling volley for Archer, a charge for Lancer, a flock for Rider, a turning magic circle for Caster, low mist for Assassin, a heartbeat for Berserker, light from above for Ruler, dark fire for Avenger, SE.RA.PH's grid for Moon Cancer, a sea of data for Alter Ego, the outer dark for Foreigner, a web for Pretender and a barrier of hexagons for Shielder. The Beasts get a storm; Draco a crimson vortex with gold petals falling, and Space Ereshkigal stars streaming past the ring of her underworld. Each takes the colours of the servant's picture. <b>Settings → Class backgrounds</b> switches them off.",
+    "<b>Black and cream</b> are the page's colours now. Dark mode is true black, which an AMOLED screen shows by switching pixels off, and light mode is cream white. Gold stays the accent. The navy is gone. A servant whose picture you gave them still colours the page: their tones on black, or cream with their tone.",
     "<b>Mystic Codes</b>, a new page: all of NA's Master outfits and their three skills at the level you pick. Sort them by NP charge, NP Gain, NP Strength, ATK, a card type or critical damage. (Jordan asked which gives the most NP: for charge it's the Mage's Association Uniform and Summer Streetwear, 20% each; for NP Gain, A Fragment of 2004, 50%.)",
     "<b>Equip one</b> and it counts: in the NP calculator on a servant's page (its skills ticked on, like a support's), in the damage under a skill in the Workshop, and in the Battle simulator, where the Master uses its skills.",
     "<b>Skills you write yourself are read</b>. “Grants 1 Waterside Battlefield Buster+” counts as Buster up. A number in the words is used, else the Lv 1 → Lv 10 boxes, else the usual amount for that kind of effect, marked as an estimate. Under the effect it says what it was read as. They count in the NP calculator and the Battle simulator too.",
     "<b>The whole deck</b> under a skill in the Workshop: every card, the Extra attack and the NP, each with what the skill gives it. <b>All skills together</b> adds the three up.",
-    "Fixed: after switching between light and dark, a story scene (and a servant's own backdrop) stayed in the theme you'd just left."
+    "Fixed: after switching between light and dark, a story scene (and a servant's own backdrop) stayed in the theme you'd just left.",
+    "Fixed: in the first black-and-cream builds, a servant's picture no longer coloured the page (a red servant left it black, or cream). It does again."
   ]},
   {v: "0.52.2-beta", d: "10 Nov 2026", t: "Story scenes in Firefox", i: [
     "In Firefox the story scenes still cost a lot of frames. Each row of a scene was vector drawing left on the page, and Firefox works that out on the processor, again and again while things move. Every row is now a picture that's drawn once when the scene comes up; after that the browser only moves pictures.",
@@ -21511,6 +21516,7 @@ const UI_SET_ROWS = [
     ["scenecam", "Story scenes follow the pointer", "The chapter's scene shifts in depth as you move the pointer or scroll. Off keeps it still, which is lighter for the graphics card."],
     ["bg3d", "3D background", "A moving 3D picture behind the page, drawn by vanta.js. It follows the frame rate and power saving. Off is the lightest for the graphics card."],
     ["bg3dfx", "3D effect", "What moves behind the usual pages. With the Story look, each scene picks its own."],
+    ["bg3dcls", "Class backgrounds", "With a servant open, the 3D background is their class's: swords for Saber, a volley of arrows for Archer, dark fire for Avenger, and so on, in the colours of their picture."],
     ["bg3dq", "3D quality", "Light draws it small and stretches it. Full is sharper and asks about four times as much of the graphics card."]]],
   ["Your data", [
     ["export", "Backup", "Download your servants, parties and pictures, or a spreadsheet."],
@@ -21526,6 +21532,7 @@ function uiSetHTML() {
     : k === "scenecam" ? `<div class="seg set-seg" role="group" aria-label="Story scenes follow the pointer"><button type="button" data-action="scenecam" data-v="1">On</button><button type="button" data-action="scenecam" data-v="0">Off</button></div>`
     : k === "bg3d" ? `<div class="seg set-seg" role="group" aria-label="3D background"><button type="button" data-action="bg3d" data-v="1">On</button><button type="button" data-action="bg3d" data-v="0">Off</button></div><small class="bg3d-note" hidden></small>`
     : k === "bg3dfx" ? `<div class="seg set-seg set-seg-wrap" role="group" aria-label="3D effect">${[["globe", "Globe"], ["net", "Net"], ["fog", "Haze"], ["waves", "Waves"], ["clouds", "Clouds"], ["cells", "Cells"]].map((x) => `<button type="button" data-action="bg3d-fx" data-v="${x[0]}">${x[1]}</button>`).join("")}</div>`
+    : k === "bg3dcls" ? `<div class="seg set-seg" role="group" aria-label="Class backgrounds"><button type="button" data-action="bg3d-cls" data-v="1">On</button><button type="button" data-action="bg3d-cls" data-v="0">Off</button></div>`
     : k === "bg3dq" ? `<div class="seg set-seg" role="group" aria-label="3D quality"><button type="button" data-action="bg3d-q" data-v="light">Light</button><button type="button" data-action="bg3d-q" data-v="full">Full</button></div>`
     : k === "power" ? `<div class="seg set-seg" role="group" aria-label="Power saving"><button type="button" data-action="power" data-v="1">On</button><button type="button" data-action="power" data-v="0">Off</button></div>` : "";
   return `<button type="button" id="tab-settings" class="set-tab" data-action="tab" data-tab="settings" hidden tabindex="-1" aria-hidden="true">Settings</button>
@@ -23465,6 +23472,7 @@ const BG3D_PX = {globe: 1, net: 1, waves: 0.8, fog: 0.5, cells: 0.3, clouds: 0.1
 // processor, and every page of every suite would pay for it)
 const bg3dAuto = !navigator.webdriver;
 let bg3dOn = lsGet(BG3D_KEY) === "on" || (bg3dAuto && lsGet(BG3D_KEY) !== "off");
+const BG3D_BROKEN = {}; // effects that wouldn't start in this browser
 let bg3dPick = BG3D_KINDS.some((k) => k[0] === lsGet(BG3D_FX_KEY)) ? lsGet(BG3D_FX_KEY) : "globe";
 let bg3dFull = lsGet(BG3D_Q_KEY) === "full";
 let bg3d = null;       // what's running: {kind, fx, sig, sea}
@@ -23498,6 +23506,10 @@ function bg3dLoad() {
 ;
 !function(e,t){"object"==typeof exports&&"object"==typeof module?module.exports=t():"function"==typeof define&&define.amd?define([],t):"object"==typeof exports?exports._vantaEffect=t():e._vantaEffect=t()}("undefined"!=typeof self?self:this,(()=>(()=>{"use strict";var e={d:(t,i)=>{for(var o in i)e.o(i,o)&&!e.o(t,o)&&Object.defineProperty(t,o,{enumerable:!0,get:i[o]})},o:(e,t)=>Object.prototype.hasOwnProperty.call(e,t),r:e=>{"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})}},t={};e.r(t),e.d(t,{default:()=>c}),Number.prototype.clamp=function(e,t){return Math.min(Math.max(this,e),t)};function i(e){for(;e.children&&e.children.length>0;)i(e.children[0]),e.remove(e.children[0]);e.geometry&&e.geometry.dispose(),e.material&&(Object.keys(e.material).forEach((t=>{e.material[t]&&null!==e.material[t]&&"function"==typeof e.material[t].dispose&&e.material[t].dispose()})),e.material.dispose())}const o="object"==typeof window;let s=o&&window.THREE||{};o&&!window.VANTA&&(window.VANTA={});const n=o&&window.VANTA||{};n.register=(e,t)=>n[e]=e=>new t(e),n.version="0.5.24";const r=function(){return Array.prototype.unshift.call(arguments,"[VANTA]"),console.error.apply(this,arguments)};n.VantaBase=class{constructor(e={}){if(!o)return!1;n.current=this,this.windowMouseMoveWrapper=this.windowMouseMoveWrapper.bind(this),this.windowTouchWrapper=this.windowTouchWrapper.bind(this),this.windowGyroWrapper=this.windowGyroWrapper.bind(this),this.resize=this.resize.bind(this),this.animationLoop=this.animationLoop.bind(this),this.restart=this.restart.bind(this);const t="function"==typeof this.getDefaultOptions?this.getDefaultOptions():this.defaultOptions;if(this.options=Object.assign({mouseControls:!0,touchControls:!0,gyroControls:!1,minHeight:200,minWidth:200,scale:1,scaleMobile:1},t),(e instanceof HTMLElement||"string"==typeof e)&&(e={el:e}),Object.assign(this.options,e),this.options.THREE&&(s=this.options.THREE),this.el=this.options.el,null==this.el)r('Instance needs "el" param!');else if(!(this.options.el instanceof HTMLElement)){const e=this.el;if(this.el=(i=e,document.querySelector(i)),!this.el)return void r("Cannot find element",e)}var i,h;this.prepareEl(),this.initThree(),this.setSize();try{this.init()}catch(e){return r("Init error",e),this.renderer&&this.renderer.domElement&&this.el.removeChild(this.renderer.domElement),void(this.options.backgroundColor&&(console.log("[VANTA] Falling back to backgroundColor"),this.el.style.background=(h=this.options.backgroundColor,"number"==typeof h?"#"+("00000"+h.toString(16)).slice(-6):h)))}this.initMouse(),this.resize(),this.animationLoop();const a=window.addEventListener;a("resize",this.resize),window.requestAnimationFrame(this.resize),this.options.mouseControls&&(a("scroll",this.windowMouseMoveWrapper),a("mousemove",this.windowMouseMoveWrapper)),this.options.touchControls&&(a("touchstart",this.windowTouchWrapper),a("touchmove",this.windowTouchWrapper)),this.options.gyroControls&&a("deviceorientation",this.windowGyroWrapper)}setOptions(e={}){Object.assign(this.options,e),this.triggerMouseMove()}prepareEl(){let e,t;if("undefined"!=typeof Node&&Node.TEXT_NODE)for(e=0;e<this.el.childNodes.length;e++){const t=this.el.childNodes[e];if(t.nodeType===Node.TEXT_NODE){const e=document.createElement("span");e.textContent=t.textContent,t.parentElement.insertBefore(e,t),t.remove()}}for(e=0;e<this.el.children.length;e++)t=this.el.children[e],"static"===getComputedStyle(t).position&&(t.style.position="relative"),"auto"===getComputedStyle(t).zIndex&&(t.style.zIndex=1);"static"===getComputedStyle(this.el).position&&(this.el.style.position="relative")}applyCanvasStyles(e,t={}){Object.assign(e.style,{position:"absolute",zIndex:0,top:0,left:0,background:""}),Object.assign(e.style,t),e.classList.add("vanta-canvas")}initThree(){s.WebGLRenderer?(this.renderer=new s.WebGLRenderer({alpha:!0,antialias:!0}),this.el.appendChild(this.renderer.domElement),this.applyCanvasStyles(this.renderer.domElement),isNaN(this.options.backgroundAlpha)&&(this.options.backgroundAlpha=1),this.scene=new s.Scene):console.warn("[VANTA] No THREE defined on window")}getCanvasElement(){return this.renderer?this.renderer.domElement:this.p5renderer?this.p5renderer.canvas:void 0}getCanvasRect(){const e=this.getCanvasElement();return!!e&&e.getBoundingClientRect()}windowMouseMoveWrapper(e){const t=this.getCanvasRect();if(!t)return!1;const i=e.clientX-t.left,o=e.clientY-t.top;i>=0&&o>=0&&i<=t.width&&o<=t.height&&(this.mouseX=i,this.mouseY=o,this.options.mouseEase||this.triggerMouseMove(i,o))}windowTouchWrapper(e){const t=this.getCanvasRect();if(!t)return!1;if(1===e.touches.length){const i=e.touches[0].clientX-t.left,o=e.touches[0].clientY-t.top;i>=0&&o>=0&&i<=t.width&&o<=t.height&&(this.mouseX=i,this.mouseY=o,this.options.mouseEase||this.triggerMouseMove(i,o))}}windowGyroWrapper(e){const t=this.getCanvasRect();if(!t)return!1;const i=Math.round(2*e.alpha)-t.left,o=Math.round(2*e.beta)-t.top;i>=0&&o>=0&&i<=t.width&&o<=t.height&&(this.mouseX=i,this.mouseY=o,this.options.mouseEase||this.triggerMouseMove(i,o))}triggerMouseMove(e,t){void 0===e&&void 0===t&&(this.options.mouseEase?(e=this.mouseEaseX,t=this.mouseEaseY):(e=this.mouseX,t=this.mouseY)),this.uniforms&&(this.uniforms.iMouse.value.x=e/this.scale,this.uniforms.iMouse.value.y=t/this.scale);const i=e/this.width,o=t/this.height;"function"==typeof this.onMouseMove&&this.onMouseMove(i,o)}setSize(){this.scale||(this.scale=1),"undefined"!=typeof navigator&&(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)||window.innerWidth<600)&&this.options.scaleMobile?this.scale=this.options.scaleMobile:this.options.scale&&(this.scale=this.options.scale),this.width=Math.max(this.el.offsetWidth,this.options.minWidth),this.height=Math.max(this.el.offsetHeight,this.options.minHeight)}initMouse(){(!this.mouseX&&!this.mouseY||this.mouseX===this.options.minWidth/2&&this.mouseY===this.options.minHeight/2)&&(this.mouseX=this.width/2,this.mouseY=this.height/2,this.triggerMouseMove(this.mouseX,this.mouseY))}resize(){this.setSize(),this.camera&&(this.camera.aspect=this.width/this.height,"function"==typeof this.camera.updateProjectionMatrix&&this.camera.updateProjectionMatrix()),this.renderer&&(this.renderer.setSize(this.width,this.height),this.renderer.setPixelRatio(window.devicePixelRatio/this.scale)),"function"==typeof this.onResize&&this.onResize()}isOnScreen(){const e=this.el.offsetHeight,t=this.el.getBoundingClientRect(),i=window.pageYOffset||(document.documentElement||document.body.parentNode||document.body).scrollTop,o=t.top+i;return o-window.innerHeight<=i&&i<=o+e}animationLoop(){this.t||(this.t=0),this.t2||(this.t2=0);const e=performance.now();if(this.prevNow){let t=(e-this.prevNow)/(1e3/60);t=Math.max(.2,Math.min(t,5)),this.t+=t,this.t2+=(this.options.speed||1)*t,this.uniforms&&(this.uniforms.iTime.value=.016667*this.t2)}return this.prevNow=e,this.options.mouseEase&&(this.mouseEaseX=this.mouseEaseX||this.mouseX||0,this.mouseEaseY=this.mouseEaseY||this.mouseY||0,Math.abs(this.mouseEaseX-this.mouseX)+Math.abs(this.mouseEaseY-this.mouseY)>.1&&(this.mouseEaseX+=.05*(this.mouseX-this.mouseEaseX),this.mouseEaseY+=.05*(this.mouseY-this.mouseEaseY),this.triggerMouseMove(this.mouseEaseX,this.mouseEaseY))),(this.isOnScreen()||this.options.forceAnimate)&&("function"==typeof this.onUpdate&&this.onUpdate(),this.scene&&this.camera&&(this.renderer.render(this.scene,this.camera),this.renderer.setClearColor(this.options.backgroundColor,this.options.backgroundAlpha)),this.fps&&this.fps.update&&this.fps.update(),"function"==typeof this.afterRender&&this.afterRender()),this.req=window.requestAnimationFrame(this.animationLoop)}restart(){if(this.scene)for(;this.scene.children.length;)this.scene.remove(this.scene.children[0]);"function"==typeof this.onRestart&&this.onRestart(),this.init()}init(){"function"==typeof this.onInit&&this.onInit()}destroy(){"function"==typeof this.onDestroy&&this.onDestroy();const e=window.removeEventListener;e("touchstart",this.windowTouchWrapper),e("touchmove",this.windowTouchWrapper),e("scroll",this.windowMouseMoveWrapper),e("mousemove",this.windowMouseMoveWrapper),e("deviceorientation",this.windowGyroWrapper),e("resize",this.resize),window.cancelAnimationFrame(this.req);const t=this.scene;t&&t.children&&i(t),this.renderer&&(this.renderer.domElement&&this.el.removeChild(this.renderer.domElement),this.renderer=null,this.scene=null),n.current===this&&(n.current=null)}};const h=n.VantaBase;let a="object"==typeof window&&window.THREE;class l extends h{constructor(e){a=e.THREE||a,a.Color.prototype.toVector=function(){return new a.Vector3(this.r,this.g,this.b)},super(e),this.updateUniforms=this.updateUniforms.bind(this)}init(){this.mode="shader",this.uniforms={iTime:{type:"f",value:1},iResolution:{type:"v2",value:new a.Vector2(1,1)},iDpr:{type:"f",value:window.devicePixelRatio||1},iMouse:{type:"v2",value:new a.Vector2(this.mouseX||0,this.mouseY||0)}},super.init(),this.fragmentShader&&this.initBasicShader()}setOptions(e){super.setOptions(e),this.updateUniforms()}initBasicShader(e=this.fragmentShader,t=this.vertexShader){t||(t="uniform float uTime;\nuniform vec2 uResolution;\nvoid main() {\n  gl_Position = vec4( position, 1.0 );\n}"),this.updateUniforms(),"function"==typeof this.valuesChanger&&this.valuesChanger();const i=new a.ShaderMaterial({uniforms:this.uniforms,vertexShader:t,fragmentShader:e}),o=this.options.texturePath;o&&(this.uniforms.iTex={type:"t",value:(new a.TextureLoader).load(o)});const s=new a.Mesh(new a.PlaneGeometry(2,2),i);this.scene.add(s),this.camera=new a.Camera,this.camera.position.z=1}updateUniforms(){const e={};let t,i;for(t in this.options)i=this.options[t],-1!==t.toLowerCase().indexOf("color")?e[t]={type:"v3",value:new a.Color(i).toVector()}:"number"==typeof i&&(e[t]={type:"f",value:i});return Object.assign(this.uniforms,e)}resize(){super.resize(),this.uniforms.iResolution.value.x=this.width/this.scale,this.uniforms.iResolution.value.y=this.height/this.scale}}class u extends l{}const c=n.register("CELLS",u);return u.prototype.defaultOptions={color1:35980,color2:15918901,backgroundColor:14155663,amplitudeFactor:1,ringFactor:1,rotationFactor:1,size:1.5,speed:1,scaleMobile:3},u.prototype.fragmentShader="uniform vec2 iResolution;\nuniform vec2 iMouse;\nuniform float iTime;\n\nuniform float blurFactor;\nuniform vec3 color1;\nuniform vec3 color2;\nuniform vec3 backgroundColor;\nuniform float size;\nuniform float amplitudeFactor;\nuniform float ringFactor;\nuniform float rotationFactor;\n\nfloat length2(vec2 p) { return dot(p, p); }\n\nfloat noise(vec2 p){\n    return fract(sin(fract(sin(p.x) * (43.13311)) + p.y) * 31.0011);\n}\n\nfloat worley(vec2 p) {\n    float d = 1e30;\n    for (int xo = -1; xo <= 1; ++xo) {\n        for (int yo = -1; yo <= 1; ++yo) {\n            vec2 tp = floor(p) + vec2(xo, yo);\n            d = min(d, length2(p - tp - vec2(noise(tp))));\n        }\n    }\n    vec2 uv = gl_FragCoord.xy / iResolution.xy;\n    float timeOffset =  0.15 * sin(iTime * 2.0 + 10.0*(uv.x - uv.y));\n    return 3.0*exp(-4.0*abs(2.0*d - 1.0 + timeOffset));\n}\n\nfloat fworley(vec2 p) {\n    return sqrt(sqrt(sqrt(\n    1.1 * // light\n    worley(p*5. + .3 + iTime*.0525) *\n    sqrt(worley(p * 50. / size + 0.3 + iTime * -0.15)) *\n    sqrt(sqrt(worley(p * -10. + 9.3))))));\n}\n\nvoid main() {\n    vec2 uv = gl_FragCoord.xy / iResolution.xy;\n    float t = fworley(uv * iResolution.xy / 1500.0);\n    t *= exp(-length2(abs(0.7*uv - 1.0)));\n\n    float tExp = pow(t, 0.5 - t);\n    vec3 c1 = color1 * (1.0 - t);\n    vec3 c2 = color2 * tExp;\n\n    gl_FragColor = vec4(pow(t, 1.0 - t) * (c1 + c2), 1.0);\n}\n",t})()));
 ;
+!function(e,t){"object"==typeof exports&&"object"==typeof module?module.exports=t():"function"==typeof define&&define.amd?define([],t):"object"==typeof exports?exports._vantaEffect=t():e._vantaEffect=t()}("undefined"!=typeof self?self:this,(()=>(()=>{"use strict";var e={d:(t,i)=>{for(var n in i)e.o(i,n)&&!e.o(t,n)&&Object.defineProperty(t,n,{enumerable:!0,get:i[n]})},o:(e,t)=>Object.prototype.hasOwnProperty.call(e,t),r:e=>{"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})}},t={};function i(){return"undefined"!=typeof navigator?/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)||window.innerWidth<600:null}e.r(t),e.d(t,{default:()=>P}),Number.prototype.clamp=function(e,t){return Math.min(Math.max(this,e),t)};function n(e){for(;e.children&&e.children.length>0;)n(e.children[0]),e.remove(e.children[0]);e.geometry&&e.geometry.dispose(),e.material&&(Object.keys(e.material).forEach((t=>{e.material[t]&&null!==e.material[t]&&"function"==typeof e.material[t].dispose&&e.material[t].dispose()})),e.material.dispose())}const o="object"==typeof window;let s=o&&window.THREE||{};o&&!window.VANTA&&(window.VANTA={});const r=o&&window.VANTA||{};r.register=(e,t)=>r[e]=e=>new t(e),r.version="0.5.24";const a=function(){return Array.prototype.unshift.call(arguments,"[VANTA]"),console.error.apply(this,arguments)};r.VantaBase=class{constructor(e={}){if(!o)return!1;r.current=this,this.windowMouseMoveWrapper=this.windowMouseMoveWrapper.bind(this),this.windowTouchWrapper=this.windowTouchWrapper.bind(this),this.windowGyroWrapper=this.windowGyroWrapper.bind(this),this.resize=this.resize.bind(this),this.animationLoop=this.animationLoop.bind(this),this.restart=this.restart.bind(this);const t="function"==typeof this.getDefaultOptions?this.getDefaultOptions():this.defaultOptions;if(this.options=Object.assign({mouseControls:!0,touchControls:!0,gyroControls:!1,minHeight:200,minWidth:200,scale:1,scaleMobile:1},t),(e instanceof HTMLElement||"string"==typeof e)&&(e={el:e}),Object.assign(this.options,e),this.options.THREE&&(s=this.options.THREE),this.el=this.options.el,null==this.el)a('Instance needs "el" param!');else if(!(this.options.el instanceof HTMLElement)){const e=this.el;if(this.el=(i=e,document.querySelector(i)),!this.el)return void a("Cannot find element",e)}var i,n;this.prepareEl(),this.initThree(),this.setSize();try{this.init()}catch(e){return a("Init error",e),this.renderer&&this.renderer.domElement&&this.el.removeChild(this.renderer.domElement),void(this.options.backgroundColor&&(console.log("[VANTA] Falling back to backgroundColor"),this.el.style.background=(n=this.options.backgroundColor,"number"==typeof n?"#"+("00000"+n.toString(16)).slice(-6):n)))}this.initMouse(),this.resize(),this.animationLoop();const l=window.addEventListener;l("resize",this.resize),window.requestAnimationFrame(this.resize),this.options.mouseControls&&(l("scroll",this.windowMouseMoveWrapper),l("mousemove",this.windowMouseMoveWrapper)),this.options.touchControls&&(l("touchstart",this.windowTouchWrapper),l("touchmove",this.windowTouchWrapper)),this.options.gyroControls&&l("deviceorientation",this.windowGyroWrapper)}setOptions(e={}){Object.assign(this.options,e),this.triggerMouseMove()}prepareEl(){let e,t;if("undefined"!=typeof Node&&Node.TEXT_NODE)for(e=0;e<this.el.childNodes.length;e++){const t=this.el.childNodes[e];if(t.nodeType===Node.TEXT_NODE){const e=document.createElement("span");e.textContent=t.textContent,t.parentElement.insertBefore(e,t),t.remove()}}for(e=0;e<this.el.children.length;e++)t=this.el.children[e],"static"===getComputedStyle(t).position&&(t.style.position="relative"),"auto"===getComputedStyle(t).zIndex&&(t.style.zIndex=1);"static"===getComputedStyle(this.el).position&&(this.el.style.position="relative")}applyCanvasStyles(e,t={}){Object.assign(e.style,{position:"absolute",zIndex:0,top:0,left:0,background:""}),Object.assign(e.style,t),e.classList.add("vanta-canvas")}initThree(){s.WebGLRenderer?(this.renderer=new s.WebGLRenderer({alpha:!0,antialias:!0}),this.el.appendChild(this.renderer.domElement),this.applyCanvasStyles(this.renderer.domElement),isNaN(this.options.backgroundAlpha)&&(this.options.backgroundAlpha=1),this.scene=new s.Scene):console.warn("[VANTA] No THREE defined on window")}getCanvasElement(){return this.renderer?this.renderer.domElement:this.p5renderer?this.p5renderer.canvas:void 0}getCanvasRect(){const e=this.getCanvasElement();return!!e&&e.getBoundingClientRect()}windowMouseMoveWrapper(e){const t=this.getCanvasRect();if(!t)return!1;const i=e.clientX-t.left,n=e.clientY-t.top;i>=0&&n>=0&&i<=t.width&&n<=t.height&&(this.mouseX=i,this.mouseY=n,this.options.mouseEase||this.triggerMouseMove(i,n))}windowTouchWrapper(e){const t=this.getCanvasRect();if(!t)return!1;if(1===e.touches.length){const i=e.touches[0].clientX-t.left,n=e.touches[0].clientY-t.top;i>=0&&n>=0&&i<=t.width&&n<=t.height&&(this.mouseX=i,this.mouseY=n,this.options.mouseEase||this.triggerMouseMove(i,n))}}windowGyroWrapper(e){const t=this.getCanvasRect();if(!t)return!1;const i=Math.round(2*e.alpha)-t.left,n=Math.round(2*e.beta)-t.top;i>=0&&n>=0&&i<=t.width&&n<=t.height&&(this.mouseX=i,this.mouseY=n,this.options.mouseEase||this.triggerMouseMove(i,n))}triggerMouseMove(e,t){void 0===e&&void 0===t&&(this.options.mouseEase?(e=this.mouseEaseX,t=this.mouseEaseY):(e=this.mouseX,t=this.mouseY)),this.uniforms&&(this.uniforms.iMouse.value.x=e/this.scale,this.uniforms.iMouse.value.y=t/this.scale);const i=e/this.width,n=t/this.height;"function"==typeof this.onMouseMove&&this.onMouseMove(i,n)}setSize(){this.scale||(this.scale=1),i()&&this.options.scaleMobile?this.scale=this.options.scaleMobile:this.options.scale&&(this.scale=this.options.scale),this.width=Math.max(this.el.offsetWidth,this.options.minWidth),this.height=Math.max(this.el.offsetHeight,this.options.minHeight)}initMouse(){(!this.mouseX&&!this.mouseY||this.mouseX===this.options.minWidth/2&&this.mouseY===this.options.minHeight/2)&&(this.mouseX=this.width/2,this.mouseY=this.height/2,this.triggerMouseMove(this.mouseX,this.mouseY))}resize(){this.setSize(),this.camera&&(this.camera.aspect=this.width/this.height,"function"==typeof this.camera.updateProjectionMatrix&&this.camera.updateProjectionMatrix()),this.renderer&&(this.renderer.setSize(this.width,this.height),this.renderer.setPixelRatio(window.devicePixelRatio/this.scale)),"function"==typeof this.onResize&&this.onResize()}isOnScreen(){const e=this.el.offsetHeight,t=this.el.getBoundingClientRect(),i=window.pageYOffset||(document.documentElement||document.body.parentNode||document.body).scrollTop,n=t.top+i;return n-window.innerHeight<=i&&i<=n+e}animationLoop(){this.t||(this.t=0),this.t2||(this.t2=0);const e=performance.now();if(this.prevNow){let t=(e-this.prevNow)/(1e3/60);t=Math.max(.2,Math.min(t,5)),this.t+=t,this.t2+=(this.options.speed||1)*t,this.uniforms&&(this.uniforms.iTime.value=.016667*this.t2)}return this.prevNow=e,this.options.mouseEase&&(this.mouseEaseX=this.mouseEaseX||this.mouseX||0,this.mouseEaseY=this.mouseEaseY||this.mouseY||0,Math.abs(this.mouseEaseX-this.mouseX)+Math.abs(this.mouseEaseY-this.mouseY)>.1&&(this.mouseEaseX+=.05*(this.mouseX-this.mouseEaseX),this.mouseEaseY+=.05*(this.mouseY-this.mouseEaseY),this.triggerMouseMove(this.mouseEaseX,this.mouseEaseY))),(this.isOnScreen()||this.options.forceAnimate)&&("function"==typeof this.onUpdate&&this.onUpdate(),this.scene&&this.camera&&(this.renderer.render(this.scene,this.camera),this.renderer.setClearColor(this.options.backgroundColor,this.options.backgroundAlpha)),this.fps&&this.fps.update&&this.fps.update(),"function"==typeof this.afterRender&&this.afterRender()),this.req=window.requestAnimationFrame(this.animationLoop)}restart(){if(this.scene)for(;this.scene.children.length;)this.scene.remove(this.scene.children[0]);"function"==typeof this.onRestart&&this.onRestart(),this.init()}init(){"function"==typeof this.onInit&&this.onInit()}destroy(){"function"==typeof this.onDestroy&&this.onDestroy();const e=window.removeEventListener;e("touchstart",this.windowTouchWrapper),e("touchmove",this.windowTouchWrapper),e("scroll",this.windowMouseMoveWrapper),e("mousemove",this.windowMouseMoveWrapper),e("deviceorientation",this.windowGyroWrapper),e("resize",this.resize),window.cancelAnimationFrame(this.req);const t=this.scene;t&&t.children&&n(t),this.renderer&&(this.renderer.domElement&&this.el.removeChild(this.renderer.domElement),this.renderer=null,this.scene=null),r.current===this&&(r.current=null)}};const l=r.VantaBase;let h="object"==typeof window&&window.THREE,{Camera:c,ClampToEdgeWrapping:d,DataTexture:u,FloatType:p,Mesh:m,NearestFilter:f,PlaneBufferGeometry:v,RGBAFormat:y,Scene:g,ShaderMaterial:w,WebGLRenderTarget:b}=h||{};const x=function(e,t,i,n){n&&({Camera:c,ClampToEdgeWrapping:d,DataTexture:u,FloatType:p,Mesh:m,NearestFilter:f,PlaneBufferGeometry:v,RGBAFormat:y,Scene:g,ShaderMaterial:w,WebGLRenderTarget:b}=n),this.variables=[],this.currentTextureIndex=0;var o=p,s=new g,r=new c;r.position.z=1;var a={passThruTexture:{value:null}},l=T("uniform sampler2D passThruTexture;\n\nvoid main() {\n\n\tvec2 uv = gl_FragCoord.xy / resolution.xy;\n\n\tgl_FragColor = texture2D( passThruTexture, uv );\n\n}\n",a),h=new m(new v(2,2),l);function x(i){i.defines.resolution="vec2( "+e.toFixed(1)+", "+t.toFixed(1)+" )"}function T(e,t){var i=new w({uniforms:t=t||{},vertexShader:"void main()\t{\n\n\tgl_Position = vec4( position, 1.0 );\n\n}\n",fragmentShader:e});return x(i),i}s.add(h),this.setDataType=function(e){return o=e,this},this.addVariable=function(e,t,i){var n={name:e,initialValueTexture:i,material:this.createShaderMaterial(t),dependencies:null,renderTargets:[],wrapS:null,wrapT:null,minFilter:f,magFilter:f};return this.variables.push(n),n},this.setVariableDependencies=function(e,t){e.dependencies=t},this.init=function(){if(!i.capabilities.isWebGL2&&!i.extensions.get("OES_texture_float"))return"No OES_texture_float support for float textures.";if(0===i.capabilities.maxVertexTextures)return"No support for vertex shader textures.";for(var n=0;n<this.variables.length;n++){var o=this.variables[n];o.renderTargets[0]=this.createRenderTarget(e,t,o.wrapS,o.wrapT,o.minFilter,o.magFilter),o.renderTargets[1]=this.createRenderTarget(e,t,o.wrapS,o.wrapT,o.minFilter,o.magFilter),this.renderTexture(o.initialValueTexture,o.renderTargets[0]),this.renderTexture(o.initialValueTexture,o.renderTargets[1]);var s=o.material,r=s.uniforms;if(null!==o.dependencies)for(var a=0;a<o.dependencies.length;a++){var l=o.dependencies[a];if(l.name!==o.name){for(var h=!1,c=0;c<this.variables.length;c++)if(l.name===this.variables[c].name){h=!0;break}if(!h)return"Variable dependency not found. Variable="+o.name+", dependency="+l.name}r[l.name]={value:null},s.fragmentShader="\nuniform sampler2D "+l.name+";\n"+s.fragmentShader}}return this.currentTextureIndex=0,null},this.compute=function(){for(var e=this.currentTextureIndex,t=0===this.currentTextureIndex?1:0,i=0,n=this.variables.length;i<n;i++){var o=this.variables[i];if(null!==o.dependencies)for(var s=o.material.uniforms,r=0,a=o.dependencies.length;r<a;r++){var l=o.dependencies[r];s[l.name].value=l.renderTargets[e].texture}this.doRenderTarget(o.material,o.renderTargets[t])}this.currentTextureIndex=t},this.getCurrentRenderTarget=function(e){return e.renderTargets[this.currentTextureIndex]},this.getAlternateRenderTarget=function(e){return e.renderTargets[0===this.currentTextureIndex?1:0]},this.addResolutionDefine=x,this.createShaderMaterial=T,this.createRenderTarget=function(i,n,s,r,a,l){return new b(i=i||e,n=n||t,{wrapS:s=s||d,wrapT:r=r||d,minFilter:a=a||f,magFilter:l=l||f,format:y,type:o,stencilBuffer:!1,depthBuffer:!1})},this.createTexture=function(){var i=new Float32Array(e*t*4);return new u(i,e,t,y,p)},this.renderTexture=function(e,t){a.passThruTexture.value=e,this.doRenderTarget(l,t),a.passThruTexture.value=null},this.doRenderTarget=function(e,t){var n=i.getRenderTarget();h.material=e,i.setRenderTarget(t),i.render(s,r),h.material=l,i.setRenderTarget(n)}};let T="object"==typeof window&&window.THREE;const M=!i();let z=32,S=z*z;const C=800,V=(e={})=>{const t=new T.BufferGeometry,i=[];function n(t,n,o){const s=1.5*(e.birdSize||1);i.push(new T.Vector3(t*s,n*s,o*s))}n(5,0,0),n(-5,-1,1),n(-5,0,0),n(-5,-2,-1),n(0,2,-6),n(0,2,6),n(2,0,0),n(-3,0,0),t.setFromPoints(i);const o=[];return o.push(0,2,1),o.push(4,7,6),o.push(5,6,7),t.setIndex(o),t};class R{constructor(e){var t,i,n=new T.Vector3,o=500,s=500,r=200,a=.1,l=e;this.position=new T.Vector3,this.velocity=new T.Vector3,t=new T.Vector3,this.setGoal=function(e){i=e},this.setWorldSize=function(e,t,i){o=e,s=t,r=i},this.run=function(e){n.set(-o,this.position.y,this.position.z),(n=this.avoid(n)).multiplyScalar(5),t.add(n),n.set(o,this.position.y,this.position.z),(n=this.avoid(n)).multiplyScalar(5),t.add(n),n.set(this.position.x,-s,this.position.z),(n=this.avoid(n)).multiplyScalar(5),t.add(n),n.set(this.position.x,s,this.position.z),(n=this.avoid(n)).multiplyScalar(5),t.add(n),n.set(this.position.x,this.position.y,-r),(n=this.avoid(n)).multiplyScalar(5),t.add(n),n.set(this.position.x,this.position.y,r),(n=this.avoid(n)).multiplyScalar(5),t.add(n),Math.random()>.5&&this.flock(e),this.move()},this.flock=function(e){i&&t.add(this.reach(i,.005)),t.add(this.alignment(e)),t.add(this.cohesion(e)),t.add(this.separation(e))},this.move=function(){this.velocity.add(t);var e=this.velocity.length();e>2.5&&this.velocity.divideScalar(e/2.5),this.position.add(this.velocity),t.set(0,0,0)},this.checkBounds=function(){this.position.x>o&&(this.position.x=-o),this.position.x<-o&&(this.position.x=o),this.position.y>s&&(this.position.y=-s),this.position.y<-s&&(this.position.y=s),this.position.z>r&&(this.position.z=-r),this.position.z<-r&&(this.position.z=r)},this.avoid=function(e){var t=new T.Vector3;return t.copy(this.position),t.sub(e),t.multiplyScalar(1/this.position.distanceToSquared(e)),t},this.repulse=function(e){var i=this.position.distanceTo(e);if(i<150){var n=new T.Vector3;n.subVectors(this.position,e),n.multiplyScalar(.5/i),t.add(n)}},this.reach=function(e,t){var i=new T.Vector3;return i.subVectors(e,this.position),i.multiplyScalar(t),i},this.alignment=function(e){var t,i,n=new T.Vector3,o=0;const s=100*l.alignment/20;for(var r=0,h=e.length;r<h;r++)Math.random()>.6||(i=(t=e[r]).position.distanceTo(this.position))>0&&i<=s&&(n.add(t.velocity),o++);if(o>0){n.divideScalar(o);var c=n.length();c>a&&n.divideScalar(c/a)}return n},this.cohesion=function(e){var t,i,n=new T.Vector3,o=new T.Vector3,s=0;const r=100*l.cohesion/20;for(var h=0,c=e.length;h<c;h++)Math.random()>.6||(i=(t=e[h]).position.distanceTo(this.position))>0&&i<=r&&(n.add(t.position),s++);s>0&&n.divideScalar(s),o.subVectors(n,this.position);var d=o.length();return d>a&&o.divideScalar(d/a),o},this.separation=function(e){var t,i,n=new T.Vector3,o=new T.Vector3;const s=100*l.separation/20;for(var r=0,a=e.length;r<a;r++)Math.random()>.6||(i=(t=e[r]).position.distanceTo(this.position))>0&&i<=s&&(o.subVectors(this.position,t.position),o.normalize(),o.divideScalar(i),n.add(o));return n}}}class E extends l{static initClass(){this.prototype.defaultOptions={backgroundColor:465199,color1:16711680,color2:53759,colorMode:"varianceGradient",birdSize:1,wingSpan:30,speedLimit:5,separation:20,alignment:20,cohesion:20,quantity:5}}constructor(e){T=e.THREE||T,super(e)}initComputeRenderer(){this.gpuCompute=new x(z,z,this.renderer,T);const e=this.gpuCompute.createTexture(),t=this.gpuCompute.createTexture();!function(e){const t=e.image.data;let i=0;const n=t.length;(()=>{const e=[];for(;i<n;){const n=Math.random()*C-400,o=Math.random()*C-400,s=Math.random()*C-400;t[i+0]=n,t[i+1]=o,t[i+2]=s,t[i+3]=1,e.push(i+=4)}})()}(e),function(e){const t=e.image.data;let i=0;const n=t.length;(()=>{const e=[];for(;i<n;){const n=Math.random()-.5,o=Math.random()-.5,s=Math.random()-.5;t[i+0]=10*n,t[i+1]=10*o,t[i+2]=10*s,t[i+3]=1,e.push(i+=4)}})()}(t),this.velocityVariable=this.gpuCompute.addVariable("textureVelocity","uniform float time;\nuniform float testing;\nuniform float delta; // about 0.016\nuniform float separationDistance; // 20\nuniform float alignmentDistance; // 40\nuniform float cohesionDistance;\nuniform float speedLimit;\nuniform float freedomFactor;\nuniform vec3 predator;\n\nconst float width = resolution.x;\nconst float height = resolution.y;\n\nconst float PI = 3.141592653589793;\nconst float PI_2 = PI * 2.0;\n// const float VISION = PI * 0.55;\n\nfloat zoneRadius = 40.0;\nfloat zoneRadiusSquared = 1600.0;\n\nfloat separationThresh = 0.45;\nfloat alignmentThresh = 0.65;\n\nconst float UPPER_BOUNDS = BOUNDS;\nconst float LOWER_BOUNDS = -UPPER_BOUNDS;\n\nfloat rand(vec2 co){\n  return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);\n}\n\nvoid main() {\n\n  zoneRadius = separationDistance + alignmentDistance + cohesionDistance;\n  separationThresh = separationDistance / zoneRadius;\n  alignmentThresh = ( separationDistance + alignmentDistance ) / zoneRadius;\n  zoneRadiusSquared = zoneRadius * zoneRadius;\n\n\n  vec2 uv = gl_FragCoord.xy / resolution.xy;\n  vec3 birdPosition, birdVelocity;\n\n  vec3 selfPosition = texture2D( texturePosition, uv ).xyz;\n  vec3 selfVelocity = texture2D( textureVelocity, uv ).xyz;\n\n  float dist;\n  vec3 dir; // direction\n  float distSquared;\n\n  float separationSquared = separationDistance * separationDistance;\n  float cohesionSquared = cohesionDistance * cohesionDistance;\n\n  float f;\n  float percent;\n\n  vec3 velocity = selfVelocity;\n\n  float limit = speedLimit;\n\n  dir = predator * UPPER_BOUNDS - selfPosition;\n  dir.z = 0.;\n  // dir.z *= 0.6;\n  dist = length( dir );\n  distSquared = dist * dist;\n\n  float preyRadius = 150.0;\n  float preyRadiusSq = preyRadius * preyRadius;\n\n  // move birds away from predator\n  if (dist < preyRadius) {\n\n    f = ( distSquared / preyRadiusSq - 1.0 ) * delta * 100.;\n    velocity += normalize( dir ) * f;\n    limit += 5.0;\n  }\n\n  // if (testing == 0.0) {}\n  // if ( rand( uv + time ) < freedomFactor ) {}\n\n  // Attract flocks to the center\n  vec3 central = vec3( 0., 0., 0. );\n  dir = selfPosition - central;\n  dist = length( dir );\n\n  dir.y *= 2.5;\n  velocity -= normalize( dir ) * delta * 5.;\n\n  for (float y=0.0;y<height;y++) {\n    for (float x=0.0;x<width;x++) {\n\n      vec2 ref = vec2( x + 0.5, y + 0.5 ) / resolution.xy;\n      birdPosition = texture2D( texturePosition, ref ).xyz;\n\n      dir = birdPosition - selfPosition;\n      dist = length(dir);\n\n      if (dist < 0.0001) continue;\n\n      distSquared = dist * dist;\n\n      if (distSquared > zoneRadiusSquared ) continue;\n\n      percent = distSquared / zoneRadiusSquared;\n\n      if ( percent < separationThresh ) { // low\n\n        // Separation - Move apart for comfort\n        f = (separationThresh / percent - 1.0) * delta;\n        velocity -= normalize(dir) * f;\n\n      } else if ( percent < alignmentThresh ) { // high\n\n        // Alignment - fly the same direction\n        float threshDelta = alignmentThresh - separationThresh;\n        float adjustedPercent = ( percent - separationThresh ) / threshDelta;\n\n        birdVelocity = texture2D( textureVelocity, ref ).xyz;\n\n        f = ( 0.5 - cos( adjustedPercent * PI_2 ) * 0.5 + 0.5 ) * delta;\n        velocity += normalize(birdVelocity) * f;\n\n      } else {\n\n        // Attraction / Cohesion - move closer\n        float threshDelta = 1.0 - alignmentThresh;\n        float adjustedPercent = ( percent - alignmentThresh ) / threshDelta;\n\n        f = ( 0.5 - ( cos( adjustedPercent * PI_2 ) * -0.5 + 0.5 ) ) * delta;\n\n        velocity += normalize(dir) * f;\n\n      }\n    }\n  }\n\n  // this make tends to fly around than down or up\n  // if (velocity.y > 0.) velocity.y *= (1. - 0.2 * delta);\n\n  // Speed Limits\n  if ( length( velocity ) > limit ) {\n    velocity = normalize( velocity ) * limit;\n  }\n\n  gl_FragColor = vec4( velocity, 1.0 );\n\n}",t),this.positionVariable=this.gpuCompute.addVariable("texturePosition","uniform float time;\nuniform float delta;\n\nvoid main() {\n\n  vec2 uv = gl_FragCoord.xy / resolution.xy;\n  vec4 tmpPos = texture2D( texturePosition, uv );\n  vec3 position = tmpPos.xyz;\n  vec3 velocity = texture2D( textureVelocity, uv ).xyz;\n\n  float phase = tmpPos.w;\n\n  phase = mod( ( phase + delta +\n    length( velocity.xz ) * delta * 3. +\n    max( velocity.y, 0.0 ) * delta * 6. ), 62.83 );\n\n  gl_FragColor = vec4( position + velocity * delta * 15. , phase );\n\n}",e),this.gpuCompute.setVariableDependencies(this.velocityVariable,[this.positionVariable,this.velocityVariable]),this.gpuCompute.setVariableDependencies(this.positionVariable,[this.positionVariable,this.velocityVariable]),this.positionUniforms=this.positionVariable.material.uniforms,this.velocityUniforms=this.velocityVariable.material.uniforms,this.positionUniforms.time={value:0},this.positionUniforms.delta={value:0},this.velocityUniforms.time={value:1},this.velocityUniforms.delta={value:0},this.velocityUniforms.testing={value:1},this.velocityUniforms.separationDistance={value:1},this.velocityUniforms.alignmentDistance={value:1},this.velocityUniforms.cohesionDistance={value:1},this.velocityUniforms.speedLimit={value:1},this.velocityUniforms.freedomFactor={value:1},this.velocityUniforms.predator={value:new T.Vector3},this.velocityVariable.material.defines.BOUNDS=C.toFixed(2),this.velocityVariable.wrapS=T.RepeatWrapping,this.velocityVariable.wrapT=T.RepeatWrapping,this.positionVariable.wrapS=T.RepeatWrapping,this.positionVariable.wrapT=T.RepeatWrapping;const i=this.gpuCompute.init();null!==i&&console.error(i)}initGpgpuBirds(){const e=(e=>{const t=new T.BufferGeometry;e.quantity&&(z=Math.pow(2,e.quantity),S=z*z);const i=3*S,n=3*i,o=new T.BufferAttribute(new Float32Array(3*n),3),s=new T.BufferAttribute(new Float32Array(3*n),3),r=new T.BufferAttribute(new Float32Array(2*n),2),a=new T.BufferAttribute(new Float32Array(n),1);t.setAttribute||(t.setAttribute=t.addAttribute),t.setAttribute("position",o),t.setAttribute("birdColor",s),t.setAttribute("reference",r),t.setAttribute("birdVertex",a);let l=0;const h=function(){for(let e=0;e<arguments.length;e++)o.array[l++]=arguments[e]},c=e.wingSpan||20,d=e.birdSize||1;for(let e=0;e<S;e++)h(0,-0,-20*d,0,4*d,-20*d,0,0,30*d),h(0,0,-15*d,-c*d,0,0,0,0,15*d),h(0,0,15*d,c*d,0,0,0,0,-15*d);const u={};for(l=0;l<3*i;l++){const t=~~(l/3),i=t%z/z,n=~~(t/z)/z,o=~~(l/9)/S,h=o.toString(),c=-1!=e.colorMode.indexOf("Gradient");let d;d=!c&&u[h]?u[h]:e.effect.getNewCol(o),c||u[h]||(u[h]=d),s.array[3*l+0]=d.r,s.array[3*l+1]=d.g,s.array[3*l+2]=d.b,r.array[2*l]=i,r.array[2*l+1]=n,a.array[l]=l%9}return t.scale(.2,.2,.2)})(Object.assign({},this.options,{effect:this}));this.birdUniforms={color:{value:new T.Color(16720384)},texturePosition:{value:null},textureVelocity:{value:null},time:{value:1},delta:{value:0},birdSize:{value:this.options.birdSize}};const t=new T.ShaderMaterial({uniforms:this.birdUniforms,vertexShader:"attribute vec2 reference;\nattribute float birdVertex;\n\nattribute vec3 birdColor;\n\nuniform sampler2D texturePosition;\nuniform sampler2D textureVelocity;\n\nvarying vec4 vColor;\nvarying float z;\n\nuniform float time;\nuniform float birdSize;\n\nvoid main() {\n\n  vec4 tmpPos = texture2D( texturePosition, reference );\n  vec3 pos = tmpPos.xyz;\n  vec3 velocity = normalize(texture2D( textureVelocity, reference ).xyz);\n\n  vec3 newPosition = position;\n\n  if ( birdVertex == 4.0 || birdVertex == 7.0 ) {\n    // flap wings\n    newPosition.y = sin( tmpPos.w ) * 5. * birdSize;\n  }\n\n  newPosition = mat3( modelMatrix ) * newPosition;\n\n  velocity.z *= -1.;\n  float xz = length( velocity.xz );\n  float xyz = 1.;\n  float x = sqrt( 1. - velocity.y * velocity.y );\n\n  float cosry = velocity.x / xz;\n  float sinry = velocity.z / xz;\n\n  float cosrz = x / xyz;\n  float sinrz = velocity.y / xyz;\n\n  mat3 maty =  mat3(\n    cosry, 0, -sinry,\n    0    , 1, 0     ,\n    sinry, 0, cosry\n  );\n\n  mat3 matz =  mat3(\n    cosrz , sinrz, 0,\n    -sinrz, cosrz, 0,\n    0     , 0    , 1\n  );\n  newPosition =  maty * matz * newPosition;\n  newPosition += pos;\n  z = newPosition.z;\n\n  vColor = vec4( birdColor, 1.0 );\n  gl_Position = projectionMatrix *  viewMatrix  * vec4( newPosition, 1.0 );\n}",fragmentShader:"varying vec4 vColor;\nvarying float z;\nuniform vec3 color;\nvoid main() {\n  // Fake colors for now\n  float rr = 0.2 + ( 1000. - z ) / 1000. * vColor.x;\n  float gg = 0.2 + ( 1000. - z ) / 1000. * vColor.y;\n  float bb = 0.2 + ( 1000. - z ) / 1000. * vColor.z;\n  gl_FragColor = vec4( rr, gg, bb, 1. );\n}",side:T.DoubleSide}),i=new T.Mesh(e,t);return i.rotation.y=Math.PI/2,i.matrixAutoUpdate=!1,i.updateMatrix(),this.scene.add(i)}getNewCol(e){const t=this.options,i=null!=t.color1?t.color1:4456448,n=null!=t.color2?t.color2:6684672,o=new T.Color(i),s=new T.Color(n);let r,a;if(a=-1!=t.colorMode.indexOf("Gradient")?Math.random():e,0==t.colorMode.indexOf("variance")){const e=(o.r+Math.random()*s.r).clamp(0,1),t=(o.g+Math.random()*s.g).clamp(0,1),i=(o.b+Math.random()*s.b).clamp(0,1);r=new T.Color(e,t,i)}else r=0==t.colorMode.indexOf("mix")?new T.Color(i+a*n):o.lerp(s,a);return r}onInit(){this.camera=new T.PerspectiveCamera(75,this.width/this.height,1,3e3),this.camera.position.z=350,this.fog=new T.Fog(16777215,100,1e3),this.mouseX=this.mouseY=0;const e=this.birds=[],t=this.boids=[],i=this.options;let n,o;if(M)try{this.initComputeRenderer(),this.valuesChanger=this.valuesChanger.bind(this),this.valuesChanger(),this.initGpgpuBirds()}catch(e){console.error("[vanta.js] birds init error: ",e)}else{const l=6*Math.pow(2,i.quantity);for(var s=0;s<l;s++){n=t[s]=new R(i),n.position.x=400*Math.random()-200,n.position.y=400*Math.random()-200,n.position.z=400*Math.random()-200,n.velocity.x=2*Math.random()-1,n.velocity.y=2*Math.random()-1,n.velocity.z=2*Math.random()-1,n.setWorldSize(500,500,300);const h=-1!=i.colorMode.indexOf("Gradient"),c=V(i),d=c.attributes.position.length,u=new T.BufferAttribute(new Float32Array(d),3);if(h)for(var r=0;r<c.index.array.length;r+=3)for(var a=0;a<=2;a++){const e=c.index.array[r+a],t=this.getNewCol();u.array[3*e]=t.r,u.array[3*e+1]=t.g,u.array[3*e+2]=t.b}else{const e=this.getNewCol(s/l);for(r=0;r<u.array.length;r+=3)u.array[r]=e.r,u.array[r+1]=e.g,u.array[r+2]=e.b}c.setAttribute("color",u),o=e[s]=new T.Mesh(c,new T.MeshBasicMaterial({color:16777215,side:T.DoubleSide,vertexColors:T.VertexColors})),o.phase=Math.floor(62.83*Math.random()),o.position.x=t[s].position.x,o.position.y=t[s].position.y,o.position.z=t[s].position.z,this.scene.add(o)}}}valuesChanger(){this.velocityUniforms&&(this.velocityUniforms.separationDistance.value=this.options.separation,this.velocityUniforms.alignmentDistance.value=this.options.alignment,this.velocityUniforms.speedLimit.value=this.options.speedLimit,this.velocityUniforms.cohesionDistance.value=this.options.cohesion)}onUpdate(){this.now=performance.now(),this.last||(this.last=this.now);let e=(this.now-this.last)/1e3;if(e>1&&(e=1),this.last=this.now,M)this.positionUniforms.time.value=this.now,this.positionUniforms.delta.value=e,this.velocityUniforms.time.value=this.now,this.velocityUniforms.delta.value=e,this.birdUniforms.time.value=this.now,this.birdUniforms.delta.value=e,this.velocityUniforms.predator.value.set(this.mouseX,-this.mouseY,0),this.mouseX=1e4,this.mouseY=1e4,this.gpuCompute.compute(),this.birdUniforms.texturePosition.value=this.gpuCompute.getCurrentRenderTarget(this.positionVariable).texture,this.birdUniforms.textureVelocity.value=this.gpuCompute.getCurrentRenderTarget(this.velocityVariable).texture;else{const e=this.birds,n=this.boids;let o,s;for(var t=0,i=e.length;t<i;t++){o=n[t],o.run(n),s=e[t],s.rotation.y=Math.atan2(-o.velocity.z,o.velocity.x),s.rotation.z=Math.asin(o.velocity.y/o.velocity.length()),s.phase=(s.phase+(Math.max(0,s.rotation.z)+.1))%62.83;const i=16,r=13;s.geometry.attributes.position.array[i]=s.geometry.attributes.position.array[r]=5*Math.sin(s.phase)*this.options.birdSize,s.geometry.attributes.position.needsUpdate=!0,s.geometry.computeVertexNormals(),s.position.x=n[t].position.x,s.position.y=n[t].position.y,s.position.z=n[t].position.z}}}onMouseMove(e,t){if(this.mouseX=e-.5,this.mouseY=t-.5,!M){const e=this.boids;let t;for(var i=new T.Vector3(this.mouseX*this.width,-this.mouseY*this.height,0),n=0,o=e.length;n<o;n++)t=e[n],i.z=t.position.z,t.repulse(i)}}onDestroy(){}onResize(){}}E.initClass();const P=r.register("BIRDS",E);return t})()));
+;
+!function(t,e){"object"==typeof exports&&"object"==typeof module?module.exports=e():"function"==typeof define&&define.amd?define([],e):"object"==typeof exports?exports._vantaEffect=e():t._vantaEffect=e()}("undefined"!=typeof self?self:this,(()=>(()=>{"use strict";var t={d:(e,i)=>{for(var s in i)t.o(i,s)&&!t.o(e,s)&&Object.defineProperty(e,s,{enumerable:!0,get:i[s]})},o:(t,e)=>Object.prototype.hasOwnProperty.call(t,e),r:t=>{"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(t,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(t,"__esModule",{value:!0})}},e={};function i(t,e){return null==t&&(t=0),null==e&&(e=1),t+Math.random()*(e-t)}t.r(e),t.d(e,{default:()=>d}),Number.prototype.clamp=function(t,e){return Math.min(Math.max(this,t),e)};function s(t){for(;t.children&&t.children.length>0;)s(t.children[0]),t.remove(t.children[0]);t.geometry&&t.geometry.dispose(),t.material&&(Object.keys(t.material).forEach((e=>{t.material[e]&&null!==t.material[e]&&"function"==typeof t.material[e].dispose&&t.material[e].dispose()})),t.material.dispose())}const o="object"==typeof window;let n=o&&window.THREE||{};o&&!window.VANTA&&(window.VANTA={});const r=o&&window.VANTA||{};r.register=(t,e)=>r[t]=t=>new e(t),r.version="0.5.24";const h=function(){return Array.prototype.unshift.call(arguments,"[VANTA]"),console.error.apply(this,arguments)};r.VantaBase=class{constructor(t={}){if(!o)return!1;r.current=this,this.windowMouseMoveWrapper=this.windowMouseMoveWrapper.bind(this),this.windowTouchWrapper=this.windowTouchWrapper.bind(this),this.windowGyroWrapper=this.windowGyroWrapper.bind(this),this.resize=this.resize.bind(this),this.animationLoop=this.animationLoop.bind(this),this.restart=this.restart.bind(this);const e="function"==typeof this.getDefaultOptions?this.getDefaultOptions():this.defaultOptions;if(this.options=Object.assign({mouseControls:!0,touchControls:!0,gyroControls:!1,minHeight:200,minWidth:200,scale:1,scaleMobile:1},e),(t instanceof HTMLElement||"string"==typeof t)&&(t={el:t}),Object.assign(this.options,t),this.options.THREE&&(n=this.options.THREE),this.el=this.options.el,null==this.el)h('Instance needs "el" param!');else if(!(this.options.el instanceof HTMLElement)){const t=this.el;if(this.el=(i=t,document.querySelector(i)),!this.el)return void h("Cannot find element",t)}var i,s;this.prepareEl(),this.initThree(),this.setSize();try{this.init()}catch(t){return h("Init error",t),this.renderer&&this.renderer.domElement&&this.el.removeChild(this.renderer.domElement),void(this.options.backgroundColor&&(console.log("[VANTA] Falling back to backgroundColor"),this.el.style.background=(s=this.options.backgroundColor,"number"==typeof s?"#"+("00000"+s.toString(16)).slice(-6):s)))}this.initMouse(),this.resize(),this.animationLoop();const a=window.addEventListener;a("resize",this.resize),window.requestAnimationFrame(this.resize),this.options.mouseControls&&(a("scroll",this.windowMouseMoveWrapper),a("mousemove",this.windowMouseMoveWrapper)),this.options.touchControls&&(a("touchstart",this.windowTouchWrapper),a("touchmove",this.windowTouchWrapper)),this.options.gyroControls&&a("deviceorientation",this.windowGyroWrapper)}setOptions(t={}){Object.assign(this.options,t),this.triggerMouseMove()}prepareEl(){let t,e;if("undefined"!=typeof Node&&Node.TEXT_NODE)for(t=0;t<this.el.childNodes.length;t++){const e=this.el.childNodes[t];if(e.nodeType===Node.TEXT_NODE){const t=document.createElement("span");t.textContent=e.textContent,e.parentElement.insertBefore(t,e),e.remove()}}for(t=0;t<this.el.children.length;t++)e=this.el.children[t],"static"===getComputedStyle(e).position&&(e.style.position="relative"),"auto"===getComputedStyle(e).zIndex&&(e.style.zIndex=1);"static"===getComputedStyle(this.el).position&&(this.el.style.position="relative")}applyCanvasStyles(t,e={}){Object.assign(t.style,{position:"absolute",zIndex:0,top:0,left:0,background:""}),Object.assign(t.style,e),t.classList.add("vanta-canvas")}initThree(){n.WebGLRenderer?(this.renderer=new n.WebGLRenderer({alpha:!0,antialias:!0}),this.el.appendChild(this.renderer.domElement),this.applyCanvasStyles(this.renderer.domElement),isNaN(this.options.backgroundAlpha)&&(this.options.backgroundAlpha=1),this.scene=new n.Scene):console.warn("[VANTA] No THREE defined on window")}getCanvasElement(){return this.renderer?this.renderer.domElement:this.p5renderer?this.p5renderer.canvas:void 0}getCanvasRect(){const t=this.getCanvasElement();return!!t&&t.getBoundingClientRect()}windowMouseMoveWrapper(t){const e=this.getCanvasRect();if(!e)return!1;const i=t.clientX-e.left,s=t.clientY-e.top;i>=0&&s>=0&&i<=e.width&&s<=e.height&&(this.mouseX=i,this.mouseY=s,this.options.mouseEase||this.triggerMouseMove(i,s))}windowTouchWrapper(t){const e=this.getCanvasRect();if(!e)return!1;if(1===t.touches.length){const i=t.touches[0].clientX-e.left,s=t.touches[0].clientY-e.top;i>=0&&s>=0&&i<=e.width&&s<=e.height&&(this.mouseX=i,this.mouseY=s,this.options.mouseEase||this.triggerMouseMove(i,s))}}windowGyroWrapper(t){const e=this.getCanvasRect();if(!e)return!1;const i=Math.round(2*t.alpha)-e.left,s=Math.round(2*t.beta)-e.top;i>=0&&s>=0&&i<=e.width&&s<=e.height&&(this.mouseX=i,this.mouseY=s,this.options.mouseEase||this.triggerMouseMove(i,s))}triggerMouseMove(t,e){void 0===t&&void 0===e&&(this.options.mouseEase?(t=this.mouseEaseX,e=this.mouseEaseY):(t=this.mouseX,e=this.mouseY)),this.uniforms&&(this.uniforms.iMouse.value.x=t/this.scale,this.uniforms.iMouse.value.y=e/this.scale);const i=t/this.width,s=e/this.height;"function"==typeof this.onMouseMove&&this.onMouseMove(i,s)}setSize(){this.scale||(this.scale=1),"undefined"!=typeof navigator&&(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)||window.innerWidth<600)&&this.options.scaleMobile?this.scale=this.options.scaleMobile:this.options.scale&&(this.scale=this.options.scale),this.width=Math.max(this.el.offsetWidth,this.options.minWidth),this.height=Math.max(this.el.offsetHeight,this.options.minHeight)}initMouse(){(!this.mouseX&&!this.mouseY||this.mouseX===this.options.minWidth/2&&this.mouseY===this.options.minHeight/2)&&(this.mouseX=this.width/2,this.mouseY=this.height/2,this.triggerMouseMove(this.mouseX,this.mouseY))}resize(){this.setSize(),this.camera&&(this.camera.aspect=this.width/this.height,"function"==typeof this.camera.updateProjectionMatrix&&this.camera.updateProjectionMatrix()),this.renderer&&(this.renderer.setSize(this.width,this.height),this.renderer.setPixelRatio(window.devicePixelRatio/this.scale)),"function"==typeof this.onResize&&this.onResize()}isOnScreen(){const t=this.el.offsetHeight,e=this.el.getBoundingClientRect(),i=window.pageYOffset||(document.documentElement||document.body.parentNode||document.body).scrollTop,s=e.top+i;return s-window.innerHeight<=i&&i<=s+t}animationLoop(){this.t||(this.t=0),this.t2||(this.t2=0);const t=performance.now();if(this.prevNow){let e=(t-this.prevNow)/(1e3/60);e=Math.max(.2,Math.min(e,5)),this.t+=e,this.t2+=(this.options.speed||1)*e,this.uniforms&&(this.uniforms.iTime.value=.016667*this.t2)}return this.prevNow=t,this.options.mouseEase&&(this.mouseEaseX=this.mouseEaseX||this.mouseX||0,this.mouseEaseY=this.mouseEaseY||this.mouseY||0,Math.abs(this.mouseEaseX-this.mouseX)+Math.abs(this.mouseEaseY-this.mouseY)>.1&&(this.mouseEaseX+=.05*(this.mouseX-this.mouseEaseX),this.mouseEaseY+=.05*(this.mouseY-this.mouseEaseY),this.triggerMouseMove(this.mouseEaseX,this.mouseEaseY))),(this.isOnScreen()||this.options.forceAnimate)&&("function"==typeof this.onUpdate&&this.onUpdate(),this.scene&&this.camera&&(this.renderer.render(this.scene,this.camera),this.renderer.setClearColor(this.options.backgroundColor,this.options.backgroundAlpha)),this.fps&&this.fps.update&&this.fps.update(),"function"==typeof this.afterRender&&this.afterRender()),this.req=window.requestAnimationFrame(this.animationLoop)}restart(){if(this.scene)for(;this.scene.children.length;)this.scene.remove(this.scene.children[0]);"function"==typeof this.onRestart&&this.onRestart(),this.init()}init(){"function"==typeof this.onInit&&this.onInit()}destroy(){"function"==typeof this.onDestroy&&this.onDestroy();const t=window.removeEventListener;t("touchstart",this.windowTouchWrapper),t("touchmove",this.windowTouchWrapper),t("scroll",this.windowMouseMoveWrapper),t("mousemove",this.windowMouseMoveWrapper),t("deviceorientation",this.windowGyroWrapper),t("resize",this.resize),window.cancelAnimationFrame(this.req);const e=this.scene;e&&e.children&&s(e),this.renderer&&(this.renderer.domElement&&this.el.removeChild(this.renderer.domElement),this.renderer=null,this.scene=null),r.current===this&&(r.current=null)}};const a=r.VantaBase;let l="object"==typeof window&&window.THREE;class c extends a{static initClass(){this.prototype.defaultOptions={color:16746528,color2:16746528,backgroundColor:2236962,size:3,spacing:35,showLines:!0}}onInit(){var t=this.camera=new l.PerspectiveCamera(50,this.width/this.height,.1,5e3);t.position.x=0,t.position.y=250,t.position.z=50,t.tx=0,t.ty=50,t.tz=350,t.lookAt(0,0,0),this.scene.add(t);var e,s,o,n,r,h,a,c=this.starsGeometry=new l.BufferGeometry,d=this.options.spacing;const p=[];for(e=o=-30;o<=30;e=++o)for(s=n=-30;n<=30;s=++n)(r=new l.Vector3).x=e*d+d/2,r.y=i(0,5)-150,r.z=s*d+d/2,p.push(r);if(c.setFromPoints(p),h=new l.PointsMaterial({color:this.options.color,size:this.options.size}),a=this.starField=new l.Points(c,h),this.scene.add(a),this.options.showLines){var u=new l.LineBasicMaterial({color:this.options.color2}),m=new l.BufferGeometry;const t=[];for(e=0;e<200;e++){var f=i(40,60),w=f+i(12,20),g=i(-1,1),y=Math.sqrt(1-g*g),v=i(0,2*Math.PI),M=Math.sin(v)*y,b=Math.cos(v)*y;t.push(new l.Vector3(b*f,M*f,g*f)),t.push(new l.Vector3(b*w,M*w,g*w))}m.setFromPoints(t),this.linesMesh=new l.LineSegments(m,u),this.scene.add(this.linesMesh)}}onUpdate(){const t=this.starsGeometry;this.starField;for(var e=0;e<t.attributes.position.array.length;e+=3){const i=t.attributes.position.array[e],s=t.attributes.position.array[e+1],o=t.attributes.position.array[e+2],n=s+.1*Math.sin(.02*o+.015*i+.02*this.t);t.attributes.position.array[e+1]=n}t.attributes.position.setUsage(l.DynamicDrawUsage),t.computeVertexNormals(),t.attributes.position.needsUpdate=!0;const i=this.camera,s=.003;i.position.x+=(i.tx-i.position.x)*s,i.position.y+=(i.ty-i.position.y)*s,i.position.z+=(i.tz-i.position.z)*s,i.lookAt(0,0,0),this.linesMesh&&(this.linesMesh.rotation.z+=.002,this.linesMesh.rotation.x+=8e-4,this.linesMesh.rotation.y+=5e-4)}onMouseMove(t,e){this.camera.tx=100*(t-.5),this.camera.ty=50+50*e}onRestart(){this.scene.remove(this.starField)}}c.initClass();const d=r.register("DOTS",c);return e})()));
+;
     }).call(window);
     bg3dLib = window.THREE && window.VANTA && window.VANTA.FOG ? 1 : -1;
   } catch (e) { console.error(e); bg3dLib = -1; }
@@ -23518,6 +23530,7 @@ function bg3dCan() {
 }
 
 /* ---------- what should be up ---------- */
+// (the keys ending in a colour: color, color2, backgroundColor…; birds' colorMode is a word)
 const bg3dNum = (c) => { const n = parseInt(String(c).replace("#", ""), 16); return Number.isFinite(n) ? n : 0; };
 // which effect a story scene gets: the scene can name one (v), otherwise its weather and what's drawn in it decide
 function bg3dActKind(act) {
@@ -23654,13 +23667,18 @@ function bg3dStart(want) {
   const host = bg3dHost(); if (!host || !bg3dCan() || !bg3dLoad()) return false;
   const make = window.VANTA[want.kind.toUpperCase()]; if (!make) return false;
   const el = host.querySelector(".bg3d-cv"), sc = bg3dScale(want.kind, host), o = {};
-  Object.keys(want.opts).forEach((k) => { o[k] = /color/i.test(k) ? bg3dNum(want.opts[k]) : want.opts[k]; });
+  Object.keys(want.opts).forEach((k) => { o[k] = /colou?r\d?$/i.test(k) ? bg3dNum(want.opts[k]) : want.opts[k]; });
   let fx = null;
   try {
     fx = make(Object.assign(o, {el: el, THREE: window.THREE, scale: sc, scaleMobile: sc, mouseControls: scCamOn && !isCoarse(), touchControls: false, gyroControls: false, minHeight: 100, minWidth: 100}));
   } catch (e) { console.error(e); fx = null; }
   const cv = fx && fx.renderer && fx.renderer.domElement;
-  if (!cv || !cv.isConnected) { try { if (fx) fx.destroy(); } catch (e) {} bg3dDead = "The 3D background couldn't start on this graphics card, so the drawn background is used."; bg3dPaint(); return false; }
+  if (!cv || !cv.isConnected) {
+    try { if (fx) fx.destroy(); } catch (e) {}
+    // (a class background that won't start here gives way to haze; only the usual one switches 3D off)
+    if (want.cls) { BG3D_BROKEN[want.kind] = 1; setTimeout(bg3dSoon, 0); return false; }
+    bg3dDead = "The 3D background couldn't start on this graphics card, so the drawn background is used."; bg3dPaint(); return false;
+  }
   bg3d = {kind: want.kind, fx: fx, sig: "", sea: !!want.sea, scale: sc, lost: (e) => { e.preventDefault(); bg3dDead = "The graphics card stopped the 3D background, so the drawn background is used."; bg3dKill(); bg3dSync(); bg3dPaint(); }};
   cv.addEventListener("webglcontextlost", bg3d.lost);
   bg3dSleep = false;
@@ -23678,12 +23696,12 @@ function bg3dApply(want, fresh) {
   if (bg3d.sig === sig) return;
   bg3d.sig = sig;
   const fx = bg3d.fx, o = {};
-  Object.keys(want.opts).forEach((k) => { o[k] = /color/i.test(k) ? bg3dNum(want.opts[k]) : want.opts[k]; });
+  Object.keys(want.opts).forEach((k) => { o[k] = /colou?r\d?$/i.test(k) ? bg3dNum(want.opts[k]) : want.opts[k]; });
   try {
     if (!fresh) {
       fx.setOptions(o);
       // lines and dots take their colours when they're made, so those are made again (the renderer stays)
-      if (bg3d.kind === "net" || bg3d.kind === "globe") fx.restart();
+      if (["net", "globe", "birds", "dots"].includes(bg3d.kind)) fx.restart();
     }
     if (want.sea && fx.plane) bg3dSea(fx, want.sea);
     bg3dGlow(fx);
@@ -23784,17 +23802,31 @@ window.__fgi3d = {
 // (the page is up first; the libraries are a big piece of script to run)
 setTimeout(bg3dSoon, 0);
 /* ================= 0.53.0-beta: the page's own background in black and cream =================
-   The colours are variables in 39-palette.css. What's here is the page's own background, which paintPage works out
-   from a servant's or a chapter's colours and writes on the page itself: it stays black in dark mode (a black pixel is
-   a pixel switched off, which is the point of true black) and is cream with a tenth of that colour in light mode.
+   The colours are variables in 39-palette.css. What's here is the page's own background (--g1..3, which the page's
+   gradient and its glow use), worked out by paintPage from the shown servant's picture:
+   - with a servant on show (with a picture of your own: their colours come from it) it takes their colours, as it did: on black in dark mode (the deep tones of 0.52,
+     the middle of the gradient pulled a little towards black), on cream in light mode (cream with 55% of their tone).
+     Noyr: a red servant left the page black in dark mode and cream in light mode. That was this file keeping the page
+     black whatever the servant; the colours were worked out and thrown away.
+   - with no servant (the Home page, a fresh list) it's true black in dark mode (a black pixel is a pixel switched off,
+     which is the point) and cream in light mode.
    (For one build this was a choice on Settings, "Colours", next to the navy of 0.50; its key is cleared here.) */
 const PAL_CREAM = ["#f3ecdd", "#ece3cf", "#faf5ea"];
+// is something giving the page its colours? (a servant on show, from the picture you gave them, or a chapter with the
+// Story look). With nothing, curPal is DEFAULT_PAL; a servant of an extra class without a picture gets a vivid copy of it,
+// which isn't theirs either (it turned Space Ereshkigal's page brown).
+const PAL_PLAIN = [DEFAULT_PAL.join(), DEFAULT_PAL.map(vividHex).join()];
+const palServant = () => !!curPal && !PAL_PLAIN.includes(curPal.join());
 const paintPage60 = paintPage;
 paintPage = function () {
   const r = paintPage60.apply(this, arguments);
   try {
-    const st = document.documentElement.style, dark = isDark();
-    [1, 2, 3].forEach((i) => { const c = st.getPropertyValue("--g" + i).trim(); st.setProperty("--g" + i, dark ? "#000000" : /^#[0-9a-f]{6}$/i.test(c) ? scMix(PAL_CREAM[i - 1], c, 0.1) : PAL_CREAM[i - 1]); });
+    const st = document.documentElement.style, dark = isDark(), own = palServant();
+    [1, 2, 3].forEach((i) => {
+      const c = st.getPropertyValue("--g" + i).trim(), ok = /^#[0-9a-f]{6}$/i.test(c);
+      st.setProperty("--g" + i, !own || !ok ? (dark ? "#000000" : PAL_CREAM[i - 1]) : dark ? (i === 2 ? scMix(c, "#000000", 0.3) : c) : scMix(PAL_CREAM[i - 1], c, 0.55));
+    });
+    document.documentElement.classList.toggle("pal-own", own);
   } catch (e) {}
   return r;
 };
@@ -24232,6 +24264,391 @@ async function mcFetch() {
 }
 // for the tests
 window.__fgiMc = {list: () => MC_LIST, tot: (id, lv) => mcTot(mcById(id), lv || mcLv()), prefs: () => mcPrefs, set: (o) => mcSet(o), fromNice: mcFromNice, battle: (id, lv) => mcBattle(mcById(id), lv || 10), text: (id, i, lv) => mcById(id).sk[i].fx.map((f) => mcFxText(f, lv || 10))};
+/* ================= 0.53.0-beta: a 3D background for every class =================
+   Noyr: custom vanta.js backgrounds for all classes, including the Beasts, Draco (Sodom's Beast) and Space Ereshkigal.
+   On a servant's page (Servants, with a servant open) the 3D background of 59-bg3d.js becomes their class's, in the
+   colours of the picture you gave them (each class has colours of its own for servants without one):
+
+   Saber      blades       swords of light hanging in the dark, turning slowly as they rise      (3D, our own)
+   Archer     arrows       a volley falling through the depth of the sky                           (3D, our own)
+   Lancer     thrust       a charge: lines of speed rushing to a point                             (shader, our own)
+   Rider      birds        a flock in flight                                                       (vanta)
+   Caster     magecraft    a magic circle turning: rings, runes and a six-pointed star             (shader, our own)
+   Assassin   fog          low dark mist                                                           (vanta)
+   Berserker  frenzy       cells of red that throb with a heartbeat                                (shader, our own)
+   Ruler      judgement    light falling from above, with motes                                    (shader, our own)
+   Avenger    flames       dark fire rising, with embers                                           (shader, our own)
+   Moon Cancer dots        SE.RA.PH's grid of light                                                (vanta)
+   Alter Ego  datasea      a sea of data: a grid of light rolling in waves, data falling above it  (shader, our own)
+   Foreigner  void         the outer dark, folding on itself, with stars                           (shader, our own)
+   Pretender  net          a web of points, a lie that holds                                       (vanta)
+   Shielder   hex          a barrier of hexagons, a wave of light crossing it                      (shader, our own)
+   Beast      calamity     a storm, now and then a flash                                           (shader, our own)
+   Draco      draco        a crimson vortex with gold petals falling: Sodom's Beast                (shader, our own)
+   Space Ereshkigal speresh stars streaming past, and the ring of her underworld                   (shader, our own)
+
+   Our own are vanta effects: built on VANTA.VantaBase and registered with VANTA.register, so 59-bg3d.js starts, recolours,
+   paces and stops them like vanta's own (frame rate, power saving, rest, size). Shaders take a few noise passes on
+   under half a megapixel; the two 3D ones draw a hundred-odd small pieces. Settings → Class backgrounds switches it off.
+   An effect that won't start in a browser gives way to haze, without switching 3D off. */
+const BG3D_CLS_KEY = "spirit-origin-list:v1:bg3d-cls"; // "off": the usual effect on servant pages too
+let bg3dCls = lsGet(BG3D_CLS_KEY) !== "off";
+Object.assign(BG3D_PX, {blades: 0.9, arrows: 0.9, thrust: 0.45, judgement: 0.4, flames: 0.4, void: 0.35, hex: 0.5, calamity: 0.35, draco: 0.38, speresh: 0.45, magecraft: 0.5, frenzy: 0.45, datasea: 0.45, birds: 0.7, dots: 0.9});
+
+/* ---------- each class: its effect and colours ([main, deep, light]) ---------- */
+const CB_THEME = {
+  Saber: {k: "blades", c: ["#4f82e6", "#16264f", "#d8e6ff"]}, Archer: {k: "arrows", c: ["#e0524a", "#3a1010", "#ffd8b4"]},
+  Lancer: {k: "thrust", c: ["#36bfe0", "#0d2f3a", "#cdf4ff"]}, Rider: {k: "birds", c: ["#e6ae40", "#3b2a10", "#fff2c9"]},
+  Caster: {k: "magecraft", c: ["#a066f2", "#241042", "#e8d8ff"]}, Assassin: {k: "fog", c: ["#8a78ac", "#151020", "#d6cdea"]},
+  Berserker: {k: "frenzy", c: ["#e8392f", "#2a0606", "#ffa072"]}, Ruler: {k: "judgement", c: ["#f2c95c", "#3a2e10", "#fff7da"]},
+  Avenger: {k: "flames", c: ["#ff5038", "#1f0505", "#ffc472"]}, "Moon Cancer": {k: "dots", c: ["#ff62ca", "#2a0c2c", "#ffd6f2"]},
+  "Alter Ego": {k: "datasea", c: ["#44dbff", "#0a2733", "#d6fbff"]}, Foreigner: {k: "void", c: ["#40e2ca", "#071d22", "#cbaaff"]},
+  Pretender: {k: "net", c: ["#5ee9a4", "#0c2a1c", "#e8ffd6"]}, Shielder: {k: "hex", c: ["#6eaaff", "#101c38", "#e6efff"]},
+  Beast: {k: "calamity", c: ["#ff5cb6", "#2a0518", "#ffd36a"]},
+  Draco: {k: "draco", c: ["#e8223f", "#2a0308", "#f6c75c"], sig: 0.55}, Speresh: {k: "speresh", c: ["#ff52a0", "#120428", "#a2eaff"], sig: 0.5}
+};
+const cbKey = (s) => !s ? "" : s.cls === "Beast" && /draco|sodom/i.test(s.name || "") ? "Draco" : s.cls === "Beast" && /space ereshkigal|speresh/i.test(s.name || "") ? "Speresh" : CB_THEME[s.cls] ? s.cls : "";
+// the colours: the servant's picture where there is one (the Beasts keep half of their own), else the class's
+function cbCols(t, dark) {
+  const own = palServant(), w = own ? (t.sig || 0.3) : 1;
+  const base = [0, 1, 2].map((i) => own ? scMix(curPal[i], t.c[i], w) : t.c[i]);
+  const T = (hx, L, v) => toHex(toneOf(hx, L, dark, v));
+  return dark ? {bg: T(base[1], 0.045, false), c2: T(base[1], 0.26, true), c1: T(base[0], 0.56, true), c3: T(base[2], 0.82, true), lt: 0}
+    : {bg: scMix("#f3ecdd", T(base[1], 0.86, false), 0.35), c2: T(base[1], 0.7, true), c1: T(base[0], 0.42, true), c3: T(base[2], 0.3, true), lt: 1};
+}
+function cbOpts(k, C, dark) {
+  const S3 = {backgroundColor: C.bg, color: C.c1, color2: C.c2, color3: C.c3, light: C.lt};
+  if (k === "birds") return {backgroundColor: C.bg, color1: C.c1, color2: C.c3, colorMode: "lerpGradient", birdSize: 1.3, wingSpan: 24, speedLimit: 4, separation: 34, alignment: 26, cohesion: 22, quantity: 3};
+  if (k === "fog") return {baseColor: C.bg, lowlightColor: C.c2, midtoneColor: scMix(C.c2, C.bg, 0.3), highlightColor: C.c1, blurFactor: 0.72, speed: 0.55, zoom: 0.8};
+  if (k === "dots") return {color: C.lt ? C.c1 : C.c3, color2: C.c1, backgroundColor: C.bg, size: 4.2, spacing: 24, showLines: true};
+  if (k === "net") return {color: C.c1, backgroundColor: C.bg, backgroundAlpha: 1, points: 11, maxDistance: 22, spacing: 16, showDots: true};
+  return S3;
+}
+let cbForce = ""; // (a test tool's: show another class's background on the open servant)
+function cbTheme() {
+  if (!bg3dCls || S.tab !== "servants" || !S.selected) return null;
+  const s = S.servants.find((x) => x.id === S.selected), key = s && CB_THEME[cbForce] ? cbForce : cbKey(s); if (!key) return null;
+  const t = CB_THEME[key], dark = isDark(), C = cbCols(t, dark), k = BG3D_BROKEN[t.k] ? "fog" : t.k;
+  return {story: false, cls: key, kind: k, css: "", opts: cbOpts(k, C, dark), a: k === "fog" ? 0.85 : dark ? 0.92 : 0.78}; // (a little softer on cream, where text sits on it)
+}
+const bg3dWant63 = bg3dWant;
+bg3dWant = function () {
+  const w = bg3dWant63.apply(this, arguments);
+  if (!w) return w; // switched off, reduce motion, no WebGL: as it was
+  // Noyr: on a servant's page the class's background wins, over a story scene too. (With the Story look on, the chapter
+  // already steps aside while a servant's page is open, storyOn() in 32-story.js; this keeps it so for a scene put up
+  // by hand as well.)
+  return cbTheme() || w;
+};
+// while a class's background shows, the aura steps aside (38-bg3d.css)
+const bg3dSync63 = bg3dSync;
+bg3dSync = function () {
+  const r = bg3dSync63.apply(this, arguments), w = bg3dWant(), root = document.documentElement;
+  root.classList.toggle("bg3d-cls", !!(w && w.cls && root.classList.contains("bg3d-on")));
+  return r;
+};
+// a servant opening or closing on the Servants page, or another tab
+const renderAll63 = renderAll;
+renderAll = function () { const r = renderAll63.apply(this, arguments); bg3dSoon(); return r; };
+
+/* ---------- our own vanta effects ---------- */
+const CB_GLSL = `
+uniform float iTime; uniform vec2 iResolution; uniform vec2 uM; uniform vec3 color; uniform vec3 color2; uniform vec3 color3; uniform vec3 backgroundColor; uniform float light;
+float h21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(h21(i), h21(i + vec2(1.0, 0.0)), f.x), mix(h21(i + vec2(0.0, 1.0)), h21(i + vec2(1.0, 1.0)), f.x), f.y); }
+float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += a * vn(p); p = p * 2.03 + vec2(1.7, 9.2); a *= 0.5; } return s; }
+`;
+const CB_FRAG = {
+  // Avenger: dark fire rising from below, embers drifting up
+  flames: `void main() {
+    vec2 uv = gl_FragCoord.xy / iResolution.xy, p = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+    float t = iTime;
+    vec2 q = vec2(p.x * 2.4 + (uM.x - 0.5) * 0.4, uv.y * 1.7 - t * 0.55);
+    float n = fbm(q + vec2(0.0, fbm(q * 1.7 + t * 0.15) * 1.3));
+    float f = clamp(n * 1.35 * smoothstep(1.1, 0.0, uv.y) - uv.y * 0.3, 0.0, 1.0);
+    vec3 col = mix(backgroundColor, color2, smoothstep(0.2, 0.7, f) * 0.9);
+    col = mix(col, color, smoothstep(0.45, 0.85, f) * 0.95);
+    col = mix(col, color3, smoothstep(0.75, 1.0, f) * 0.7);
+    vec2 g = vec2(p.x * 13.0, uv.y * 9.0 - t * 0.9); vec2 id = floor(g); float r = h21(id);
+    vec2 fp = fract(g) - 0.5 - vec2(sin(t * 1.3 + r * 6.28) * 0.25, 0.0);
+    col = mix(col, color3, smoothstep(0.09, 0.0, length(fp)) * step(0.86, r) * (1.0 - uv.y * 0.7));
+    gl_FragColor = vec4(col, 1.0);
+  }`,
+  // Foreigner: the outer dark folding on itself, stars far behind
+  void: `void main() {
+    vec2 p = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y + (uM - 0.5) * vec2(0.08, -0.08);
+    float t = iTime * 0.045;
+    vec2 q = vec2(fbm(p * 1.6 + vec2(0.0, t)), fbm(p * 1.6 + vec2(5.2, 1.3) - t));
+    vec2 r = vec2(fbm(p * 1.6 + 3.5 * q + vec2(1.7, 9.2) + t * 1.5), fbm(p * 1.6 + 3.5 * q + vec2(8.3, 2.8) - t));
+    float f = fbm(p * 1.6 + 3.0 * r);
+    vec3 col = mix(backgroundColor, color2, clamp(f * f * 1.9, 0.0, 1.0));
+    col = mix(col, color, clamp(length(q) * 0.6 - 0.12, 0.0, 1.0) * 0.85);
+    col = mix(col, color3, clamp(r.x * r.x * 1.3 - 0.28, 0.0, 1.0) * 0.6);
+    float s = h21(floor(gl_FragCoord.xy / 2.5));
+    col = mix(col, color3, step(0.997, s) * (0.5 + 0.5 * sin(iTime * 2.0 + s * 40.0)) * (1.0 - light * 0.5));
+    col = mix(backgroundColor, col, smoothstep(1.3, 0.2, length(p)));
+    gl_FragColor = vec4(col, 1.0);
+  }`,
+  // Shielder: a barrier of hexagons; a wave of light crosses it, a few cells glint
+  hex: `void main() {
+    vec2 p0 = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+    vec2 p = p0 * 7.0 + (uM - 0.5) * vec2(0.5, -0.5);
+    vec2 s = vec2(1.0, 1.7320508);
+    vec4 hc = floor(vec4(p, p - vec2(0.5, 1.0)) / s.xyxy) + 0.5;
+    vec4 h = vec4(p - hc.xy * s, p - (hc.zw + 0.5) * s);
+    vec2 gv = dot(h.xy, h.xy) < dot(h.zw, h.zw) ? h.xy : h.zw;
+    vec2 id = p - gv;
+    float d = max(abs(gv.x) * 0.5 + abs(gv.y) * 0.8660254, abs(gv.x));
+    float edge = smoothstep(0.42, 0.5, d);
+    float pulse = pow(0.5 + 0.5 * sin(length(id) * 0.55 - iTime * 1.5), 6.0);
+    float cell = h21(id); float glint = step(0.93, cell) * (0.5 + 0.5 * sin(iTime * 1.7 + cell * 20.0));
+    vec3 col = mix(backgroundColor, color2, 0.12 + 0.4 * smoothstep(1.3, 0.0, length(p0)));
+    col = mix(col, color, edge * (0.3 + 0.7 * pulse));
+    col = mix(col, color3, (1.0 - smoothstep(0.0, 0.45, d)) * glint * 0.35 + edge * pulse * 0.25);
+    gl_FragColor = vec4(col, 1.0);
+  }`,
+  // Ruler: light falling from above, slow rays, motes drifting down
+  judgement: `void main() {
+    vec2 uv = gl_FragCoord.xy / iResolution.xy;
+    vec2 p = (gl_FragCoord.xy - vec2((0.5 + (uM.x - 0.5) * 0.15) * iResolution.x, 1.3 * iResolution.y)) / iResolution.y;
+    float a = atan(p.x, -p.y), r = length(p);
+    float rays = smoothstep(0.38, 0.85, fbm(vec2(a * 9.0, iTime * 0.12)));
+    float fall = smoothstep(2.4, 0.25, r);
+    vec3 col = mix(backgroundColor, color2, fall * 0.5);
+    col = mix(col, color, rays * fall * 0.62);
+    col = mix(col, color3, smoothstep(0.85, 0.25, r) * 0.4);
+    vec2 g = vec2(uv.x * 22.0, uv.y * 13.0 + iTime * 0.22); vec2 id = floor(g); float rr = h21(id);
+    vec2 fp = fract(g) - 0.5 - vec2(sin(iTime * 0.8 + rr * 6.28) * 0.22, 0.0);
+    col = mix(col, color3, smoothstep(0.1, 0.0, length(fp)) * step(0.9, rr) * 0.85);
+    gl_FragColor = vec4(col, 1.0);
+  }`,
+  // Lancer: a charge, lines of speed rushing to one point
+  thrust: `void main() {
+    vec2 uv = gl_FragCoord.xy / iResolution.xy;
+    vec2 c = vec2(0.62 + (uM.x - 0.5) * 0.08, 0.5 - (uM.y - 0.5) * 0.08);
+    vec2 p = (uv - c) * vec2(iResolution.x / iResolution.y, 1.0);
+    float r = length(p), a = atan(p.y, p.x) / 6.2831853 + 0.5;
+    float k = 120.0, seg = floor(a * k), ax = abs(fract(a * k) - 0.5), rnd = h21(vec2(seg, 3.1));
+    float line = smoothstep(0.0025, 0.0, ax * 6.2831853 / k * r) * step(0.45, rnd);
+    float d = fract(r * (1.0 + rnd) + iTime * (0.5 + rnd * 0.7) + rnd * 9.0);
+    float dash = smoothstep(0.0, 0.12, d) * smoothstep(0.55, 0.12, d);
+    float streak = line * dash * smoothstep(0.04, 0.3, r);
+    vec3 col = mix(backgroundColor, color2, 0.3 * smoothstep(1.3, 0.0, r));
+    col = mix(col, color, streak * 0.95);
+    col = mix(col, color3, smoothstep(0.22, 0.0, r) * 0.55);
+    gl_FragColor = vec4(col, 1.0);
+  }`,
+  // Beast: a storm turning, and now and then a flash
+  calamity: `void main() {
+    vec2 p = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y + (uM - 0.5) * vec2(0.06, -0.06);
+    float t = iTime * 0.05;
+    vec2 q = vec2(fbm(p * 2.0 + t), fbm(p * 2.0 - t + 4.0));
+    float f = fbm(p * 2.2 + q * 2.4 + vec2(t * 2.0, -t));
+    vec3 col = mix(backgroundColor, color2, smoothstep(0.22, 0.62, f));
+    col = mix(col, color, smoothstep(0.45, 0.8, f) * 0.9);
+    float L = abs(fbm(vec2(p.x * 3.0, p.y * 1.2 + floor(iTime * 0.08) * 7.0)) - 0.5 - p.x * 0.05);
+    float flash = pow(max(0.0, sin(iTime * 0.25)), 60.0);
+    col = mix(col, color3, smoothstep(0.02, 0.0, L) * flash);
+    col = mix(backgroundColor, col, smoothstep(1.35, 0.3, length(p)));
+    gl_FragColor = vec4(col, 1.0);
+  }`,
+  // Berserker: cells of red that throb with a heartbeat (vanta's cells go to black at their edge, which is grey on cream)
+  frenzy: `void main() {
+    vec2 q = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y, p = q * 5.0 + (uM - 0.5) * vec2(0.3, -0.3);
+    float t = iTime, d1 = 8.0, d2 = 8.0;
+    vec2 i = floor(p), f = fract(p);
+    for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
+      vec2 g = vec2(float(x), float(y)), o = vec2(h21(i + g), h21(i + g + 17.3));
+      o = 0.5 + 0.38 * sin(t * 0.6 + 6.2831853 * o);
+      float d = length(g + o - f);
+      if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
+    }
+    float edge = smoothstep(0.13, 0.0, d2 - d1);
+    float beat = pow(max(sin(t * 2.2), 0.0), 10.0) + 0.6 * pow(max(sin(t * 2.2 - 0.75), 0.0), 10.0);
+    float vign = smoothstep(1.35, 0.15, length(q));
+    vec3 col = mix(backgroundColor, color2, (0.3 + 0.25 * beat) * (1.0 - d1) * vign);
+    col = mix(col, color, edge * (0.5 + 0.45 * beat) * vign);
+    col = mix(col, color3, edge * beat * 0.3 * vign);
+    gl_FragColor = vec4(col, 1.0);
+  }`,
+  // Alter Ego: a sea of data, a grid of light seen from just above it, rolling in waves; data falling in the dark above
+  // (vanta's ripple was the first pick: its shader takes 400 steps for every pixel, too hot for a background)
+  datasea: `void main() {
+    vec2 uv = gl_FragCoord.xy / iResolution.xy;
+    float asp = iResolution.x / iResolution.y, t = iTime, hz = 0.6 + (uM.y - 0.5) * 0.04;
+    vec3 col = mix(backgroundColor, color2, 0.45 * smoothstep(0.45, 0.0, abs(uv.y - hz)));
+    float cx = floor(uv.x * 70.0), rnd = h21(vec2(cx, 4.2));
+    float yy = fract(uv.y * (0.6 + rnd) + t * (0.06 + rnd * 0.1) + rnd * 7.0);
+    float rain = step(0.8, rnd) * smoothstep(0.0, 0.2, yy) * smoothstep(0.35, 0.2, yy) * step(hz, uv.y) * step(abs(fract(uv.x * 70.0) - 0.5), 0.2);
+    col = mix(col, color3, rain * 0.45 * smoothstep(1.0, hz, uv.y));
+    if (uv.y < hz) {
+      // (3 lines to a unit; each line about a pixel and a half wide however far off it is)
+      float d = hz - uv.y, z = 0.32 / d;
+      float x = (uv.x - 0.5 - (uM.x - 0.5) * 0.05) * asp * z * 3.0, zz = (z + t * 0.8) * 3.0;
+      float wave = pow(0.5 + 0.5 * sin(zz * 0.7 - x * 0.06 + t * 0.9), 2.0) * (0.7 + 0.3 * sin(x * 0.09 + t * 0.4));
+      float wx = 0.012 + 0.009 * z, wz = min(0.45, 0.012 + 0.02 * z * z), fade = smoothstep(9.0, 1.6, z);
+      float grid = max(smoothstep(wx, 0.0, 0.5 - abs(fract(x) - 0.5)), smoothstep(wz, 0.0, 0.5 - abs(fract(zz) - 0.5)));
+      col = mix(col, mix(color2, color, 0.45), fade * wave * 0.6);
+      col = mix(col, color, step(0.93, h21(floor(vec2(x, zz)))) * fade * wave * 0.6);
+      col = mix(col, color, grid * fade * (0.45 + 0.55 * wave));
+      col = mix(col, color3, grid * fade * pow(wave, 4.0) * 0.75);
+    }
+    gl_FragColor = vec4(col, 1.0);
+  }`,
+  // Caster: a magic circle turning, rings and runes, a six-pointed star inside, breathing slowly
+  magecraft: `void main() {
+    vec2 c = vec2(0.64 + (uM.x - 0.5) * 0.05, 0.5 - (uM.y - 0.5) * 0.05);
+    vec2 p = (gl_FragCoord.xy / iResolution.xy - c) * vec2(iResolution.x / iResolution.y, 1.0);
+    float r = length(p), a = atan(p.y, p.x), t = iTime, w = 0.0045, pulse = 0.65 + 0.35 * sin(t * 0.9);
+    vec3 col = mix(backgroundColor, color2, 0.4 * smoothstep(0.85, 0.0, r));
+    float ring = smoothstep(w, 0.0, abs(r - 0.43)) + smoothstep(w, 0.0, abs(r - 0.385)) + smoothstep(w, 0.0, abs(r - 0.25)) + smoothstep(w, 0.0, abs(r - 0.13));
+    float k1 = fract((a + t * 0.12) / 6.2831853 * 60.0);
+    float tick = step(0.39, r) * step(r, 0.425) * smoothstep(0.12, 0.0, abs(k1 - 0.5) - 0.05);
+    float a2 = (a - t * 0.07) / 6.2831853 * 28.0, s = floor(a2), kf = fract(a2);
+    float rune = step(0.272, r) * step(r, 0.36) * step(0.18, kf) * step(kf, 0.82) * step(0.45, h21(vec2(s, floor((r - 0.272) / 0.022))));
+    float R = 0.25, rot = t * 0.05;
+    float e1 = abs(r * cos(mod(a - rot, 2.0943951) - 1.0471976) - R * 0.5), e2 = abs(r * cos(mod(a - rot + 1.0471976, 2.0943951) - 1.0471976) - R * 0.5);
+    float star = (smoothstep(w, 0.0, e1) + smoothstep(w, 0.0, e2)) * step(r, R);
+    col = mix(col, color, clamp(ring + star, 0.0, 1.0) * (0.75 + 0.25 * pulse));
+    col = mix(col, color, tick * 0.8);
+    col = mix(col, color3, rune * 0.5);
+    col = mix(col, color3, smoothstep(0.09, 0.0, abs(r - 0.405)) * 0.18 * pulse);
+    vec2 g = gl_FragCoord.xy / iResolution.y * 14.0 + vec2(0.0, -t * 0.25); vec2 id = floor(g); float rr = h21(id);
+    col = mix(col, color3, smoothstep(0.08, 0.0, length(fract(g) - 0.5)) * step(0.93, rr) * (0.5 + 0.5 * sin(t * 2.0 + rr * 30.0)) * 0.7);
+    gl_FragColor = vec4(col, 1.0);
+  }`,
+  // Draco, Sodom's Beast: a crimson vortex around an eye of light, gold petals falling
+  draco: `void main() {
+    vec2 uv = gl_FragCoord.xy / iResolution.xy;
+    vec2 p = (gl_FragCoord.xy - vec2(0.6, 0.5) * iResolution.xy) / iResolution.y + (uM - 0.5) * vec2(0.06, -0.06);
+    float r = length(p), an = iTime * 0.07 + r * 2.2;
+    vec2 pr = mat2(cos(an), -sin(an), sin(an), cos(an)) * p;
+    float f = fbm(pr * 2.6 + vec2(iTime * 0.05, 0.0));
+    vec3 col = mix(backgroundColor, color2, smoothstep(0.32, 0.75, f) * (1.0 - r * 0.35));
+    col = mix(col, color, smoothstep(0.58, 0.85, f) * 0.85);
+    col = mix(col, color3, smoothstep(0.3, 0.0, r) * 0.35);
+    vec2 g = vec2(uv.x * 11.0 + sin(uv.y * 3.0 + iTime * 0.3) * 0.4, uv.y * 7.0 + iTime * 0.33);
+    vec2 id = floor(g); float rr = h21(id); float ro = rr * 6.28 + iTime * (0.5 + rr);
+    vec2 fp = mat2(cos(ro), -sin(ro), sin(ro), cos(ro)) * (fract(g) - 0.5);
+    col = mix(col, color3, smoothstep(0.11, 0.0, length(fp * vec2(1.0, 2.4))) * step(0.8, rr) * 0.9);
+    gl_FragColor = vec4(col, 1.0);
+  }`,
+  // Space Ereshkigal: stars streaming past, the ring of her underworld turning around a dark heart
+  speresh: `void main() {
+    vec2 c = vec2(0.64 + (uM.x - 0.5) * 0.06, 0.52 - (uM.y - 0.5) * 0.06);
+    vec2 p = (gl_FragCoord.xy / iResolution.xy - c) * vec2(iResolution.x / iResolution.y, 1.0);
+    float r = length(p), a = atan(p.y, p.x) / 6.2831853 + 0.5;
+    vec3 col = mix(backgroundColor, color2, 0.4 * smoothstep(1.4, 0.1, r) * (0.6 + 0.4 * fbm(p * 3.0 + iTime * 0.03)));
+    for (int i = 0; i < 2; i++) {
+      float k = 90.0 + float(i) * 70.0, seg = floor(a * k), ax = abs(fract(a * k) - 0.5), rnd = h21(vec2(seg, 1.7 + float(i) * 5.0));
+      float z = fract(rnd * 9.1 + iTime * (0.05 + rnd * 0.07)), rs = 0.1 + z * z * 1.5, len = 0.015 + z * 0.16;
+      float on = step(r, rs) * step(rs - len, r) * smoothstep(0.003, 0.0, ax * 6.2831853 / k * r) * step(0.4, rnd);
+      col = mix(col, color3, on * z);
+    }
+    float ring = smoothstep(0.012, 0.0, abs(r - 0.33 - 0.012 * sin(a * 6.2831853 * 6.0 + iTime)));
+    col = mix(col, mix(backgroundColor, color, light * 0.16), smoothstep(0.33, 0.29, r) * 0.9);
+    col = mix(col, color, ring * 0.95);
+    col = mix(col, color, smoothstep(0.16, 0.0, abs(r - 0.33)) * 0.35);
+    gl_FragColor = vec4(col, 1.0);
+  }`
+};
+let cbReady = false;
+function cbRegister() {
+  if (cbReady) return; cbReady = true;
+  const V = window.VANTA, T = window.THREE; if (!V || !V.VantaBase || !T) return;
+  const col = (v) => new T.Color(v);
+  /* a full-window shader, the way vanta's own shader effects are made */
+  const shader = (name, frag) => {
+    class E extends V.VantaBase {
+      getDefaultOptions() { return {backgroundColor: 0x000000, color: 0xffffff, color2: 0x888888, color3: 0xffffff, light: 0, speed: 1, mouseEase: true}; }
+      onInit() {
+        this.uniforms = {iTime: {value: 1}, iResolution: {value: new T.Vector2(1, 1)}, iMouse: {value: new T.Vector2(0, 0)}, uM: {value: new T.Vector2(0.5, 0.5)}, color: {value: col(0)}, color2: {value: col(0)}, color3: {value: col(0)}, backgroundColor: {value: col(0)}, light: {value: 0}};
+        this.cbSet();
+        const m = new T.ShaderMaterial({uniforms: this.uniforms, vertexShader: "void main() { gl_Position = vec4(position, 1.0); }", fragmentShader: CB_GLSL + frag, depthTest: false, depthWrite: false});
+        this.scene.add(new T.Mesh(new T.PlaneGeometry(2, 2), m));
+        this.camera = new T.Camera(); this.camera.position.z = 1;
+      }
+      cbSet() { const o = this.options, u = this.uniforms; if (!u) return; ["color", "color2", "color3", "backgroundColor"].forEach((k) => u[k].value.set(o[k])); u.light.value = o.light ? 1 : 0; }
+      setOptions(o) { super.setOptions(o); this.cbSet(); }
+      onMouseMove(x, y) { if (this.uniforms) this.uniforms.uM.value.set(x, y); }
+      onResize() { if (this.uniforms && this.renderer) this.renderer.getDrawingBufferSize(this.uniforms.iResolution.value); }
+    }
+    V.register(name.toUpperCase(), E);
+  };
+  Object.keys(CB_FRAG).forEach((k) => shader(k, CB_FRAG[k]));
+  /* pieces in a 3D space: swords for Saber, arrows for Archer */
+  const pieces = (name, cfg) => {
+    class E extends V.VantaBase {
+      getDefaultOptions() { return {backgroundColor: 0x000000, color: 0xffffff, color2: 0x888888, color3: 0xffffff, light: 0, mouseEase: true}; }
+      onInit() {
+        const o = this.options;
+        this.camera = new T.PerspectiveCamera(45, this.width / this.height, 1, 3000);
+        this.camera.position.set(0, 0, 640); this.cx = 0; this.cy = 0;
+        this.scene.fog = new T.Fog(col(o.backgroundColor), cfg.fog[0], cfg.fog[1]);
+        this.mat = cfg.mat(T, o);
+        this.mesh = new T.InstancedMesh(cfg.geo(T), this.mat, cfg.n);
+        this.dummy = new T.Object3D();
+        this.p = [];
+        for (let i = 0; i < cfg.n; i++) { this.p.push(cfg.seed(i)); this.mesh.setColorAt(i, col(i % 3 === 0 ? o.color3 : o.color)); }
+        this.scene.add(this.mesh);
+        this.lights = cfg.lights ? cfg.lights(T, o, this.scene) : [];
+        this.place(0);
+      }
+      place(dt) {
+        const d = this.dummy;
+        this.p.forEach((q, i) => { cfg.move(q, dt); d.position.set(q.x, q.y, q.z); d.rotation.set(q.rx, q.ry, q.rz); d.scale.setScalar(q.s || 1); d.updateMatrix(); this.mesh.setMatrixAt(i, d.matrix); });
+        this.mesh.instanceMatrix.needsUpdate = true;
+      }
+      onUpdate() {
+        const now = performance.now(), dt = this.lastT ? Math.min(4, (now - this.lastT) / (1000 / 60)) : 1; this.lastT = now;
+        this.place(dt);
+        const c = this.camera; c.position.x += (this.cx * 60 - c.position.x) * 0.05; c.position.y += (-this.cy * 40 - c.position.y) * 0.05; c.lookAt(0, 0, 0);
+      }
+      onMouseMove(x, y) { this.cx = x - 0.5; this.cy = y - 0.5; }
+      setOptions(o) {
+        super.setOptions(o); const p = this.options; if (!this.mesh) return;
+        for (let i = 0; i < cfg.n; i++) this.mesh.setColorAt(i, col(i % 3 === 0 ? p.color3 : p.color));
+        if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+        if (this.scene.fog) this.scene.fog.color.set(p.backgroundColor);
+        if (cfg.recolour) cfg.recolour(T, this.mat, this.lights, p);
+      }
+    }
+    V.register(name.toUpperCase(), E);
+  };
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  pieces("blades", {n: 64, fog: [420, 1500],
+    geo: (T) => { const g = new T.OctahedronGeometry(1, 0); g.scale(9, 95, 2.2); return g; },
+    mat: (T, o) => new T.MeshPhongMaterial({color: 0xffffff, emissive: col(o.color2), emissiveIntensity: o.light ? 0.2 : 0.8, specular: col(o.color3), shininess: 90, flatShading: true}),
+    lights: (T, o, sc) => { const a = new T.AmbientLight(0xffffff, o.light ? 0.75 : 0.45), d = new T.DirectionalLight(col(o.color3), 1.3), p = new T.PointLight(col(o.color), 0.9, 1600); d.position.set(300, 500, 400); p.position.set(-200, -100, 300); sc.add(a, d, p); return [a, d, p]; },
+    recolour: (T, m, L, o) => { m.emissive.set(o.color2); m.specular.set(o.color3); L[1].color.set(o.color3); L[2].color.set(o.color); },
+    seed: () => ({x: rnd(-620, 620), y: rnd(-480, 480), z: rnd(-900, 180), rx: rnd(-0.25, 0.25) + Math.PI, ry: rnd(0, 6.28), rz: rnd(-0.3, 0.3), vy: rnd(0.25, 0.7), vr: rnd(-0.012, 0.012) || 0.006, s: rnd(0.7, 1.3)}),
+    move: (q, dt) => { q.y += q.vy * dt; q.ry += q.vr * dt; if (q.y > 540) { q.y = -540; q.x = rnd(-620, 620); } }});
+  pieces("arrows", {n: 130, fog: [380, 1500],
+    geo: (T) => { const g = new T.CylinderGeometry(0.9, 0.9, 120, 4, 1); g.rotateZ(-0.5); g.rotateX(0.25); return g; },
+    mat: (T, o) => new T.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: o.light ? 0.8 : 0.9, blending: o.light ? T.NormalBlending : T.AdditiveBlending, depthWrite: false, fog: true}),
+    seed: () => ({x: rnd(-800, 800), y: rnd(-560, 560), z: rnd(-1000, 160), rx: 0, ry: 0, rz: 0, v: rnd(6, 12), s: rnd(0.6, 1.4)}),
+    move: (q, dt) => { q.x += q.v * 0.48 * dt; q.y -= q.v * dt; q.z += q.v * 0.12 * dt; if (q.y < -600 || q.x > 900) { q.y = rnd(560, 700); q.x = rnd(-1000, 500); q.z = rnd(-1000, 160); } }});
+}
+const bg3dLoad63 = bg3dLoad;
+bg3dLoad = function () { const ok = bg3dLoad63.apply(this, arguments); if (ok) { try { cbRegister(); } catch (e) { console.error(e); } } return ok; };
+
+/* ---------- Settings ---------- */
+function cbPaint() {
+  document.querySelectorAll('[data-action="bg3d-cls"]').forEach((b) => b.setAttribute("aria-pressed", String((b.dataset.v === "1") === bg3dCls)));
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest('[data-action="bg3d-cls"]'); if (!b) return;
+  const on = b.dataset.v === "1"; if (on === bg3dCls) return;
+  bg3dCls = on; try { if (on) localStorage.removeItem(BG3D_CLS_KEY); else localStorage.setItem(BG3D_CLS_KEY, "off"); } catch (e2) {}
+  cbPaint(); bg3dSync();
+});
+const renderSettings63 = typeof renderSettings === "function" ? renderSettings : null;
+if (renderSettings63) renderSettings = function () { const r = renderSettings63.apply(this, arguments); cbPaint(); return r; };
+cbPaint();
+window.__fgiCls = {key: (s) => cbKey(s), theme: () => cbTheme(), themes: () => CB_THEME, on: () => bg3dCls,
+  open: () => { const s = S.servants.find((x) => x.id === S.selected); return s ? {id: s.id, cls: s.cls, name: s.name, key: cbKey(s)} : null; },
+  roster: () => S.servants.map((s) => [s.id, s.cls, s.name]), force: (k) => { cbForce = k || ""; bg3dSoon(); }};
 // Where the page is scrolled when it opens (0.23.1):
 // - While the page builds itself, the browser's scroll anchoring followed the footer down as the views filled in, so a
 //   reload on a phone ended at the bottom. Anchoring is off until the page has settled.

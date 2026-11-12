@@ -18,3 +18,6 @@ html.bg3d-sea .story-bg .sc-far { clip-path: inset(0 0 var(--cutb, 0px) 0); }
 /* behind the usual pages the 3D picture stands in for the summoning circle (two moving pictures at once are busy, and
    it's one less thing to draw); with the Story look the circle stays, as it did */
 html.bg3d-on:not(.bg3d-story) .idle-bg { visibility: hidden; }
+/* a class's own background (63-class-bg.js) already carries the servant's colours: the aura's glow on top of it (and the
+   Beast's, which turns through every hue) only muddies it, so it isn't drawn meanwhile */
+html.bg3d-cls .aura { display: none; }

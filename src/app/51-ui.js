@@ -55,6 +55,7 @@ const UI_SET_ROWS = [
     ["scenecam", "Story scenes follow the pointer", "The chapter's scene shifts in depth as you move the pointer or scroll. Off keeps it still, which is lighter for the graphics card."],
     ["bg3d", "3D background", "A moving 3D picture behind the page, drawn by vanta.js. It follows the frame rate and power saving. Off is the lightest for the graphics card."],
     ["bg3dfx", "3D effect", "What moves behind the usual pages. With the Story look, each scene picks its own."],
+    ["bg3dcls", "Class backgrounds", "With a servant open, the 3D background is their class's: swords for Saber, a volley of arrows for Archer, dark fire for Avenger, and so on, in the colours of their picture."],
     ["bg3dq", "3D quality", "Light draws it small and stretches it. Full is sharper and asks about four times as much of the graphics card."]]],
   ["Your data", [
     ["export", "Backup", "Download your servants, parties and pictures, or a spreadsheet."],
@@ -70,6 +71,7 @@ function uiSetHTML() {
     : k === "scenecam" ? `<div class="seg set-seg" role="group" aria-label="Story scenes follow the pointer"><button type="button" data-action="scenecam" data-v="1">On</button><button type="button" data-action="scenecam" data-v="0">Off</button></div>`
     : k === "bg3d" ? `<div class="seg set-seg" role="group" aria-label="3D background"><button type="button" data-action="bg3d" data-v="1">On</button><button type="button" data-action="bg3d" data-v="0">Off</button></div><small class="bg3d-note" hidden></small>`
     : k === "bg3dfx" ? `<div class="seg set-seg set-seg-wrap" role="group" aria-label="3D effect">${[["globe", "Globe"], ["net", "Net"], ["fog", "Haze"], ["waves", "Waves"], ["clouds", "Clouds"], ["cells", "Cells"]].map((x) => `<button type="button" data-action="bg3d-fx" data-v="${x[0]}">${x[1]}</button>`).join("")}</div>`
+    : k === "bg3dcls" ? `<div class="seg set-seg" role="group" aria-label="Class backgrounds"><button type="button" data-action="bg3d-cls" data-v="1">On</button><button type="button" data-action="bg3d-cls" data-v="0">Off</button></div>`
     : k === "bg3dq" ? `<div class="seg set-seg" role="group" aria-label="3D quality"><button type="button" data-action="bg3d-q" data-v="light">Light</button><button type="button" data-action="bg3d-q" data-v="full">Full</button></div>`
     : k === "power" ? `<div class="seg set-seg" role="group" aria-label="Power saving"><button type="button" data-action="power" data-v="1">On</button><button type="button" data-action="power" data-v="0">Off</button></div>` : "";
   return `<button type="button" id="tab-settings" class="set-tab" data-action="tab" data-tab="settings" hidden tabindex="-1" aria-hidden="true">Settings</button>

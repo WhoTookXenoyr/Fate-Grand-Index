@@ -44,7 +44,7 @@ const CB_THEME = {
 const cbKey = (s) => !s ? "" : s.cls === "Beast" && /draco|sodom/i.test(s.name || "") ? "Draco" : s.cls === "Beast" && /space ereshkigal|speresh/i.test(s.name || "") ? "Speresh" : CB_THEME[s.cls] ? s.cls : "";
 // the colours: the servant's picture where there is one (the Beasts keep half of their own), else the class's
 function cbCols(t, dark) {
-  const own = curPal !== DEFAULT_PAL, w = own ? (t.sig || 0.3) : 1;
+  const own = palServant(), w = own ? (t.sig || 0.3) : 1;
   const base = [0, 1, 2].map((i) => own ? scMix(curPal[i], t.c[i], w) : t.c[i]);
   const T = (hx, L, v) => toHex(toneOf(hx, L, dark, v));
   return dark ? {bg: T(base[1], 0.045, false), c2: T(base[1], 0.26, true), c1: T(base[0], 0.56, true), c3: T(base[2], 0.82, true), lt: 0}

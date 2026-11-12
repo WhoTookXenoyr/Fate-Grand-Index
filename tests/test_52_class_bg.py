@@ -62,6 +62,10 @@ with sync_playwright() as p:
         seen.append((sid, pg.evaluate("window.__fgi3d.state().kind"), ok))
     check(f"opening a servant gives the page their class's background ({seen})", all(x[2] for x in seen))
     check("Space Ereshkigal gets hers, not the Beast's", seen[-1][1] == "speresh")
+    pg.wait_for_timeout(2200)
+    g = [rgb(c) for c in pg.evaluate(G)]; o = pg.evaluate("window.__fgiCls.theme().opts"); c1, c3 = rgb(o["color"]), rgb(o["color3"])
+    check(f"a Beast without a picture of yours: the page stays black, and the background keeps her own pink and pale blue ({g}, {c1}, {c3})",
+          all(max(c) <= 2 for c in g) and not pg.evaluate("document.documentElement.classList.contains('pal-own')") and c1[0] > c1[1] + 80 and c3[2] > c3[0])
 
     # ---------- every effect starts and draws ----------
     bad = []

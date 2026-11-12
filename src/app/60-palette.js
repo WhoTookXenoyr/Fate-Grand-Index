@@ -10,8 +10,10 @@
    (For one build this was a choice on Settings, "Colours", next to the navy of 0.50; its key is cleared here.) */
 const PAL_CREAM = ["#f3ecdd", "#ece3cf", "#faf5ea"];
 // is something giving the page its colours? (a servant on show, from the picture you gave them, or a chapter with the
-// Story look; with nothing, curPal is DEFAULT_PAL)
-const palServant = () => curPal !== DEFAULT_PAL;
+// Story look). With nothing, curPal is DEFAULT_PAL; a servant of an extra class without a picture gets a vivid copy of it,
+// which isn't theirs either (it turned Space Ereshkigal's page brown).
+const PAL_PLAIN = [DEFAULT_PAL.join(), DEFAULT_PAL.map(vividHex).join()];
+const palServant = () => !!curPal && !PAL_PLAIN.includes(curPal.join());
 const paintPage60 = paintPage;
 paintPage = function () {
   const r = paintPage60.apply(this, arguments);

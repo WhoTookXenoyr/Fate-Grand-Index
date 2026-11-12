@@ -134,6 +134,19 @@ with sync_playwright() as p:
     check(f"with no servant on show, it's cream again ({g3}, {dbg})", all(lum(c) > 0.85 and abs(c[0] - c[1]) < 22 for c in g3))
     ctx.close()
 
+    # ---------- with the Story look on, the class's background wins on a servant's page ----------
+    STORY = "localStorage.setItem('spirit-origin-list:v1:story', JSON.stringify({pos: {w: 103, q: 0, ph: 0}, theme: true, part: 1}));"
+    ctx, pg = page(b, color_scheme="dark", extra=STORY + "localStorage.setItem('spirit-origin-list:v1:theme','dark');")
+    SB = "(() => { const bg = document.getElementById('story-bg'); return [document.documentElement.classList.contains('bg3d-story'), bg ? Number(getComputedStyle(bg).opacity) : 0]; })()"
+    pg.goto(SEEDED + "#servants"); ok = wait3d(pg, "s.kind === 'waves' && s.frames > 0", 20000)
+    check(f"with the Story look on, the Servants page has the chapter's scene ({pg.evaluate(S3)['kind']}, {pg.evaluate(SB)})", ok and pg.evaluate(SB)[0])
+    awake(pg); pg.click('#list [data-id="space-ereshkigal"]'); ok = wait3d(pg, "s.kind === 'speresh' && s.frames > 0", 12000); pg.wait_for_timeout(1500)
+    sb = pg.evaluate(SB)
+    check(f"opening a servant: her class's background wins, and the scene fades out ({pg.evaluate(S3)['kind']}, {sb})", ok and not sb[0] and sb[1] < 0.15)
+    awake(pg); pg.keyboard.press("Escape"); ok = wait3d(pg, "s.kind === 'waves'", 12000)
+    check("closing her page brings the chapter's scene back", ok)
+    ctx.close()
+
     # ---------- a phone ----------
     ctx, pg = page(b, 390, 844, device_scale_factor=3, is_mobile=True, has_touch=True)
     pg.goto(SEEDED + "#servants"); wait3d(pg, "s.frames > 0", 20000)

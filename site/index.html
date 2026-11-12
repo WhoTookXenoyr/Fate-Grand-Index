@@ -24334,7 +24334,10 @@ function cbTheme() {
 const bg3dWant63 = bg3dWant;
 bg3dWant = function () {
   const w = bg3dWant63.apply(this, arguments);
-  if (!w || w.story) return w; // switched off, reduce motion, no WebGL, or a story scene: as it was
+  if (!w) return w; // switched off, reduce motion, no WebGL: as it was
+  // Noyr: on a servant's page the class's background wins, over a story scene too. (With the Story look on, the chapter
+  // already steps aside while a servant's page is open, storyOn() in 32-story.js; this keeps it so for a scene put up
+  // by hand as well.)
   return cbTheme() || w;
 };
 // while a class's background shows, the aura steps aside (38-bg3d.css)

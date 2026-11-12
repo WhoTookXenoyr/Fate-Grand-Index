@@ -63,13 +63,20 @@ function cbTheme() {
   if (!bg3dCls || S.tab !== "servants" || !S.selected) return null;
   const s = S.servants.find((x) => x.id === S.selected), key = s && CB_THEME[cbForce] ? cbForce : cbKey(s); if (!key) return null;
   const t = CB_THEME[key], dark = isDark(), C = cbCols(t, dark), k = BG3D_BROKEN[t.k] ? "fog" : t.k;
-  return {story: false, cls: key, kind: k, css: "", opts: cbOpts(k, C, dark), a: k === "fog" ? 0.85 : 0.92};
+  return {story: false, cls: key, kind: k, css: "", opts: cbOpts(k, C, dark), a: k === "fog" ? 0.85 : dark ? 0.92 : 0.78}; // (a little softer on cream, where text sits on it)
 }
 const bg3dWant63 = bg3dWant;
 bg3dWant = function () {
   const w = bg3dWant63.apply(this, arguments);
   if (!w || w.story) return w; // switched off, reduce motion, no WebGL, or a story scene: as it was
   return cbTheme() || w;
+};
+// while a class's background shows, the aura steps aside (38-bg3d.css)
+const bg3dSync63 = bg3dSync;
+bg3dSync = function () {
+  const r = bg3dSync63.apply(this, arguments), w = bg3dWant(), root = document.documentElement;
+  root.classList.toggle("bg3d-cls", !!(w && w.cls && root.classList.contains("bg3d-on")));
+  return r;
 };
 // a servant opening or closing on the Servants page, or another tab
 const renderAll63 = renderAll;

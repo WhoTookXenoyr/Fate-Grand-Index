@@ -62,6 +62,9 @@ with sync_playwright() as p:
         seen.append((sid, pg.evaluate("window.__fgi3d.state().kind"), ok))
     check(f"opening a servant gives the page their class's background ({seen})", all(x[2] for x in seen))
     check("Space Ereshkigal gets hers, not the Beast's", seen[-1][1] == "speresh")
+    AURA = "(() => { const a = document.querySelector('.aura'); return [document.documentElement.classList.contains('bg3d-cls'), a ? getComputedStyle(a).display : null]; })()"
+    au = pg.evaluate(AURA)
+    check(f"while a class's background shows, the aura isn't drawn over it ({au})", au[0] and au[1] in ("none", None))
     pg.wait_for_timeout(2200)
     g = [rgb(c) for c in pg.evaluate(G)]; o = pg.evaluate("window.__fgiCls.theme().opts"); c1, c3 = rgb(o["color"]), rgb(o["color3"])
     check(f"a Beast without a picture of yours: the page stays black, and the background keeps her own pink and pale blue ({g}, {c1}, {c3})",
@@ -85,7 +88,8 @@ with sync_playwright() as p:
 
     # ---------- leaving the servant ----------
     pg.goto(SEEDED + "#home"); ok = wait3d(pg, "s.kind === 'globe'", 12000)
-    check("on another page it's the usual effect again", ok)
+    pg.wait_for_timeout(600); au = pg.evaluate(AURA)
+    check(f"on another page it's the usual effect again, and the aura is back ({au})", ok and not au[0] and au[1] not in ("none",))
     pg.goto(SEEDED + "#servants"); awake(pg); pg.click('#list [data-id="miyamoto-musashi"]'); ok = wait3d(pg, "s.kind === 'blades'", 12000)
     check("and back on a servant, their class's", ok)
 

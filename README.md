@@ -38,12 +38,15 @@ python3 tools/build.py --check   # fails if dist/ is not what src/ builds
 
 Commit `dist/Fate_Grand_Index.html` together with the `src/` change that produced it.
 
-When the Atlas Academy data changes, replace the exports in `data/atlas/` and run:
+When the Atlas Academy data changes, the **NA data** job (`.github/workflows/na-data.yml`) does this by itself: once a day it asks Atlas Academy whether NA's data changed, and when it did it downloads it, rebuilds the page and opens a pull request from `na-data` into `main` (one, rebuilt on top of `main` every day until it's merged). Servants NA has now leave `data/atlas/upcoming.json`, so their pages use NA's own text. By hand, on a machine that can reach Atlas Academy:
 
 ```sh
+python3 tools/fetch_na.py        # downloads NA's exports into data/atlas/ when they changed (--force: anyway)
 python3 tools/gen_atlas.py       # rebuilds src/data/atlas_data.js
 python3 tools/build.py
 ```
+
+`tools/fetch_na.py` keeps the servant export without the parts `gen_atlas.py` never reads (the output is the same), fetches costume names only for servants with a costume it doesn't know yet, and stores Atlas's `info.json` as `data/atlas/na_info.json` to tell next time whether anything changed. For the pull request to open, Settings → Actions → General → Workflow permissions must allow GitHub Actions to create pull requests; otherwise the job pushes `na-data` and says so.
 
 ## Tests
 

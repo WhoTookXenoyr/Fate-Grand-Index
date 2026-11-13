@@ -17,3 +17,6 @@ data/atlas/*.json
 tools/dev/node_modules/
 tools/dev/package-lock.json
 .wrangler/
+
+# written by tools/fetch_na.py for the NA data job; not kept
+na_summary.md

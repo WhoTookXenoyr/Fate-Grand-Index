@@ -1,16 +1,17 @@
 name: NA data
 
 # 0.53.0-beta: keeps the page's NA servant and Craft Essence data up to date by itself.
-# Once a day it asks Atlas Academy whether NA's data changed (a tiny info.json). When it did, tools/fetch_na.py downloads
-# it, tools/gen_atlas.py and tools/build.py rebuild the page, and:
+# Every four hours it asks Atlas Academy whether NA's data changed (a tiny info.json; a run that finds nothing takes
+# seconds). When it did, tools/fetch_na.py downloads it, tools/gen_atlas.py and tools/build.py rebuild the page, and:
 #   - on main: the result goes to the branch na-data and a pull request into main (one, kept up to date) to merge;
 #   - on any other branch (a push of this file or of tools/fetch_na.py): it's committed to that branch.
 # Nothing is committed when the page's data comes out the same. Servants NA has now leave data/atlas/upcoming.json,
 # so their pages use NA's own text from then on.
-# It can also be run from the Actions tab ("Run workflow").
+# It can also be run from the Actions tab ("Run workflow"). GitHub turns off schedules in a public repo after 60 days
+# without a commit; "Run workflow" turns this one on again.
 on:
   schedule:
-    - cron: "23 20 * * *" # 20:23 UTC: NA's updates usually land around 17:00–19:00 UTC
+    - cron: "23 */4 * * *"
   workflow_dispatch:
     inputs:
       force:
@@ -87,7 +88,7 @@ jobs:
           {
             cat na_summary.md
             echo
-            echo "Data only, made by the NA data job (.github/workflows/na-data.yml) from Atlas Academy's NA export. It's rebuilt on top of main every day until it's merged. The version isn't changed: that's yours to decide when you release."
+            echo "Data only, made by the NA data job (.github/workflows/na-data.yml) from Atlas Academy's NA export. It's rebuilt on top of main whenever NA's data changes again, until it's merged. The version isn't changed: that's yours to decide when you release."
           } > /tmp/na_body.md
           open=$(gh pr list --head na-data --base main --state open --json number --jq '.[0].number')
           if [ -n "$open" ]; then

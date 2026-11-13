@@ -13,7 +13,7 @@ Writes, in data/atlas/:
 - upcoming.json      servants NA has now are taken off it: from here on they're ordinary NA servants
 and, beside the repo's root, na_summary.md: what changed, in a few lines, for the commit and the pull request.
 
-Then run tools/gen_atlas.py and tools/build.py. .github/workflows/na-data.yml does all three every six hours and
+Then run tools/gen_atlas.py and tools/build.py. .github/workflows/na-data.yml does all three every four hours and
 opens a pull request when the page's data changed. This computer's shell may not reach Atlas Academy; GitHub's can.
 Prints "changed=true" or "changed=false" last (and writes it to $GITHUB_OUTPUT when there is one).
 """

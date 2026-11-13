@@ -1,5 +1,5 @@
 import os
-import sys, tempfile, json
+import sys, tempfile, json, re
 from playwright.sync_api import sync_playwright
 # tests/run.py serves the page over http (FGI_URL); run by hand, a suite opens the files directly
 sp = sys.argv[1]; URL = os.environ.get("FGI_URL") or "file://" + sp
@@ -54,7 +54,10 @@ with sync_playwright() as p:
     check("NP effect line has an icon slot", pg.locator("#dossier .npt .ln-ic").count() >= 1)
     first = slots.first; k = first.get_attribute("data-k")
     first.click(); pg.wait_for_timeout(300)
-    check(f"picker opens with your 153 icons and the game's 239 ({pg.locator('#ic-pick .ic-grid button').count()})", pg.locator("#ic-pick").is_visible() and pg.locator("#ic-pick .ic-grid.ig-set button").count() == 153 and pg.locator("#ic-pick .ic-grid.ig-buff button").count() == 119 and pg.locator("#ic-pick .ic-grid.ig-skill button").count() == 120)
+    # the game's icons: as many as NA's data has (ATLAS_ICONS: "B:" buffs, "K:" skills; 239 until NA's data of 13 Nov 2026)
+    _ic = json.loads(re.search(r"^const ATLAS_ICONS = (.*?);?$", open(os.path.join(sp, "atlas_data.js"), encoding="utf-8").read(), re.M).group(1).rstrip(";"))
+    nb, nk = sum(1 for x in _ic if x[0].startswith("B:")), sum(1 for x in _ic if x[0].startswith("K:"))
+    check(f"picker opens with your 153 icons and the game's {nb + nk} ({pg.locator('#ic-pick .ic-grid button').count()})", pg.locator("#ic-pick").is_visible() and pg.locator("#ic-pick .ic-grid.ig-set button").count() == 153 and pg.locator("#ic-pick .ic-grid.ig-buff button").count() == nb and pg.locator("#ic-pick .ic-grid.ig-skill button").count() == nk and nb + nk >= 239)
     pg.fill(".ic-q", "heal"); pg.wait_for_timeout(100)
     vis = pg.locator(".ic-grid button:not([hidden])").count()
     check(f"search narrows the icons ({vis})", 0 < vis < 40)

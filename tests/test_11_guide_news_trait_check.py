@@ -5,6 +5,8 @@ from playwright.sync_api import sync_playwright
 sp = sys.argv[1]; URL = os.environ.get("FGI_URL") or "file://" + sp
 EMPTY = f"{URL}/out/Fate_Grand_Index.html"
 SEEDED = f"{URL}/_seeded.html"
+# (NA's servant count comes from the page's data: 418 until NA's data of 13 Nov 2026)
+NS = len(json.loads(re.search(r"^const ATLAS_S = (.*?);?$", open(os.path.join(sp, "atlas_data.js"), encoding="utf-8").read(), re.M).group(1).rstrip(";")))
 errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
@@ -71,7 +73,7 @@ with sync_playwright() as p:
     hits = sorted(int(x) for x in pg.evaluate("Array.from(document.querySelectorAll('.pc-card')).map(b => b.dataset.no)"))
     check("…and a trait on top", hits == sorted(x["no"] for x in ATL if x["a"] == "Earth" and "Lawful" in x["o"] and "Evil" in x["m"] and "Dragon" in x["t"]))
     pg.click('[data-action="pc-clear"]'); pg.wait_for_timeout(300)
-    check("Clear filters shows everyone again", pg.locator(".pc-count").inner_text().startswith("418") and pg.locator('[data-pc-f="attr"]').input_value() == "")
+    check(f"Clear filters shows everyone again ({NS})", pg.locator(".pc-count").inner_text().startswith(str(NS)) and pg.locator('[data-pc-f="attr"]').input_value() == "")
     pg.fill('[data-pc-q="q"]', "morgan"); pg.wait_for_timeout(300)
     pg.click('.pc-card[data-no="309"]'); pg.wait_for_timeout(400)
     tags = pg.locator(".pcd-tags button").all_inner_texts()

@@ -4,6 +4,14 @@ from playwright.sync_api import sync_playwright
 # tests/run.py serves the page over http (FGI_URL); run by hand, a suite opens the files directly
 sp = sys.argv[1]; URL = os.environ.get("FGI_URL") or "file://" + sp
 BASE = f"{URL}/_seeded.html"
+# NA's counts come from the data in the page (they grow with every NA update: 418 servants and 2135 Craft Essences until
+# NA's data of 13 Nov 2026)
+def _atlas(k):
+    import re
+    t = open(os.path.join(sp, "atlas_data.js"), encoding="utf-8").read()
+    return json.loads(re.search(r"^const %s = (.*?);?$" % k, t, re.M).group(1).rstrip(";"))
+NA_S, NA_C = _atlas("ATLAS_S"), _atlas("ATLAS_C")
+NS, NC, NB = len(NA_S), len(NA_C), sum(1 for c in NA_C if c.get("f") == "B")
 errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
@@ -36,10 +44,10 @@ with sync_playwright() as p:
     go_tab(pg, "past"); pg.wait_for_timeout(1200)
     check("Past Chaldea tab opens", pg.evaluate("location.hash") == "#past" and pg.locator("#tab-past").get_attribute("aria-selected") == "true" and pg.locator(".tabs .tab").count() == 10)
     n_srv = pg.locator('.pc-view [data-v="servants"] small').inner_text()
-    check(f"418 NA servants minus the 27 on your list ({n_srv})", n_srv == "391")
+    check(f"{NS} NA servants minus the 27 on your list ({n_srv})", n_srv == str(NS - 27))
     check("first 240 shown, the rest behind Show more", pg.locator(".pc-grid .pc-card").count() == 240 and pg.locator('[data-action="pc-more"]').count() == 1)
     pg.click('[data-action="pc-more"]'); pg.wait_for_timeout(500)
-    check("Show more shows them all", pg.locator(".pc-grid .pc-card").count() == 391)
+    check("Show more shows them all", pg.locator(".pc-grid .pc-card").count() == NS - 27)
     hidden = ["2", "196", "417", "250", "284", "150", "37", "316", "179"]
     shown = pg.evaluate("Array.from(document.querySelectorAll('.pc-card')).map(c => c.dataset.no)")
     check("your roster and Guests are left out (Altria, both Ereshkigals, Demon King Nobunaga, Castoria, Merlin, Waver, Oberon, Salter)", not any(h in shown for h in hidden))
@@ -53,7 +61,7 @@ with sync_playwright() as p:
     check(f"★5 Quick filter ({pg.locator('.pc-grid .pc-card').count()})", pg.locator(".pc-grid .pc-card").count() > 5 and all(c.endswith("5") for c in pg.evaluate("Array.from(document.querySelectorAll('.pc-card')).map(c => c.className.match(/r\\d/)[0])")))
     pg.select_option('[data-pc-f="r"]', ""); pg.click('[data-action="pc-card"][data-card=""]'); pg.wait_for_timeout(300)
     pg.check("[data-pc-mine]"); pg.wait_for_timeout(500); pg.click('[data-action="pc-more"]'); pg.wait_for_timeout(400)
-    check(f"Show mine too marks yours ({pg.locator('.pc-card.is-mine').count()})", pg.locator(".pc-card.is-mine").count() == 27 and pg.locator(".pc-grid .pc-card").count() == 418)
+    check(f"Show mine too marks yours ({pg.locator('.pc-card.is-mine').count()})", pg.locator(".pc-card.is-mine").count() == 27 and pg.locator(".pc-grid .pc-card").count() == NS)
     pg.uncheck("[data-pc-mine]"); pg.wait_for_timeout(400)
     pg.screenshot(path=f"{sp}/v12-past-desktop.png")
 
@@ -86,7 +94,7 @@ with sync_playwright() as p:
     check("their skills and NP table show in the servant panel", pg.locator("#dossier .skill").count() == 3 and pg.locator("#dossier .npt").count() == 1)
     pg.screenshot(path=f"{sp}/v12-guest-dossier.png")
     go_tab(pg, "past"); pg.wait_for_timeout(900)
-    check("and they leave Past Chaldea", pg.locator('.pc-card[data-no="3"]').count() == 0 and pg.locator('.pc-view [data-v="servants"] small').inner_text() == "390")
+    check("and they leave Past Chaldea", pg.locator('.pc-card[data-no="3"]').count() == 0 and pg.locator('.pc-view [data-v="servants"] small').inner_text() == str(NS - 28))
 
     # ---- summoning straight to the roster, paced by rarity
     import time
@@ -120,11 +128,11 @@ with sync_playwright() as p:
 
     # ---- Craft Essences
     pg.click('[data-action="pc-view"][data-v="ces"]'); pg.wait_for_timeout(700)
-    check("2135 Craft Essences", pg.locator('.pc-view [data-v="ces"] small').inner_text() == "2135" and pg.locator(".pc-grid.ce-grid .pc-card").count() == 240)
+    check(f"{NC} Craft Essences", pg.locator('.pc-view [data-v="ces"] small').inner_text() == str(NC) and pg.locator(".pc-grid.ce-grid .pc-card").count() == 240)
     pg.fill('[data-pc-q="cq"]', "kaleidoscope"); pg.wait_for_timeout(400)
     check("search finds Kaleidoscope", "Kaleidoscope" in pg.locator(".pc-grid.ce-grid").inner_text())
     pg.fill('[data-pc-q="cq"]', ""); pg.select_option('[data-pc-f="cf"]', "B"); pg.wait_for_timeout(400)
-    check("Bond CEs filter", pg.locator(".pc-count").inner_text().startswith("417"))
+    check(f"Bond CEs filter ({NB})", pg.locator(".pc-count").inner_text().startswith(str(NB)))
     pg.locator(".pc-grid.ce-grid .pc-card").first.click(); pg.wait_for_timeout(500)
     check("a Bond CE names its servant", pg.locator(".pcd-panel .linkish").count() == 1)
     pg.locator(".pcd-panel .linkish").click(); pg.wait_for_timeout(500)

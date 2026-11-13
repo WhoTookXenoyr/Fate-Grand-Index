@@ -1,7 +1,8 @@
 name: Upcoming servants
 
-# Downloads JP's data for the servants in data/atlas/upcoming.json (tools/fetch_upcoming.py) and commits it to the same
-# branch. Runs when upcoming.json changes, or from the Actions tab.
+# Downloads JP's data for the servants in data/atlas/upcoming.json (tools/fetch_upcoming.py), rebuilds the page with it
+# (tools/gen_atlas.py, tools/build.py) and commits both to the same branch. Runs when upcoming.json changes, or from
+# the Actions tab.
 on:
   push:
     paths: [data/atlas/upcoming.json, tools/fetch_upcoming.py]
@@ -20,9 +21,14 @@ jobs:
         with:
           python-version: "3.12"
       - run: python tools/fetch_upcoming.py
+      # (before 13 Nov 2026 the page wasn't rebuilt here, so it showed the JP data of the run before)
+      - name: Rebuild the page
+        run: |
+          python tools/gen_atlas.py
+          python tools/build.py
       - name: Commit the data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/atlas/upcoming_servants.json.gz data/atlas/upcoming_costumes.json.gz
+          git add data/atlas/upcoming_servants.json.gz data/atlas/upcoming_costumes.json.gz src/data/atlas_data.js dist site
           git diff --cached --quiet || { git commit -m "Upcoming servants: JP's data (tools/fetch_upcoming.py)"; git push; }

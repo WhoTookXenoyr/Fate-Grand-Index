@@ -48,9 +48,11 @@ jobs:
       - name: Rebuild the page
         if: steps.fetch.outputs.changed == 'true'
         run: |
+          cp src/data/atlas_data.js /tmp/atlas_data_before.js
           python tools/gen_atlas.py
           python tools/build.py
           python tools/build.py --check
+          python tools/fetch_na.py --summary /tmp/atlas_data_before.js
 
       - name: Commit, or open the pull request
         if: steps.fetch.outputs.changed == 'true'
@@ -59,9 +61,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # on main, a pull request only when the page's data changed; on another branch, the downloaded files too
           if git diff --quiet -- src/data/atlas_data.js; then
-            echo "The page's data came out the same: nothing to commit." | tee -a "$GITHUB_STEP_SUMMARY"
-            exit 0
+            if [ "$GITHUB_REF_NAME" = "main" ] || [ -z "$(git status --porcelain -- data/atlas)" ]; then
+              echo "The page's data came out the same: nothing to commit." | tee -a "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
           fi
           git add data/atlas src/data/atlas_data.js dist site
           {

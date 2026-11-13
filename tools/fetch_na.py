@@ -2,6 +2,7 @@
 
     python3 tools/fetch_na.py            # only when NA's data changed since data/atlas/na_info.json
     python3 tools/fetch_na.py --force    # anyway
+    python3 tools/fetch_na.py --summary OLD_ATLAS_DATA_JS   # after gen_atlas.py: what changed on the page, into na_summary.md
 
 Writes, in data/atlas/:
 - servants.json.gz   the "nice" NA servant export, without the parts tools/gen_atlas.py never reads (its output is the
@@ -43,8 +44,59 @@ def out(changed):
         with open(os.environ["GITHUB_OUTPUT"], "a") as f: f.write("changed=%s\n" % ("true" if changed else "false"))
 
 
-def save_gz(name, data):
-    with gzip.open(os.path.join(ATLAS, name), "wt", encoding="utf-8") as f: json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+def save_gz(name, data, **kw):
+    # (no time in the gzip header: the same data gives the same bytes, so git sees no change)
+    with open(os.path.join(ATLAS, name), "wb") as raw, gzip.GzipFile(fileobj=raw, mode="wb", mtime=0) as z:
+        z.write(json.dumps(data, **(kw or {"ensure_ascii": False, "separators": (",", ":")})).encode("utf-8"))
+
+
+def page_data(path):
+    import re
+    t = open(path, encoding="utf-8").read(); out = {}
+    for m in re.finditer(r"^const (ATLAS_(?:S|C|UP)) = (.*?);?$", t, re.M): out[m.group(1)] = json.loads(m.group(2).rstrip(";"))
+    return out
+
+
+def summary(old_path):
+    """What changed on the page between two src/data/atlas_data.js: written over the download's own lines in na_summary.md."""
+    a, b = page_data(old_path), page_data(os.path.join(ROOT, "src", "data", "atlas_data.js"))
+    oa = {x["no"]: x for x in a.get("ATLAS_S", [])}
+    up_was = {x["no"] for x in a.get("ATLAS_UP", [])}
+    sp = os.path.join(ROOT, "na_summary.md")
+    was = open(sp, encoding="utf-8").read() if os.path.exists(sp) else "NA's game data.\n"
+    head = was.split("\n")[0]
+    lines = [head, ""]
+    out_now = [x for x in b["ATLAS_S"] if x["no"] not in oa and x["no"] in up_was]
+    new = [x for x in b["ATLAS_S"] if x["no"] not in oa and x["no"] not in up_was]
+    if out_now: lines.append("- **Out on NA now**, so their pages use NA's own text: " + ", ".join("%s (No. %d)" % (x["n"], x["no"]) for x in out_now))
+    if new: lines.append("- **New servants:** " + ", ".join("%s (No. %d)" % (x["n"], x["no"]) for x in new))
+    ch = []
+    for x in b["ATLAS_S"]:
+        y = oa.get(x["no"])
+        if not y or y == x: continue
+        bits = []
+        for i, (s1, s2) in enumerate(zip(y.get("sk") or [], x.get("sk") or [])):
+            if s1.get("n") != s2.get("n"): bits.append("skill %d %s → %s" % (i + 1, s1.get("n"), s2.get("n")))
+            elif s1 != s2: bits.append("skill %d" % (i + 1))
+        n1, n2 = y.get("np") or {}, x.get("np") or {}
+        if (n1.get("n"), n1.get("k")) != (n2.get("n"), n2.get("k")): bits.append("NP %s %s → %s %s" % (n1.get("n"), n1.get("k"), n2.get("n"), n2.get("k")))
+        elif n1 != n2: bits.append("NP")
+        if y.get("t") != x.get("t"): bits.append("traits")
+        if not bits: bits.append("details")
+        ch.append("%s (%s)" % (x["n"], ", ".join(bits)))
+    if ch: lines.append("- **Changed** (Strengthening Quests and the like): " + "; ".join(ch[:40]) + ("; and %d more" % (len(ch) - 40) if len(ch) > 40 else ""))
+    oc = {x["no"] for x in a.get("ATLAS_C", [])}
+    nc = [x for x in b.get("ATLAS_C", []) if x["no"] not in oc]
+    if nc: lines.append("- **New Craft Essences:** %d (%s)" % (len(nc), ", ".join(x["n"] for x in nc[:12]) + (", …" if len(nc) > 12 else "")))
+    cos = [l for l in was.split("\n") if l.startswith("- **New costumes:**")]
+    lines += cos
+    if len(lines) == 2: lines.append("- Nothing the page shows changed.")
+    open(os.path.join(ROOT, "na_summary.md"), "w", encoding="utf-8").write("\n".join(lines) + "\n")
+    print("\n".join(lines))
+
+
+if "--summary" in sys.argv:
+    summary(sys.argv[sys.argv.index("--summary") + 1]); sys.exit(0)
 
 
 info_path = os.path.join(ATLAS, "na_info.json")
@@ -101,7 +153,7 @@ if os.path.exists(up_path):
 
 save_gz("servants.json.gz", servants)
 save_gz("ces.json.gz", ces)
-with gzip.open(os.path.join(ATLAS, "costumes.json.gz"), "wt", encoding="utf-8") as f: json.dump(costumes, f, ensure_ascii=False)
+save_gz("costumes.json.gz", costumes, ensure_ascii=False)
 with open(info_path, "w") as f: json.dump(info, f, indent=2); f.write("\n")
 
 when = time.strftime("%d %b %Y %H:%M UTC", time.gmtime(info.get("timestamp") or 0))

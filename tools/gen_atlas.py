@@ -21,7 +21,8 @@ UP_LIST = json.load(open(os.path.join(ATLAS, "upcoming.json"), encoding="utf-8")
 _na_nos = {x["collectionNo"] for x in S if x.get("collectionNo")}
 UP_LIST = [u for u in UP_LIST if u["no"] not in _na_nos]  # NA has them now: they're ordinary servants
 U = [x for x in json.load(_open(os.path.join(ATLAS, "upcoming_servants.json"))) if x["collectionNo"] in {u["no"] for u in UP_LIST}] if UP_LIST else []
-COSTUMES.update(json.load(_open(os.path.join(ATLAS, "upcoming_costumes.json"))) if U else {})
+# (only for the servants still to come: once NA has one, NA's costume names win over JP's left in the file)
+COSTUMES.update({k: v for k, v in json.load(_open(os.path.join(ATLAS, "upcoming_costumes.json"))).items() if k in {str(x["id"]) for x in U}} if U else {})
 BASE = "https://static.atlasacademy.io/NA/"
 def p(url): return url[len(BASE):] if url and url.startswith(BASE) else url
 

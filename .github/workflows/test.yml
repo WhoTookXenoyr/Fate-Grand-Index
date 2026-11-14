@@ -30,6 +30,10 @@ jobs:
       - name: The committed page is what src/ builds
         run: python tools/build.py --check
 
+      - name: The bundled three.js and vanta.js are the published releases
+        # (14 Nov 2026, security review: they go into the page as they are)
+        run: python tools/check_vendor.py
+
       - name: Install Playwright and Chromium
         run: |
           pip install -r tests/requirements.txt

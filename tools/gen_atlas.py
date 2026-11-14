@@ -545,5 +545,10 @@ GRAIL = {
   4: [(4000000, 5), (5000000, 10)] + [(q, 10 + 2 * i) for i, q in enumerate([6000000, 7000000, 8000000, 9000000, 10000000] + [12000000] * 10, 1)],
   5: [(q, 2 * i) for i, q in enumerate([9000000, 10000000, 11000000, 12000000, 13000000] + [15000000] * 10, 1)]}
 js += "const ATLAS_GRAIL = %s;\n" % json.dumps({str(k): [list(t) for t in v] for k, v in GRAIL.items()}, separators=(",", ":"))
+# This file goes inside the page's <script> as it is, and its text comes from outside (Atlas Academy, now by a job with
+# no one reading it): a "</script" in a name would end the script there and start the page's HTML, and "<!--" changes
+# how the browser reads what follows. Both only occur inside JSON strings here, where "<\/" and "\u003c" mean the same.
+# (tools/build.py refuses to build if either gets through.)
+js = js.replace("</", "<\\/").replace("<!--", "\\u003c!--")
 with open(os.path.join(ROOT, "src", "data", "atlas_data.js"), "w", encoding="utf-8") as f: f.write(js.strip() + "\n")
 print("servants", len(out), "upcoming", len(ups), "ces", len(ces), "icons", len(icons), "bytes", len(js.encode()))

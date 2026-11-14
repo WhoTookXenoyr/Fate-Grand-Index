@@ -48,6 +48,13 @@ python3 tools/build.py
 
 `tools/fetch_na.py` keeps the servant export without the parts `gen_atlas.py` never reads (the output is the same), fetches costume names only for servants with a costume it doesn't know yet, and stores Atlas's `info.json` as `data/atlas/na_info.json` to tell next time whether anything changed. For the pull request to open, Settings → Actions → General → Workflow permissions must allow GitHub Actions to create pull requests; otherwise the job pushes `na-data` and says so.
 
+**Guards on data from outside** (14 Nov 2026, after a security review):
+- **Neither data job pushes to `main`.** On `main` both hand in a pull request (`na-data`, `upcoming-data`); on another branch they commit to it. Both go through `tools/bot_commit.sh`, which then starts the tests on what was pushed (GitHub doesn't run workflows for a job's own pushes, except when started this way). The two jobs share one queue per branch, so they never push at the same time.
+- **`tools/build.py` refuses to build** if the page's script contains `</script` or `<!--`, or its styles `</style`. The game data is put into the page's `<script>` as it is, and the site's CSP allows every `<script>` block it finds (by hash), so a name in Atlas's data that ended the script would otherwise run as allowed script. `gen_atlas.py` writes `</` as `<\/` and `<!--` as `\u003c!--`, which mean the same in a JSON string, so real data never trips it.
+- **`tools/check_data.py`** stops a data job when the rebuilt data lost NA servants or Craft Essences (a partial export).
+- **`tools/check_vendor.py`** (in CI) compares `src/vendor/` with the published three.js and vanta.js releases from npm, byte for byte.
+- `fetch_na.py` and `fetch_upcoming.py` write their `.gz` files without a time in them, so the same data never makes a commit.
+
 ## Tests
 
 ```sh

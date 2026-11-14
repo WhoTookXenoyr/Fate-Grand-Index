@@ -177,6 +177,7 @@ const CHANGES = [
     "<b>The whole deck</b> under a skill in the Workshop: every card, the Extra attack and the NP, each with what the skill gives it. <b>All skills together</b> adds the three up.",
     "Fixed: after switching between light and dark, a story scene (and a servant's own backdrop) stayed in the theme you'd just left.",
     "<b>Tutankhamun and Van Gogh (Miner)</b> are out on NA, and their pages now use NA's own text in place of JP's. NA's data is up to 13 Nov too: seven new Craft Essences, and Strengthening Quests for fifteen servants (Leonardo da Vinci's The Trail of Innovation, Baobhan Sith's NP to C, Izumo-no-Okuni's Combat Dance B+ and more).",
+    "Fixed: on some phones the Coming to NA page scrolled sideways by a few pixels (the \"Expected December 2026\" label was a little too wide with the phone's own font). It wraps onto a second line when it has to.",
     "Fixed: in the first black-and-cream builds, a servant's picture no longer coloured the page (a red servant left it black, or cream). It does again."
   ]},
   {v: "0.52.2-beta", d: "10 Nov 2026", t: "Story scenes in Firefox", i: [

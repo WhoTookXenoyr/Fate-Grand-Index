@@ -29,7 +29,11 @@ def page(b, when, w=1440, fixed=True, tz="Europe/Amsterdam", live=False, atlas=N
     pg.route("https://static.atlasacademy.io/**", lambda r: r.fulfill(path=f"{sp}/ph_face.png", content_type="image/png"))
     pg.goto(SEEDED + "#home"); pg.wait_for_timeout(1500)
     return ctx, pg
-txt = lambda pg, sel: pg.locator(sel).first.inner_text() if pg.locator(sel).count() else ""
+# (14 Nov 2026: CI's Chromium 141 writes British dates as "Sat, 7 Nov", newer ones as "Sat 7 Nov"; both are right, so the
+#  checks read the first as the second)
+import re as _re
+_day = lambda t: _re.sub(r"\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun), (?=\d)", r"\1 ", t)
+txt = lambda pg, sel: _day(pg.locator(sel).first.inner_text()) if pg.locator(sel).count() else ""
 def secs(t):
     d, _, hms = t.rpartition(" "); h, m, s = (int(x) for x in hms.split(":"))
     return (int(d.rstrip("d")) if d else 0) * 86400 + h * 3600 + m * 60 + s
@@ -128,7 +132,7 @@ with sync_playwright() as p:
     cd = lrow(pg, "Countdown")
     check(f"the countdown one says today's reward ({cd.locator('small').inner_text()!r})", "Today, day 2 of 7: 10 Star Fou ★3 (HP) and 10 Sun Fou ★3 (ATK). Next: 20 Hellfire" in cd.locator("small").inner_text() and cd.locator("time").inner_text() == "ends in 5d 14h")
     dc = lrow(pg, "Community Discord")
-    check(f"the Discord one hasn't started ({dc.locator('time').inner_text()!r})", dc.locator("time").inner_text() == "starts Wed 4 Nov, 05:00" and "10 Saint Quartz" in dc.locator("small").inner_text())
+    check(f"the Discord one hasn't started ({dc.locator('time').inner_text()!r})", _day(dc.locator("time").inner_text()) == "starts Wed 4 Nov, 05:00" and "10 Saint Quartz" in dc.locator("small").inner_text())
     check("each opens its announcement on NA's news", lrow(pg, "Leyline").locator('a[href="https://webview.fate-go.us/2026/1029_lb6_clear_cp/"][target="_blank"]').count() == 1
           and lrow(pg, "GUDAGUDA").locator('a[href="https://webview.fate-go.us/2026/1013_re_gudaguda/"]').count() == 1 and dc.locator('a[href="https://webview.fate-go.us/2026/1103_discord_20000_cp/"]').count() == 1)
     check("and the page says where they come from", "Login bonuses come from NA's news" in txt(pg, LV + " .lv-foot"))

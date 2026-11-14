@@ -1,15 +1,28 @@
 name: Upcoming servants
 
 # Downloads JP's data for the servants in data/atlas/upcoming.json (tools/fetch_upcoming.py), rebuilds the page with it
-# (tools/gen_atlas.py, tools/build.py) and commits both to the same branch. Runs when upcoming.json changes, or from
-# the Actions tab.
+# (tools/gen_atlas.py, tools/build.py), and hands it in (tools/bot_commit.sh):
+#   - on a branch: committed to that branch;
+#   - on main: to the branch upcoming-data and a pull request into main (one, kept up to date). It never pushes to main.
+# Then the tests run on it. Runs when upcoming.json or fetch_upcoming.py changes, or from the Actions tab.
+# 14 Nov 2026 (security review): before, on main it pushed the rebuilt page straight to main, without build.py --check
+# and without tests. tools/check_data.py stops it if the rebuilt data lost NA servants or Craft Essences.
 on:
   push:
+    branches-ignore: [upcoming-data, na-data]
     paths: [data/atlas/upcoming.json, tools/fetch_upcoming.py]
   workflow_dispatch:
 
 permissions:
   contents: write
+  pull-requests: write
+  actions: write # to start the tests on what it pushes
+
+# one queue for both data jobs on a branch: each rebuilds the page, so they mustn't push at the same time; each checks
+# out the branch as it is when it starts, so it builds on what the other one pushed
+concurrency:
+  group: data-jobs-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   fetch:
@@ -17,18 +30,24 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: python tools/fetch_upcoming.py
-      # (before 13 Nov 2026 the page wasn't rebuilt here, so it showed the JP data of the run before)
       - name: Rebuild the page
         run: |
+          cp src/data/atlas_data.js /tmp/atlas_data_before.js
           python tools/gen_atlas.py
+          python tools/check_data.py /tmp/atlas_data_before.js
           python tools/build.py
-      - name: Commit the data
+          python tools/build.py --check
+      - name: Commit, or open the pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/atlas/upcoming_servants.json.gz data/atlas/upcoming_costumes.json.gz src/data/atlas_data.js dist site
-          git diff --cached --quiet || { git commit -m "Upcoming servants: JP's data (tools/fetch_upcoming.py)"; git push; }
+          echo "Upcoming servants: JP's data (tools/fetch_upcoming.py)" > /tmp/up_msg.txt
+          printf '%s\n' "JP's data for the servants in data/atlas/upcoming.json, and the page rebuilt with it, made by the Upcoming servants job (.github/workflows/upcoming.yml). The tests run on it by themselves." > /tmp/up_body.md
+          tools/bot_commit.sh upcoming-data "Upcoming servants: JP's data, $(date -u +'%d %b %Y')" /tmp/up_msg.txt /tmp/up_body.md \
+            data/atlas/upcoming_servants.json.gz data/atlas/upcoming_costumes.json.gz src/data/atlas_data.js dist site

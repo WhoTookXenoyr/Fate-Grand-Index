@@ -27,6 +27,9 @@ def page(p, w=1360, h=1000):
     pg = ctx.new_page(); pg.on("pageerror", lambda e: errs.append(str(e)))
     pg.route("https://fonts.googleapis.com/**", lambda r: r.abort()); pg.route("https://fonts.gstatic.com/**", lambda r: r.abort())
     pg.route("https://static.atlasacademy.io/**", atlas)
+    # (14 Nov 2026: GitHub's machines can reach Atlas Academy and this one can't, so leaving it open made CI see NA's live data
+    #  and pictures: other counts, faces in place of class logos. Every run answers the same now.)
+    pg.route("https://api.atlasacademy.io/**", lambda r: r.fulfill(status=404, body="{}"))
     return ctx, pg
 ATL = json.loads(re.search(r"const ATLAS_S = (\[.*?\]);\n", open(f"{sp}/atlas_data.js").read(), re.S).group(1))
 BY = {x["no"]: x for x in ATL}

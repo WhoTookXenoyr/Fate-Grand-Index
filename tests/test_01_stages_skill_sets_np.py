@@ -10,6 +10,9 @@ prof = tempfile.mkdtemp()
 def page(ctx):
     pg = ctx.new_page(); pg.on("pageerror", lambda e: errs.append(str(e)))
     pg.route("https://fonts.googleapis.com/**", lambda r: r.abort()); pg.route("https://fonts.gstatic.com/**", lambda r: r.abort())
+    # (14 Nov 2026: GitHub's machines can reach Atlas Academy and this one can't, so leaving it open made CI see NA's live data
+    #  and pictures: other counts, faces in place of class logos. Every run answers the same now.)
+    pg.route("https://static.atlasacademy.io/**", lambda r: r.abort()); pg.route("https://api.atlasacademy.io/**", lambda r: r.fulfill(status=404, body="{}"))
     return pg
 def check(label, ok): print(("PASS " if ok else "FAIL ") + label)
 # (0.50.0: on a phone the pages are in the menu that slides in from the left: open it first, like a person would)

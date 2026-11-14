@@ -49,7 +49,7 @@ def data_url(name):
 
 def seed_js(data):
     # same form the page has always used: compact JSON, safe inside <script>
-    return json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
+    return json.dumps(data, ensure_ascii=False).replace("</", "<\\/").replace("<!--", "\\u003c!--")
 
 
 def page(seed):
@@ -62,6 +62,14 @@ def page(seed):
     app = re.sub(r"@@include:([\w./-]+)@@", include, app)
     if app.count("@@seed@@") != 1: raise SystemExit("src/app must have exactly one @@seed@@")
     app = app.replace("@@seed@@", seed_js(seed))
+    # The script goes into the page as one <script> block, and site_files() puts a hash of every <script> block it finds
+    # into the CSP. So text that ends the script early ("</script") would let whatever follows run as allowed script on
+    # the site, and "<!--" changes how the browser reads the rest. The game data comes from outside (Atlas Academy, by a
+    # job): refuse to build rather than ship that. gen_atlas.py writes them as "<\/" and "\u003c!--", which mean the same.
+    bad = re.search(r"</script|<!--", app, re.I) or re.search(r"</style", styles, re.I)
+    if bad:
+        at = (app if bad.re.pattern.startswith("</script") else styles)[max(0, bad.start() - 60):bad.start() + 40]
+        raise SystemExit("refusing to build: %r would end the page's script or style early (near %r). Escape it as <\\/ first." % (bad.group(0), at))
     html = re.sub(r"@@asset:([\w.-]+)@@", asset, read("page.html"))
     for token, part in (("@@styles@@", styles), ("@@app@@", app)):
         if html.count(token) != 1: raise SystemExit("src/page.html must have exactly one " + token)

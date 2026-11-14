@@ -4,7 +4,9 @@ name: NA data
 # Every four hours it asks Atlas Academy whether NA's data changed (a tiny info.json; a run that finds nothing takes
 # seconds). When it did, tools/fetch_na.py downloads it, tools/gen_atlas.py and tools/build.py rebuild the page, and:
 #   - on main: the result goes to the branch na-data and a pull request into main (one, kept up to date) to merge;
-#   - on any other branch (a push of this file or of tools/fetch_na.py): it's committed to that branch.
+#   - on any other branch (a push of this file or of tools/fetch_na.py): it's committed to that branch;
+#   then the tests run on it (tools/bot_commit.sh). It never pushes to main. tools/check_data.py stops it if the new
+#   data lost servants or Craft Essences (a partial export), and tools/build.py if the data could break the page.
 # Nothing is committed when the page's data comes out the same. Servants NA has now leave data/atlas/upcoming.json,
 # so their pages use NA's own text from then on.
 # It can also be run from the Actions tab ("Run workflow"). GitHub turns off schedules in a public repo after 60 days
@@ -25,9 +27,12 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: write # to start the tests on what it pushes (tools/bot_commit.sh)
 
+# one queue for both data jobs on a branch: each rebuilds the page, so they mustn't push at the same time; each checks
+# out the branch as it is when it starts, so it builds on what the other one pushed
 concurrency:
-  group: na-data-${{ github.ref }}
+  group: data-jobs-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -36,6 +41,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
 
       - uses: actions/setup-python@v5
         with:
@@ -51,6 +58,7 @@ jobs:
         run: |
           cp src/data/atlas_data.js /tmp/atlas_data_before.js
           python tools/gen_atlas.py
+          python tools/check_data.py /tmp/atlas_data_before.js
           python tools/build.py
           python tools/build.py --check
           python tools/fetch_na.py --summary /tmp/atlas_data_before.js
@@ -60,8 +68,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # on main, a pull request only when the page's data changed; on another branch, the downloaded files too
           if git diff --quiet -- src/data/atlas_data.js; then
             if [ "$GITHUB_REF_NAME" = "main" ] || [ -z "$(git status --porcelain -- data/atlas)" ]; then
@@ -69,31 +75,7 @@ jobs:
               exit 0
             fi
           fi
-          git add data/atlas src/data/atlas_data.js dist site
-          {
-            echo "NA data: $(date -u +'%d %b %Y') (tools/fetch_na.py)"
-            echo
-            cat na_summary.md
-          } > /tmp/na_msg.txt
+          { echo "NA data: $(date -u +'%d %b %Y') (tools/fetch_na.py)"; echo; cat na_summary.md; } > /tmp/na_msg.txt
+          { cat na_summary.md; echo; echo "Data only, made by the NA data job (.github/workflows/na-data.yml) from Atlas Academy's NA export. It's rebuilt on top of main whenever NA's data changes again, until it's merged. The tests run on it by themselves. The version isn't changed: that's yours to decide when you release."; } > /tmp/na_body.md
           cat na_summary.md >> "$GITHUB_STEP_SUMMARY"
-          if [ "$GITHUB_REF_NAME" != "main" ]; then
-            git commit -q -F /tmp/na_msg.txt
-            git push -q origin "HEAD:$GITHUB_REF_NAME"
-            exit 0
-          fi
-          # main: rebuilt on top of main each time, so a pull request left open never falls behind
-          git switch -q -c na-data
-          git commit -q -F /tmp/na_msg.txt
-          git push -q -f origin na-data
-          {
-            cat na_summary.md
-            echo
-            echo "Data only, made by the NA data job (.github/workflows/na-data.yml) from Atlas Academy's NA export. It's rebuilt on top of main whenever NA's data changes again, until it's merged. The version isn't changed: that's yours to decide when you release."
-          } > /tmp/na_body.md
-          open=$(gh pr list --head na-data --base main --state open --json number --jq '.[0].number')
-          if [ -n "$open" ]; then
-            gh pr edit "$open" --title "NA data: $(date -u +'%d %b %Y')" --body-file /tmp/na_body.md
-          elif ! gh pr create --base main --head na-data --title "NA data: $(date -u +'%d %b %Y')" --body-file /tmp/na_body.md; then
-            msg="The branch na-data is pushed, but GitHub didn't let this job open the pull request. Turn on Settings → Actions → General → Workflow permissions → \"Allow GitHub Actions to create and approve pull requests\", or open it by hand: https://github.com/${GITHUB_REPOSITORY}/compare/main...na-data"
-            echo "::error::$msg"; echo "$msg" >> "$GITHUB_STEP_SUMMARY"; exit 1
-          fi
+          tools/bot_commit.sh na-data "NA data: $(date -u +'%d %b %Y')" /tmp/na_msg.txt /tmp/na_body.md data/atlas src/data/atlas_data.js dist site

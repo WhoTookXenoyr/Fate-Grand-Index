@@ -4962,7 +4962,11 @@ html.cmp-dropping .ds-frame { opacity: 0; }
 .up-lock.big svg { width: 28px; height: 28px; }
 .up-m { font-size: 11.5px; color: var(--page-muted, var(--muted)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .up-cd { align-self: center; padding: 2px 8px; border-radius: 99px; background: var(--sunken, rgba(0,0,0,.06)); color: var(--ink); font-family: var(--f-data); font-size: 11.5px;
-  font-variant-numeric: tabular-nums; letter-spacing: .02em; white-space: nowrap; }
+  font-variant-numeric: tabular-nums; letter-spacing: .02em;
+  /* it may not grow past its card: with the fonts a browser falls back to (DejaVu on GitHub's machines and some phones),
+     "Expected December 2026" was 3px too wide at 400px and the page scrolled sideways. It wraps onto a second line
+     then, rather than being cut off: the card is too narrow for it at every width with those fonts. */
+  max-width: 100%; box-sizing: border-box; white-space: normal; text-wrap: balance; text-align: center; }
 .up-cd.tbd { font-family: var(--f-body); color: var(--muted); }
 .up-cd.on { background: color-mix(in srgb, #3fae6a 22%, transparent); }
 .up-cd.big { align-self: flex-start; padding: 0; background: none; font-size: clamp(1.9rem, 4.5vw, 2.8rem); font-weight: 600; line-height: 1.05; letter-spacing: -.01em; }
@@ -12010,6 +12014,7 @@ const CHANGES = [
     "<b>The whole deck</b> under a skill in the Workshop: every card, the Extra attack and the NP, each with what the skill gives it. <b>All skills together</b> adds the three up.",
     "Fixed: after switching between light and dark, a story scene (and a servant's own backdrop) stayed in the theme you'd just left.",
     "<b>Tutankhamun and Van Gogh (Miner)</b> are out on NA, and their pages now use NA's own text in place of JP's. NA's data is up to 13 Nov too: seven new Craft Essences, and Strengthening Quests for fifteen servants (Leonardo da Vinci's The Trail of Innovation, Baobhan Sith's NP to C, Izumo-no-Okuni's Combat Dance B+ and more).",
+    "Fixed: on some phones the Coming to NA page scrolled sideways by a few pixels (the \"Expected December 2026\" label was a little too wide with the phone's own font). It wraps onto a second line when it has to.",
     "Fixed: in the first black-and-cream builds, a servant's picture no longer coloured the page (a red servant left it black, or cream). It does again."
   ]},
   {v: "0.52.2-beta", d: "10 Nov 2026", t: "Story scenes in Firefox", i: [

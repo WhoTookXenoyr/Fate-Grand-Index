@@ -21,7 +21,11 @@
 .up-lock.big svg { width: 28px; height: 28px; }
 .up-m { font-size: 11.5px; color: var(--page-muted, var(--muted)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .up-cd { align-self: center; padding: 2px 8px; border-radius: 99px; background: var(--sunken, rgba(0,0,0,.06)); color: var(--ink); font-family: var(--f-data); font-size: 11.5px;
-  font-variant-numeric: tabular-nums; letter-spacing: .02em; white-space: nowrap; }
+  font-variant-numeric: tabular-nums; letter-spacing: .02em;
+  /* it may not grow past its card: with the fonts a browser falls back to (DejaVu on GitHub's machines and some phones),
+     "Expected December 2026" was 3px too wide at 400px and the page scrolled sideways. It wraps onto a second line
+     then, rather than being cut off: the card is too narrow for it at every width with those fonts. */
+  max-width: 100%; box-sizing: border-box; white-space: normal; text-wrap: balance; text-align: center; }
 .up-cd.tbd { font-family: var(--f-body); color: var(--muted); }
 .up-cd.on { background: color-mix(in srgb, #3fae6a 22%, transparent); }
 .up-cd.big { align-self: flex-start; padding: 0; background: none; font-size: clamp(1.9rem, 4.5vw, 2.8rem); font-weight: 600; line-height: 1.05; letter-spacing: -.01em; }

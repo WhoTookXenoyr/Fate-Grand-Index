@@ -31,6 +31,9 @@ def page(ctx):
         f = "ph_face.png" if "/Faces/" in u else ("ph_ce.png" if len(seg) >= 7 and seg[:2] in ("90", "93", "94", "95", "96", "97", "98", "99") else "ph_graph.png")
         r.fulfill(path=f"{sp}/{f}", content_type="image/png")
     pg.route("https://static.atlasacademy.io/**", atlas)
+    # (14 Nov 2026: GitHub's machines can reach Atlas Academy and this one can't, so leaving it open made CI see NA's live data
+    #  and pictures: other counts, faces in place of class logos. Every run answers the same now.)
+    pg.route("https://api.atlasacademy.io/**", lambda r: r.fulfill(status=404, body="{}"))
     return pg
 def docs(pg):
     v = pg.evaluate(LS)["servants"]; return v if isinstance(v, list) else list(v.values())

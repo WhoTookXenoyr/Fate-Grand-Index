@@ -50,10 +50,17 @@ with sync_playwright() as p:
         # the tier menu opens under (or over) its card
         pg.evaluate("document.querySelector('#tab-ranking').click()"); pg.wait_for_timeout(500)
         pg.evaluate("document.querySelector('[data-action=\"rank-view\"][data-v=\"tiers\"]').click()"); pg.wait_for_timeout(500)
-        card = pg.locator(".tier-card").first; card.scroll_into_view_if_needed(); cr = card.bounding_box(); card.click(); pg.wait_for_timeout(400)
+        # (17 Nov 2026: on GitHub's machine this failed now and then with no numbers to go on. It now waits for the menu to
+        #  open, and measures the card it's for at the same moment as the menu, so a card that moved in between, while the
+        #  page was still settling, isn't read as a menu in the wrong place. The numbers are in the line either way.)
+        card = pg.locator(".tier-card").first; card.scroll_into_view_if_needed(); pg.wait_for_timeout(300); card.click()
+        try: pg.wait_for_function("(() => { const m = document.getElementById('tier-menu'); return m && !m.hidden && m.dataset.for; })()", timeout=5000)
+        except Exception: pass
+        pg.wait_for_timeout(200)
         m = rect(pg, "#tier-menu")
-        near = m and (abs(m[1] - (cr["y"] + cr["height"] + 6)) < 3 or abs(m[3] - (cr["y"] - 6)) < 3)
-        check(f"{tag}: the tier menu opens at its card", near and inside(pg, m))
+        cr = pg.evaluate("(() => { const m = document.getElementById('tier-menu'), c = m && document.querySelector('.tier-card[data-id=\"' + m.dataset.for + '\"]'); if (!c) return null; const r = c.getBoundingClientRect(); return {y: r.top, height: r.height}; })()")
+        near = m and cr and (abs(m[1] - (cr["y"] + cr["height"] + 6)) < 3 or abs(m[3] - (cr["y"] - 6)) < 3)
+        check(f"{tag}: the tier menu opens at its card (menu {[round(x) for x in m] if m else None}, card {round(cr['y']) if cr else None}–{round(cr['y'] + cr['height']) if cr else None})", near and inside(pg, m))
         pg.keyboard.press("Escape"); pg.wait_for_timeout(200)
         # dragging a card: the ghost stays under the pointer
         card = pg.locator(".tier-card").nth(1); card.scroll_into_view_if_needed(); cr = card.bounding_box()

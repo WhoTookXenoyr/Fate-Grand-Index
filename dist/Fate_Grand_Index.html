@@ -12152,7 +12152,15 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
-  {v: "0.54.0-beta", d: "18 Nov 2026", t: "A 3D background for every class, and NA's newest data", i: [
+  {v: "0.54.0-beta", d: "18 Nov 2026", t: "Command Codes, a bond calculator, a Saint Quartz planner and calendar files", i: [
+    "<b>Command Codes</b>: a page of all of NA's Command Codes, with what each one does in the game's words and in numbers, filters by what it's for and by rarity, and which of your servants have it. On a servant's page, under Deck, each of their five cards has a slot: click one to engrave a code (Undo takes it back). Under the slots, what each code adds to its card, like a critical hit's damage before and after. In the Battle simulator the cards fight with their codes: critical damage, special attack, Damage Plus, NP Gain, stars, Sure Hit, Ignore Invincible, and the stars, NP or HP a card gives each time it attacks. Codes never touch the Noble Phantasm, so the NP calculator leaves them out, as the game does. Your servants on the roster aren't changed: the codes are kept on their own.",
+    "<b>Bond calculator</b>, at the end of Progress on a servant's page: how many runs, and how much AP, to the next Bond level, Bond 10 or Bond 15, from NA's bond table for that servant. Pick a chapter or event and one of its free quests (its bond and AP come from Atlas Academy), or type a quest's number or the bond yourself. It counts the front line (+20%), a support in the front line (+4% for everyone), Bond CEs, an event's bonus, flat bonuses like the Heroic Portraits, and Stargazer's Teapot.",
+    "<b>Saint Quartz planner</b>, on the Summoning page: how much Saint Quartz and how many summons you'll have by an NA summoning campaign, a servant coming to NA, or a day you pick, and your chance of the featured servant (or of 2 to 5 copies), with the 330-summon guarantee. Say what you get a week and anything extra you know is coming.",
+    "<b>Add to calendar</b>: on Home, over the events, a list of NA's events and summoning campaigns to tick, a reminder before each one ends, and a calendar file (.ics) to open in Apple Calendar, Outlook, Google Calendar and the like. An event's page has the button too. Google Calendar drops reminders from a file, so there's a choice to add each one's last day as an event of its own.",
+    "<b>The Ranking no longer counts rarity</b> (Jordan's call: some ★4s are better than ★5s, and rarity is down to luck). The score is out of 100 for raising servants: stats 32, skills 33, NP level 13, Bond 10, level 12.",
+    "<b>Saint Quartz</b> shows the game's own picture wherever Saint Quartz is counted.",
+    "<b>Story</b>: every Lostbelt and Ordeal Call chapter links to its walkthrough on GamePress (node by node, with the enemies and bosses; Lostbelt 4's is its Main Quests page).",
+    "Fixed: in the Battle simulator, the main story's chapters in \"An NA quest\" had no names and couldn't be picked.",
     "<b>Every class has its own 3D background</b>, behind a servant's page: swords of light for Saber, a falling volley for Archer, a charge for Lancer, a flock for Rider, a turning magic circle for Caster, low mist for Assassin, a heartbeat for Berserker, light from above for Ruler, dark fire for Avenger, SE.RA.PH's grid for Moon Cancer, a sea of data for Alter Ego, the outer dark for Foreigner, a web for Pretender and a barrier of hexagons for Shielder. The Beasts get a storm; Draco a crimson vortex with gold petals falling, and Space Ereshkigal stars streaming past the ring of her underworld. Each takes the colours of the servant's picture. <b>Settings → Class backgrounds</b> switches them off.",
     "<b>Tutankhamun and Van Gogh (Miner)</b> are out on NA, and their pages now use NA's own text in place of JP's. NA's data is up to 17 Nov too: seven new Craft Essences, and Strengthening Quests for sixteen servants (Leonardo da Vinci's The Trail of Innovation, Baobhan Sith's NP to C, Izumo-no-Okuni's Combat Dance B+, Britomart's Penetrate Bladud B+ and more).",
     "Fixed: since 0.53.0's black and cream, a servant's picture no longer coloured the page (a red servant left it black, or cream). It does again: their tones on black, or cream with their tone.",
@@ -16015,6 +16023,7 @@ const STORY_GUIDES = {
   403: [["Walkthrough", GP2 + "ordeal-call-ii-id-spoiler-free-walkthrough"]],
   404: [["Walkthrough", GP2 + "ordeal-call-iii-archetype-inception-spoiler-free-walkthrough"]]
 };
+window.__fgiStoryGuides = () => STORY_GUIDES;
 const storyGuidesHTML = (id) => { const g = STORY_GUIDES[id]; return g ? `<p class="st-guides">On GamePress: ${g.map((x) => `<a href="${esc(x[1])}" target="_blank" rel="noopener">${esc(x[0])} ↗</a>`).join(" ")}</p>` : ""; };
 // each chapter's title plate: from Lostbelt No.3 on, the picture's number isn't the chapter's (Atlas Academy's war
 // data, 26 Oct 2026); Archetype Inception has no plate on NA yet, so a drawn one stands in
@@ -21298,7 +21307,7 @@ function btQuestHTML(P) {
   const q = BT.quest;
   return `<div class="bt-quest">
     <div class="bt-qrow"><label>Chapter or event <select data-bt-war><option value="">Pick one…</option>
-      <optgroup label="Main story">${STORY_CH.map((c) => `<option value="${c[0]}"${String(c[0]) === String(wid) ? " selected" : ""}>${esc(c[3])}</option>`).join("")}</optgroup>
+      <optgroup label="Main story">${STORY_CH.map((c) => `<option value="${c.id}"${String(c.id) === String(wid) ? " selected" : ""}>${esc(c.ln)}</option>`).join("")}</optgroup>
       ${ev.length ? `<optgroup label="Events on NA">${ev.map((x) => `<option value="${x.w[0]}"${String(x.w[0]) === String(wid) ? " selected" : ""}>${esc(liveText(x.n))}</option>`).join("")}</optgroup>` : ""}</select></label>
     ${BT.warBusy ? `<p class="bt-note">Getting its quests from Atlas Academy…</p>` : fights.length ? `<label>Battle <select data-bt-fight><option value="">Pick one…</option>${fights.map(([qq, ph]) => `<option value="${qq.id}/${ph}"${q && q.q === qq.id && q.ph === ph ? " selected" : ""}>${esc(secLabel(qq))}${qq.pe.length > 1 ? " · battle " + ph : ""}</option>`).join("")}</select></label>` : wid ? `<p class="bt-note">No battles found for it.</p>` : ""}</div>
     <form class="bt-qid" data-bt-qid><label>Or a quest's number <input type="text" inputmode="numeric" placeholder="94086601/3, or a link from Atlas Academy" value="${q ? esc(q.q + "/" + q.ph) : ""}"></label><button type="submit" class="btn sm">Load</button></form>
@@ -25258,7 +25267,7 @@ function bcQuestHTML(st) {
   const q = st.q && typeof st.q === "object" ? st.q : null;
   return `<div class="bc-quest">
     <label class="npc-f"><span>Chapter or event</span><select data-bc-war><option value="">Pick one…</option>
-      ${typeof STORY_CH !== "undefined" ? `<optgroup label="Main story">${STORY_CH.map((c) => `<option value="${c[0]}"${c[0] === BC.warId ? " selected" : ""}>${esc(c[3])}</option>`).join("")}</optgroup>` : ""}
+      ${typeof STORY_CH !== "undefined" ? `<optgroup label="Main story">${STORY_CH.map((c) => `<option value="${c.id}"${c.id === BC.warId ? " selected" : ""}>${esc(c.ln)}</option>`).join("")}</optgroup>` : ""}
       ${ev.length ? `<optgroup label="Events on NA">${ev.map((x) => `<option value="${x.w[0]}"${x.w[0] === BC.warId ? " selected" : ""}>${esc(liveText(x.n))}</option>`).join("")}</optgroup>` : ""}</select></label>
     ${BC.warBusy ? `<p class="bc-note">Getting its free quests from Atlas Academy…</p>` : free.length ? `<label class="npc-f"><span>Free quest</span><select data-bc-free><option value="">Pick one…</option>${free.map((f) => `<option value="${f.id}/${f.ph}"${q && q.q === f.id ? " selected" : ""}>${esc((f.sp ? f.sp + ": " : "") + f.n + (f.ap ? " (" + f.ap + " AP)" : ""))}</option>`).join("")}</select></label>` : BC.warId ? `<p class="bc-note">No free quests found in it.</p>` : ""}
     <form class="bc-qid" data-bc-qid><label class="npc-f"><span>Or a quest's number</span><span class="npc-in"><input type="text" inputmode="numeric" placeholder="94086601, or a link from Atlas Academy" value="${q ? esc(String(q.q)) : ""}"></span></label><button type="submit" class="btn sm">Load</button></form>
@@ -25459,6 +25468,7 @@ const qpHave = (k) => { const v = qpState()[k]; return v != null ? v : typeof SM
 // the chance (0–1) of at least k copies in n summons at p each; with pity, summon `pity` is a copy when none came before
 function qpChance(n, p, k, pity) {
   if (n <= 0 || k <= 0) return k <= 0 ? 1 : 0;
+  if (k === 1 && pity && n >= pity) return 1;
   let d = new Float64Array(k + 1); d[0] = 1;
   for (let i = 1; i <= n; i++) {
     const nd = new Float64Array(k + 1);

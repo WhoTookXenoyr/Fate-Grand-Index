@@ -64,7 +64,7 @@ function bcQuestHTML(st) {
   const q = st.q && typeof st.q === "object" ? st.q : null;
   return `<div class="bc-quest">
     <label class="npc-f"><span>Chapter or event</span><select data-bc-war><option value="">Pick one…</option>
-      ${typeof STORY_CH !== "undefined" ? `<optgroup label="Main story">${STORY_CH.map((c) => `<option value="${c[0]}"${c[0] === BC.warId ? " selected" : ""}>${esc(c[3])}</option>`).join("")}</optgroup>` : ""}
+      ${typeof STORY_CH !== "undefined" ? `<optgroup label="Main story">${STORY_CH.map((c) => `<option value="${c.id}"${c.id === BC.warId ? " selected" : ""}>${esc(c.ln)}</option>`).join("")}</optgroup>` : ""}
       ${ev.length ? `<optgroup label="Events on NA">${ev.map((x) => `<option value="${x.w[0]}"${x.w[0] === BC.warId ? " selected" : ""}>${esc(liveText(x.n))}</option>`).join("")}</optgroup>` : ""}</select></label>
     ${BC.warBusy ? `<p class="bc-note">Getting its free quests from Atlas Academy…</p>` : free.length ? `<label class="npc-f"><span>Free quest</span><select data-bc-free><option value="">Pick one…</option>${free.map((f) => `<option value="${f.id}/${f.ph}"${q && q.q === f.id ? " selected" : ""}>${esc((f.sp ? f.sp + ": " : "") + f.n + (f.ap ? " (" + f.ap + " AP)" : ""))}</option>`).join("")}</select></label>` : BC.warId ? `<p class="bc-note">No free quests found in it.</p>` : ""}
     <form class="bc-qid" data-bc-qid><label class="npc-f"><span>Or a quest's number</span><span class="npc-in"><input type="text" inputmode="numeric" placeholder="94086601, or a link from Atlas Academy" value="${q ? esc(String(q.q)) : ""}"></span></label><button type="submit" class="btn sm">Load</button></form>

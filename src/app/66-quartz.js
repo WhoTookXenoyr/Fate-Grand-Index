@@ -56,6 +56,7 @@ const qpHave = (k) => { const v = qpState()[k]; return v != null ? v : typeof SM
 // the chance (0–1) of at least k copies in n summons at p each; with pity, summon `pity` is a copy when none came before
 function qpChance(n, p, k, pity) {
   if (n <= 0 || k <= 0) return k <= 0 ? 1 : 0;
+  if (k === 1 && pity && n >= pity) return 1;
   let d = new Float64Array(k + 1); d[0] = 1;
   for (let i = 1; i <= n; i++) {
     const nd = new Float64Array(k + 1);

@@ -145,7 +145,7 @@ function btQuestHTML(P) {
   const q = BT.quest;
   return `<div class="bt-quest">
     <div class="bt-qrow"><label>Chapter or event <select data-bt-war><option value="">Pick one…</option>
-      <optgroup label="Main story">${STORY_CH.map((c) => `<option value="${c[0]}"${String(c[0]) === String(wid) ? " selected" : ""}>${esc(c[3])}</option>`).join("")}</optgroup>
+      <optgroup label="Main story">${STORY_CH.map((c) => `<option value="${c.id}"${String(c.id) === String(wid) ? " selected" : ""}>${esc(c.ln)}</option>`).join("")}</optgroup>
       ${ev.length ? `<optgroup label="Events on NA">${ev.map((x) => `<option value="${x.w[0]}"${String(x.w[0]) === String(wid) ? " selected" : ""}>${esc(liveText(x.n))}</option>`).join("")}</optgroup>` : ""}</select></label>
     ${BT.warBusy ? `<p class="bt-note">Getting its quests from Atlas Academy…</p>` : fights.length ? `<label>Battle <select data-bt-fight><option value="">Pick one…</option>${fights.map(([qq, ph]) => `<option value="${qq.id}/${ph}"${q && q.q === qq.id && q.ph === ph ? " selected" : ""}>${esc(secLabel(qq))}${qq.pe.length > 1 ? " · battle " + ph : ""}</option>`).join("")}</select></label>` : wid ? `<p class="bt-note">No battles found for it.</p>` : ""}</div>
     <form class="bt-qid" data-bt-qid><label>Or a quest's number <input type="text" inputmode="numeric" placeholder="94086601/3, or a link from Atlas Academy" value="${q ? esc(q.q + "/" + q.ph) : ""}"></label><button type="submit" class="btn sm">Load</button></form>

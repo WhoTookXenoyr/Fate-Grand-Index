@@ -64,6 +64,7 @@ const STORY_GUIDES = {
   403: [["Walkthrough", GP2 + "ordeal-call-ii-id-spoiler-free-walkthrough"]],
   404: [["Walkthrough", GP2 + "ordeal-call-iii-archetype-inception-spoiler-free-walkthrough"]]
 };
+window.__fgiStoryGuides = () => STORY_GUIDES;
 const storyGuidesHTML = (id) => { const g = STORY_GUIDES[id]; return g ? `<p class="st-guides">On GamePress: ${g.map((x) => `<a href="${esc(x[1])}" target="_blank" rel="noopener">${esc(x[0])} ↗</a>`).join(" ")}</p>` : ""; };
 // each chapter's title plate: from Lostbelt No.3 on, the picture's number isn't the chapter's (Atlas Academy's war
 // data, 26 Oct 2026); Archetype Inception has no plate on NA yet, so a drawn one stands in

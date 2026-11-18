@@ -44,6 +44,27 @@ const STORY_CH = [
   [404, "oc", "Archetype Inception", "Ordeal Call III: Bellum Novae Humanitatis, Archetype Inception", ["#3a6ae0", "#e0e8ff", "#ff5a8a"], "beams"]
 ].map((c) => ({id: c[0], part: c[1], n: c[2], ln: c[3], pal: c[4], m: c[5]}));
 const STORY_BY = new Map(STORY_CH.map((c) => [c.id, c]));
+// 0.54.0: GamePress's guides to each Lostbelt and Ordeal Call (Noyr asked for them): its spoiler-free walkthroughs,
+// node by node, enemies and bosses (Lostbelt 4 has its Main Quests page instead). Linked, not copied: they're GamePress's.
+// Checked on 18 Nov 2026; the older ones are still on fgo.gamepress.gg, the newer on grandorder.gamepress.gg.
+const GP = "https://fgo.gamepress.gg/", GP2 = "https://grandorder.gamepress.gg/p/";
+const STORY_GUIDES = {
+  301: [["Walkthrough", GP + "lostbelt-1-anastasia-spoiler-free-walkthrough"]],
+  302: [["Walkthrough", GP + "lostbelt-no2-gotterdammerung-spoiler-free-walkthrough"]],
+  303: [["Walkthrough", GP + "lostbelt-no3-sin-spoiler-free-walkthrough"]],
+  304: [["Main quests", GP + "lostbelt-4-yuga-kurukshetra-main-quests"]],
+  305: [["Walkthrough", GP + "lostbelt-no5-atlantis-spoiler-free-walkthrough"]],
+  306: [["Walkthrough", GP + "lostbelt-no52-olympus-spoiler-free-walkthrough"]],
+  307: [["Walkthrough", GP + "lostbelt-no55-heian-kyo-spoiler-free-walkthrough"]],
+  308: [["Walkthrough, part 1", GP + "lostbelt-no6-avalon-le-fae-spoiler-free-walkthrough"], ["Part 2", GP + "lostbelt-no6-avalon-le-fae-part-2-spoiler-free-walkthrough"]],
+  309: [["Walkthrough", GP + "tunguska-sanctuary-spoiler-free-walkthrough"]],
+  310: [["Walkthrough", GP + "lostbelt-no65-traum-spoiler-free-walkthrough"]],
+  311: [["Walkthrough", GP2 + "lostbelt-7-nahui-mictlan-spoiler-free-walkthrough"], ["Boss guides", GP2 + "lostbelt-7-nahui-mictlan-boss-guides"]],
+  402: [["Walkthrough", GP2 + "ordeal-call-i-paper-moon-spoiler-free-walkthrough"]],
+  403: [["Walkthrough", GP2 + "ordeal-call-ii-id-spoiler-free-walkthrough"]],
+  404: [["Walkthrough", GP2 + "ordeal-call-iii-archetype-inception-spoiler-free-walkthrough"]]
+};
+const storyGuidesHTML = (id) => { const g = STORY_GUIDES[id]; return g ? `<p class="st-guides">On GamePress: ${g.map((x) => `<a href="${esc(x[1])}" target="_blank" rel="noopener">${esc(x[0])} ↗</a>`).join(" ")}</p>` : ""; };
 // each chapter's title plate: from Lostbelt No.3 on, the picture's number isn't the chapter's (Atlas Academy's war
 // data, 26 Oct 2026); Archetype Inception has no plate on NA yet, so a drawn one stands in
 const STORY_CAP = {303: 304, 304: 305, 305: 307, 306: 308, 307: 309, 308: 312, 309: 313, 310: 315, 311: 317, 404: 0};
@@ -297,7 +318,7 @@ function storyHTML() {
         <button type="button" class="st-arrow" data-action="st-sec" data-d="1" aria-label="Next section"${qi < war.q.length - 1 ? "" : " disabled"}>›</button></div>`;
       const ctx = {q: q, here: here, posQi: posQi};
       body = `<div class="st-chapter" style="${palVars(c)}">
-        <div class="st-title">${plateHTML(c, true)}<div><h3>${esc(war.n || c.ln)}</h3><p>${plural(war.q.length, "section")} · ${plural(fightsOf(war).length, "battle")}${chDone(v.w) ? ` · <span class="st-cleared">${OK_MARK}Cleared</span>` : ""}</p></div></div>
+        <div class="st-title">${plateHTML(c, true)}<div><h3>${esc(war.n || c.ln)}</h3><p>${plural(war.q.length, "section")} · ${plural(fightsOf(war).length, "battle")}${chDone(v.w) ? ` · <span class="st-cleared">${OK_MARK}Cleared</span>` : ""}</p>${storyGuidesHTML(c.id)}</div></div>
         ${strip}
         <div class="st-list">${war.q.map((x, i) => secRowHTML(war, x, i, ctx)).join("")}</div></div>`;
     }

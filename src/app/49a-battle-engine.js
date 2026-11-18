@@ -281,6 +281,8 @@ function btMod(u, k, card, foe) {
   return v;
 }
 // "ATK against [Rider]", "[Divine]", "[Male]": the class, the attribute or one of the traits
+// a Command Code's trait: one of several ("Bind|Stun|Petrify")
+const btVsOk1 = (vs, foe) => String(vs || "").split("|").some((w) => btVsOk(w, foe));
 function btVsOk(vs, foe) {
   const w = String(vs).toLowerCase().replace(/\s+/g, " ").trim();
   if (!w) return false;
@@ -298,7 +300,7 @@ function btBattle(setup, seed) {
   btUid = 0;
   const rng = btRng(seed), R = (a, b) => a + (b - a) * rng();
   const B = {seed: seed, turn: 0, wave: 0, waves: setup.waves.map((w) => w.map((t) => btUnit(t, "foe"))), allies: setup.party.slice(0, 3).filter(Boolean).map((t) => btUnit(t, "ally")),
-    back: setup.party.slice(3).filter(Boolean).map((t) => btUnit(t, "ally")), foes: [], stars: 0, deck: [], hand: [], ev: [], over: false, result: "", target: null};
+    back: setup.party.slice(3).filter(Boolean).map((t) => btUnit(t, "ally")), foes: [], stars: 0, deck: [], hand: [], ev: [], over: false, result: "", target: null, ccAt: {}};
   const all = B.allies.concat(B.back);
   // the Master, with the Mystic Code's three skills (0.53.0); not a fighter: no HP, never targeted, not in the snapshots
   const M = setup.mc && setup.mc.sk ? {id: btUid++, side: "ally", master: true, name: setup.mc.name || "Master", cls: "", alive: true, stun: 0, cd: [0, 0, 0], buffs: [], hp: 1, max: 1, np: 0,
@@ -362,19 +364,23 @@ function btBattle(setup, seed) {
     const o = opts || {}, base = o.np ? BT_NP_CARD[card] : BT_CARD[card][pos];
     const cardUp = (btMod(u, "card", card) + (u.t.pm[{B: 0, A: 1, Q: 2}[card]] || 0) - btMod(t, "resdown", card)) / 100;
     const first = !o.np && card !== "E" && o.first === "B" ? 0.5 : 0;
-    const atkUp = (btMod(u, "atk") - btMod(u, "atkdown") - btMod(t, "defup") + btMod(t, "defdown")) / 100 + (u.t.apVs && String(t.cls) === u.t.apVs.cls ? u.t.apVs.v / 100 : 0);
-    const pow = (btMod(u, "vs", "", t) + (o.np ? btMod(u, "np") + (u.t.pm[3] || 0) : 0) + (o.crit ? btMod(u, "crit", card) : 0)) / 100;
+    const cc = !o.np && o.cc ? o.cc : null;
+    const atkUp = (btMod(u, "atk") - btMod(u, "atkdown") - (cc && cc.idef ? 0 : btMod(t, "defup")) + btMod(t, "defdown")) / 100 + (u.t.apVs && String(t.cls) === u.t.apVs.cls ? u.t.apVs.v / 100 : 0);
+    // (0.54.0: a card's Command Code, 64-command-codes.js: its critical damage, and its special attack against a trait)
+    const ccPow = cc ? (o.crit ? cc.crit : 0) + cc.vs.reduce((a, x) => a + (btVsOk1(x[1], t) ? x[0] + (o.crit ? x[2] : 0) : 0), 0) : 0;
+    const pow = (btMod(u, "vs", "", t) + (o.np ? btMod(u, "np") + (u.t.pm[3] || 0) : 0) + (o.crit ? btMod(u, "crit", card) : 0) + ccPow) / 100;
     let d = u.atk * 0.23 * (o.np ? o.np / 100 : 1) * (base * (1 + clamp(cardUp, -1, 4)) + first) * clsAtk(u.cls) * aff(u.cls, t.cls) * npcAttr(u.t.attr, t.t.attr)
       * (o.rand != null ? o.rand : 1) * Math.max(0.001, 1 + clamp(atkUp, -1, 4)) * Math.max(0.001, 1 + clamp(pow, -1, 10)) * (o.crit ? 2 : 1) * (o.se || 1);
     if (card === "E") d *= o.ex || 2;
     if (o.busterChain && !o.np) d += u.atk * 0.2;
-    d += btMod(u, "dp") + (u.t.pm[4] || 0) - btMod(t, "cut");
+    d += btMod(u, "dp") + (u.t.pm[4] || 0) - btMod(t, "cut") + (cc ? cc.dp : 0);
     return Math.max(0, d);
   }
-  function hit(u, t, total, nh) {
-    // the damage lands over the card's hits; whoever is invincible or evades takes none (unless it's ignored)
+  function hit(u, t, total, nh, cc) {
+    // the damage lands over the card's hits; whoever is invincible or evades takes none (unless it's ignored; a
+    // card's Command Code can Ignore Invincible, or have Sure Hit, which only gets past Evade)
     if (t.side === "ally" || t.side === "foe") {
-      if (!btHas(u, "pierce") && (btTakeOne(t, "invinc") || btTakeOne(t, "evade"))) return {dmg: 0, dodged: true};
+      if (!btHas(u, "pierce") && !(cc && cc.pierce) && (btTakeOne(t, "invinc") || (!(cc && cc.surehit) && btTakeOne(t, "evade")))) return {dmg: 0, dodged: true};
     }
     const dmg = Math.round(total);
     t.hp -= dmg; u.stat.dmg += dmg; t.stat.taken += dmg;
@@ -392,11 +398,11 @@ function btBattle(setup, seed) {
   const npGain = (u, t, card, pos, opts) => {
     const o = opts || {}, v = o.np ? BT_GAIN_NP[card] : BT_GAIN[card][pos];
     const cardUp = (btMod(u, "card", card) + (u.t.pm[{B: 0, A: 1, Q: 2}[card]] || 0)) / 100;
-    return u.t.rate * (v * (1 + clamp(cardUp, -1, 4)) + (!o.np && card !== "E" && o.first === "A" ? 1 : 0)) * (t.t.td || BT_TDRATE[t.cls] || 1) * (1 + btMod(u, "gain") / 100) * (o.crit ? 2 : 1);
+    return u.t.rate * (v * (1 + clamp(cardUp, -1, 4)) + (!o.np && card !== "E" && o.first === "A" ? 1 : 0)) * (t.t.td || BT_TDRATE[t.cls] || 1) * (1 + (btMod(u, "gain") + (!o.np && o.cc ? o.cc.gain : 0)) / 100) * (o.crit ? 2 : 1);
   };
   const starsOf = (u, card, pos, opts) => {
     const o = opts || {}, base = o.np ? (BT_STAR[card] || [0])[0] : BT_STAR[card][pos];
-    return clamp(u.t.sg / 100 + base + (!o.np && card !== "E" && o.first === "Q" ? 0.2 : 0) + btMod(u, "drop") / 100 + (o.crit ? 0.2 : 0), 0, 3);
+    return clamp(u.t.sg / 100 + base + (!o.np && card !== "E" && o.first === "Q" ? 0.2 : 0) + (btMod(u, "drop") + (!o.np && o.cc ? o.cc.drop : 0)) / 100 + (o.crit ? 0.2 : 0), 0, 3);
   };
 
   /* a Noble Phantasm */
@@ -429,16 +435,27 @@ function btBattle(setup, seed) {
     const u = c.u; if (!u.alive || u.stun > 0) return;
     let t = B.target && B.target.alive ? B.target : foesOf(u)[0]; if (!t) return;
     const card = c.card, crit = card !== "E" && c.crit;
-    const opts = {first: chain.first, crit: crit, rand: R(0.9, 1.099), busterChain: chain.color === "B" && card !== "E", ex: chain.color && chain.color !== "mix" ? 3.5 : 2};
-    const d = dmgOf(u, t, card, Math.min(pos, 2), opts), h = hit(u, t, d);
+    const cc = card !== "E" ? c.cc || null : null;
+    const opts = {first: chain.first, crit: crit, rand: R(0.9, 1.099), busterChain: chain.color === "B" && card !== "E", ex: chain.color && chain.color !== "mix" ? 3.5 : 2, cc: cc};
+    const d = dmgOf(u, t, card, Math.min(pos, 2), opts), h = hit(u, t, d, 0, cc);
     let gain = 0, stars = 0;
     if (!h.dodged) {
       const nh = BT_HITS[card];
       gain = npGain(u, t, card, Math.min(pos, 2), opts) * nh; stars = starsOf(u, card, Math.min(pos, 2), opts) * nh;
       u.np = clamp(u.np + gain, 0, 300); B.stars = Math.min(50, B.stars + stars);
     }
+    // what the card's Command Code does each time it attacks: stars, NP, HP (some wait a few turns before working again)
+    let ccDid = null;
+    if (cc) {
+      const did = [], ready = (k, cd) => { const key = cc.no + ":" + k + ":" + u.id; if (cd && (B.ccAt[key] || 0) > B.turn) return false; if (cd) B.ccAt[key] = B.turn + cd; return true; };
+      if (cc.stars) { B.stars = Math.min(50, B.stars + cc.stars); did.push("+" + cc.stars + " stars"); }
+      if (cc.np && ready("np", cc.npCd)) { u.np = clamp(u.np + cc.np, 0, 300); did.push("NP +" + cc.np + "%"); }
+      if (cc.heal && u.alive && ready("hp", cc.healCd)) { u.hp = Math.min(u.max, u.hp + cc.heal); did.push("+" + cc.heal + " HP"); }
+      if (cc.healAll) { B.allies.forEach((x) => { if (x.alive) x.hp = Math.min(x.max, x.hp + cc.healAll); }); did.push("+" + cc.healAll + " HP to all"); }
+      ccDid = {n: cc.n, did: did};
+    }
     u.stat.cards++;
-    emit("card", {who: u.id, card: card, pos: pos, to: t.id, dmg: h.dmg, crit: !!crit, dodged: !!h.dodged, gain: Math.round(gain * 10) / 10});
+    emit("card", {who: u.id, card: card, pos: pos, to: t.id, dmg: h.dmg, crit: !!crit, dodged: !!h.dodged, gain: Math.round(gain * 10) / 10, cc: ccDid});
     fall(t, u);
   }
 
@@ -480,10 +497,10 @@ function btBattle(setup, seed) {
   /* turns */
   function deal() {
     const front = B.allies.filter((x) => x.alive);
-    if (B.deck.length < 5) { B.deck = []; front.forEach((u) => u.t.deck.forEach((c) => B.deck.push({u: u, card: c}))); for (let i = B.deck.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [B.deck[i], B.deck[j]] = [B.deck[j], B.deck[i]]; } }
+    if (B.deck.length < 5) { B.deck = []; front.forEach((u) => u.t.deck.forEach((c, i) => B.deck.push({u: u, card: c, cc: (u.t.cc || [])[i] || null}))); for (let i = B.deck.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [B.deck[i], B.deck[j]] = [B.deck[j], B.deck[i]]; } }
     B.hand = B.deck.splice(0, 5).filter((c) => c.u.alive);
     // the stars go to the cards: more to servants who gather them, ten per cent of a critical each
-    const w = B.hand.map((c) => (c.u.t.sa || 100) * (1 + btMod(c.u, "gather") / 100) * (0.5 + rng()));
+    const w = B.hand.map((c) => (c.u.t.sa || 100) * (1 + (btMod(c.u, "gather") + (c.cc ? c.cc.gather : 0)) / 100) * (0.5 + rng()));
     B.hand.forEach((c) => { c.stars = 0; });
     for (let s = 0; s < Math.floor(B.stars); s++) { const sum = w.reduce((a, b) => a + b, 0) || 1; let r = rng() * sum, i = 0; while (i < w.length - 1 && r > w[i]) { r -= w[i]; i++; } if (B.hand[i] && B.hand[i].stars < 10) B.hand[i].stars++; }
     B.hand.forEach((c) => { c.crit = rng() < c.stars / 10; });
@@ -661,8 +678,8 @@ const BT_AUTO = {
       let s = 0;
       cs.forEach((c, j) => {
         const pos = plan.length + j;
-        s += api.dmgOf(c.u, t, c.card, Math.min(pos, 2), {first: first, crit: c.crit, busterChain: mono && colors[0] === "B"});
-        const g = api.npGain(c.u, t, c.card, Math.min(pos, 2), {first: first, crit: c.crit}) * BT_HITS[c.card];
+        s += api.dmgOf(c.u, t, c.card, Math.min(pos, 2), {first: first, crit: c.crit, busterChain: mono && colors[0] === "B", cc: c.cc});
+        const g = api.npGain(c.u, t, c.card, Math.min(pos, 2), {first: first, crit: c.crit, cc: c.cc}) * BT_HITS[c.card];
         if (c.u.t.np && c.u.np < 100) s += g * (c.u.atk * 0.6);
       });
       if (mono && colors[0] === "A") s += all.reduce((a, p) => a + (p.u.np < 100 ? 20 * p.u.atk * 0.6 : 0), 0);

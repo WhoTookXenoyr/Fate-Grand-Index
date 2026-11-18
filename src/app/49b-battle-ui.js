@@ -182,7 +182,8 @@ function btLine(e) {
     case "turn": return `Turn ${e.n}.`;
     case "skill": return `${n(e.who)} uses ${e.n}${e.pick && e.pick !== e.who ? " on " + n(e.pick) : ""}.`;
     case "plan": return `Cards: ${e.pick.map((p) => p.np ? n(p.who) + "'s NP" : n(p.who) + " " + c(p.card)).join(", ")}.`;
-    case "card": return e.dodged ? `${n(e.to)} avoids ${n(e.who)}'s ${c(e.card)}.` : `${n(e.who)}: ${c(e.card)}${e.crit ? " critical" : ""}, ${fmt(e.dmg)} to ${n(e.to)}.`;
+    case "card": return (e.dodged ? `${n(e.to)} avoids ${n(e.who)}'s ${c(e.card)}.` : `${n(e.who)}: ${c(e.card)}${e.crit ? " critical" : ""}, ${fmt(e.dmg)} to ${n(e.to)}.`)
+      + (e.cc && e.cc.did && e.cc.did.length ? ` ${e.cc.n}: ${e.cc.did.join(", ")}.` : "");
     case "np": return `${n(e.who)}: ${e.n}${e.oc > 1 ? " (Overcharge " + e.oc * 100 + "%)" : ""}${e.hits.length ? ", " + e.hits.map((h) => (h.dodged ? "avoided by " : fmt(h.dmg) + " to ") + n(h.id) + (h.se ? " (super effective)" : "")).join(", ") : ""}.`;
     case "np-after": return `${n(e.who)}'s Noble Phantasm takes effect.`;
     case "foes-turn": return "The enemies' turn.";

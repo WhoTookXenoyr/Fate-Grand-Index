@@ -1,0 +1,71 @@
+/* ================= 0.54.0-beta: Command Codes (64-command-codes.js) ================= */
+/* on a servant's page: five slots under the deck, lined up with its cards */
+.cc-sec .sec-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.cc-slots { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; max-width: 470px; }
+.cc-slot { all: unset; box-sizing: border-box; cursor: pointer; position: relative; display: grid; justify-items: center; align-content: start; gap: 6px; min-width: 0; padding: 10px 4px 8px;
+  border: 1px solid var(--line); border-top: 3px solid var(--c, var(--line)); border-radius: 11px; background: var(--sunken); text-align: center; transition: transform .15s ease; }
+.cc-slot:hover { transform: translateY(-2px); }
+.cc-slot:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.cc-slot.open { border-color: var(--c, var(--gold)); box-shadow: 0 0 0 1px var(--c, var(--gold)) inset; }
+.cc-slot.has { background: var(--panel); }
+.cc-cardic { position: absolute; top: 4px; left: 4px; width: 18px; height: 18px; }
+.cc-cardic img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.cc-face { width: 56px; height: 56px; object-fit: contain; border-radius: 50%; background: var(--sunken); }
+.cc-face.sm { width: 40px; height: 40px; flex: none; }
+.cc-face.none { display: grid; place-items: center; box-sizing: border-box; border: 1.5px dashed var(--line); color: var(--muted); font-size: 22px; font-weight: 400; background: transparent; }
+.cc-sn { font-size: 11.5px; line-height: 1.25; color: var(--ink); font-weight: 600; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.cc-slot:not(.has) .cc-sn { color: var(--muted); font-weight: 500; }
+@media (prefers-reduced-motion: reduce) { .cc-slot { transition: none; } .cc-slot:hover { transform: none; } }
+@media (max-width: 420px) { .cc-face { width: 44px; height: 44px; } .cc-sn { font-size: 10.5px; } }
+
+/* the picker that opens under a slot */
+.cc-pick { margin: 12px 0 0; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); max-width: 640px; }
+.cc-pick-head { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; }
+.cc-pick-head p { margin: 0; }
+.cc-pick-acts { display: flex; gap: 6px; }
+.cc-pick-ctl, .cc-ctl { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; margin: 10px 0 0; }
+.cc-f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); }
+.cc-f.grow { flex: 1 1 14rem; }
+.cc-f input, .cc-f select { min-height: 34px; padding: 2px 9px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; font-size: 13px; font-weight: 500; box-sizing: border-box; }
+.cc-f input { width: 100%; min-width: 11rem; }
+@media (pointer: coarse) { .cc-f input, .cc-f select { min-height: 40px; } }
+.cc-opts { list-style: none; margin: 10px 0 0; padding: 0 2px 0 0; display: grid; gap: 4px; max-height: 360px; overflow-y: auto; overscroll-behavior: contain; }
+.cc-opt { all: unset; box-sizing: border-box; cursor: pointer; display: flex; gap: 10px; align-items: flex-start; width: 100%; padding: 6px 8px; border-radius: 9px; }
+.cc-opt:hover { background: var(--sunken); }
+.cc-opt:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.cc-opt.on { background: color-mix(in srgb, var(--gold) 14%, transparent); }
+.cc-opt.dead .cc-ot { opacity: .62; }
+.cc-ot { display: grid; gap: 2px; min-width: 0; font-size: 13px; }
+.cc-ot small { color: var(--muted); font-size: 12px; line-height: 1.4; }
+.cc-ot em { font-style: normal; font-size: 11.5px; color: var(--muted); }
+.cc-stars { font-style: normal; color: var(--gold); font-size: 11px; letter-spacing: .5px; }
+.cc-none { color: var(--muted); margin: 10px 0 0; }
+
+/* what each engraved code adds */
+.cc-eff { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; max-width: 640px; }
+.cc-eff li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start; padding: 8px 10px; border-left: 3px solid var(--c, var(--line)); border-radius: 4px 10px 10px 4px; background: var(--sunken); }
+.cc-eff .cc-cardic { position: static; width: 20px; height: 20px; margin-top: 1px; }
+.cc-en { margin: 0; font-size: 13.5px; }
+.cc-en small { color: var(--muted); font-weight: 500; }
+.cc-chips { margin: 4px 0 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.cc-chips span { font-size: 11.5px; padding: 1px 7px; border-radius: 6px; background: color-mix(in srgb, var(--gold) 12%, transparent); color: var(--ink); }
+.cc-chips.none { display: block; font-size: 12.5px; color: var(--muted); }
+.cc-nums { margin: 5px 0 0; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.cc-nums .was { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--muted) 70%, transparent); }
+.cc-nums b { color: var(--ink); }
+.cc-note { margin: 8px 0 0; font-size: 12px; color: var(--muted); max-width: 72ch; }
+
+/* the page */
+.cc-lead { margin: 0; max-width: 72ch; color: var(--muted); line-height: 1.5; }
+.cc-count { margin: 10px 0 0; font-size: 12.5px; color: var(--muted); }
+.cc-grid { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 12px; }
+.cc-card { border: 1px solid var(--line); border-radius: var(--r-panel, 14px); background: var(--panel); padding: 12px 14px; min-width: 0; }
+.cc-card.on { border-color: color-mix(in srgb, var(--gold) 70%, var(--line)); }
+.cc-top { display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: center; }
+.cc-top .cc-face { width: 64px; height: 64px; }
+.cc-name { min-width: 0; }
+.cc-name h3 { margin: 0; font-size: 15.5px; line-height: 1.25; }
+.cc-meta { margin: 4px 0 0; display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; color: var(--muted); align-items: baseline; }
+.cc-e { margin: 10px 0 0; font-size: 13px; line-height: 1.45; }
+.cc-on { margin: 8px 0 0; font-size: 12.5px; color: var(--muted); }
+.cc-on .linkish { font-weight: 600; }

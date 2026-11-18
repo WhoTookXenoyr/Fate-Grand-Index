@@ -9,6 +9,7 @@ Writes, in data/atlas/:
                      same either way; checked on 13 Nov 2026), so the repo grows less with every update
 - ces.json.gz        the "nice" NA Craft Essence export
 - costumes.json.gz   costume names from each servant's lore; only servants with a costume it doesn't have yet are asked
+- command_codes.json.gz   the "nice" NA Command Code export (0.54.0)
 - na_info.json       Atlas Academy's info.json for NA at the time, so the next run knows whether anything changed
 - upcoming.json      servants NA has now are taken off it: from here on they're ordinary NA servants
 and, beside the repo's root, na_summary.md: what changed, in a few lines, for the commit and the pull request.
@@ -22,9 +23,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ATLAS = os.path.join(ROOT, "data", "atlas")
 EXPORT = "https://api.atlasacademy.io/export/NA/"
 LORE = "https://api.atlasacademy.io/nice/NA/servant/%d?lore=true"
-# the same parts tools/fetch_upcoming.py leaves out of JP's servants
+# the same parts tools/fetch_upcoming.py leaves out of JP's servants, except bondGrowth: the bond points each Bond
+# level takes, for the bond calculator (0.54.0)
 DROP = ["limits", "overwrites", "charaScripts", "svtChange", "valentineScript", "relateQuestIds", "trialQuestIds", "cardDetails", "hitsDistribution",
-        "battlePoints", "bondGrowth", "expFeed", "costumeMaterials", "ascensionImage", "traitAdd", "bondGifts", "script", "valentineEquip", "bondEquips"]
+        "battlePoints", "expFeed", "costumeMaterials", "ascensionImage", "traitAdd", "bondGifts", "script", "valentineEquip", "bondEquips"]
 _open = lambda p: open(p, encoding="utf-8") if os.path.exists(p) else gzip.open(p + ".gz", "rt", encoding="utf-8")
 
 
@@ -53,7 +55,7 @@ def save_gz(name, data, **kw):
 def page_data(path):
     import re
     t = open(path, encoding="utf-8").read(); out = {}
-    for m in re.finditer(r"^const (ATLAS_(?:S|C|UP)) = (.*?);?$", t, re.M): out[m.group(1)] = json.loads(m.group(2).rstrip(";"))
+    for m in re.finditer(r"^const (ATLAS_(?:S|C|UP|CC)) = (.*?);?$", t, re.M): out[m.group(1)] = json.loads(m.group(2).rstrip(";"))
     return out
 
 
@@ -88,6 +90,9 @@ def summary(old_path):
     oc = {x["no"] for x in a.get("ATLAS_C", [])}
     nc = [x for x in b.get("ATLAS_C", []) if x["no"] not in oc]
     if nc: lines.append("- **New Craft Essences:** %d (%s)" % (len(nc), ", ".join(x["n"] for x in nc[:12]) + (", …" if len(nc) > 12 else "")))
+    occ = {x["no"] for x in a.get("ATLAS_CC", [])}
+    ncc = [x for x in b.get("ATLAS_CC", []) if x["no"] not in occ] if a.get("ATLAS_CC") else []
+    if ncc: lines.append("- **New Command Codes:** %d (%s)" % (len(ncc), ", ".join(x["n"] for x in ncc[:12]) + (", …" if len(ncc) > 12 else "")))
     cos = [l for l in was.split("\n") if l.startswith("- **New costumes:**")]
     lines += cos
     if len(lines) == 2: lines.append("- Nothing the page shows changed.")
@@ -108,6 +113,8 @@ if "--force" not in sys.argv and old_info.get("hash") == info.get("hash") and ol
 
 old_s = json.load(_open(os.path.join(ATLAS, "servants.json")))
 old_c = json.load(_open(os.path.join(ATLAS, "ces.json")))
+cc_path = os.path.join(ATLAS, "command_codes.json")
+old_cc = json.load(_open(cc_path)) if os.path.exists(cc_path) or os.path.exists(cc_path + ".gz") else []
 costumes = json.load(_open(os.path.join(ATLAS, "costumes.json")))
 
 servants = get(EXPORT + "nice_servant.json")
@@ -115,7 +122,8 @@ for x in servants:
     for k in DROP: x.pop(k, None)
     if x.get("ascensionAdd"): x["ascensionAdd"] = {"individuality": x["ascensionAdd"].get("individuality") or {}}
 ces = get(EXPORT + "nice_equip.json")
-print("servants", len(servants), "Craft Essences", len(ces))
+ccs = get(EXPORT + "nice_command_code.json")
+print("servants", len(servants), "Craft Essences", len(ces), "Command Codes", len(ccs))
 
 # costume names: the export has each costume's picture (extraAssets.charaGraph.costume, keyed by its battleCharaId) but
 # not its name, which is in the servant's lore
@@ -136,6 +144,8 @@ new_svt = [x for x in servants if x.get("collectionNo") and x["collectionNo"] no
 changed_svt = [x for x in servants if x.get("collectionNo") in o_no and sig(x) != sig(o_no[x["collectionNo"]])]
 o_ce = {x.get("collectionNo") for x in old_c if x.get("collectionNo")}
 new_ce = [x for x in ces if x.get("collectionNo") and x["collectionNo"] not in o_ce]
+o_cc = {x.get("collectionNo") for x in old_cc if x.get("collectionNo")}
+new_cc = [x for x in ccs if x.get("collectionNo") and x["collectionNo"] not in o_cc] if old_cc else []
 
 up_path = os.path.join(ATLAS, "upcoming.json")
 released = []
@@ -153,6 +163,7 @@ if os.path.exists(up_path):
 
 save_gz("servants.json.gz", servants)
 save_gz("ces.json.gz", ces)
+save_gz("command_codes.json.gz", ccs)
 save_gz("costumes.json.gz", costumes, ensure_ascii=False)
 with open(info_path, "w") as f: json.dump(info, f, indent=2); f.write("\n")
 
@@ -162,6 +173,7 @@ if released: lines.append("- **Out on NA now** (their pages use NA's data from h
 if new_svt: lines.append("- **New servants:** " + ", ".join("%s (No. %d)" % (x["name"], x["collectionNo"]) for x in new_svt))
 if changed_svt: lines.append("- **Servants whose skills, NP, stats or materials changed** (Strengthening Quests and the like): " + ", ".join(x["name"] for x in changed_svt[:30]) + (" and %d more" % (len(changed_svt) - 30) if len(changed_svt) > 30 else ""))
 if new_ce: lines.append("- **New Craft Essences:** %d (%s)" % (len(new_ce), ", ".join(x["name"] for x in new_ce[:12]) + (", …" if len(new_ce) > 12 else "")))
+if new_cc: lines.append("- **New Command Codes:** " + ", ".join(x["name"] for x in new_cc[:12]) + (", …" if len(new_cc) > 12 else ""))
 if new_cos: lines.append("- **New costumes:** " + ", ".join(new_cos))
 if len(lines) == 2: lines.append("- Nothing the page shows changed.")
 open(os.path.join(ROOT, "na_summary.md"), "w", encoding="utf-8").write("\n".join(lines) + "\n")

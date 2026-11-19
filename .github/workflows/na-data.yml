@@ -76,6 +76,6 @@ jobs:
             fi
           fi
           { echo "NA data: $(date -u +'%d %b %Y') (tools/fetch_na.py)"; echo; cat na_summary.md; } > /tmp/na_msg.txt
-          { cat na_summary.md; echo; echo "Data only, made by the NA data job (.github/workflows/na-data.yml) from Atlas Academy's NA export. It's rebuilt on top of main whenever NA's data changes again, until it's merged. The tests run on it by themselves. The version isn't changed: that's yours to decide when you release."; } > /tmp/na_body.md
+          { cat na_summary.md; echo; echo "Data only, made by the NA data job (.github/workflows/na-data.yml) from Atlas Academy's NA export. It's rebuilt on top of main whenever NA's data changes again, until it's merged, and it merges itself once the tests pass. The tests run on it by themselves. The version isn't changed: that's yours to decide when you release."; } > /tmp/na_body.md
           cat na_summary.md >> "$GITHUB_STEP_SUMMARY"
           tools/bot_commit.sh na-data "NA data: $(date -u +'%d %b %Y')" /tmp/na_msg.txt /tmp/na_body.md data/atlas src/data/atlas_data.js dist site

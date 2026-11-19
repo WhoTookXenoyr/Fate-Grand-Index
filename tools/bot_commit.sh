@@ -5,7 +5,8 @@
 #   tools/bot_commit.sh BOT_BRANCH TITLE MESSAGE_FILE BODY_FILE PATH...
 #
 # - Run on main: commits PATH... to BOT_BRANCH, rebuilt on top of main (force-pushed, so a pull request left open
-#   never falls behind), and opens a pull request from it into main, or updates the one that's open.
+#   never falls behind), and opens a pull request from it into main, or updates the one that's open. The pull request
+#   is set to merge itself once the tests pass (when the repo allows it; see the end).
 # - Run on any other branch: commits to that branch.
 # Then it starts the test workflow on what it pushed: GitHub doesn't run workflows for pushes and pull requests a job
 # makes with its own token, except when they're started this way (workflow_dispatch). Needs the permissions
@@ -42,4 +43,15 @@ fi
 # the tests, on the commit just pushed (they show on its pull request)
 if ! gh workflow run test.yml --ref "$target"; then
   echo "::warning::Couldn't start the tests on $target; run \"Build and test\" on it from the Actions tab."
+fi
+
+# 19 Nov 2026: the pull request merges itself once those tests pass (Noyr: he wants the data in without a click).
+# This only asks GitHub to merge it when main's required checks ("test" and "hosted") have passed; GitHub refuses
+# outright when the repo doesn't allow auto-merge or main requires no checks, so nothing merges before its tests ran.
+if [ "${GITHUB_REF_NAME}" = "main" ]; then
+  id=$(gh pr view "$bot" --json id --jq .id)
+  if ! gh api graphql -f query='mutation($id: ID!) { enablePullRequestAutoMerge(input: {pullRequestId: $id, mergeMethod: MERGE}) { clientMutationId } }' -f id="$id" >/dev/null; then
+    m="The pull request from $bot waits for a merge by hand: for it to merge itself once the tests pass, turn on Settings → General → \"Allow auto-merge\", and in Settings → Branches make main require the status checks \"test\" and \"hosted\"."
+    echo "::warning::$m"; echo "$m" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+  fi
 fi

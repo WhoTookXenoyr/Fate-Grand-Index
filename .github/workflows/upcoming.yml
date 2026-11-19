@@ -48,6 +48,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           echo "Upcoming servants: JP's data (tools/fetch_upcoming.py)" > /tmp/up_msg.txt
-          printf '%s\n' "JP's data for the servants in data/atlas/upcoming.json, and the page rebuilt with it, made by the Upcoming servants job (.github/workflows/upcoming.yml). The tests run on it by themselves." > /tmp/up_body.md
+          printf '%s\n' "JP's data for the servants in data/atlas/upcoming.json, and the page rebuilt with it, made by the Upcoming servants job (.github/workflows/upcoming.yml). The tests run on it by themselves, and it merges itself once they pass." > /tmp/up_body.md
           tools/bot_commit.sh upcoming-data "Upcoming servants: JP's data, $(date -u +'%d %b %Y')" /tmp/up_msg.txt /tmp/up_body.md \
             data/atlas/upcoming_servants.json.gz data/atlas/upcoming_costumes.json.gz src/data/atlas_data.js dist site

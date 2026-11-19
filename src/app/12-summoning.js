@@ -12,7 +12,8 @@ const SUM_KEY = "spirit-origin-list:v1:summon";
 const smBlank = () => ({n: 0, sq: 0, got: 0, t: {s5: 0, s4: 0, s3: 0, c5: 0, c4: 0, c3: 0, f5: 0, f4: 0, f3: 0}, last: [], log: [], run: null, batch: 0});
 const SM = Object.assign({f5: null, f4: null, f3: null, life: {n: 0, sq: 0}, calc: {sq: "", tix: ""}}, smBlank(), (() => { try { const v = JSON.parse(localStorage.getItem(SUM_KEY) || "null"); return v && typeof v === "object" ? v : {}; } catch (e) { return {}; } })());
 function smSave() { try { localStorage.setItem(SUM_KEY, JSON.stringify(SM)); } catch (e) {} }
-const SQ_SVG = `<svg class="sq-ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 1.5 3.8 9 12 22.5 20.2 9z" fill="#7cc4f5"/><path d="M12 1.5 3.8 9h16.4z" fill="#d6c2ff"/><path d="M12 1.5 8.2 9h7.6z" fill="#fff" opacity=".85"/><path d="M12 22.5 8.2 9h7.6z" fill="#ffbfe3" opacity=".9"/></svg>`;
+// the game's Saint Quartz (0.54.0: the picture Noyr sent, in place of the drawn one)
+const SQ_SVG = `<img class="sq-ic" src="@@asset:saint-quartz.webp@@" alt="" aria-hidden="true" width="14" height="14" decoding="async">`;
 
 /* ---------- who can come out: every servant on your list, Guests included ---------- */
 const smPool = (r) => S.servants.filter((s) => num(s.rarity) === r);

@@ -7,6 +7,7 @@ the Atlas Academy "nice" NA exports of servants and Craft Essences, in English. 
 costume names, which the export leaves out (they're in the lore): {servant id: [[battleCharaId, limitCount,
 costumeCollectionNo, name, shortName], ...]}, from https://api.atlasacademy.io/nice/NA/servant/<id>?lore=true
 (profile.costume) for every servant with a costume; fetch it again when NA adds costumes.
+data/atlas/command_codes.json has NA's Command Codes (0.54.0), and the servants' bondGrowth their bond tables.
 Run python3 tools/build.py afterwards to put the new data into the page.
 """
 import gzip, json, os, re, sys
@@ -379,6 +380,7 @@ import collections as _co
 _eg = _co.Counter(json.dumps(x.get("expGrowth") or []) for x in S if x["type"] in ("normal", "heroine") and x["collectionNo"])
 EXPS = [json.loads(_eg.most_common(1)[0][0])]; EXP_IX = {_eg.most_common(1)[0][0]: 0}
 UP_NOS = {x["collectionNo"] for x in U}
+BONDS, BOND_IX = [], {}
 for x in S + U:
     if x["type"] not in ("normal", "heroine") or x["className"] not in CLS or not x["collectionNo"]: continue
     tr = all_traits(x)
@@ -485,6 +487,13 @@ for x in S + U:
         key = json.dumps(eg)
         if key not in EXP_IX: EXP_IX[key] = len(EXPS); EXPS.append(eg)
         if EXP_IX[key]: rec["xg"] = EXP_IX[key]
+    # 0.54.0: the bond points each Bond level takes (the total to reach Bond 1, 2, ... 15), for the bond calculator;
+    # servants share a few dozen tables, kept once in ATLAS_BOND
+    bgr = x.get("bondGrowth") or []
+    if bgr and x["collectionNo"] not in UP_NOS:
+        key = json.dumps(bgr)
+        if key not in BOND_IX: BOND_IX[key] = len(BONDS); BONDS.append(bgr)
+        rec["bg"] = BOND_IX[key]
     if x["collectionNo"] in UP_NOS:
         u = next(u for u in UP_LIST if u["no"] == x["collectionNo"])
         rec["up"] = {k: u[k] for k in ("at", "eta", "ev") if u.get(k)}
@@ -515,6 +524,66 @@ for c in C:
     if c.get("bondEquipOwner"): rec["b"] = id2no.get(c["bondEquipOwner"])
     ces.append(rec)
 ces.sort(key=lambda r: r["no"])
+
+# 0.54.0: NA's Command Codes (data/atlas/command_codes.json, the "nice" export). Each one: {no, id, n name, r rarity,
+# f its icon, im its picture, e what it does (the game's words), il illustrator, x: its effects on the card it's
+# engraved on, as [kind, value, cards, needs]:
+#   k critical damage up %, p special attack %, g NP gain up %, s star drop up %, w star gather up %, f Damage Plus,
+#   h Sure Hit, i Ignore Invincible, d Ignore DEF (no value): always on, from the code's buffs;
+#   S stars gained, N NP charge % (for yourself), H HP restored (yourself), A HP restored (all allies): each time the
+#   card attacks, read from the game's words (the export only names the skill behind them). A sixth item, for N
+#   and H, is the turns before it works again.
+# cards: "" (any) or the one card type it needs ("B", "A", "Q"); needs: "" or what it needs, "Human" (the enemy's
+# trait; several with "|"), "+Lawful" (yours), "?field" or "?hp" (some quests, or more as your HP drops)
+CC_PATH = os.path.join(ATLAS, "command_codes.json")
+CCS = json.load(_open(CC_PATH)) if os.path.exists(CC_PATH) or os.path.exists(CC_PATH + ".gz") else []
+CC_BUFF = {"upCriticaldamage": "k", "upDamage": "p", "upDamageIndividuality": "p", "upDamageIndividualityActiveonly": "p", "upDropnp": "g", "upCriticalpoint": "s",
+           "upStarweight": "w", "addDamage": "f", "breakAvoidance": "h", "pierceInvincible": "i", "pierceDefence": "d"}
+CC_DIV = {"f": 1}
+def cc_word(name):
+    w = trait_key(name)
+    return re.sub(r"^[#@%&]", "", w or "")
+def cc_rows(k):
+    rows = []
+    for f in k.get("functions") or []:
+        for b in f.get("buffs") or []:
+            kk = CC_BUFF.get(b["type"])
+            if not kk: continue
+            sv = (f.get("svals") or [{}])[0]
+            v = num(sv.get("Value") or 0, CC_DIV.get(kk, 10)) if kk not in "hid" else 0
+            if kk not in "hid" and not v: continue
+            cards = "".join(CARD_T[t["name"]] for t in b.get("ckSelfIndv") or [] if t.get("name") in CARD_T)
+            need = "|".join(cc_word(t["name"]) for t in b.get("ckOpIndv") or [] if t.get("name") and t["name"] not in CARD_T)
+            ind = ((b.get("script") or {}).get("INDIVIDUALITIE") or {}).get("name") or ""
+            if ind.startswith("field"): need = "?field"
+            elif ind: need = "+" + cc_word(ind)
+            if any(kx.startswith("RatioHP") for kx in sv): need = "?hp"
+            rows.append([kk, v, cards, need])
+    # what happens each time the card attacks: from the game's words
+    for cl in re.split(r"\s\+\s|\s&\s(?=[a-z]*\s*(?:[A-Z]|increase|recover|restore|remove|gain))", clean(k.get("detail") or "")):
+        cards = next((CARD_T[c] for c in CARD_T if re.search(r"only if the engraved Card is an? " + {"cardQuick": "Quick", "cardArts": "Arts", "cardBuster": "Buster"}[c], cl)), "")
+        cd = re.search(r"Requires (\d+) turns?", cl); cd = int(cd.group(1)) if cd else 0
+        m = re.search(r"\bGain (\d+) C\. Stars?", cl)
+        if m and not re.search(r"random", cl): rows.append(["S", int(m.group(1)), cards, ""]); continue
+        m = re.search(r"Increase NP Gauge by (\d+)%", cl)
+        if m: rows.append(["N", int(m.group(1)), cards, "", cd]); continue
+        m = re.search(r"(?:Recover|Restore)(?: your)?(?: HP by)? (\d+)(?: HP)?(?: for (yourself|all allies))?", cl, re.I)
+        if m and "enemy" not in cl and "Curse" not in cl and "random" not in cl:
+            rows.append(["A" if m.group(2) == "all allies" else "H", int(m.group(1)), cards, "", cd])
+    return rows
+ccs = []
+for c in CCS:
+    if not c.get("collectionNo"): continue
+    sks = sorted(c.get("skills") or [], key=lambda k: (k.get("num", 0), k.get("priority", 0)))
+    if not sks: continue
+    k = sks[-1]
+    ea = c.get("extraAssets") or {}
+    face = next(iter(((ea.get("faces") or {}).get("cc") or {}).values()), "")
+    pic = next(iter(((ea.get("charaGraph") or {}).get("cc") or {}).values()), "")
+    rec = {"no": c["collectionNo"], "id": c["id"], "n": (c.get("name") or "").strip(), "r": c.get("rarity", 0), "f": p(face), "im": p(pic), "e": clean(k.get("detail") or ""), "x": cc_rows(k)}
+    if c.get("illustrator"): rec["il"] = c["illustrator"].strip()
+    ccs.append(rec)
+ccs.sort(key=lambda r: r["no"])
 # HP and ATK at any level follow one of a few shared curves: stat = base + floor((max - base) * curve[lv] / 1000)
 CURVES = {}
 for x in S:
@@ -535,6 +604,8 @@ js += "const ATLAS_UP = %s;\n" % json.dumps(sorted(ups, key=lambda r: r["no"]), 
 js += "const ATLAS_MATS = %s;\n" % json.dumps(MAT_LIST, ensure_ascii=False, separators=(",", ":"))
 js += "const ATLAS_APPENDS = %s;\n" % json.dumps(APPENDS, ensure_ascii=False, separators=(",", ":"))
 js += "const ATLAS_EXP = %s;\n" % json.dumps(EXPS, separators=(",", ":"))
+js += "const ATLAS_BOND = %s;\n" % json.dumps(BONDS, separators=(",", ":"))
+js += "const ATLAS_CC = %s;\n" % json.dumps(ccs, ensure_ascii=False, separators=(",", ":"))
 # QP per grail by rarity, and how far each grail raises the level cap ([qp, addLvMax] for grail 1, 2, ...), from Atlas
 # Academy's NiceSvtGrailCost (NA, Oct 2026); each grail past Lv 100 also costs 30 of the servant's coins
 GRAIL = {
@@ -551,4 +622,4 @@ js += "const ATLAS_GRAIL = %s;\n" % json.dumps({str(k): [list(t) for t in v] for
 # (tools/build.py refuses to build if either gets through.)
 js = js.replace("</", "<\\/").replace("<!--", "\\u003c!--")
 with open(os.path.join(ROOT, "src", "data", "atlas_data.js"), "w", encoding="utf-8") as f: f.write(js.strip() + "\n")
-print("servants", len(out), "upcoming", len(ups), "ces", len(ces), "icons", len(icons), "bytes", len(js.encode()))
+print("servants", len(out), "upcoming", len(ups), "ces", len(ces), "command codes", len(ccs), "bond tables", len(BONDS), "icons", len(icons), "bytes", len(js.encode()))

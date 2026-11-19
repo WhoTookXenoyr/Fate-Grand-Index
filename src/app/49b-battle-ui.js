@@ -145,7 +145,7 @@ function btQuestHTML(P) {
   const q = BT.quest;
   return `<div class="bt-quest">
     <div class="bt-qrow"><label>Chapter or event <select data-bt-war><option value="">Pick one…</option>
-      <optgroup label="Main story">${STORY_CH.map((c) => `<option value="${c[0]}"${String(c[0]) === String(wid) ? " selected" : ""}>${esc(c[3])}</option>`).join("")}</optgroup>
+      <optgroup label="Main story">${STORY_CH.map((c) => `<option value="${c.id}"${String(c.id) === String(wid) ? " selected" : ""}>${esc(c.ln)}</option>`).join("")}</optgroup>
       ${ev.length ? `<optgroup label="Events on NA">${ev.map((x) => `<option value="${x.w[0]}"${String(x.w[0]) === String(wid) ? " selected" : ""}>${esc(liveText(x.n))}</option>`).join("")}</optgroup>` : ""}</select></label>
     ${BT.warBusy ? `<p class="bt-note">Getting its quests from Atlas Academy…</p>` : fights.length ? `<label>Battle <select data-bt-fight><option value="">Pick one…</option>${fights.map(([qq, ph]) => `<option value="${qq.id}/${ph}"${q && q.q === qq.id && q.ph === ph ? " selected" : ""}>${esc(secLabel(qq))}${qq.pe.length > 1 ? " · battle " + ph : ""}</option>`).join("")}</select></label>` : wid ? `<p class="bt-note">No battles found for it.</p>` : ""}</div>
     <form class="bt-qid" data-bt-qid><label>Or a quest's number <input type="text" inputmode="numeric" placeholder="94086601/3, or a link from Atlas Academy" value="${q ? esc(q.q + "/" + q.ph) : ""}"></label><button type="submit" class="btn sm">Load</button></form>
@@ -182,7 +182,8 @@ function btLine(e) {
     case "turn": return `Turn ${e.n}.`;
     case "skill": return `${n(e.who)} uses ${e.n}${e.pick && e.pick !== e.who ? " on " + n(e.pick) : ""}.`;
     case "plan": return `Cards: ${e.pick.map((p) => p.np ? n(p.who) + "'s NP" : n(p.who) + " " + c(p.card)).join(", ")}.`;
-    case "card": return e.dodged ? `${n(e.to)} avoids ${n(e.who)}'s ${c(e.card)}.` : `${n(e.who)}: ${c(e.card)}${e.crit ? " critical" : ""}, ${fmt(e.dmg)} to ${n(e.to)}.`;
+    case "card": return (e.dodged ? `${n(e.to)} avoids ${n(e.who)}'s ${c(e.card)}.` : `${n(e.who)}: ${c(e.card)}${e.crit ? " critical" : ""}, ${fmt(e.dmg)} to ${n(e.to)}.`)
+      + (e.cc && e.cc.did && e.cc.did.length ? ` ${e.cc.n}: ${e.cc.did.join(", ")}.` : "");
     case "np": return `${n(e.who)}: ${e.n}${e.oc > 1 ? " (Overcharge " + e.oc * 100 + "%)" : ""}${e.hits.length ? ", " + e.hits.map((h) => (h.dodged ? "avoided by " : fmt(h.dmg) + " to ") + n(h.id) + (h.se ? " (super effective)" : "")).join(", ") : ""}.`;
     case "np-after": return `${n(e.who)}'s Noble Phantasm takes effect.`;
     case "foes-turn": return "The enemies' turn.";

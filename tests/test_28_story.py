@@ -146,7 +146,10 @@ with sync_playwright() as p:
     check(f"sections in the game's order (one without a priority after the section before it), a section in two parts as 4-1 and 4-2, no Decisive Battles ({secs})", secs == ["Prologue-1", "Prologue-2", "1", "Fragment of a Dream", "2", "4-1", "4-2", "Act II", "Epilogue"])
     rows = pg.evaluate("[...document.querySelectorAll('#story .st-row .st-row-k')].map(e => e.textContent)")
     check(f"each row names its section ({rows})", rows == ["Prologue-1", "Prologue-2", "Section 1", "", "Section 2", "Section 4-1", "Section 4-2", "Act II", "Epilogue"])
-    check(f"the count leaves the side battles out ({pg.locator('#story .st-title p').inner_text()!r})", pg.locator("#story .st-title p").inner_text() == "9 sections · 6 battles")
+    check(f"the count leaves the side battles out ({pg.locator('#story .st-title p:not(.st-guides)').inner_text()!r})", pg.locator("#story .st-title p:not(.st-guides)").inner_text() == "9 sections · 6 battles")
+    gp = pg.evaluate("[...document.querySelectorAll('#story .st-title .st-guides a')].map((a) => [a.textContent, a.href, a.target])")
+    check(f"0.54.0: the chapter links to GamePress's walkthrough and boss guides ({[g[0] for g in gp]})", [g[0] for g in gp] == ["Walkthrough ↗", "Boss guides ↗"]
+          and gp[0][1] == "https://grandorder.gamepress.gg/p/lostbelt-7-nahui-mictlan-spoiler-free-walkthrough" and all(g[2] == "_blank" for g in gp))
     pg.evaluate("window.scrollTo(0, 0)")
     pg.click('#story .st-sec[data-q="3000710"]'); pg.wait_for_timeout(600)
     last = None

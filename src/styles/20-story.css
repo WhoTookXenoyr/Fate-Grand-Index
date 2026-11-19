@@ -37,6 +37,9 @@
 .st-title > div { min-width: 0; flex: 1 1 240px; }
 .st-title h3 { margin: 0; font-family: var(--f-display); font-size: 1.3rem; line-height: 1.15; }
 .st-title p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+/* 0.54.0: GamePress's guide to the chapter */
+.st-title p.st-guides { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.st-guides a { color: var(--ink); font-weight: 600; text-underline-offset: 2px; }
 /* the section strip stays at the top while you go through the sections */
 .st-strip { position: sticky; top: 0; z-index: 4; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center; margin: 0 -6px; padding: 6px; border-radius: 0 0 14px 14px; background: var(--panel); box-shadow: 0 6px 14px -10px rgba(0, 0, 0, .35); }
 .st-arrow { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font-size: 20px; line-height: 1; cursor: pointer; display: grid; place-items: center; }

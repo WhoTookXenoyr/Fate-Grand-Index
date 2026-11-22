@@ -1,7 +1,7 @@
 name: NA data
 
 # 0.53.0-beta: keeps the page's NA servant and Craft Essence data up to date by itself.
-# Every four hours it asks Atlas Academy whether NA's data changed (a tiny info.json; a run that finds nothing takes
+# Every three days it asks Atlas Academy whether NA's data changed (a tiny info.json; a run that finds nothing takes
 # seconds). When it did, tools/fetch_na.py downloads it, tools/gen_atlas.py and tools/build.py rebuild the page, and:
 #   - on main: the result goes to the branch na-data and a pull request into main (one, kept up to date) to merge;
 #   - on any other branch: after a push of tools/fetch_na.py it's committed to that branch; a push of this file
@@ -14,7 +14,11 @@ name: NA data
 # without a commit; "Run workflow" turns this one on again.
 on:
   schedule:
-    - cron: "23 */4 * * *"
+    # 22 Nov 2026, Noyr: every three days (every four hours before), since each update of the pull request needs his
+    # approval click (tools/bot_commit.sh); a scheduled Claude task reminds him. 16:23 UTC (17:23 in Amsterdam, 18:23
+    # in summer) on the 1st, 4th, … 28th; from the 28th to the next 1st it's three or four days (one or two after
+    # February). "*/3" would also run on the 31st, a day before the 1st.
+    - cron: "23 16 1,4,7,10,13,16,19,22,25,28 * *"
   workflow_dispatch:
     inputs:
       force:
@@ -102,7 +106,7 @@ jobs:
           RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           na=$(python3 -c "import json; print(json.load(open('data/atlas/na_info.json')).get('timestamp') or 0)" 2>/dev/null || echo 0)
-          json=$(printf '{"run_at": "%s", "result": "%s", "changed": "%s", "na_timestamp": %s, "run": "%s"}' "$(date -u +%FT%TZ)" "$RESULT" "${CHANGED:-}" "$na" "$RUN")
+          json=$(printf '{"run_at": "%s", "result": "%s", "changed": "%s", "na_timestamp": %s, "run": "%s", "schedule": "every three days: the 1st, 4th, ... 28th at 16:23 UTC"}' "$(date -u +%FT%TZ)" "$RESULT" "${CHANGED:-}" "$na" "$RUN")
           blob=$(printf '%s\n' "$json" | git hash-object -w --stdin)
           tree=$(printf '100644 blob %s\tstatus.json\n' "$blob" | git mktree)
           commit=$(git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit-tree "$tree" -m "NA data job on main: $RESULT, $(date -u +'%d %b %Y %H:%M UTC')")

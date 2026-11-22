@@ -8,6 +8,11 @@ import os
 import sys, json
 from playwright.sync_api import sync_playwright
 sp = sys.argv[1]; URL = os.environ.get("FGI_URL") or "file://" + sp
+import re
+# NA's own name for Tutankhamun's first skill, from the page's data: Strengthening Quests rename skills ("Royal Valley"
+# became "Valley of the Kings" on 21 Nov 2026), so it isn't written into the test
+_S = json.loads(re.search(r"^const ATLAS_S = (.*?);?$", open(f"{sp}/atlas_data.js", encoding="utf-8").read(), re.M).group(1))
+TUT_SKILL = re.sub(r"\s+[A-E](?:\+*|-)?$|\s+EX$", "", next(x for x in _S if x["no"] == 427)["sk"][0]["n"])
 SEEDED = f"{URL}/_seeded.html"
 errs, fails = [], []
 def check(label, ok):
@@ -43,7 +48,7 @@ with sync_playwright() as p:
     pg.click('#pc-results .pc-card[data-no="427"]'); pg.wait_for_timeout(500)
     d = pg.locator("#pc-dlg")
     txt = d.inner_text()
-    check("and Tutankhamun's page is NA's: NA's skill names, no note about JP's data", d.is_visible() and "Royal Valley" in txt and d.locator(".up-note").count() == 0 and d.locator(".up-cd").count() == 0)
+    check(f"and Tutankhamun's page is NA's: NA's skill names ({TUT_SKILL}), no note about JP's data", d.is_visible() and TUT_SKILL in txt and d.locator(".up-note").count() == 0 and d.locator(".up-cd").count() == 0)
     pg.keyboard.press("Escape"); pg.wait_for_timeout(250)
     check("Louhi isn't in NA's list yet", 429 not in found("louhi") and pg.locator(".up-row .up-card").count() == 1)
     pg.fill('[data-pc-q]', "zzzz nobody"); pg.wait_for_timeout(500)

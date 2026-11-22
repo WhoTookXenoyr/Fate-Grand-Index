@@ -79,3 +79,23 @@ jobs:
           { cat na_summary.md; echo; echo "Data only, made by the NA data job (.github/workflows/na-data.yml) from Atlas Academy's NA export. It's rebuilt on top of main whenever NA's data changes again, until it's merged, and it merges itself once the tests pass. The tests run on it by themselves. The version isn't changed: that's yours to decide when you release."; } > /tmp/na_body.md
           cat na_summary.md >> "$GITHUB_STEP_SUMMARY"
           tools/bot_commit.sh na-data "NA data: $(date -u +'%d %b %Y')" /tmp/na_msg.txt /tmp/na_body.md data/atlas src/data/atlas_data.js dist site
+
+      # 22 Nov 2026: a heartbeat that can be read without GitHub's API (git ls-remote / git fetch origin bot-status), for
+      # the daily security check, which can't see the Actions tab: the branch bot-status holds a single commit with
+      # status.json, saying when this job last ran on main and how it went. That tells "Atlas Academy had nothing new"
+      # apart from "the job is broken" (as it was for two days from 20 Nov, when every push was refused). The branch is
+      # replaced each run; nothing runs on it, and it never touches main.
+      - name: Leave a status for the daily check
+        if: always() && github.ref == 'refs/heads/main'
+        env:
+          RESULT: ${{ job.status }}
+          CHANGED: ${{ steps.fetch.outputs.changed }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          na=$(python3 -c "import json; print(json.load(open('data/atlas/na_info.json')).get('timestamp') or 0)" 2>/dev/null || echo 0)
+          json=$(printf '{"run_at": "%s", "result": "%s", "changed": "%s", "na_timestamp": %s, "run": "%s"}' "$(date -u +%FT%TZ)" "$RESULT" "${CHANGED:-}" "$na" "$RUN")
+          blob=$(printf '%s\n' "$json" | git hash-object -w --stdin)
+          tree=$(printf '100644 blob %s\tstatus.json\n' "$blob" | git mktree)
+          commit=$(git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit-tree "$tree" -m "NA data job on main: $RESULT, $(date -u +'%d %b %Y %H:%M UTC')")
+          git push -q -f origin "$commit:refs/heads/bot-status" || echo "::warning::Couldn't update the branch bot-status (the daily check reads it)."
+          echo "$json"

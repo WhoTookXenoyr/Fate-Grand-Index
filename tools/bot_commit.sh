@@ -8,8 +8,12 @@
 #   never falls behind), and opens a pull request from it into main, or updates the one that's open. The pull request
 #   is set to merge itself once the tests pass (when the repo allows it; see the end).
 # - Run on any other branch: commits to that branch.
-# Then it starts the test workflow on what it pushed: GitHub doesn't run workflows for pushes and pull requests a job
-# makes with its own token, except when they're started this way (workflow_dispatch). Needs the permissions
+# Then it starts the test workflow on what it pushed (workflow_dispatch), for a result straight away.
+# 22 Nov 2026: that run doesn't count for main's required checks: GitHub counts only runs from pull_request (and
+# push) events. And since June 2026 GitHub holds the pull_request run on anything this job pushes ("action_required")
+# until someone with write access approves it: on the pull request, "Awaiting approval" (top right), then "Approve
+# workflows to run". So a pull request from the bot, or a branch it committed to, merges only after that click, and
+# then by itself once the tests pass. Needs the permissions
 # contents: write, pull-requests: write and actions: write, and GH_TOKEN set.
 set -euo pipefail
 bot="$1"; title="$2"; msg="$3"; body="$4"; shift 4
@@ -45,7 +49,8 @@ if ! gh workflow run test.yml --ref "$target"; then
   echo "::warning::Couldn't start the tests on $target; run \"Build and test\" on it from the Actions tab."
 fi
 
-# 19 Nov 2026: the pull request merges itself once those tests pass (Noyr: he wants the data in without a click).
+# 19 Nov 2026: the pull request merges itself once its tests pass (Noyr: he wants the data in without a click). Since
+# June 2026 that's once he has approved them (see the top).
 # This only asks GitHub to merge it when main's required checks ("test" and "hosted") have passed; GitHub refuses
 # outright when the repo doesn't allow auto-merge or main requires no checks, so nothing merges before its tests ran.
 if [ "${GITHUB_REF_NAME}" = "main" ]; then

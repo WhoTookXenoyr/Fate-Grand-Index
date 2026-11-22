@@ -49,8 +49,8 @@ fi
 # This only asks GitHub to merge it when main's required checks ("test" and "hosted") have passed; GitHub refuses
 # outright when the repo doesn't allow auto-merge or main requires no checks, so nothing merges before its tests ran.
 if [ "${GITHUB_REF_NAME}" = "main" ]; then
-  id=$(gh pr view "$bot" --json id --jq .id)
-  if ! gh api graphql -f query='mutation($id: ID!) { enablePullRequestAutoMerge(input: {pullRequestId: $id, mergeMethod: MERGE}) { clientMutationId } }' -f id="$id" >/dev/null; then
+  id=$(gh pr view "$bot" --json id --jq .id) || id=""
+  if [ -z "$id" ] || ! gh api graphql -f query='mutation($id: ID!) { enablePullRequestAutoMerge(input: {pullRequestId: $id, mergeMethod: MERGE}) { clientMutationId } }' -f id="$id" >/dev/null; then
     m="The pull request from $bot waits for a merge by hand: for it to merge itself once the tests pass, turn on Settings → General → \"Allow auto-merge\", and in Settings → Branches make main require the status checks \"test\" and \"hosted\"."
     echo "::warning::$m"; echo "$m" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
   fi

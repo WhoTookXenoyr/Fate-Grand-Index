@@ -368,8 +368,10 @@ function btBattle(setup, seed) {
     const atkUp = (btMod(u, "atk") - btMod(u, "atkdown") - (cc && cc.idef ? 0 : btMod(t, "defup")) + btMod(t, "defdown")) / 100 + (u.t.apVs && String(t.cls) === u.t.apVs.cls ? u.t.apVs.v / 100 : 0);
     // (0.54.0: a card's Command Code, 64-command-codes.js: its critical damage, and its special attack against a trait)
     const ccPow = cc ? (o.crit ? cc.crit : 0) + cc.vs.reduce((a, x) => a + (btVsOk1(x[1], t) ? x[0] + (o.crit ? x[2] : 0) : 0), 0) : 0;
-    const pow = (btMod(u, "vs", "", t) + (o.np ? btMod(u, "np") + (u.t.pm[3] || 0) : 0) + (o.crit ? btMod(u, "crit", card) : 0) + ccPow) / 100;
-    let d = u.atk * 0.23 * (o.np ? o.np / 100 : 1) * (base * (1 + clamp(cardUp, -1, 4)) + first) * clsAtk(u.cls) * aff(u.cls, t.cls) * npcAttr(u.t.attr, t.t.attr)
+    // (0.55.0: the class's Class Score, 68-class-score.js: card strength (NP too), NP strength, critical damage, the Extra attack)
+    const cs = u.t.cs || null, csCard = cs ? cs.card[card] || 0 : 0, csPow = cs ? (o.np ? cs.np : 0) + (o.crit ? (cs.crit[card] || 0) + cs.critAll : 0) : 0;
+    const pow = (btMod(u, "vs", "", t) + (o.np ? btMod(u, "np") + (u.t.pm[3] || 0) : 0) + (o.crit ? btMod(u, "crit", card) : 0) + ccPow + csPow) / 100;
+    let d = u.atk * 0.23 * (o.np ? o.np / 100 : 1) * (base * (1 + clamp(cardUp + csCard / 100, -1, 4)) + first) * clsAtk(u.cls) * aff(u.cls, t.cls) * npcAttr(u.t.attr, t.t.attr)
       * (o.rand != null ? o.rand : 1) * Math.max(0.001, 1 + clamp(atkUp, -1, 4)) * Math.max(0.001, 1 + clamp(pow, -1, 10)) * (o.crit ? 2 : 1) * (o.se || 1);
     if (card === "E") d *= o.ex || 2;
     if (o.busterChain && !o.np) d += u.atk * 0.2;
@@ -402,7 +404,7 @@ function btBattle(setup, seed) {
   };
   const starsOf = (u, card, pos, opts) => {
     const o = opts || {}, base = o.np ? (BT_STAR[card] || [0])[0] : BT_STAR[card][pos];
-    return clamp(u.t.sg / 100 + base + (!o.np && card !== "E" && o.first === "Q" ? 0.2 : 0) + (btMod(u, "drop") + (!o.np && o.cc ? o.cc.drop : 0)) / 100 + (o.crit ? 0.2 : 0), 0, 3);
+    return clamp(u.t.sg / 100 + base + (!o.np && card !== "E" && o.first === "Q" ? 0.2 : 0) + (btMod(u, "drop") + (!o.np && o.cc ? o.cc.drop : 0) + (u.t.cs ? u.t.cs.star : 0)) / 100 + (o.crit ? 0.2 : 0), 0, 3);
   };
 
   /* a Noble Phantasm */

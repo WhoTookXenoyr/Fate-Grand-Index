@@ -5633,6 +5633,7 @@ html:not([data-theme="dark"]) .brand-logo, html:not([data-theme="dark"]) .sf-log
 .csx-zoom button:disabled { cursor: default; opacity: .4; }
 .csx-zoom button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 @media (pointer: coarse) { .csx-zoom button { min-width: 42px; height: 42px; } .csx-zoom button.csx-zl { min-width: 54px; } }
+.csx-map img { -webkit-user-drag: none; user-select: none; }
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#1c1624">
@@ -26222,18 +26223,23 @@ function csWire() {
     csZoom(pinch.z * p.d / Math.max(1, pinch.d), p.x - r.left, p.y - r.top);
   }, {passive: false});
   box.addEventListener("touchend", (e) => { if (e.touches.length < 2) pinch = null; }, {passive: true});
-  // the mouse drags a zoomed map around (a click that moved is a drag, and doesn't pick a sign)
+  // the mouse drags a zoomed map around (a click that moved is a drag, and doesn't pick a sign). The browser's own
+  // dragging of a sign's picture is stopped at the start, or it would take the mouse over after the first move; the
+  // moves are followed on the window, so leaving the frame mid-drag doesn't drop it, and each one moves the frame
+  // that's there now (a redraw midway replaces it)
   box.addEventListener("pointerdown", (e) => {
     const w = wrapAt(e.target); if (!w || e.pointerType !== "mouse" || e.button !== 0 || CSU.z <= 1) return;
-    CSU.drag = {id: e.pointerId, x: e.clientX, y: e.clientY, sl: w.scrollLeft, st: w.scrollTop, moved: 0, w: w};
+    e.preventDefault();
+    CSU.drag = {id: e.pointerId, x: e.clientX, y: e.clientY, moved: 0};
   });
-  box.addEventListener("pointermove", (e) => {
+  window.addEventListener("pointermove", (e) => {
     const d = CSU.drag; if (!d || d.id !== e.pointerId) return;
-    const dx = e.clientX - d.x, dy = e.clientY - d.y; d.moved = Math.max(d.moved, Math.abs(dx) + Math.abs(dy));
-    if (d.moved > 4) { if (!d.w.classList.contains("drag")) { d.w.classList.add("drag"); try { d.w.setPointerCapture(e.pointerId); } catch (x) {} } d.w.scrollLeft = d.sl - dx; d.w.scrollTop = d.st - dy; }
+    const w = box.querySelector(".csx-map-wrap"); if (!w) return;
+    const dx = e.clientX - d.x, dy = e.clientY - d.y; d.x = e.clientX; d.y = e.clientY; d.moved += Math.abs(dx) + Math.abs(dy);
+    if (d.moved > 4) { w.classList.add("drag"); w.scrollLeft -= dx; w.scrollTop -= dy; }
   });
-  const end = (e) => { const d = CSU.drag; if (!d || d.id !== e.pointerId) return; d.w.classList.remove("drag"); CSU.dragged = d.moved > 4; CSU.drag = null; setTimeout(() => { CSU.dragged = false; }, 0); };
-  box.addEventListener("pointerup", end); box.addEventListener("pointercancel", end);
+  const end = (e) => { const d = CSU.drag; if (!d || d.id !== e.pointerId) return; const w = box.querySelector(".csx-map-wrap"); if (w) w.classList.remove("drag"); CSU.dragged = d.moved > 4; CSU.drag = null; setTimeout(() => { CSU.dragged = false; }, 0); };
+  window.addEventListener("pointerup", end); window.addEventListener("pointercancel", end);
 }
 
 /* ---------- the page ---------- */
@@ -26268,13 +26274,13 @@ function csMapHTML(b, set) {
     const on = set.has(q.id), can = !on && csCan(b.id, q.id, set), sk = q.k === "p" ? CSB.sk[q.ref] : null, sp = q.k === "c" ? CSB.cs[q.ref] : null;
     const label = q.k === "l" ? "Lock" : sk ? csName(sk) : sp ? sp.n : "Sign";
     return `<button type="button" class="csx-sq k-${q.k}${on ? " on" : can ? " can" : ""}${CSU.sel === q.id ? " sel" : ""}${q.start ? " start" : ""}${popAt(q)}left:${px(q.x)};top:${py(q.y)}" data-action="csx-sq" data-sq="${q.id}"${sk && sk.c ? ` data-c="${sk.c}"` : ""}
-      aria-label="${esc(label)}${on ? ", open" : can ? ", can open" : ", closed"}">${A && on && A.sq.has(q.id) ? `<i class="csx-cover" aria-hidden="true"></i>` : ""}${q.k === "l" ? CSX_LOCK : q.ic ? `<img src="${esc(aimg(q.ic))}" alt="" loading="lazy" decoding="async">` : ""}</button>`;
+      aria-label="${esc(label)}${on ? ", open" : can ? ", can open" : ", closed"}">${A && on && A.sq.has(q.id) ? `<i class="csx-cover" aria-hidden="true"></i>` : ""}${q.k === "l" ? CSX_LOCK : q.ic ? `<img src="${esc(aimg(q.ic))}" alt="" loading="lazy" decoding="async" draggable="false">` : ""}</button>`;
   }).join("");
   const full = set.size >= g.signs + g.locks, z = CSU.z;
   return `<div class="csx-map-box"><div class="csx-map-wrap${z > 1 ? " zoomed" : ""}"><div class="csx-map${full ? " full" : ""}" style="aspect-ratio:${W} / ${H};--z:${z};--u:${(100 / W).toFixed(5)}cqw">
     <svg class="csx-lines" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>
     ${A ? csAnimHTML(g, N, open) : ""}
-    ${b.ic ? `<img class="csx-emblem${A && A.roots.length ? ` flash" style="--d:${N.at(0)}` : ""}" src="${esc(aimg(b.ic))}" alt="" decoding="async">` : ""}${sqs}</div></div>${csZoomHTML()}</div>`;
+    ${b.ic ? `<img class="csx-emblem${A && A.roots.length ? ` flash" style="--d:${N.at(0)}` : ""}" src="${esc(aimg(b.ic))}" alt="" decoding="async" draggable="false">` : ""}${sqs}</div></div>${csZoomHTML()}</div>`;
 }
 const CSX_LOCK = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>`;
 function csCostHTML(list) {

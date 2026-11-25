@@ -133,7 +133,7 @@ with sync_playwright() as p:
     q = pg.evaluate("""(() => { const w = document.querySelector('.csx-map-wrap').getBoundingClientRect(), mx = w.left + w.width / 2, my = w.top + w.height / 2;
       let best = null; document.querySelectorAll('.csx-sq').forEach((q) => { const r = q.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2, d = Math.hypot(x - mx, y - my);
         if (!best || d < best.d) best = {d: d, x: x, y: y}; }); return best; })()""")
-    pg.mouse.move(q["x"], q["y"]); pg.mouse.down(); pg.mouse.move(q["x"] + 80, q["y"] + 50, steps=6); pg.mouse.up(); pg.wait_for_timeout(120)
+    pg.mouse.move(q["x"], q["y"]); pg.mouse.down(); pg.mouse.move(q["x"] + 80, q["y"] + 50, steps=10); pg.mouse.up(); pg.wait_for_timeout(120)
     s1_ = pg.evaluate("[document.querySelector('.csx-map-wrap').scrollLeft, document.querySelector('.csx-map-wrap').scrollTop]")
     check(f"dragging with the mouse moves the map ({s0} → {s1_}) and doesn't pick the sign it started on",
           s1_[0] < s0[0] - 40 and s1_[1] < s0[1] - 20 and pg.evaluate("[...document.querySelectorAll('.csx-sq.sel')].map((q) => q.dataset.sq)") == sel0)

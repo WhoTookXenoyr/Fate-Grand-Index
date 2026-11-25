@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until 0.50.0, beta from there until the full website and app: 1.0.0
-const APP_VER = "0.55.0-beta";
+const APP_VER = "0.56.0-beta";
 const APP_STAGE = /-beta\b/.test(APP_VER) ? "beta" : "alpha", APP_NUM = APP_VER.replace(/-.*$/, "");
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
@@ -164,6 +164,12 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.56.0-beta", d: "25 Nov 2026", t: "Class Score lights up, and zooms", i: [
+    "<b>Opening a sign lights the way to it.</b> A beam runs along each new line from what was open to the sign you opened, turning from the colour it starts at to the sign's own (Buster red, Arts blue, Quick green, Command Spells purple, the rest gold), with a spark at its head. The sign pops when it arrives, with rings and sparks in its colour.",
+    "<b>Open the way here</b> lights the squares one after another, and a start sign gets its light from the board's emblem. <b>Open every square</b> runs across the whole board in under three seconds. What a board adds lights up for what just went up, and the board's bar in the list fills along with it. A full board's emblem stays lit.",
+    "<b>Zoom</b>: + and − in the map's corner, a pinch on a phone or tablet, or Ctrl (⌘ on a Mac) with the mouse wheel or a trackpad pinch. Zoomed in, drag the map with the mouse or swipe it. The signs are drawn bigger, so they stay sharp.",
+    "Only movement and fading are animated, so it's light on the graphics card, and the frame-rate switch slows it like everything else. With reduced motion on in your system, signs open without it."
+  ]},
   {v: "0.55.0-beta", d: "25 Nov 2026", t: "Class Score", i: [
     "<b>Class Score</b>, a new page: the game's nine class boards (Saber to Berserker, Extra I and Extra II), drawn the way the game lays them out. The first step on the way to 1.0.",
     "Open the signs you've opened in the game. A sign opens once a square next to it is open, starting from the two start signs, as in the game; locks open with Torches. Pick a sign further on and <b>Open the way here</b> opens every square on the way. Closing a sign closes what was only reached through it, and Undo puts it back.",

@@ -5517,16 +5517,16 @@ html:not([data-theme="dark"]) .brand-logo, html:not([data-theme="dark"]) .sf-log
 @media (max-width: 980px) { .csx-body { grid-template-columns: minmax(0, 1fr); } }
 
 /* the star map: the game's own layout. Squares sit on their coordinates; nothing on it moves. */
-.csx-map-wrap { overflow-x: auto; overscroll-behavior-x: contain; border: 1px solid var(--line); border-radius: 14px;
+.csx-map-wrap { overflow: auto; overscroll-behavior-x: contain; touch-action: pan-x pan-y; border: 1px solid var(--line); border-radius: 14px;
   background: radial-gradient(ellipse at center, color-mix(in srgb, var(--gold) 9%, var(--sunken)) 0%, var(--sunken) 62%); }
-.csx-map { position: relative; min-width: 640px; }
+.csx-map { position: relative; width: calc(100% * var(--z, 1)); min-width: calc(640px * var(--z, 1)); container-type: inline-size; }
 .csx-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
 .csx-lines line { stroke: var(--line); stroke-width: 5; stroke-linecap: round; }
 .csx-lines line.on { stroke: var(--gold); stroke-width: 7; }
 .csx-emblem { position: absolute; left: 50%; top: 50%; width: 15%; aspect-ratio: 1; object-fit: contain; transform: translate(-50%, -50%); opacity: .16; pointer-events: none; }
-.csx-dot { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: var(--line); transform: translate(-50%, -50%); }
+.csx-dot { position: absolute; width: calc(7px * var(--z, 1)); height: calc(7px * var(--z, 1)); border-radius: 50%; background: var(--line); transform: translate(-50%, -50%); }
 .csx-dot.on { background: var(--gold); }
-.csx-sq { all: unset; box-sizing: border-box; cursor: pointer; position: absolute; width: 4.6%; min-width: 26px; max-width: 42px; aspect-ratio: 1; transform: translate(-50%, -50%);
+.csx-sq { all: unset; box-sizing: border-box; cursor: pointer; position: absolute; width: 4.6%; min-width: calc(26px * var(--z, 1)); max-width: calc(42px * var(--z, 1)); aspect-ratio: 1; transform: translate(-50%, -50%);
   display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--line); background: var(--panel); color: var(--muted); }
 .csx-sq img { width: 82%; height: 82%; object-fit: contain; border-radius: 50%; opacity: .45; }
 .csx-sq.k-c { border-radius: 9px; }
@@ -5541,7 +5541,7 @@ html:not([data-theme="dark"]) .brand-logo, html:not([data-theme="dark"]) .sf-log
 .csx-sq.on[data-c="Q"] { border-color: var(--quick); }
 .csx-sq.sel { outline: 3px solid var(--focus); outline-offset: 2px; z-index: 1; }
 .csx-sq:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; z-index: 1; }
-@media (pointer: coarse) { .csx-sq { min-width: 30px; } }
+@media (pointer: coarse) { .csx-sq { min-width: calc(30px * var(--z, 1)); } }
 
 /* beside it: the picked sign, the totals, the materials */
 .csx-side { display: grid; gap: 12px; }
@@ -5567,6 +5567,73 @@ html:not([data-theme="dark"]) .brand-logo, html:not([data-theme="dark"]) .sf-log
 .csx-cost li { display: grid; grid-template-columns: 24px 1fr auto; align-items: center; gap: 8px; font-size: 13px; }
 .csx-cost img { width: 24px; height: 24px; object-fit: contain; }
 .csx-cost b { font: 600 12.5px/1 var(--f-data); font-variant-numeric: tabular-nums; }
+
+/* ================= 0.56.0: squares light up as they open, and the map zooms ================= */
+.csx { --csx-cs: color-mix(in srgb, var(--buster) 50%, var(--arts)); }
+.csx-map.full .csx-emblem { opacity: .4; }
+.csx-tab.grow .csx-bar { animation: csxBar var(--dur) cubic-bezier(.3, .7, .3, 1) var(--d) both; }
+@keyframes csxBar { from { transform: scaleX(var(--p0)); } to { transform: scaleX(var(--p)); } }
+/* a line whose beam is still on its way looks closed until the beam has drawn it */
+.csx-lines line.on.wait { stroke: var(--line); stroke-width: 5; }
+.csx-anim { position: absolute; inset: 0; pointer-events: none; }
+/* a beam: --u is one unit of the board, so it's as thick as the line it draws at any size */
+.csx-beam { position: absolute; height: 0; transform-origin: 0 50%; transform: rotate(var(--a)); }
+.csx-beam > i { position: absolute; left: 0; width: 100%; transform-origin: 0 50%; border-radius: 999px; }
+.csx-beam .cb-t { top: calc(-3.5 * var(--u)); height: calc(7 * var(--u)); background: var(--gold); transform: scaleX(0); animation: csxGrow var(--dur) cubic-bezier(.35, .75, .25, 1) var(--d) both; }
+.csx-beam .cb-g { top: calc(-12 * var(--u)); height: calc(24 * var(--u)); background: linear-gradient(90deg, var(--c0), var(--c1)); opacity: .65; transform: scaleX(0);
+  animation: csxGrow var(--dur) cubic-bezier(.35, .75, .25, 1) var(--d) both, csxFade .75s ease-out calc(var(--d) + var(--dur)) forwards; }
+.csx-beam .cb-c { top: calc(-4.5 * var(--u)); height: calc(9 * var(--u)); background: linear-gradient(90deg, color-mix(in srgb, var(--c0) 55%, #fff), color-mix(in srgb, var(--c1) 55%, #fff)); transform: scaleX(0);
+  animation: csxGrow var(--dur) cubic-bezier(.35, .75, .25, 1) var(--d) both, csxFade .6s ease-out calc(var(--d) + var(--dur)) forwards; }
+.csx-beam .cb-h { top: calc(-18 * var(--u)); height: calc(36 * var(--u)); border-radius: 0; transform: translateX(-100%); opacity: 0; animation: csxRun var(--dur) cubic-bezier(.35, .75, .25, 1) var(--d) both; }
+.csx-beam .cb-h::after { content: ""; position: absolute; top: 0; right: calc(-18 * var(--u)); width: calc(36 * var(--u)); height: 100%; border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 20%, color-mix(in srgb, var(--c1) 70%, #fff) 38%, transparent 70%); }
+@keyframes csxGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes csxFade { to { opacity: 0; } }
+@keyframes csxRun { 0% { transform: translateX(-100%); opacity: 0; } 3% { opacity: 1; } 88% { opacity: 1; } 100% { transform: translateX(0); opacity: 0; } }
+/* the sign it reaches pops, with rings and sparks in its colour */
+/* (until its beam arrives, a square waiting its turn wears a cover in the closed look, which fades as it pops) */
+.csx-sq.pop { animation: csxPop .55s ease-out var(--d) both; }
+@keyframes csxPop { 0% { transform: translate(-50%, -50%) scale(1); } 40% { transform: translate(-50%, -50%) scale(1.22); } 70% { transform: translate(-50%, -50%) scale(.96); } 100% { transform: translate(-50%, -50%) scale(1); } }
+.csx-cover { position: absolute; inset: -2px; border-radius: inherit; border: 2px solid var(--line); background: color-mix(in srgb, var(--panel) 60%, transparent); pointer-events: none;
+  animation: csxFade .16s linear var(--d) forwards; }
+.csx-dot.pop { animation: csxDot .45s ease-out var(--d) both; }
+@keyframes csxDot { 0% { transform: translate(-50%, -50%) scale(.5); opacity: .3; } 45% { transform: translate(-50%, -50%) scale(2); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+.csx-ring { position: absolute; width: 4.6%; min-width: calc(26px * var(--z, 1)); max-width: calc(42px * var(--z, 1)); aspect-ratio: 1; border-radius: 50%; border: 3px solid var(--c, var(--gold));
+  transform: translate(-50%, -50%) scale(.7); opacity: 0; animation: csxRing .8s cubic-bezier(.15, .6, .3, 1) var(--d) both; }
+.csx-ring.r2 { border-width: 2px; border-color: var(--gold); animation-duration: 1s; }
+@keyframes csxRing { 0% { transform: translate(-50%, -50%) scale(.7); opacity: 0; } 8% { opacity: .95; } 100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; } }
+.csx-spk { position: absolute; width: calc(7px * var(--z, 1)); height: calc(7px * var(--z, 1)); border-radius: 50%; background: radial-gradient(circle, #fff 0 30%, var(--c) 62%);
+  opacity: 0; transform: translate(-50%, -50%) rotate(var(--r)); animation: csxSpk .7s cubic-bezier(.2, .7, .3, 1) var(--d) both; }
+@keyframes csxSpk { 0% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--r)) translateX(calc(10px * var(--z, 1))) scale(1); } 12% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--r)) translateX(calc(38px * var(--z, 1))) scale(.3); } }
+.csx-emblem.flash { animation: csxEmb 1s ease-out var(--d) both; }
+@keyframes csxEmb { 0% { opacity: .16; transform: translate(-50%, -50%) scale(1); } 25% { opacity: .55; transform: translate(-50%, -50%) scale(1.07); } 100% { opacity: .16; transform: translate(-50%, -50%) scale(1); } }
+.csx-map.full .csx-emblem.flash { animation-name: csxEmbFull; }
+@keyframes csxEmbFull { 0% { opacity: .16; transform: translate(-50%, -50%) scale(1); } 25% { opacity: .7; transform: translate(-50%, -50%) scale(1.07); } 100% { opacity: .4; transform: translate(-50%, -50%) scale(1); } }
+/* what it adds: what just went up lights up once */
+.csx-fx li { position: relative; }
+.csx-fx li.up::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--gold); opacity: 0; pointer-events: none; animation: csxUp 1.1s ease-out var(--d) both; }
+.csx-fx li.up[data-c="B"]::after { background: var(--buster); }
+.csx-fx li.up[data-c="A"]::after { background: var(--arts); }
+.csx-fx li.up[data-c="Q"]::after { background: var(--quick); }
+.csx-fx li.cs.up::after { background: var(--csx-cs); }
+@keyframes csxUp { 0% { opacity: 0; } 25% { opacity: .3; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .csx-anim, .csx-cover { display: none; } .csx-sq.pop, .csx-dot.pop, .csx-emblem.flash, .csx-fx li.up::after, .csx-tab.grow .csx-bar { animation: none; } }
+
+/* zoom: + and − in the corner; zoomed in, the frame keeps its height and the map scrolls (or drags) inside it */
+.csx-map-box { position: relative; }
+.csx-map-wrap.zoomed { cursor: grab; }
+.csx-map-wrap.drag { cursor: grabbing; user-select: none; }
+.csx-zoom { position: absolute; right: 10px; bottom: 10px; z-index: 2; display: flex; align-items: center; gap: 2px; padding: 3px;
+  border: 1px solid var(--line); border-radius: 11px; background: color-mix(in srgb, var(--panel) 92%, transparent); box-shadow: var(--shadow); }
+.csx-zoom button { all: unset; box-sizing: border-box; cursor: pointer; min-width: 36px; height: 36px; padding: 0 6px; display: grid; place-items: center; border-radius: 8px;
+  font-size: 19px; font-weight: 600; line-height: 1; color: var(--ink); }
+.csx-zoom button.csx-zl { min-width: 52px; font: 600 12px/1 var(--f-data); color: var(--muted); font-variant-numeric: tabular-nums; }
+.csx-zoom button:hover:not(:disabled) { background: var(--sunken); }
+.csx-zoom button:disabled { cursor: default; opacity: .4; }
+.csx-zoom button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+@media (pointer: coarse) { .csx-zoom button { min-width: 42px; height: 42px; } .csx-zoom button.csx-zl { min-width: 54px; } }
+.csx-map img { -webkit-user-drag: none; user-select: none; }
 </style>
 </head>
 <body>
@@ -12068,7 +12135,7 @@ renderAll = function () { renderAll13(); renderFillNote(); };
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until 0.50.0, beta from there until the full website and app: 1.0.0
-const APP_VER = "0.55.0-beta";
+const APP_VER = "0.56.0-beta";
 const APP_STAGE = /-beta\b/.test(APP_VER) ? "beta" : "alpha", APP_NUM = APP_VER.replace(/-.*$/, "");
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
@@ -12231,6 +12298,12 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.56.0-beta", d: "25 Nov 2026", t: "Class Score lights up, and zooms", i: [
+    "<b>Opening a sign lights the way to it.</b> A beam runs along each new line from what was open to the sign you opened, turning from the colour it starts at to the sign's own (Buster red, Arts blue, Quick green, Command Spells purple, the rest gold), with a spark at its head. The sign pops when it arrives, with rings and sparks in its colour.",
+    "<b>Open the way here</b> lights the squares one after another, and a start sign gets its light from the board's emblem. <b>Open every square</b> runs across the whole board in under three seconds. What a board adds lights up for what just went up, and the board's bar in the list fills along with it. A full board's emblem stays lit.",
+    "<b>Zoom</b>: + and − in the map's corner, a pinch on a phone or tablet, or Ctrl (⌘ on a Mac) with the mouse wheel or a trackpad pinch. Zoomed in, drag the map with the mouse or swipe it. The signs are drawn bigger, so they stay sharp.",
+    "Only movement and fading are animated, so it's light on the graphics card, and the frame-rate switch slows it like everything else. With reduced motion on in your system, signs open without it."
+  ]},
   {v: "0.55.0-beta", d: "25 Nov 2026", t: "Class Score", i: [
     "<b>Class Score</b>, a new page: the game's nine class boards (Saber to Berserker, Extra I and Extra II), drawn the way the game lays them out. The first step on the way to 1.0.",
     "Open the signs you've opened in the game. A sign opens once a square next to it is open, starting from the two start signs, as in the game; locks open with Torches. Pick a sign further on and <b>Open the way here</b> opens every square on the way. Closing a sign closes what was only reached through it, and Undo puts it back.",
@@ -26006,8 +26079,164 @@ function csCost(bid, ids) {
 const csItem = (id) => CSB.items[id] || ["Item " + id, ""];
 const csAmt = (id, n) => id === 1 ? (n >= 1e6 ? (Math.round(n / 1e5) / 10).toLocaleString("en-US") + "M" : n.toLocaleString("en-US")) : n.toLocaleString("en-US");
 
+/* ---------- 0.56.0: squares light up as they open ----------
+   Noyr (25 Nov 2026): "if I unlock something, the lines move to the other circle in colourful ways". Opening squares
+   sends a beam along each new line, from what was open to what's opening: it grows from the colour it starts at to the
+   colour of the sign it reaches (Buster red, Arts blue, Quick green, Command Spells pink, the rest gold), with a spark
+   at its head. The sign pops when the beam arrives, with rings and sparks in its colour. A way of several squares
+   lights up one after another, and a start sign gets its beam from the board's emblem. Only transform and opacity
+   move (the page's frame-rate switch steps them like every other animation); nothing runs with reduced motion. */
+const CS_COL = {B: "var(--buster)", A: "var(--arts)", Q: "var(--quick)"};
+const csColor = (q) => !q ? "var(--gold)" : q.k === "c" ? "var(--csx-cs)" : q.k === "p" ? (CS_COL[(CSB.sk[q.ref] || {}).c] || "var(--gold)") : "var(--gold)";
+const csStill = () => typeof RM !== "undefined" && RM.matches;
+// the order things light up in: each new square's steps from what was open (or from a start sign), and the lines between
+function csAnimOf(bid, before, after) {
+  if (csStill()) return null;
+  const g = CSB_G.get(bid), b = CSB_BY.get(bid); if (!g || !b) return null;
+  const oB = csOpen(bid, before), oA = csOpen(bid, after), fresh = [...oA].filter((id) => !oB.has(id));
+  if (!fresh.length) return null;
+  const F = new Set(fresh), dep = new Map(), par = new Map(), col = new Map();
+  oB.forEach((id) => { dep.set(id, 0); col.set(id, csColor(g.sq.get(id))); });
+  const walk = (seed) => {
+    for (let i = 0; i < seed.length; i++) (g.nb.get(seed[i]) || []).forEach((n) => {
+      if (!F.has(n) || dep.has(n)) return;
+      const q = g.sq.get(n); dep.set(n, dep.get(seed[i]) + 1); par.set(n, seed[i]);
+      col.set(n, csTakes(q) ? csColor(q) : col.get(seed[i]) || "var(--gold)"); seed.push(n);
+    });
+  };
+  walk([...oB]);
+  for (;;) {
+    const left = fresh.filter((id) => !dep.has(id)); if (!left.length) break;
+    let seed = left.filter((id) => g.sq.get(id).start); if (!seed.length) seed = [left[0]];
+    seed.forEach((id) => { dep.set(id, 1); par.set(id, 0); col.set(id, csColor(g.sq.get(id))); });
+    walk(seed);
+  }
+  const deep = Math.max(...fresh.map((id) => dep.get(id)));
+  // one square: a quarter of a second along its line; a long way speeds up so the whole board takes under 3 seconds
+  const step = Math.round(Math.min(300, Math.max(60, 2600 / deep))), dur = Math.round(step * 0.87);
+  const sq = new Map(fresh.map((id) => [id, (dep.get(id) - 1) * step + dur]));
+  const ln = new Map();
+  b.ln.forEach((l) => {
+    const [x, y] = l; if (!oA.has(x) || !oA.has(y) || (oB.has(x) && oB.has(y))) return;
+    const dx = dep.get(x), dy = dep.get(y), from = dy < dx ? y : x, to = from === x ? y : x, lo = Math.min(dx, dy);
+    ln.set(x + "-" + y, {from: from, to: to, d: dx === dy ? (lo - 1) * step + dur : lo * step});
+  });
+  const takes = fresh.filter((id) => csTakes(g.sq.get(id))).length;
+  return {bid: bid, t0: performance.now(), before: new Set(before), sq: sq, ln: ln, col: col, roots: fresh.filter((id) => par.get(id) === 0),
+    dur: dur, last: (deep - 1) * step + dur, end: (deep - 1) * step + dur + 1100, sparks: takes <= 12, rings: takes <= 24 ? 2 : 1};
+}
+// the animation for this board, if one is still running: delays count from when it started, so a redraw midway carries on
+function csAnimNow(bid) {
+  const A = CSU.anim; if (!A || A.bid !== bid) return null;
+  const e = performance.now() - A.t0; if (e >= A.end) { CSU.anim = null; return null; }
+  return {A: A, at: (d) => Math.round(d - e) + "ms"};
+}
+function csAnimStart(A) {
+  CSU.anim = A; if (!A) return;
+  setTimeout(() => {
+    if (CSU.anim !== A) return;
+    CSU.anim = null;
+    // what's left: the beams make way for the lines they drew, and the squares keep their open look
+    const box = document.getElementById("classscore"); if (!box) return;
+    box.querySelectorAll(".csx-anim, .csx-cover").forEach((x) => x.remove());
+    box.querySelectorAll(".csx-lines line.wait").forEach((x) => x.classList.remove("wait"));
+    box.querySelectorAll(".csx .pop, .csx .flash, .csx .up, .csx .grow").forEach((x) => x.classList.remove("pop", "flash", "up", "grow"));
+  }, A.end + 50);
+}
+function csAnimHTML(g, N, open) {
+  const A = N.A, W = g.x1 - g.x0, H = g.y1 - g.y0, out = [];
+  const pos = (x, y) => `left:${((x - g.x0) / W * 100).toFixed(3)}%;top:${((g.y1 - y) / H * 100).toFixed(3)}%`;
+  const beam = (a, c, d, c0, c1, trail) => {
+    const dx = c.x - a.x, dy = -(c.y - a.y);
+    return `<i class="csx-beam" style="${pos(a.x, a.y)};width:${(Math.hypot(dx, dy) / W * 100).toFixed(3)}%;--a:${(Math.atan2(dy, dx) * 180 / Math.PI).toFixed(2)}deg;--d:${N.at(d)};--dur:${A.dur}ms;--c0:${c0};--c1:${c1}">`
+      + `${trail ? `<i class="cb-t"></i>` : ""}<i class="cb-g"></i><i class="cb-c"></i><i class="cb-h"></i></i>`;
+  };
+  A.ln.forEach((l) => {
+    const a = g.sq.get(l.from), c = g.sq.get(l.to); if (!a || !c || !open.has(a.id) || !open.has(c.id)) return;
+    out.push(beam(a, c, l.d, A.col.get(a.id) || "var(--gold)", A.col.get(c.id) || "var(--gold)", true));
+  });
+  // a start sign's light comes out of the emblem in the middle
+  const mid = {x: (g.x0 + g.x1) / 2, y: (g.y0 + g.y1) / 2};
+  A.roots.forEach((id) => { const q = g.sq.get(id); if (q && open.has(id)) out.push(beam(mid, q, 0, "var(--gold)", A.col.get(id) || "var(--gold)", false)); });
+  A.sq.forEach((d, id) => {
+    const q = g.sq.get(id); if (!q || !csTakes(q) || !open.has(id)) return;
+    const at = pos(q.x, q.y), c = csColor(q);
+    out.push(`<i class="csx-ring" style="${at};--d:${N.at(d)};--c:${c}"></i>`);
+    if (A.rings > 1) out.push(`<i class="csx-ring r2" style="${at};--d:${N.at(d + 90)}"></i>`);
+    if (A.sparks) for (let k = 0; k < 6; k++) out.push(`<i class="csx-spk" style="${at};--d:${N.at(d + 20)};--c:${c};--r:${k * 60 + (id * 37) % 60}deg"></i>`);
+  });
+  return `<div class="csx-anim" aria-hidden="true">${out.join("")}</div>`;
+}
+
+/* ---------- 0.56.0: zoom ----------
+   + and − beside the map, pinching on a phone or tablet, or Ctrl (⌘) with the mouse wheel or a trackpad pinch. Zoomed
+   in, the map keeps its height and scrolls inside its frame: drag it with the mouse, or swipe. The map grows (it isn't
+   scaled as a picture), so the signs stay sharp. */
+const CSX_ZMAX = 3;
+function csZoomHTML() {
+  const z = CSU.z;
+  return `<div class="csx-zoom" role="group" aria-label="Zoom the map">
+    <button type="button" data-action="csx-zoom" data-z="out" aria-label="Zoom out"${z <= 1 ? " disabled" : ""}>−</button>
+    <button type="button" class="csx-zl" data-action="csx-zoom" data-z="fit" aria-label="Zoom: ${Math.round(z * 100)}%. Press for the whole board"${z <= 1 ? " disabled" : ""}>${Math.round(z * 100)}%</button>
+    <button type="button" data-action="csx-zoom" data-z="in" aria-label="Zoom in"${z >= CSX_ZMAX ? " disabled" : ""}>+</button></div>`;
+}
+// zoom to nz around a point in the frame (its middle if none is given), keeping that point where it is
+function csZoom(nz, cx, cy) {
+  const box = document.getElementById("classscore"), w = box && box.querySelector(".csx-map-wrap"), m = w && w.querySelector(".csx-map"); if (!m) return;
+  const z = CSU.z; nz = Math.min(CSX_ZMAX, Math.max(1, nz)); if (nz < 1.04) nz = 1;
+  if (Math.abs(nz - z) < 0.001) return;
+  const baseH = m.offsetHeight / z, sl = w.scrollLeft, st = w.scrollTop;
+  if (cx == null) { cx = w.clientWidth / 2; cy = w.clientHeight / 2; }
+  w.style.height = nz > 1 ? baseH + "px" : "";
+  m.style.setProperty("--z", String(nz)); CSU.z = nz;
+  w.classList.toggle("zoomed", nz > 1);
+  const f = nz / z; w.scrollLeft = (sl + cx) * f - cx; w.scrollTop = nz > 1 ? (st + cy) * f - cy : 0;
+  const zb = box.querySelector(".csx-zoom"); if (zb) { const had = zb.contains(document.activeElement) && document.activeElement.dataset.z; zb.outerHTML = csZoomHTML(); if (had) { const el = box.querySelector(`.csx-zoom [data-z="${had}"]`); if (el && !el.disabled) el.focus({preventScroll: true}); else { const o = box.querySelector(".csx-zoom button:not([disabled])"); if (o) o.focus({preventScroll: true}); } } }
+}
+// (wired up once the page's box exists, further down)
+function csWire() {
+  const box = document.getElementById("classscore"); if (!box) return;
+  const wrapAt = (t) => t && t.closest && t.closest(".csx-map-wrap");
+  // Ctrl/⌘ + wheel, and a trackpad pinch (which the browser sends as one); a plain wheel scrolls as usual
+  box.addEventListener("wheel", (e) => {
+    const w = wrapAt(e.target); if (!w || !(e.ctrlKey || e.metaKey)) return;
+    e.preventDefault();
+    const r = w.getBoundingClientRect(), dy = Math.max(-60, Math.min(60, e.deltaY));
+    csZoom(CSU.z * Math.exp(-dy * 0.006), e.clientX - r.left, e.clientY - r.top);
+  }, {passive: false});
+  // two fingers pinch; one swipes the frame
+  let pinch = null;
+  const two = (e) => { const a = e.touches[0], b = e.touches[1]; return {d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2}; };
+  box.addEventListener("touchstart", (e) => { const w = wrapAt(e.target); if (w && e.touches.length === 2) pinch = {d: two(e).d, z: CSU.z}; }, {passive: true});
+  box.addEventListener("touchmove", (e) => {
+    if (!pinch || e.touches.length !== 2) return;
+    const w = box.querySelector(".csx-map-wrap"); if (!w) return;
+    e.preventDefault();
+    const p = two(e), r = w.getBoundingClientRect();
+    csZoom(pinch.z * p.d / Math.max(1, pinch.d), p.x - r.left, p.y - r.top);
+  }, {passive: false});
+  box.addEventListener("touchend", (e) => { if (e.touches.length < 2) pinch = null; }, {passive: true});
+  // the mouse drags a zoomed map around (a click that moved is a drag, and doesn't pick a sign). The browser's own
+  // dragging of a sign's picture is stopped at the start, or it would take the mouse over after the first move; the
+  // moves are followed on the window, so leaving the frame mid-drag doesn't drop it, and each one moves the frame
+  // that's there now (a redraw midway replaces it)
+  box.addEventListener("pointerdown", (e) => {
+    const w = wrapAt(e.target); if (!w || e.pointerType !== "mouse" || e.button !== 0 || CSU.z <= 1) return;
+    e.preventDefault();
+    CSU.drag = {id: e.pointerId, x: e.clientX, y: e.clientY, moved: 0};
+  });
+  window.addEventListener("pointermove", (e) => {
+    const d = CSU.drag; if (!d || d.id !== e.pointerId) return;
+    const w = box.querySelector(".csx-map-wrap"); if (!w) return;
+    const dx = e.clientX - d.x, dy = e.clientY - d.y; d.x = e.clientX; d.y = e.clientY; d.moved += Math.abs(dx) + Math.abs(dy);
+    if (d.moved > 4) { w.classList.add("drag"); w.scrollLeft -= dx; w.scrollTop -= dy; }
+  });
+  const end = (e) => { const d = CSU.drag; if (!d || d.id !== e.pointerId) return; const w = box.querySelector(".csx-map-wrap"); if (w) w.classList.remove("drag"); CSU.dragged = d.moved > 4; CSU.drag = null; setTimeout(() => { CSU.dragged = false; }, 0); };
+  window.addEventListener("pointerup", end); window.addEventListener("pointercancel", end);
+}
+
 /* ---------- the page ---------- */
-const CSU = {sel: null, open: null};
+const CSU = {sel: null, open: null, z: 1, anim: null, drag: null, dragged: false};
 const csBoard = () => { const st = csState(), b = CSB_BY.get(num(st.sel)); return b || CSB.boards[0] || null; };
 const csPct = (v) => (Math.round(v * 100) / 100).toLocaleString("en-US") + "%";
 function csFxText(e) {
@@ -26017,28 +26246,34 @@ function csFxText(e) {
 function csPickHTML(cur) {
   return `<div class="csx-pick" role="tablist" aria-label="Class boards">${CSB.boards.map((b) => {
     const set = csSet(b.id), g = CSB_G.get(b.id), n = [...set].filter((id) => g.sq.get(id).k !== "l").length, on = cur && cur.id === b.id;
-    const logo = CLASS_LOGO[b.cls[0]];
-    return `<button type="button" role="tab" class="csx-tab${on ? " on" : ""}${n >= g.signs ? " full" : ""}" aria-selected="${on}" data-action="csx-board" data-b="${b.id}" style="--p:${(n / g.signs).toFixed(3)}">
+    const logo = CLASS_LOGO[b.cls[0]], N = csAnimNow(b.id), n0 = N ? [...N.A.before].filter((id) => g.sq.get(id).k !== "l").length : n;
+    const grow = N && n0 !== n ? ` grow" style="--p:${(n / g.signs).toFixed(3)};--p0:${(n0 / g.signs).toFixed(3)};--d:${N.at(0)};--dur:${N.A.last}ms` : `" style="--p:${(n / g.signs).toFixed(3)}`;
+    return `<button type="button" role="tab" class="csx-tab${on ? " on" : ""}${n >= g.signs ? " full" : ""}${grow}" aria-selected="${on}" data-action="csx-board" data-b="${b.id}">
       ${logo ? `<img src="${logo}" alt="">` : ""}<span class="csx-tn">${esc(b.n)}</span><span class="csx-tc">${n}/${g.signs}</span><i class="csx-bar" aria-hidden="true"></i></button>`;
   }).join("")}</div>`;
 }
 function csMapHTML(b, set) {
-  const g = CSB_G.get(b.id), open = csOpen(b.id, set), W = g.x1 - g.x0, H = g.y1 - g.y0;
+  const g = CSB_G.get(b.id), open = csOpen(b.id, set), W = g.x1 - g.x0, H = g.y1 - g.y0, N = csAnimNow(b.id), A = N && N.A;
   const px = (x) => ((x - g.x0) / W * 100).toFixed(3) + "%", py = (y) => ((g.y1 - y) / H * 100).toFixed(3) + "%";
+  // (while a line's beam is on its way, the line keeps its closed look: the beam draws it)
   const lines = b.ln.map((l) => {
     const a = g.sq.get(l[0]), c = g.sq.get(l[1]); if (!a || !c) return "";
-    return `<line x1="${a.x - g.x0}" y1="${g.y1 - a.y}" x2="${c.x - g.x0}" y2="${g.y1 - c.y}"${open.has(a.id) && open.has(c.id) ? ` class="on"` : ""}/>`;
+    const on = open.has(a.id) && open.has(c.id), wait = on && A && A.ln.has(l[0] + "-" + l[1]);
+    return `<line x1="${a.x - g.x0}" y1="${g.y1 - a.y}" x2="${c.x - g.x0}" y2="${g.y1 - c.y}"${on ? ` class="on${wait ? " wait" : ""}"` : ""}/>`;
   }).join("");
+  const popAt = (q) => A && open.has(q.id) && A.sq.has(q.id) ? ` pop" style="--d:${N.at(A.sq.get(q.id))};` : `" style="`;
   const sqs = [...g.sq.values()].map((q) => {
-    if (q.k === "b") return `<i class="csx-dot${open.has(q.id) ? " on" : ""}" style="left:${px(q.x)};top:${py(q.y)}" aria-hidden="true"></i>`;
+    if (q.k === "b") return `<i class="csx-dot${open.has(q.id) ? " on" : ""}${popAt(q)}left:${px(q.x)};top:${py(q.y)}" aria-hidden="true"></i>`;
     const on = set.has(q.id), can = !on && csCan(b.id, q.id, set), sk = q.k === "p" ? CSB.sk[q.ref] : null, sp = q.k === "c" ? CSB.cs[q.ref] : null;
     const label = q.k === "l" ? "Lock" : sk ? csName(sk) : sp ? sp.n : "Sign";
-    return `<button type="button" class="csx-sq k-${q.k}${on ? " on" : can ? " can" : ""}${CSU.sel === q.id ? " sel" : ""}${q.start ? " start" : ""}" data-action="csx-sq" data-sq="${q.id}"${sk && sk.c ? ` data-c="${sk.c}"` : ""}
-      style="left:${px(q.x)};top:${py(q.y)}" aria-label="${esc(label)}${on ? ", open" : can ? ", can open" : ", closed"}">${q.k === "l" ? CSX_LOCK : q.ic ? `<img src="${esc(aimg(q.ic))}" alt="" loading="lazy" decoding="async">` : ""}</button>`;
+    return `<button type="button" class="csx-sq k-${q.k}${on ? " on" : can ? " can" : ""}${CSU.sel === q.id ? " sel" : ""}${q.start ? " start" : ""}${popAt(q)}left:${px(q.x)};top:${py(q.y)}" data-action="csx-sq" data-sq="${q.id}"${sk && sk.c ? ` data-c="${sk.c}"` : ""}
+      aria-label="${esc(label)}${on ? ", open" : can ? ", can open" : ", closed"}">${A && on && A.sq.has(q.id) ? `<i class="csx-cover" aria-hidden="true"></i>` : ""}${q.k === "l" ? CSX_LOCK : q.ic ? `<img src="${esc(aimg(q.ic))}" alt="" loading="lazy" decoding="async" draggable="false">` : ""}</button>`;
   }).join("");
-  return `<div class="csx-map-wrap"><div class="csx-map" style="aspect-ratio:${W} / ${H}">
+  const full = set.size >= g.signs + g.locks, z = CSU.z;
+  return `<div class="csx-map-box"><div class="csx-map-wrap${z > 1 ? " zoomed" : ""}"><div class="csx-map${full ? " full" : ""}" style="aspect-ratio:${W} / ${H};--z:${z};--u:${(100 / W).toFixed(5)}cqw">
     <svg class="csx-lines" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>
-    ${b.ic ? `<img class="csx-emblem" src="${esc(aimg(b.ic))}" alt="" decoding="async">` : ""}${sqs}</div></div>`;
+    ${A ? csAnimHTML(g, N, open) : ""}
+    ${b.ic ? `<img class="csx-emblem${A && A.roots.length ? ` flash" style="--d:${N.at(0)}` : ""}" src="${esc(aimg(b.ic))}" alt="" decoding="async" draggable="false">` : ""}${sqs}</div></div>${csZoomHTML()}</div>`;
 }
 const CSX_LOCK = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>`;
 function csCostHTML(list) {
@@ -26069,7 +26304,14 @@ function csBoardHTML(b) {
   const set = csSet(b.id), g = CSB_G.get(b.id), E = csEffects(b.id, set);
   const signs = [...set].filter((id) => g.sq.get(id).k !== "l").length, locks = [...set].filter((id) => g.sq.get(id).k === "l").length;
   const left = [...g.sq.values()].filter((q) => csTakes(q) && !set.has(q.id)).map((q) => q.id);
-  const fx = E.fx.filter((e) => e.lv), all = E.fx;
+  const fx = E.fx.filter((e) => e.lv), all = E.fx, N = csAnimNow(b.id);
+  // (0.56.0: what went up with the squares just opened lights up once they're open)
+  let upFx = () => "", upCs = "";
+  if (N) {
+    const E0 = csEffects(b.id, N.A.before), was = new Map(E0.fx.map((e) => [e.b + "|" + e.c, e.lv])), at = N.at(N.A.last);
+    upFx = (e) => e.lv > (was.get(e.b + "|" + e.c) || 0) ? ` class="up" style="--d:${at}"` : "";
+    if (E.cs > E0.cs) upCs = ` up" style="--d:${at}`;
+  }
   return `<section class="csx-board" aria-labelledby="csx-h">
     <header class="csx-bh"><h3 id="csx-h">${esc(b.n)} <small>for ${esc(b.cls.join(", ").replace(/, ([^,]*)$/, " and $1"))}</small></h3>
       <p class="csx-count"><b>${signs}</b> of ${g.signs} signs · <b>${locks}</b> of ${g.locks} locks</p></header>
@@ -26078,7 +26320,7 @@ function csBoardHTML(b) {
       <div class="csx-side">
         <div class="csx-sel" aria-live="polite">${csSqHTML(b, set)}</div>
         <section class="csx-sum"><h4>What it adds</h4>
-          ${fx.length || E.cs ? `<ul class="csx-fx">${fx.map((e) => `<li data-c="${e.c}"><span>${esc(csFxText(e))}</span><small>${e.lv}/${e.max}</small></li>`).join("")}${E.cs && E.spell ? `<li class="cs"><span>Command Spell: ATK and DEF +${csPct(E.spell.atk[E.cs - 1] || 0)} for a turn</span><small>${E.cs}/${E.csMax}</small></li>` : ""}</ul>`
+          ${fx.length || E.cs ? `<ul class="csx-fx">${fx.map((e) => `<li data-c="${e.c}"${upFx(e)}><span>${esc(csFxText(e))}</span><small>${e.lv}/${e.max}</small></li>`).join("")}${E.cs && E.spell ? `<li class="cs${upCs}"><span>Command Spell: ATK and DEF +${csPct(E.spell.atk[E.cs - 1] || 0)} for a turn</span><small>${E.cs}/${E.csMax}</small></li>` : ""}</ul>`
             : `<p class="csx-none">Nothing yet. With every sign open: ${esc(all.map((e) => (e.c && !e.n.startsWith(CS_CARD[e.c]) ? CS_CARD[e.c] + " " : "") + e.n + " +" + csPct(e.top)).join(", "))}, and Command Spells giving ATK and DEF +50%.</p>`}
         </section>
         <details class="csx-costs"><summary>Materials: what it cost, and what's left</summary>
@@ -26101,24 +26343,29 @@ function csPageHTML() {
 function csRender() {
   const box = document.getElementById("classscore"); if (!box) return;
   const a = document.activeElement, keep = a && a.closest && a.closest("#classscore") ? (a.dataset.sq ? "[data-sq=\"" + a.dataset.sq + "\"]" : a.dataset.action ? "[data-action=\"" + a.dataset.action + "\"]" + (a.dataset.b ? "[data-b=\"" + a.dataset.b + "\"]" : "") : null) : null;
-  const wrap = box.querySelector(".csx-map-wrap"), sx = wrap ? wrap.scrollLeft : 0;
+  const wrap = box.querySelector(".csx-map-wrap"), sx = wrap ? wrap.scrollLeft : 0, sy = wrap ? wrap.scrollTop : 0;
   box.innerHTML = csPageHTML();
-  const w2 = box.querySelector(".csx-map-wrap"); if (w2 && sx) w2.scrollLeft = sx;
+  const w2 = box.querySelector(".csx-map-wrap");
+  if (w2 && CSU.z > 1) { const m = w2.querySelector(".csx-map"); if (m) w2.style.height = m.offsetHeight / CSU.z + "px"; }
+  if (w2 && sx) w2.scrollLeft = sx;
+  if (w2 && sy) w2.scrollTop = sy;
   if (keep) { const el = box.querySelector(keep); if (el) el.focus({preventScroll: true}); }
 }
 // changes come with Undo
 function csChange(bid, set, words) {
   const was = csSet(bid);
+  csAnimStart([...set].some((id) => !was.has(id)) ? csAnimOf(bid, was, set) : null);
   csPut(bid, set); csRender();
-  if (words && typeof toastAction === "function") toastAction(words, "Undo", () => { csPut(bid, was); csRender(); });
+  if (words && typeof toastAction === "function") toastAction(words, "Undo", () => { CSU.anim = null; csPut(bid, was); csRender(); });
   else if (words) toast(words);
 }
 document.addEventListener("click", (e) => {
   const t = e.target.closest && e.target.closest("#classscore [data-action]"); if (!t) return;
   const b = csBoard(); if (!b) return;
   const act = t.dataset.action, id = num(t.dataset.sq), set = csSet(b.id);
-  if (act === "csx-board") { csState().sel = num(t.dataset.b); CSU.sel = null; csSave(); csRender(); return; }
-  if (act === "csx-sq") { CSU.sel = CSU.sel === id ? null : id; csRender(); return; }
+  if (act === "csx-zoom") { const k = t.dataset.z; csZoom(k === "in" ? CSU.z * 1.5 : k === "out" ? CSU.z / 1.5 : 1); return; }
+  if (act === "csx-board") { csState().sel = num(t.dataset.b); CSU.sel = null; CSU.z = 1; CSU.anim = null; csSave(); csRender(); return; }
+  if (act === "csx-sq") { if (CSU.dragged) return; CSU.sel = CSU.sel === id ? null : id; csRender(); return; }
   if (act === "csx-open") { if (!csCan(b.id, id, set)) return; set.add(id); csChange(b.id, set, null); return; }
   if (act === "csx-path") { const p = csPath(b.id, id, set); if (!p.length) return; p.forEach((x) => set.add(x)); csChange(b.id, set, "Opened " + plural(p.length, "square") + " on the way."); return; }
   if (act === "csx-close") { set.delete(id); const n = csPrune(b.id, set); csChange(b.id, n, set.size + 1 - n.size > 1 ? "Closed " + plural(set.size + 1 - n.size, "square") + "." : null); return; }
@@ -26144,6 +26391,7 @@ UI_IC.classscore = '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="7" r="1
   const after = document.getElementById("view-codes") || document.getElementById("view-battle"); if (after) after.after(sec); else document.querySelector(".shell").appendChild(sec);
   if ((location.hash || "").slice(1) === "classscore") S.tab = "classscore";
 })();
+csWire();
 if (typeof FOOT_TABS !== "undefined") {
   const i = FOOT_TABS.findIndex((x) => x[0] === "past"); FOOT_TABS.splice(i >= 0 ? i : FOOT_TABS.length, 0, ["classscore", "Class Score"]);
   try { if (typeof foot !== "undefined" && foot) { foot.innerHTML = footHTML(); renderFoot(); } } catch (e) {}

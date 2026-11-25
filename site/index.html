@@ -25970,7 +25970,7 @@ function csLevels(bid, set) {
 const csVal = (sk, lv) => lv > 0 ? (sk.v[Math.min(lv, sk.v.length) - 1] || 0) : 0;
 const CS_CARD = {B: "Buster", A: "Arts", Q: "Quick", E: "Extra"};
 // "Buster Card Strength Up" → "Buster card strength"
-const csName = (sk) => String(sk.n || "").replace(/\s+Up$/i, "").replace(/\bCards?\b/g, "card").replace(/\bStrength\b/, "strength").replace(/\bCritical\b/, "critical")
+const csName = (sk) => String(sk.n || "").replace(/\s+Up$/i, "").replace(/\bCards?\b/g, "card").replace(/\bStrength\b/, "strength").replace(/(\w) Critical\b/, "$1 critical")
   .replace(/^Increase /, "").replace(/\bEffectiveness\b/, "effectiveness").replace(/^C\. Star Drop Rate$/, "Star drop rate").replace(/^NP strength$/i, "NP strength");
 // the effects, grouped: [{n, v, lv, max, c}]
 function csEffects(bid, set) {

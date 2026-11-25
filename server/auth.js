@@ -41,15 +41,20 @@ function newRecovery() { const b = randomBytes(16); let s = ""; for (let i = 0; 
 const rcNorm = (c) => String(c || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
 const rcHash = async (env, c) => b64url(await hmac(pepper(env), "rc|" + rcNorm(c)));
 
-// guessing passwords, codes or making many accounts gets slowed down: at most `limit` tries per window
-export async function throttle(env, key, limit, windowMs) {
+// guessing passwords, codes or making many accounts gets slowed down: at most `limit` tries per window.
+// 0.54.1: `cost` counts one request as several (sync counts the entries it sends), and `words(minutes)` says it in the
+// words of what was being done in place of "Too many tries".
+export async function throttle(env, key, limit, windowMs, cost = 1, words = null) {
   const t = now();
   // now and then, old counters and ended sessions are cleared away
   if (Math.random() < 0.03) await env.DB.batch([env.DB.prepare("DELETE FROM throttle WHERE until < ?").bind(t), env.DB.prepare("DELETE FROM sessions WHERE expires < ?").bind(t)]);
   const row = await env.DB.prepare("SELECT n, until FROM throttle WHERE k = ?").bind(key).first();
-  if (row && row.until > t && row.n >= limit) fail(429, "slow_down", "Too many tries. Wait " + Math.ceil((row.until - t) / 60000) + " minutes and try again.", {retry: Math.ceil((row.until - t) / 1000)});
-  if (!row || row.until <= t) await env.DB.prepare("INSERT OR REPLACE INTO throttle (k, n, until) VALUES (?, 1, ?)").bind(key, t + windowMs).run();
-  else await env.DB.prepare("UPDATE throttle SET n = n + 1 WHERE k = ?").bind(key).run();
+  if (row && row.until > t && row.n + cost > limit) {
+    const m = Math.ceil((row.until - t) / 60000);
+    fail(429, "slow_down", words ? words(m) : "Too many tries. Wait " + m + " minutes and try again.", {retry: Math.ceil((row.until - t) / 1000)});
+  }
+  if (!row || row.until <= t) await env.DB.prepare("INSERT OR REPLACE INTO throttle (k, n, until) VALUES (?, ?, ?)").bind(key, cost, t + windowMs).run();
+  else await env.DB.prepare("UPDATE throttle SET n = n + ? WHERE k = ?").bind(cost, key).run();
 }
 const unthrottle = (env, key) => env.DB.prepare("DELETE FROM throttle WHERE k = ?").bind(key).run();
 
@@ -97,18 +102,21 @@ const endCookie = (ctx) => setCookie(COOKIE, "", {maxAge: 0, secure: secure(ctx)
 export function providers(env) {
   return {discord: !!(env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET), google: !!(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET), password: !!(env.PEPPER && String(env.PEPPER).length >= 16), pics: env.PICS ? "r2" : "d1"};
 }
-// 0.51.0: the site's owner (the OWNER variable in Cloudflare: their friend code, email or account id; several can be
-// separated by spaces or semicolons) sees the servants NA doesn't have yet. Everyone else gets their page with a countdown.
+// 0.51.0: the site's owner (the OWNER variable in Cloudflare: their friend code or account id; several can be separated
+// by spaces or semicolons) sees the servants NA doesn't have yet (upcoming.js). Everyone else gets their page with a
+// countdown. 0.54.1 (the daily security check, 24 Nov): an email no longer counts. Nobody checks that an email address
+// belongs to whoever types it, so if OWNER named an email no account had (or the owner moved to another), anyone could
+// sign up with it and be the owner. A friend code or an account id belongs to one account for good.
 export function isOwner(env, u) {
   const list = String(env.OWNER || "").split(/[\s;]+/).map((t) => t.trim().toLowerCase()).filter(Boolean);
   if (!u || !list.length) return false;
-  return list.some((t) => (/^[\d,.]+$/.test(t) && u.code && t.replace(/\D/g, "") === String(u.code).replace(/\D/g, "")) || t === String(u.id).toLowerCase() || (u.email && t === String(u.email).toLowerCase()));
+  return list.some((t) => (/^[\d,.]+$/.test(t) && u.code && t.replace(/\D/g, "") === String(u.code).replace(/\D/g, "")) || t === String(u.id).toLowerCase());
 }
 export async function me(ctx, u) {
   const idents = (await ctx.env.DB.prepare("SELECT provider, label FROM idents WHERE user_id = ?").bind(u.id).all()).results || [];
   let supports = []; try { supports = JSON.parse(u.supports || "[]"); } catch (e) {}
   return {id: u.id, name: u.name, email: u.email || null, code: u.code, vis: u.vis, share: u.vis === "link" ? u.share : null, feed: !!u.feed,
-    supports: supports, idents: idents, hasPassword: !!u.pw, bytes: u.bytes || 0, created: u.created, rev: u.rev, owner: isOwner(ctx.env, u)};
+    supports: supports, idents: idents, hasPassword: !!u.pw, bytes: u.bytes || 0, docBytes: u.docs_bytes || 0, created: u.created, rev: u.rev, owner: isOwner(ctx.env, u)};
 }
 
 /* ---------- email and password ---------- */

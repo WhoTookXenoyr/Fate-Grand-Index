@@ -600,7 +600,17 @@ for x in S:
             assert b + (m - b) * k[i] // 1000 == v, (x["name"], i)
 js = "const ATLAS_CURVES = %s;\n" % json.dumps({str(k): v for k, v in CURVES.items()}, separators=(",", ":"))
 js += "const ATLAS_IMG = %s;\nconst ATLAS_S = %s;\nconst ATLAS_C = %s;\nconst ATLAS_ICONS = %s;\n" % (json.dumps(BASE), json.dumps(out, ensure_ascii=False, separators=(",", ":")), json.dumps(ces, ensure_ascii=False, separators=(",", ":")), json.dumps(icons, ensure_ascii=False, separators=(",", ":")))
-js += "const ATLAS_UP = %s;\n" % json.dumps(sorted(ups, key=lambda r: r["no"]), ensure_ascii=False, separators=(",", ":"))
+# 0.54.1 (Noyr: "Make it really owner-only"): the page gets only what a locked card shows (name, class, stars, picture,
+# when); their kits go to the server (server/upcoming_data.js), which gives them to the site's owner alone (GET
+# /api/upcoming), and to everyone once upcoming.json's "at" has passed
+UP_CARD = ("no", "id", "n", "c", "r", "f", "up")
+ups = sorted(ups, key=lambda r: r["no"])
+up_cards = [dict({k: r[k] for k in UP_CARD if k in r}, im=(r.get("im") or [])[:1]) for r in ups]
+js += "const ATLAS_UP = %s;\n" % json.dumps(up_cards, ensure_ascii=False, separators=(",", ":"))
+with open(os.path.join(ROOT, "server", "upcoming_data.js"), "w", encoding="utf-8") as fh:
+    fh.write("// Made by tools/gen_atlas.py from data/atlas/upcoming.json and JP's data: the servants JP has and NA doesn't yet,\n"
+             "// in full. Only the server has them (server/upcoming.js); the page has just their cards. Don't edit by hand.\n"
+             "export const ATLAS_IMG = %s;\nexport const UPCOMING = %s;\n" % (json.dumps(BASE), json.dumps(ups, ensure_ascii=False, separators=(",", ":"))))
 js += "const ATLAS_MATS = %s;\n" % json.dumps(MAT_LIST, ensure_ascii=False, separators=(",", ":"))
 js += "const ATLAS_APPENDS = %s;\n" % json.dumps(APPENDS, ensure_ascii=False, separators=(",", ":"))
 js += "const ATLAS_EXP = %s;\n" % json.dumps(EXPS, separators=(",", ":"))

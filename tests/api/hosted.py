@@ -2,6 +2,8 @@
 bucket in a temporary folder) and the Discord/Google stand-in. Used by test_api.py and test_hosted_ui.py.
 
     with hosted.server(seeded=True) as (base, mock_port): ...
+    with hosted.server(bindings={"OWNER": code}, state=folder) as ...   (0.54.1: Cloudflare variables, and a database
+                                                                       kept in `folder` from one start to the next)
 """
 import contextlib, os, shutil, socket, subprocess, sys, tempfile, time, urllib.error, urllib.request
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(os.path.dirname(HERE))
@@ -12,12 +14,13 @@ def free_port():
     s = socket.socket(); s.bind(("127.0.0.1", 0)); p = s.getsockname()[1]; s.close(); return p
 
 @contextlib.contextmanager
-def server(seeded=True, d1_pics=False):
+def server(seeded=True, d1_pics=False, bindings=None, state=None):
     mport, port = free_port(), free_port()
     mock = oauth_mock.start(mport)
-    state = tempfile.mkdtemp(prefix="fgi-hosted-")
+    keep = state is not None
+    state = state or tempfile.mkdtemp(prefix="fgi-hosted-")
     env = dict(os.environ, WRANGLER_SEND_METRICS="false", NO_PROXY="127.0.0.1,localhost", no_proxy="127.0.0.1,localhost")
-    cmd = serve.command(port=port, seeded=seeded, d1_pics=d1_pics, mock_oauth="http://127.0.0.1:%d" % mport, state=state)
+    cmd = serve.command(port=port, seeded=seeded, d1_pics=d1_pics, mock_oauth="http://127.0.0.1:%d" % mport, state=state, bindings=bindings)
     log = open(os.path.join(state, "wrangler.log"), "w")
     proc = subprocess.Popen(cmd, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT)
     base = "http://127.0.0.1:%d" % port
@@ -36,5 +39,5 @@ def server(seeded=True, d1_pics=False):
         except Exception: proc.kill()
         mock.shutdown()
         server.log = open(os.path.join(state, "wrangler.log")).read()
-        shutil.rmtree(state, ignore_errors=True)
+        if not keep: shutil.rmtree(state, ignore_errors=True)
 server.log = ""

@@ -4,7 +4,7 @@
    with the link's token). Supports (up to 10 servants you lend, like the game's support list) are always shown to
    friends, as is their picture; activity only when feed is on. */
 import {fail, json, now, body, clean, cleanName, okName, nameKey, randomToken} from "./util.js";
-import {needUser, sessionUser, me} from "./auth.js";
+import {needUser, sessionUser, me, throttle} from "./auth.js";
 
 const pair = (x, y) => (x < y ? [x, y] : [y, x]);
 async function friendState(env, me, other) {
@@ -80,19 +80,28 @@ export async function list(ctx) {
   return json(out);
 }
 // ask by friend code (123456789, spaces and commas allowed) or by name; asking someone who asked you accepts
+// 0.54.1 (the daily security check, 23 Nov): 30 an hour per account, so friend codes and names can't be tried one after
+// another, and nobody can be asked again and again (cancel, ask, cancel…).
+export const FRIEND_ASKS = 30, FRIENDS_MAX = 150;
 export async function request(ctx) {
   const env = ctx.env, u = await needUser(ctx), b = await body(ctx.request, 2000), q = clean(b.to, 40);
+  await throttle(env, "friend:" + u.id, FRIEND_ASKS, 3600000, 1, (m) => "That's a lot of friend requests for one hour. Try again in " + m + " minutes.");
   const digits = q.replace(/[\s,.-]/g, "");
   const o = /^\d{9}$/.test(digits) ? await env.DB.prepare("SELECT * FROM users WHERE code = ?").bind(digits).first()
     : q ? await env.DB.prepare("SELECT * FROM users WHERE name_key = ?").bind(nameKey(cleanName(q))).first() : null;
   if (!o) fail(404, "no_one", "No one has that friend code or name.");
   if (o.id === u.id) fail(400, "self", "That's you.");
-  const n = (await env.DB.prepare("SELECT COUNT(*) AS n FROM friends WHERE a = ?1 OR b = ?1").bind(u.id).first()).n;
-  if (n >= 150) fail(400, "too_many", "That's a lot of friends: remove a few first.");
+  // your friends and the requests you sent count; requests waiting for you don't (others could pile those up to stop you)
+  const n = (await env.DB.prepare("SELECT COUNT(*) AS n FROM friends WHERE (a = ?1 OR b = ?1) AND (state = 'accepted' OR by = ?1)").bind(u.id).first()).n;
+  if (n >= FRIENDS_MAX) fail(400, "too_many", "That's a lot of friends: remove a few first.");
   const [a, bb] = pair(u.id, o.id), f = await friendState(env, u.id, o.id);
   if (f && f.state === "accepted") return json({state: "friends", friend: pub(o)});
   if (f && f.by !== u.id) { await env.DB.prepare("UPDATE friends SET state = 'accepted', created = ? WHERE a = ? AND b = ?").bind(now(), a, bb).run(); return json({state: "friends", friend: pub(o)}); }
-  if (!f) await env.DB.prepare("INSERT INTO friends (a, b, state, by, created) VALUES (?, ?, 'pending', ?, ?)").bind(a, bb, u.id, now()).run();
+  if (!f) {
+    const w = (await env.DB.prepare("SELECT COUNT(*) AS n FROM friends WHERE (a = ?1 OR b = ?1) AND state = 'pending' AND by <> ?1").bind(o.id).first()).n;
+    if (w >= FRIENDS_MAX) fail(400, "their_list_full", "They have a lot of friend requests waiting. Ask them to add you instead.");
+    await env.DB.prepare("INSERT INTO friends (a, b, state, by, created) VALUES (?, ?, 'pending', ?, ?)").bind(a, bb, u.id, now()).run();
+  }
   return json({state: "asked", friend: pub(o)});
 }
 export async function accept(ctx, other) {

@@ -5,6 +5,9 @@ import os
 # they join NA's list. A servant without a date says when it's expected; the wiki's date takes over once NA announces
 # the event. Once NA's own data has a servant (tools/fetch_na.py, the NA data job) it's an ordinary NA servant.
 # The owner's side is in tests/api/test_hosted_owner.py.
+# 0.54.1: the page has only their cards; their kits come from the server (GET /api/upcoming). At the release time this
+# file (which has no server) keeps them locked and says they're on NA; once the kits arrive (__fgiUpcoming.got, as the
+# server answers once upcoming.json's "at" has passed) they open.
 import sys, json
 from playwright.sync_api import sync_playwright
 sp = sys.argv[1]; URL = os.environ.get("FGI_URL") or "file://" + sp
@@ -14,6 +17,8 @@ import re
 _S = json.loads(re.search(r"^const ATLAS_S = (.*?);?$", open(f"{sp}/atlas_data.js", encoding="utf-8").read(), re.M).group(1))
 TUT_SKILL = re.sub(r"\s+[A-E](?:\+*|-)?$|\s+EX$", "", next(x for x in _S if x["no"] == 427)["sk"][0]["n"])
 SEEDED = f"{URL}/_seeded.html"
+_UP = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "server", "upcoming_data.js"), encoding="utf-8").read()
+KITS = [x for x in json.loads(re.search(r"^export const UPCOMING = (.*?);?$", _UP, re.M).group(1)) if x["no"] in (429, 430)]
 errs, fails = [], []
 def check(label, ok):
     print(("PASS " if ok else "FAIL ") + label)
@@ -82,7 +87,17 @@ with sync_playwright() as p:
     pg.click('.up-card[data-no="430"]'); pg.wait_for_timeout(400)
     pg.evaluate(f"window.__fgiUpcoming.setNow({XMAS} + 1000)"); pg.wait_for_timeout(1500)
     u = up(pg)
-    check("at NA's release time Louhi and Abigail Williams (Santa) open", u[429]["open"] and u[430]["open"] and not u[431]["open"])
+    check("at NA's release time, without their kits (this file has no server), they stay locked", not any(x["open"] for x in u.values()) and pg.evaluate("window.__fgiUpcoming.full()") == [])
+    t = d.inner_text()
+    check(f"and Abigail Williams (Santa)'s page says she's on NA now and opens with the site's NA data ({t[:120]!r})", "is on NA now" in t and "every three days" in t and d.locator(".pcd-stats").count() == 0)
+    churn = pg.evaluate("""() => new Promise((res) => { let n = 0; const o = new MutationObserver((m) => { n += m.length; });
+      o.observe(document.querySelector('#pc-dlg'), {childList: true, subtree: true}); o.observe(document.querySelector('#pc-results'), {childList: true, subtree: true});
+      setTimeout(() => { o.disconnect(); res(n); }, 3200); })""")
+    check(f"and nothing is redrawn every second while they wait ({churn} changes in 3 s)", churn <= 2)
+    # the kits, as /api/upcoming gives them to everyone once upcoming.json's "at" has passed
+    pg.evaluate("(j) => window.__fgiUpcoming.got(j)", {"owner": False, "servants": KITS}); pg.wait_for_timeout(800)
+    u = up(pg)
+    check("with their kits, Louhi and Abigail Williams (Santa) open", u[429]["open"] and u[430]["open"] and not u[431]["open"])
     check("and it says so", "on NA now" in pg.locator("#toast").inner_text())
     check("the open window turns into Abigail Williams (Santa)'s full page", d.locator(".pcd-stats").count() == 1 and d.locator(".skills .skill, .pcd-skills > *").count() >= 3 and d.locator("[data-action='pc-summon']").count() == 1)
     check("which says the text is JP's for now", "JP's data" in d.locator(".up-note").inner_text() and d.locator('a[href*="/db/JP/servant/430"]').count() == 1)

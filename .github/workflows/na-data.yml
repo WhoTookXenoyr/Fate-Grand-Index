@@ -74,7 +74,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           # on main, a pull request only when the page's data changed; on another branch, the downloaded files too
-          if git diff --quiet -- src/data/atlas_data.js; then
+          if git diff --quiet -- src/data/atlas_data.js server/upcoming_data.js; then
             if [ "$GITHUB_REF_NAME" = "main" ] || [ -z "$(git status --porcelain -- data/atlas)" ]; then
               echo "The page's data came out the same: nothing to commit." | tee -a "$GITHUB_STEP_SUMMARY"
               exit 0
@@ -91,7 +91,7 @@ jobs:
           { echo "NA data: $(date -u +'%d %b %Y') (tools/fetch_na.py)"; echo; cat na_summary.md; } > /tmp/na_msg.txt
           { cat na_summary.md; echo; echo "Data only, made by the NA data job (.github/workflows/na-data.yml) from Atlas Academy's NA export. It's rebuilt on top of main whenever NA's data changes again, until it's merged. The version isn't changed: that's yours to decide when you release."; echo; echo "**To merge it:** GitHub holds the tests on a pull request from the bot until someone with write access approves them. Click **Awaiting approval** (top right), then **Approve workflows to run**. It merges itself once the tests pass. Each time the job updates it, it needs that click again. (The job also starts a test run by itself, under Actions → Build and test, for a quick result; GitHub doesn't count that one for the merge.)"; } > /tmp/na_body.md
           cat na_summary.md >> "$GITHUB_STEP_SUMMARY"
-          tools/bot_commit.sh na-data "NA data: $(date -u +'%d %b %Y')" /tmp/na_msg.txt /tmp/na_body.md data/atlas src/data/atlas_data.js dist site
+          tools/bot_commit.sh na-data "NA data: $(date -u +'%d %b %Y')" /tmp/na_msg.txt /tmp/na_body.md data/atlas src/data/atlas_data.js server/upcoming_data.js dist site
 
       # 22 Nov 2026: a heartbeat that can be read without GitHub's API (git ls-remote / git fetch origin bot-status), for
       # the daily security check, which can't see the Actions tab: the branch bot-status holds a single commit with

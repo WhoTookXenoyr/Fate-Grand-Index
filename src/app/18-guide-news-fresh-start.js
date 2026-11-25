@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until 0.50.0, beta from there until the full website and app: 1.0.0
-const APP_VER = "0.54.0-beta";
+const APP_VER = "0.54.1-beta";
 const APP_STAGE = /-beta\b/.test(APP_VER) ? "beta" : "alpha", APP_NUM = APP_VER.replace(/-.*$/, "");
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
@@ -164,6 +164,12 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.54.1-beta", d: "25 Nov 2026", t: "Security fixes: Coming to NA, sync and friend requests", i: [
+    "<b>Coming to NA is only the owner's now, for real.</b> Until now the JP servants' skills, Noble Phantasm and numbers were inside the page for every visitor, only hidden, so anyone could read them in the page's source. The page has just their cards now (name, class, stars, picture, when), and the server sends the rest to the site's owner alone. For everyone else a servant opens once NA's own data has them (it's updated every three days).",
+    "<b>The site's owner is set by friend code</b> (or account id). An email in OWNER no longer counts: the site never checks that an email belongs to whoever types it.",
+    "<b>Sync has limits</b>: each account's roster gets 20 MB on the server (pictures have their own space, as before), and up to 6,000 changes an hour. A full roster of every NA servant is far below both. When the server holds changes back, the page says why, keeps them on this device, and still gets the changes from your other devices.",
+    "<b>Friend requests</b>: up to 30 an hour. Requests waiting for you no longer count towards your 150 friends, so nobody can fill your list to stop you adding friends."
+  ]},
   {v: "0.54.0-beta", d: "18 Nov 2026", t: "Command Codes, a bond calculator, a Saint Quartz planner and calendar files", i: [
     "<b>Command Codes</b>: a page of all of NA's Command Codes, with what each one does in the game's words and in numbers, filters by what it's for and by rarity, and which of your servants have it. On a servant's page, under Deck, each of their five cards has a slot: click one to engrave a code (Undo takes it back). Under the slots, what each code adds to its card, like a critical hit's damage before and after. In the Battle simulator the cards fight with their codes: critical damage, special attack, Damage Plus, NP Gain, stars, Sure Hit, Ignore Invincible, and the stars, NP or HP a card gives each time it attacks. Codes never touch the Noble Phantasm, so the NP calculator leaves them out, as the game does. Your servants on the roster aren't changed: the codes are kept on their own.",
     "<b>Bond calculator</b>, at the end of Progress on a servant's page: how many runs, and how much AP, to the next Bond level, Bond 10 or Bond 15, from NA's bond table for that servant. Pick a chapter or event and one of its free quests (its bond and AP come from Atlas Academy), or type a quest's number or the bond yourself. It counts the front line (+20%), a support in the front line (+4% for everyone), Bond CEs, an event's bonus, flat bonuses like the Heroic Portraits, and Stargazer's Teapot.",

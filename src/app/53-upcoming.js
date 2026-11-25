@@ -8,11 +8,25 @@
    wiki: an upcoming event's new servants and its start), and until then from upcoming.json ("at", or "eta" for the
    month it's expected). Once NA's own data has them, tools/gen_atlas.py makes them ordinary servants.
 
-   This is a lock on the page against spoilers. JP's data is public (Atlas Academy, the wiki), so it isn't a secret
-   kept from anyone who goes looking. Nothing on your roster changes. */
-const UP_OWNER_KEY = "spirit-origin-list:v1:owner";
+   0.54.1 (Noyr: "Make it really owner-only"): ATLAS_UP has only what a locked card shows (name, class, stars, picture,
+   when). The kits come from the server (GET /api/upcoming, server/upcoming.js): all of them for the owner, and for
+   everyone else the ones whose NA release in upcoming.json ("at") has passed. A servant whose countdown came from the
+   wiki opens for everyone once NA's own data has them (the NA data job, every three days). The owner's browser keeps a
+   copy (UP_FULL_KEY) for when the server can't be reached; signing out, or the server saying this isn't the owner,
+   removes it. JP's data is public (Atlas Academy, the wiki): this keeps it out of the site, against spoilers.
+   Nothing on your roster changes. */
+const UP_OWNER_KEY = "spirit-origin-list:v1:owner", UP_FULL_KEY = "spirit-origin-list:v1:owner-up";
 const UP_ALL = typeof ATLAS_UP !== "undefined" ? ATLAS_UP.filter((x) => !ATLAS_BY_NO.has(x.no)) : [];
-const UP_IN = new Set();
+const UP_IN = new Set(), UP_OBJ = new Map(), UP_DUE = new Set();
+// the kits: no → the servant in full (from the server, or the owner's copy on this device)
+const UP_FULL = new Map();
+(function () {
+  if (!HOSTED || !UP_ALL.length) return;
+  try {
+    const c = localStorage.getItem(UP_OWNER_KEY) === "1" ? JSON.parse(localStorage.getItem(UP_FULL_KEY) || "null") : null;
+    if (c && Array.isArray(c.s)) c.s.forEach((x) => { if (x && UP_ALL.some((u) => u.no === x.no)) UP_FULL.set(x.no, x); });
+  } catch (e) {}
+})();
 let upNowFn = () => Date.now();
 const upNow = () => upNowFn();
 // the owner: what the server said this time, or last time on this device (so the page opens in full before it answers)
@@ -20,7 +34,7 @@ function upOwner() {
   if (!HOSTED) return false;
   if (API.checked && API.on && !API.offline) {
     const o = !!(API.user && API.user.owner);
-    try { if (o) localStorage.setItem(UP_OWNER_KEY, "1"); else localStorage.removeItem(UP_OWNER_KEY); } catch (e) {}
+    try { if (o) localStorage.setItem(UP_OWNER_KEY, "1"); else { localStorage.removeItem(UP_OWNER_KEY); localStorage.removeItem(UP_FULL_KEY); } } catch (e) {}
     return o;
   }
   try { return localStorage.getItem(UP_OWNER_KEY) === "1"; } catch (e) { return false; }
@@ -37,17 +51,18 @@ const upLocked = () => UP_ALL.filter((x) => !UP_IN.has(x.no));
 const upIsUp = (no) => UP_ALL.some((x) => x.no === no);
 // the ones that may be seen join NA's list; when the owner signs out (or the server says this isn't the owner after
 // all), the ones not out on NA yet leave it again
+// (0.54.1: only with their kit, from the server)
 function upAdmit() {
   let n = 0, out = 0;
   UP_ALL.forEach((x) => {
-    const ok = upOpenFor(x);
+    const full = UP_FULL.get(x.no), ok = !!full && upOpenFor(x);
     if (ok && !UP_IN.has(x.no)) {
-      UP_IN.add(x.no); ATLAS_S.push(x); ATLAS_BY_NO.set(x.no, x);
-      NICK_N.set(x.no, nick(x.n)); NICK_B.set(x.no, nick(x.n.replace(/\([^)]*\)/g, " ")));
+      UP_IN.add(x.no); UP_OBJ.set(x.no, full); ATLAS_S.push(full); ATLAS_BY_NO.set(x.no, full);
+      NICK_N.set(x.no, nick(full.n)); NICK_B.set(x.no, nick(full.n.replace(/\([^)]*\)/g, " ")));
       n++;
     } else if (!ok && UP_IN.has(x.no)) {
-      UP_IN.delete(x.no); const i = ATLAS_S.indexOf(x); if (i >= 0) ATLAS_S.splice(i, 1);
-      ATLAS_BY_NO.delete(x.no); NICK_N.delete(x.no); NICK_B.delete(x.no);
+      const o = UP_OBJ.get(x.no), i = ATLAS_S.indexOf(o); if (i >= 0) ATLAS_S.splice(i, 1);
+      UP_IN.delete(x.no); UP_OBJ.delete(x.no); ATLAS_BY_NO.delete(x.no); NICK_N.delete(x.no); NICK_B.delete(x.no);
       out++;
     }
   });
@@ -56,6 +71,20 @@ function upAdmit() {
   return n + out;
 }
 upAdmit();
+// the server's answer: the owner gets every kit, anyone else those released by upcoming.json's "at"
+function upGot(j) {
+  if (!j || !Array.isArray(j.servants)) return;
+  UP_FULL.clear();
+  j.servants.forEach((x) => { if (x && UP_ALL.some((u) => u.no === x.no)) UP_FULL.set(x.no, x); });
+  try { if (j.owner) localStorage.setItem(UP_FULL_KEY, JSON.stringify({s: j.servants})); else localStorage.removeItem(UP_FULL_KEY); } catch (e) {}
+  upRecheck(true);
+}
+let upAsked = 0;
+async function upLoad() {
+  if (!HOSTED || !API.on || API.offline || !UP_ALL.length) return;
+  upAsked = Date.now();
+  try { upGot(await api("GET", "upcoming")); } catch (e) {}
+}
 
 /* ---------- words ---------- */
 const UP_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -100,7 +129,8 @@ function upLockedHTML(x) {
         <p class="pcd-kick">No. ${x.no} · ${esc(x.c)} · coming to NA</p>
         <h2 id="pcd-title" class="pcd-name">${CLASS_LOGO[x.c] ? `<img src="${CLASS_LOGO[x.c]}" alt="">` : ""}${esc(x.n)}</h2>
         <p class="pcd-stars" aria-label="${x.r} stars">${stars(x.r)}</p>
-        <p class="up-say">${esc(x.n)}'s page opens here when NA gets them${ev ? `, with <b>${esc(ev)}</b>` : ""}.</p>
+        <p class="up-say">${at && at <= upNow() ? `${esc(x.n)} is on NA now. Their page opens here once this site's NA data has them (it's updated every three days).`
+          : `${esc(x.n)}'s page opens here when NA gets them${ev ? `, with <b>${esc(ev)}</b>` : ""}.`}</p>
         <div class="up-clock">${at && at > upNow() ? `<p class="an-k">Opens in</p>` : ""}${upCountHTML(x, true)}
           ${at ? `<p class="up-when">${esc(upWhen(at))} your time</p>` : `<p class="up-when">The countdown starts once NA announces the date.</p>`}</div>
         <p class="pcd-src">Their skills, Noble Phantasm and numbers stay hidden until then.</p>
@@ -150,15 +180,18 @@ document.addEventListener("click", (e) => {
 });
 
 /* ---------- time ---------- */
-// once a second while a countdown shows; when one ends, that servant opens for everyone
+// once a second while a countdown shows; when one ends, that servant opens for everyone (0.54.1: once the server gives
+// their kit; until then their page says they're on NA now, and the server is asked again every ten minutes)
 function upTick() {
   if (document.hidden || !UP_ALL.length) return;
   const els = document.querySelectorAll("[data-up-at]"); if (!els.length && !upLocked().length) return;
   const now = upNow();
   let ended = false;
   els.forEach((el) => { const at = +el.dataset.upAt; if (at <= now) ended = true; else el.textContent = anCount(at - now); });
-  if (!ended && !upLocked().some((x) => upAt(x) && upAt(x) <= now)) return;
-  upRecheck(true);
+  const due = upLocked().filter((x) => upAt(x) && upAt(x) <= now), fresh = due.filter((x) => !UP_DUE.has(x.no));
+  fresh.forEach((x) => UP_DUE.add(x.no));
+  if (due.some((x) => !UP_FULL.has(x.no)) && Date.now() - upAsked > 600000) upLoad();
+  if (ended || fresh.length || due.some((x) => UP_FULL.has(x.no))) upRecheck(true);
 }
 function upRecheck(say) {
   const before = new Set(UP_IN), n = upAdmit();
@@ -171,10 +204,19 @@ function upRecheck(say) {
   if (say && !upOwner() && fresh.length) toast(fresh.length === 1 ? fresh[0].n + " is on NA now. Their page is open." : fresh.length + " servants are on NA now. Their pages are open.");
 }
 setInterval(upTick, 1000);
-// the server answers who's signed in (and whether they're the owner) after the page has drawn
-let upOwnerWas = upOwner();
+// the server answers who's signed in (and whether they're the owner) after the page has drawn; then (and whenever
+// that changes) it's asked for the kits
+let upOwnerWas = upOwner(), upFor = null;
 const acctPaint53 = acctPaint;
-acctPaint = function () { const r = acctPaint53.apply(this, arguments); if (API.checked && UP_ALL.length && upOwnerWas !== upOwner()) { upOwnerWas = upOwner(); upRecheck(false); } return r; };
+acctPaint = function () {
+  const r = acctPaint53.apply(this, arguments);
+  if (API.checked && UP_ALL.length) {
+    const k = (API.user ? API.user.id : "-") + (upOwner() ? ":owner" : "");
+    if (k !== upFor) { upFor = k; upLoad(); }
+    if (upOwnerWas !== upOwner()) { upOwnerWas = upOwner(); upRecheck(false); }
+  }
+  return r;
+};
 // the wiki's dates arrive with Home's event board; Past Chaldea asks for them too
 const hbPaint53 = hbPaint;
 hbPaint = function () { const r = hbPaint53.apply(this, arguments); if (UP_ALL.length && S.tab === "past") pcResults(); if (pcOpen && pcOpen.up) pcRenderDetail(); return r; };
@@ -182,5 +224,7 @@ const renderPast53 = renderPast;
 renderPast = function () { const r = renderPast53.apply(this, arguments); if (S.tab === "past" && UP_ALL.length && typeof hbLoad === "function" && !upPastAsked) { upPastAsked = true; hbLoad(false); } return r; };
 let upPastAsked = false;
 // for the tests: what's locked, and a stand-in clock
+// (0.54.1: got() takes what /api/upcoming answers, full() lists the kits this page has)
 window.__fgiUpcoming = {all: () => UP_ALL.map((x) => ({no: x.no, n: x.n, at: upAt(x), open: UP_IN.has(x.no)})), owner: () => upOwner(), setNow: (ms) => { upNowFn = ms == null ? () => Date.now() : () => ms; upTick(); },
+  got: (j) => upGot(j), full: () => [...UP_FULL.keys()],
   wiki: (ev) => { HB.wiki = Object.assign({}, HB.wiki || {}, {ev: ev}); upRecheck(true); }};

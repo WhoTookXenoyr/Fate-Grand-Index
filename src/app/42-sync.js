@@ -16,7 +16,7 @@ const SYNCK = "spirit-origin-list:v1:sync";
 const EXTRA_KEYS = {log: LOG_KEY, atlaslink: LINK_KEY, tiers: TIER_KEY, rankBase: RB_KEY, npcalc: NPC_KEY, event: EV_KEY, story: STORY_KEY,
   summon: SUM_KEY, traitkeep: TRK_KEY, traitnote: TRN_KEY, filldismiss: FILL_KEY, statsync: SYNC_KEY, affinity: AFF_KEY, rankCustom: RC_KEY};
 const EXTRA_BY_KEY = new Map(Object.keys(EXTRA_KEYS).map((n) => [EXTRA_KEYS[n], n]));
-const SYNC = {state: "off", last: 0, err: "", pics: "", remote: null, timer: 0, pushT: 0, busy: null, again: false};
+const SYNC = {state: "off", last: 0, err: "", pics: "", remote: null, timer: 0, pushT: 0, busy: null, again: false, hold: 0, holdWhy: ""};
 const stSet = Storage.prototype.setItem, stDel = Storage.prototype.removeItem;
 function syncState() { try { return JSON.parse(localStorage.getItem(SYNCK) || "null") || {}; } catch (e) { return {}; } }
 function syncSave(st) { try { stSet.call(localStorage, SYNCK, JSON.stringify(st)); } catch (e) {} }
@@ -200,11 +200,22 @@ async function syncNow(loud) {
     try {
       const del = Object.keys(st0.del || {});
       for (const id of del) { await api("DELETE", "pics/" + id); const s2 = syncState(); delete s2.del[id]; syncSave(s2); }
-      await syncPush();
+      // 0.54.1: the server can hold back what this device sends: too many changes in an hour (429) or a roster that has
+      // used its space (507). Then the changes wait here, sending pauses (until the server's time, or ten minutes; Sync
+      // now tries anyway), and changes from other devices still come in.
+      let held = !loud && SYNC.hold > Date.now() ? SYNC.holdWhy : "";
+      if (!held) {
+        try { await syncPush(); SYNC.hold = 0; }
+        catch (e) {
+          if (e.status !== 429 && e.status !== 507) throw e;
+          SYNC.hold = Date.now() + (e.status === 429 && e.retry ? e.retry * 1000 : 600000);
+          SYNC.holdWhy = held = e.message || "the server is holding back changes for now.";
+        }
+      }
       const cols = await syncPull();
       await syncPics();
-      SYNC.state = "idle"; SYNC.err = ""; SYNC.last = Date.now();
-      if (loud) toast(cols.size ? "Synced: changes from your other devices are here." : "Synced.");
+      SYNC.state = held ? "error" : "idle"; SYNC.err = held; SYNC.last = Date.now();
+      if (loud) toast(held ? syncWords() : cols.size ? "Synced: changes from your other devices are here." : "Synced.");
     } catch (e) {
       if (e.status === 0) { API.offline = true; SYNC.state = "idle"; }
       else if (e.status === 401) SYNC.state = "off";
@@ -229,6 +240,8 @@ window.addEventListener("pagehide", () => {
   try { fetch("/api/sync", {method: "POST", keepalive: true, credentials: "same-origin", headers: {"content-type": "application/json", "x-fgi": "1"}, body: JSON.stringify({changes: keys.map(syncChange)})}); } catch (e) {}
 });
 function syncStop() { clearInterval(SYNC.timer); SYNC.timer = 0; SYNC.state = "off"; syncPaint(); }
+// for the tests (0.54.1): sync now, and what the page says about it
+window.__fgiSync = {now: (loud) => syncNow(loud), words: () => syncWords()};
 
 /* ---------- the first time this browser syncs with an account ---------- */
 async function syncStart(fresh) {

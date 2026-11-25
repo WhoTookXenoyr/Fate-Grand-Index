@@ -210,7 +210,7 @@ function plSecHTML(s, a) {
     ${targets}
     <div class="pl-view" role="group" aria-label="Show"><button type="button" class="btn sm${plAll ? " ghost" : " primary"}" data-action="pl-view" data-v="one" aria-pressed="${!plAll}">${esc(s.name)}</button><button type="button" class="btn sm${plAll ? " primary" : " ghost"}" data-action="pl-view" data-v="all" aria-pressed="${plAll}">All plans${nPlans ? " (" + nPlans + ")" : ""}</button></div>
     <div class="pl-out">${body}</div>
-    <p class="pl-foot">Ember QP and Fou aren't counted. Ascensions count as done once the level is past their cap.</p>
+    <p class="pl-foot">Ember QP and Fou aren't counted. Ascensions count as done once the level is past their cap. What you have is shared with the <button type="button" class="linkish" data-action="tab" data-tab="materials">Materials</button> page.</p>
   </details></section>`;
 }
 

@@ -371,7 +371,10 @@ def mats(levels):
         row = []
         for it in (lv or {}).get("items", []):
             i = it["item"]
-            if i["id"] not in MATS: MATS[i["id"]] = [i["id"], i["name"], p(i.get("icon", ""))]
+            # 0.57.0 (the Materials page): its tier, as the game colours it (b, s, g; x for a servant's own ascension item),
+            # and the game's order
+            tier = "x" if i.get("type") == "eventItem" else {"bronze": "b", "silver": "s", "gold": "g"}.get(i.get("background"), "")
+            if i["id"] not in MATS: MATS[i["id"]] = [i["id"], i["name"], p(i.get("icon", "")), tier, i.get("priority") or i["id"]]
             row += [i["id"], it["amount"]]
         rows.append(row)
     return rows

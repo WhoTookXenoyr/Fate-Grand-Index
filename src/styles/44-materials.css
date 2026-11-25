@@ -1,0 +1,59 @@
+/* ================= 0.57.0-beta: Materials (69-materials.js) ================= */
+.mt-lead { margin: 0; max-width: 72ch; color: var(--muted); line-height: 1.5; }
+.mt-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 12px; }
+.mt-to { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.mt-to select { min-height: 36px; padding: 2px 8px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; font-weight: 500; font-size: 13px; max-width: 100%; }
+.mt-cs { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; }
+.mt-show { display: flex; gap: 4px; }
+.mt-find { min-height: 36px; min-width: 0; flex: 1 1 180px; max-width: 280px; padding: 2px 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel); color: var(--ink); font: inherit; font-size: 13px; }
+.mt-note { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
+.mt-need.s { color: var(--buster); }
+.mt { display: grid; gap: 22px; }
+.mt > .mt-empty, .mt > .mt-foot { margin: 0; }
+.mt-tier { display: inline-block; width: 10px; height: 10px; margin-right: 8px; border-radius: 50%; vertical-align: 1px; }
+.mt-tier.t-b { background: #b07a4f; }
+.mt-tier.t-s { background: #a9b2bd; }
+.mt-tier.t-g { background: var(--gold); }
+
+/* a material: picture, name, the box for how many you have, and what's needed */
+.mt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(178px, 1fr)); gap: 8px; }
+.mt-card { display: grid; grid-template-columns: 40px minmax(0, 1fr); grid-template-rows: auto auto; gap: 4px 10px; align-items: center; padding: 8px 10px;
+  border: 1px solid transparent; border-radius: 12px; background: var(--sunken); }
+.mt-card > img, .mt-card > .mt-noic { grid-row: 1 / 3; width: 40px; height: 40px; object-fit: contain; }
+.mt-noic { display: block; border-radius: 9px; background: color-mix(in srgb, var(--line) 70%, transparent); }
+.mt-n { font-size: 12.5px; font-weight: 600; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.mt-in { width: 100%; min-height: 32px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink);
+  font: 600 14px var(--f-data); font-variant-numeric: tabular-nums; }
+.mt-in:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.mt-hv { font: 600 14px var(--f-data); }
+.mt-need { grid-column: 1 / -1; font-size: 11.5px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mt-need.ok { color: var(--quick); }
+.mt-need.none { font-weight: 500; }
+.mt-card.short, .mt-cell.short { border-color: color-mix(in srgb, var(--buster) 55%, transparent); }
+
+/* gems, pieces and monuments: a class to a column, as in the game */
+.mt-scroll { overflow-x: auto; overscroll-behavior-x: contain; }
+.mt-mx { display: grid; grid-template-columns: auto repeat(7, minmax(92px, 1fr)); gap: 6px; min-width: 760px; align-items: stretch; }
+.mt-mx > * { grid-row: var(--r1); grid-column: var(--c1); }
+.mt-ch { display: grid; justify-items: center; gap: 2px; font-size: 11.5px; color: var(--muted); }
+.mt-ch img { width: 24px; height: 24px; object-fit: contain; }
+.mt-ch b { font-weight: 600; }
+.mt-rh { align-self: center; font-size: 12.5px; font-weight: 600; color: var(--muted); padding-right: 4px; white-space: nowrap; }
+.mt-cell { display: grid; justify-items: center; gap: 4px; padding: 6px; border: 1px solid transparent; border-radius: 12px; background: var(--sunken); }
+.mt-cell > img, .mt-cell > .mt-noic { width: 36px; height: 36px; object-fit: contain; }
+.mt-cell .mt-in { text-align: center; padding: 2px 4px; }
+.mt-cell .mt-need { text-align: center; max-width: 100%; font-size: 11px; white-space: normal; }
+.mt-cell[data-dim] { opacity: .3; }
+
+.mt-empty, .mt-foot { margin: 12px 0 0; font-size: 12.5px; color: var(--muted); }
+@media (max-width: 560px) { .mt-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } .mt-find { max-width: none; } }
+/* a phone: a class to a row */
+@media (max-width: 640px) {
+  .mt-mx { grid-template-columns: auto repeat(var(--n), minmax(0, 1fr)); min-width: 0; }
+  .mt-mx > * { grid-row: var(--r2); grid-column: var(--c2); }
+  .mt-ch { grid-auto-flow: row; justify-items: center; align-self: center; font-size: 11px; }
+  .mt-rh { justify-self: center; padding: 0; white-space: normal; text-align: center; font-size: 12px; }
+}
+@media (pointer: coarse) { .mt-in, .mt-to select, .mt-find { min-height: 42px; } }
+/* QP takes up to ten digits with commas */
+.mt-sec[data-g="qp"] .mt-grid { grid-template-columns: repeat(auto-fill, minmax(236px, 1fr)); }

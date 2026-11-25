@@ -342,9 +342,17 @@ function csMapHTML(b, set) {
     ${b.ic ? `<img class="csx-emblem${A && A.roots.length ? ` flash" style="--d:${N.at(0)}` : ""}" src="${esc(aimg(b.ic))}" alt="" decoding="async" draggable="false">` : ""}${sqs}</div></div>${csZoomHTML()}</div>`;
 }
 const CSX_LOCK = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>`;
-function csCostHTML(list) {
+// 0.57.0: beside what something costs, what you have (from the Materials page), once you've filled any of it in
+const csHaveKey = (id) => id === 1 ? "qp" : String(id);
+const csHave = (id) => Math.max(0, num(evPref.have[csHaveKey(id)]) || 0);
+const csTracks = () => Object.keys(evPref.have).length > 0;
+function csCostHTML(list, have) {
   if (!list.length) return `<p class="csx-none">Nothing.</p>`;
-  return `<ul class="csx-cost">${list.map((c) => { const it = csItem(c[0]); return `<li>${it[1] ? `<img src="${esc(aimg(it[1]))}" alt="" loading="lazy" decoding="async">` : ""}<span>${esc(it[0])}</span><b>${csAmt(c[0], c[1])}</b></li>`; }).join("")}</ul>`;
+  const hv = have && csTracks();
+  return `<ul class="csx-cost${hv ? " hv" : ""}">${list.map((c) => {
+    const it = csItem(c[0]), h = csHave(c[0]), short = hv && h < c[1];
+    return `<li${short ? ` class="short"` : ""}>${it[1] ? `<img src="${esc(aimg(it[1]))}" alt="" loading="lazy" decoding="async">` : "<i></i>"}<span>${esc(it[0])}</span><b>${csAmt(c[0], c[1])}</b>${hv ? `<small title="${short ? esc(csAmt(c[0], c[1] - h) + " short") : "You have enough"}">have ${csAmt(c[0], h)}</small>` : ""}</li>`;
+  }).join("")}</ul>`;
 }
 // the sign you picked: what it does, what it costs, and the button for it
 function csSqHTML(b, set) {
@@ -363,7 +371,7 @@ function csSqHTML(b, set) {
   return `<div class="csx-picked k-${q.k}">
     <p class="csx-st">${on ? "Open" : can ? "Can open now" : "Closed"}${q.start ? " · a start sign" : ""}</p>
     ${what}
-    <p class="csx-k">${on ? "It cost" : path.length ? "The way here costs" : "It costs"}</p>${csCostHTML(csCost(b.id, path.length ? path : [q.id]))}
+    <p class="csx-k">${on ? "It cost" : path.length ? "The way here costs" : "It costs"}</p>${csCostHTML(csCost(b.id, path.length ? path : [q.id]), !on)}
     <div class="csx-acts">${btn}</div></div>`;
 }
 function csBoardHTML(b) {
@@ -391,7 +399,9 @@ function csBoardHTML(b) {
         </section>
         <details class="csx-costs"><summary>Materials: what it cost, and what's left</summary>
           <h4>Spent on this board</h4>${csCostHTML(csCost(b.id, [...set]))}
-          <h4>To open the rest</h4>${csCostHTML(csCost(b.id, left))}</details>
+          <h4>To open the rest</h4>${csCostHTML(csCost(b.id, left), true)}
+          <p class="csx-mt"><button type="button" class="linkish" data-action="tab" data-tab="materials">Your materials</button> count every board's rest too, if you tick Class Score there.</p></details>
+        <label class="csx-spend"><input type="checkbox" data-csx-spend${csState().spend ? " checked" : ""}> Take what I open out of my materials</label>
         <div class="csx-acts">
           <button type="button" class="btn ghost sm" data-action="csx-all"${left.length ? "" : " disabled"}>Open every square</button>
           <button type="button" class="btn ghost sm" data-action="csx-clear"${set.size ? "" : " disabled"}>Close them all</button></div>
@@ -419,10 +429,18 @@ function csRender() {
 }
 // changes come with Undo
 function csChange(bid, set, words) {
-  const was = csSet(bid);
-  csAnimStart([...set].some((id) => !was.has(id)) ? csAnimOf(bid, was, set) : null);
+  const was = csSet(bid), added = [...set].filter((id) => !was.has(id));
+  csAnimStart(added.length ? csAnimOf(bid, was, set) : null);
+  // 0.57.0: "Take what I open out of my materials": what the new squares cost comes out of what you've filled in (only
+  // the things you've filled in; nothing goes below 0), and Undo puts it back
+  const haveWas = {};
+  if (added.length && csState().spend && !S.readOnly) {
+    csCost(bid, added).forEach((c) => { const k = csHaveKey(c[0]); if (!(k in evPref.have)) return; haveWas[k] = evPref.have[k]; const v = Math.max(0, csHave(c[0]) - c[1]); if (v) evPref.have[k] = v; else delete evPref.have[k]; });
+    if (Object.keys(haveWas).length) { evPrefSave(); words = (words || (added.length === 1 ? "Opened." : "Opened " + plural(added.length, "square") + ".")) + " What it cost is out of your materials."; }
+  }
   csPut(bid, set); csRender();
-  if (words && typeof toastAction === "function") toastAction(words, "Undo", () => { CSU.anim = null; csPut(bid, was); csRender(); });
+  const back = () => { if (Object.keys(haveWas).length) { Object.keys(haveWas).forEach((k) => { evPref.have[k] = haveWas[k]; }); evPrefSave(); } };
+  if (words && typeof toastAction === "function") toastAction(words, "Undo", () => { CSU.anim = null; back(); csPut(bid, was); csRender(); });
   else if (words) toast(words);
 }
 document.addEventListener("click", (e) => {
@@ -437,6 +455,11 @@ document.addEventListener("click", (e) => {
   if (act === "csx-close") { set.delete(id); const n = csPrune(b.id, set); csChange(b.id, n, set.size + 1 - n.size > 1 ? "Closed " + plural(set.size + 1 - n.size, "square") + "." : null); return; }
   if (act === "csx-all") { const g = CSB_G.get(b.id); csChange(b.id, new Set([...g.sq.values()].filter(csTakes).map((q) => q.id)), "Every square on " + b.n + " is open."); return; }
   if (act === "csx-clear") { csChange(b.id, new Set(), "Closed every square on " + b.n + "."); }
+});
+document.addEventListener("change", (e) => {
+  const t = e.target; if (!t || !t.matches || !t.matches("#classscore input[data-csx-spend]")) return;
+  csState().spend = t.checked ? true : undefined; csSave();
+  toast(t.checked ? "Opening squares takes what they cost out of your materials." : "Opening squares leaves your materials as they are.");
 });
 document.addEventListener("change", (e) => {
   const t = e.target; if (!t || !t.matches || !t.matches("#classscore input[data-csx-on]")) return;

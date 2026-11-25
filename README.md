@@ -244,6 +244,16 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
 - **Zoom**: `CSU.z` (1 to 3) is `--z` on `.csx-map`, which grows the map's width (squares, dots and sparks are sized with it), so it's laid out again, not scaled as a picture. Zoomed in, `.csx-map-wrap` keeps its 100% height and scrolls; `csZoom(z, x, y)` keeps the point under the pointer (or the middle) in place. + / % / − in `.csx-zoom`; Ctrl or ⌘ + wheel (a trackpad pinch arrives as one); two-finger pinch (`touchmove`, not passive, only with two fingers; the frame has `touch-action: pan-x pan-y`); mouse drag pans and a drag of more than 4 px doesn't pick a sign. A new board starts at 100%.
 - `tests/test_56_v056.py`.
 
+## 0.57.0-beta: Materials
+- Noyr (25 Nov 2026): "another page to store all class ascension materials, skill materials so I can add how much of that material I have and it directly affects the level up plan and other stuff".
+- **Data**: `ATLAS_MATS` entries are `[id, name, icon, tier, order]` now (`tools/gen_atlas.py`): tier `b`/`s`/`g` from the item's background, `x` for an `eventItem` (a servant's own ascension item), order from the game's `priority`.
+- **Page** (`69-materials.js`, `44-materials.css`): the list is `evPref.have` (`EV_KEY`, the Event calculator's; synced as `EXTRA_KEYS.event`, in backups as `settings.have`); keys are item ids, `qp`, and `7999` for Grails. Class Score's items come from `ATLAS_CB.items` (its QP is item 1, kept as `qp`). Groups: QP/Grails/Lore, Gems and Pieces/Monuments as class tables (each piece carries `--r1/--c1` and `--r2/--c2`, so the table turns round under 640 px), bronze, silver, gold, Class Score, servants' own (only when needed or filled in).
+  - Needs (`matNeeds`): `planCost` of each plan; or, per owned servant, `planCost` to `{lv: max(level, lvMax), sk: max(skill, 10 or 9), ap: as is}`; plus, ticked, `csCost` of each board's unopened squares. Kept in `evPref.mat` (`{to, cs, show}`); until you pick, plans if you have any, otherwise skills to 10.
+  - Typing saves at once and patches the card (`matPatch`) without a redraw; numbers get commas when you leave the box. Find hides cards and dims table cells.
+  - **Fresh copies**: `syncApply` and `evPrefSave` are wrapped. A pull that brings `extras/event` reloads `evPref` (`evPrefFresh`, compared against the last raw string written or read), and the page reloads it before drawing or saving, so an old in-memory copy is never saved over a newer synced one.
+- **Class Score**: `csCostHTML(list, have)` adds "have N" (red when short) once anything's filled in; the side panel links to the page; `spend` in its state ("Take what I open out of my materials") makes `csChange` take the new squares' cost out of the things you've filled in (never below 0), with Undo.
+- The Planner's foot and the Event calculator's note link to the page. `window.__fgiMaterials` for the tests; `tests/test_57_v057.py`. The tab counts in four older suites include Materials.
+
 ## Your data
 
 Your roster is stored in your browser: `localStorage` key `spirit-origin-list:v1`, pictures in IndexedDB `spirit-origin-list-images`. These names never change, so existing saves keep working with every new version. Signed in on the hosted site, the same data is also kept in your account (0.26.0); the file opened from your computer never talks to a server.

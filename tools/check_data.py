@@ -41,7 +41,10 @@ if problems:
                      "Run the job again later.\n- " + "\n- ".join(problems))
 # every address in the data must be Atlas Academy's: the data pull requests merge themselves, so a tampered export
 # could otherwise make every visitor's browser load pictures from somewhere else (from the daily security log, 22 Nov 2026)
-foreign = sorted({u for u in re.findall(r"(?:https?:)?//[^\s\"'\\)<>]+", text) if not u.startswith("https://static.atlasacademy.io/")})
+# (0.54.1: the upcoming servants' kits, which only the server has, count too: the owner's page shows them)
+UPJS = os.path.join(ROOT, "server", "upcoming_data.js")
+scan = text + (open(UPJS, encoding="utf-8").read() if os.path.exists(UPJS) else "")
+foreign = sorted({u for u in re.findall(r"(?:https?:)?//[^\s\"'\\)<>]+", scan) if not u.startswith("https://static.atlasacademy.io/")})
 if foreign:
     raise SystemExit("The new data points the page at %d address%s off https://static.atlasacademy.io/, so nothing is committed. "
                      "Check Atlas Academy's export before running the job again.\n- %s" % (len(foreign), "" if len(foreign) == 1 else "es", "\n- ".join(foreign[:10])))

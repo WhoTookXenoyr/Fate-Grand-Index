@@ -3,12 +3,14 @@
    Settings in Cloudflare (Pages project → Settings): the D1 database bound as DB (required), an R2 bucket bound as PICS
    (optional; without it pictures are kept in D1), and the secrets PEPPER (16+ random characters; needed for email and
    password), DISCORD_CLIENT_ID + DISCORD_CLIENT_SECRET and GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET (each pair optional).
-   PIC_QUOTA_MB changes the picture space per account (default 300 with R2, 120 without). docs/hosting.md has the steps. */
+   PIC_QUOTA_MB changes the picture space per account (default 300 with R2, 120 without), DOC_QUOTA_MB the roster's (default
+   20; 0.54.1), and OWNER names the site's owner by friend code or account id. docs/hosting.md has the steps. */
 import {HttpError, json, fail} from "./util.js";
 import {ensureSchema} from "./schema.js";
 import * as auth from "./auth.js";
 import * as sync from "./sync.js";
 import * as fr from "./friends.js";
+import * as up from "./upcoming.js";
 
 const ROUTES = [
   ["GET", /^me$/, async (c) => { const u = await auth.sessionUser(c); return json({user: u ? await auth.me(c, u) : null, providers: auth.providers(c.env)}); }],
@@ -39,7 +41,8 @@ const ROUTES = [
   ["GET", /^feed$/, fr.feed],
   ["GET", /^u\/([a-z0-9]{16})$/, (c, m) => fr.profile(c, m[1])],
   ["GET", /^u\/([a-z0-9]{16})\/roster$/, (c, m) => fr.roster(c, m[1])],
-  ["GET", /^share\/([A-Za-z0-9_-]{8,60})$/, (c, m) => fr.shared(c, m[1])]
+  ["GET", /^share\/([A-Za-z0-9_-]{8,60})$/, (c, m) => fr.shared(c, m[1])],
+  ["GET", /^upcoming$/, up.list]
 ];
 
 // 0.26.1: every answer says "https only from now on" (HSTS) and "don't guess content types", like the static files do

@@ -7,10 +7,21 @@
    Pictures people upload go to R2 when a bucket is bound (PICS), else into the database itself (pics.data, the free
    D1-only setup, so up to 1.9 MB a picture). */
 import {fail, json, now, body, clean} from "./util.js";
-import {needUser} from "./auth.js";
+import {needUser, throttle} from "./auth.js";
 
 export const COLS = new Set(["servants", "parties", "guests", "extras"]);
 const MAX_DOC = 300000, MAX_PUSH = 1200000, PAGE_BYTES = 1500000;
+/* 0.54.1 (the daily security check, 25 Nov): every account shares one D1 database, and D1 has a size limit per
+   database, so a roster gets its share of it, like pictures do, and a pace.
+   - An entry counts as 64 for its row, plus its id and its text (in characters, as SQLite's LENGTH counts them). A deleted
+     one keeps 64 + its id: the row stays, so the account's other devices learn it's gone. users.docs_bytes keeps the sum.
+   - DOC_QUOTA_MB (Cloudflare variable) is the share; 20 MB by default. A full roster of every NA servant is far below it.
+   - SYNC_PER_HOUR entries can be sent an hour. Editing all the time sends about one a second and a half. */
+export const DOC_ROW = 64, SYNC_PER_HOUR = 6000;
+export const docQuota = (env) => (Number(env.DOC_QUOTA_MB) || 20) * 1048576;
+const SURROGATES = /[\uD800-\uDBFF][\uDC00-\uDFFF]/g;
+const chars = (s) => s.length - ((s.match(SURROGATES) || []).length);
+const docSize = (id, data) => DOC_ROW + chars(id) + (data ? chars(data) : 0);
 const okId = (id) => typeof id === "string" && id.length > 0 && id.length <= 120 && !/[\u0000-\u001f]/.test(id);
 const CAPS = {1: 60, 2: 65, 3: 70, 4: 80, 5: 90};
 
@@ -42,14 +53,24 @@ export async function push(ctx) {
     if (data && data.length > MAX_DOC) fail(413, "doc_too_big", "One entry is too big to sync (" + c.col + "/" + c.id + ").");
     return {col: c.col, id: c.id, data};
   });
-  // the old servants, to tell friends what changed (summoned, grailed, NP up…)
-  const sv = rows.filter((r) => r.col === "servants"), old = {};
-  if (sv.length && u.feed) {
-    const ids = sv.map((r) => r.id);
+  await throttle(env, "sync:" + u.id, SYNC_PER_HOUR, 3600000, rows.length,
+    (m) => "This account sent a great many changes in the last hour. Syncing picks up again in " + m + " minutes; until then your changes stay saved on this device.");
+  // what the entries being replaced take up now, and the old servants, to tell friends what changed (summoned, grailed…)
+  const sv = rows.filter((r) => r.col === "servants"), old = {}, had = {}, byCol = {};
+  rows.forEach((r) => { (byCol[r.col] || (byCol[r.col] = new Set())).add(r.id); });
+  for (const col of Object.keys(byCol)) {
+    const ids = [...byCol[col]], withData = col === "servants" && !!u.feed;
     for (let i = 0; i < ids.length; i += 50) {
-      const part = ids.slice(i, i + 50), q = "SELECT id, data FROM docs WHERE user_id = ? AND col = 'servants' AND id IN (" + part.map(() => "?").join(",") + ")";
-      ((await env.DB.prepare(q).bind(u.id, ...part).all()).results || []).forEach((r) => { old[r.id] = r.data; });
+      const part = ids.slice(i, i + 50);
+      const q = "SELECT id, LENGTH(id) + COALESCE(LENGTH(data), 0) AS n" + (withData ? ", data" : "") + " FROM docs WHERE user_id = ? AND col = ? AND id IN (" + part.map(() => "?").join(",") + ")";
+      ((await env.DB.prepare(q).bind(u.id, col, ...part).all()).results || []).forEach((r) => { had[col + "/" + r.id] = DOC_ROW + r.n; if (withData) old[r.id] = r.data; });
     }
+  }
+  let grow = 0;
+  rows.forEach((r) => { const k = r.col + "/" + r.id, n = docSize(r.id, r.data); grow += n - (had[k] || 0); had[k] = n; });
+  // a push that makes the roster smaller always goes through, so the way out of a full share is always open
+  if (grow > 0 && (u.docs_bytes || 0) + grow > docQuota(env)) {
+    fail(507, "roster_full", "Your roster has used its space on the server (" + Math.round(docQuota(env) / 1048576) + " MB), so these changes stay on this device. Shorter notes, or removing entries you don't need, make room.");
   }
   const top = await env.DB.prepare("UPDATE users SET rev = rev + ? WHERE id = ? RETURNING rev").bind(rows.length, u.id).first();
   const base = top.rev - rows.length, t = now();
@@ -58,6 +79,7 @@ export async function push(ctx) {
   const acts = u.feed && !b.first && sv.length <= 15 ? activityOf(sv, old) : [];
   acts.slice(0, 20).forEach((a) => stmts.push(env.DB.prepare("INSERT INTO activity (user_id, at, kind, data) VALUES (?, ?, ?, ?)").bind(u.id, t, a.kind, JSON.stringify(a.data))));
   if (acts.length) stmts.push(env.DB.prepare("DELETE FROM activity WHERE user_id = ? AND at < ?").bind(u.id, t - 45 * 86400000));
+  if (grow) stmts.push(env.DB.prepare("UPDATE users SET docs_bytes = MAX(0, docs_bytes + ?) WHERE id = ?").bind(grow, u.id));
   await env.DB.batch(stmts);
   return json({rev: top.rev, revs: rows.map((r, i) => base + i + 1)});
 }

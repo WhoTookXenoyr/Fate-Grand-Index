@@ -82,6 +82,7 @@ jobs:
         run: |
           python tests/api/test_api.py
           python tests/api/test_api.py --d1-pics
+          python tests/api/test_hosted_limits.py
 
       - name: The site in a browser
         env:

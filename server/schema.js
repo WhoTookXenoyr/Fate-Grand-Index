@@ -4,7 +4,8 @@
    users     one row per account. pw: "v1$<salt>$<hmac>" of the key the browser derived from the password (see auth.js);
              recovery: hmac of the recovery code; code: the 9-digit friend code; vis: who sees the roster (private |
              friends | link); share: the link's token; feed: activity shown to friends; supports: servant ids lent to
-             friends; rev: the account's sync counter; bytes: pictures stored
+             friends; rev: the account's sync counter; bytes: pictures stored; docs_bytes (0.54.1): the roster's share of
+             the database (sync.js docSize)
    idents    Discord / Google accounts linked to a user
    sessions  signed-in browsers; id is the sha-256 of the cookie's token
    docs      the roster: servants, parties, guests and extras, one JSON document each; data NULL = deleted. rev orders the
@@ -13,7 +14,7 @@
    friends   pairs (a < b); state pending | accepted; by = who asked
    activity  what friends see: summoned, grailed, NP up, skills maxed, Bond reached
    throttle  counters that slow down guessing passwords and making accounts */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 const V1 = [
   `CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT)`,
   `CREATE TABLE IF NOT EXISTS users (
@@ -34,14 +35,26 @@ const V1 = [
   `CREATE INDEX IF NOT EXISTS activity_user ON activity (user_id, at)`,
   `CREATE TABLE IF NOT EXISTS throttle (k TEXT PRIMARY KEY, n INTEGER NOT NULL, until INTEGER NOT NULL)`
 ];
-const STEPS = [V1];
+// 0.54.1: each account's roster has a share of the database (the daily security check, 25 Nov), counted the way
+// sync.js docSize counts an entry: 64 for the row, plus its id and its text
+const V2 = [
+  `ALTER TABLE users ADD COLUMN docs_bytes INTEGER NOT NULL DEFAULT 0`,
+  `UPDATE users SET docs_bytes = (SELECT COALESCE(SUM(64 + LENGTH(id) + COALESCE(LENGTH(data), 0)), 0) FROM docs WHERE docs.user_id = users.id)`
+];
+const STEPS = [V1, V2];
 let ready = false;
+const schemaVersion = async (db) => { try { const r = await db.prepare("SELECT v FROM meta WHERE k = 'schema'").first(); return r ? Number(r.v) || 0 : 0; } catch (e) { return 0; } };
 export async function ensureSchema(db) {
   if (ready) return;
-  let v = 0;
-  try { const r = await db.prepare("SELECT v FROM meta WHERE k = 'schema'").first(); v = r ? Number(r.v) || 0 : 0; } catch (e) { v = 0; }
+  const v = await schemaVersion(db);
   for (let i = v; i < STEPS.length; i++) {
-    await db.batch(STEPS[i].map((sql) => db.prepare(sql)).concat([db.prepare("INSERT OR REPLACE INTO meta (k, v) VALUES ('schema', ?)").bind(String(i + 1))]));
+    try {
+      await db.batch(STEPS[i].map((sql) => db.prepare(sql)).concat([db.prepare("INSERT OR REPLACE INTO meta (k, v) VALUES ('schema', ?)").bind(String(i + 1))]));
+    } catch (e) {
+      // two first requests after a deploy can both start a step; the one that lost finds it done (a batch is all or nothing)
+      if ((await schemaVersion(db)) > i) continue;
+      throw e;
+    }
   }
   ready = true;
 }

@@ -123,7 +123,11 @@ for x in servants:
     if x.get("ascensionAdd"): x["ascensionAdd"] = {"individuality": x["ascensionAdd"].get("individuality") or {}}
 ces = get(EXPORT + "nice_equip.json")
 ccs = get(EXPORT + "nice_command_code.json")
-print("servants", len(servants), "Craft Essences", len(ces), "Command Codes", len(ccs))
+# 0.55.0: Class Score, the game's nine class boards (Atlas Academy: class_board), for the Class Score page. A job that
+# can't get them still updates the rest (the page then keeps the boards it had).
+try: boards = get(EXPORT + "nice_class_board.json")
+except Exception as e: boards = None; print("no class boards in the export:", e)
+print("servants", len(servants), "Craft Essences", len(ces), "Command Codes", len(ccs), "class boards", len(boards or []))
 
 # costume names: the export has each costume's picture (extraAssets.charaGraph.costume, keyed by its battleCharaId) but
 # not its name, which is in the servant's lore
@@ -164,6 +168,9 @@ if os.path.exists(up_path):
 save_gz("servants.json.gz", servants)
 save_gz("ces.json.gz", ces)
 save_gz("command_codes.json.gz", ccs)
+cb_path = os.path.join(ATLAS, "class_boards.json.gz")
+cb_new = bool(boards) and not os.path.exists(cb_path)
+if boards: save_gz("class_boards.json.gz", boards)
 save_gz("costumes.json.gz", costumes, ensure_ascii=False)
 with open(info_path, "w") as f: json.dump(info, f, indent=2); f.write("\n")
 
@@ -175,6 +182,7 @@ if changed_svt: lines.append("- **Servants whose skills, NP, stats or materials 
 if new_ce: lines.append("- **New Craft Essences:** %d (%s)" % (len(new_ce), ", ".join(x["name"] for x in new_ce[:12]) + (", …" if len(new_ce) > 12 else "")))
 if new_cc: lines.append("- **New Command Codes:** " + ", ".join(x["name"] for x in new_cc[:12]) + (", …" if len(new_cc) > 12 else ""))
 if new_cos: lines.append("- **New costumes:** " + ", ".join(new_cos))
+if cb_new: lines.append("- **Class Score:** the %d class boards, for the Class Score page" % len(boards))
 if len(lines) == 2: lines.append("- Nothing the page shows changed.")
 open(os.path.join(ROOT, "na_summary.md"), "w", encoding="utf-8").write("\n".join(lines) + "\n")
 print("\n".join(lines))

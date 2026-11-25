@@ -25,16 +25,16 @@
 @media (max-width: 980px) { .csx-body { grid-template-columns: minmax(0, 1fr); } }
 
 /* the star map: the game's own layout. Squares sit on their coordinates; nothing on it moves. */
-.csx-map-wrap { overflow-x: auto; overscroll-behavior-x: contain; border: 1px solid var(--line); border-radius: 14px;
+.csx-map-wrap { overflow: auto; overscroll-behavior-x: contain; touch-action: pan-x pan-y; border: 1px solid var(--line); border-radius: 14px;
   background: radial-gradient(ellipse at center, color-mix(in srgb, var(--gold) 9%, var(--sunken)) 0%, var(--sunken) 62%); }
-.csx-map { position: relative; min-width: 640px; }
+.csx-map { position: relative; width: calc(100% * var(--z, 1)); min-width: calc(640px * var(--z, 1)); container-type: inline-size; }
 .csx-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
 .csx-lines line { stroke: var(--line); stroke-width: 5; stroke-linecap: round; }
 .csx-lines line.on { stroke: var(--gold); stroke-width: 7; }
 .csx-emblem { position: absolute; left: 50%; top: 50%; width: 15%; aspect-ratio: 1; object-fit: contain; transform: translate(-50%, -50%); opacity: .16; pointer-events: none; }
-.csx-dot { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: var(--line); transform: translate(-50%, -50%); }
+.csx-dot { position: absolute; width: calc(7px * var(--z, 1)); height: calc(7px * var(--z, 1)); border-radius: 50%; background: var(--line); transform: translate(-50%, -50%); }
 .csx-dot.on { background: var(--gold); }
-.csx-sq { all: unset; box-sizing: border-box; cursor: pointer; position: absolute; width: 4.6%; min-width: 26px; max-width: 42px; aspect-ratio: 1; transform: translate(-50%, -50%);
+.csx-sq { all: unset; box-sizing: border-box; cursor: pointer; position: absolute; width: 4.6%; min-width: calc(26px * var(--z, 1)); max-width: calc(42px * var(--z, 1)); aspect-ratio: 1; transform: translate(-50%, -50%);
   display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--line); background: var(--panel); color: var(--muted); }
 .csx-sq img { width: 82%; height: 82%; object-fit: contain; border-radius: 50%; opacity: .45; }
 .csx-sq.k-c { border-radius: 9px; }
@@ -49,7 +49,7 @@
 .csx-sq.on[data-c="Q"] { border-color: var(--quick); }
 .csx-sq.sel { outline: 3px solid var(--focus); outline-offset: 2px; z-index: 1; }
 .csx-sq:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; z-index: 1; }
-@media (pointer: coarse) { .csx-sq { min-width: 30px; } }
+@media (pointer: coarse) { .csx-sq { min-width: calc(30px * var(--z, 1)); } }
 
 /* beside it: the picked sign, the totals, the materials */
 .csx-side { display: grid; gap: 12px; }
@@ -75,3 +75,69 @@
 .csx-cost li { display: grid; grid-template-columns: 24px 1fr auto; align-items: center; gap: 8px; font-size: 13px; }
 .csx-cost img { width: 24px; height: 24px; object-fit: contain; }
 .csx-cost b { font: 600 12.5px/1 var(--f-data); font-variant-numeric: tabular-nums; }
+
+/* ================= 0.56.0: squares light up as they open, and the map zooms ================= */
+.csx { --csx-cs: color-mix(in srgb, var(--buster) 50%, var(--arts)); }
+.csx-map.full .csx-emblem { opacity: .4; }
+.csx-tab.grow .csx-bar { animation: csxBar var(--dur) cubic-bezier(.3, .7, .3, 1) var(--d) both; }
+@keyframes csxBar { from { transform: scaleX(var(--p0)); } to { transform: scaleX(var(--p)); } }
+/* a line whose beam is still on its way looks closed until the beam has drawn it */
+.csx-lines line.on.wait { stroke: var(--line); stroke-width: 5; }
+.csx-anim { position: absolute; inset: 0; pointer-events: none; }
+/* a beam: --u is one unit of the board, so it's as thick as the line it draws at any size */
+.csx-beam { position: absolute; height: 0; transform-origin: 0 50%; transform: rotate(var(--a)); }
+.csx-beam > i { position: absolute; left: 0; width: 100%; transform-origin: 0 50%; border-radius: 999px; }
+.csx-beam .cb-t { top: calc(-3.5 * var(--u)); height: calc(7 * var(--u)); background: var(--gold); transform: scaleX(0); animation: csxGrow var(--dur) cubic-bezier(.35, .75, .25, 1) var(--d) both; }
+.csx-beam .cb-g { top: calc(-12 * var(--u)); height: calc(24 * var(--u)); background: linear-gradient(90deg, var(--c0), var(--c1)); opacity: .65; transform: scaleX(0);
+  animation: csxGrow var(--dur) cubic-bezier(.35, .75, .25, 1) var(--d) both, csxFade .75s ease-out calc(var(--d) + var(--dur)) forwards; }
+.csx-beam .cb-c { top: calc(-4.5 * var(--u)); height: calc(9 * var(--u)); background: linear-gradient(90deg, color-mix(in srgb, var(--c0) 55%, #fff), color-mix(in srgb, var(--c1) 55%, #fff)); transform: scaleX(0);
+  animation: csxGrow var(--dur) cubic-bezier(.35, .75, .25, 1) var(--d) both, csxFade .6s ease-out calc(var(--d) + var(--dur)) forwards; }
+.csx-beam .cb-h { top: calc(-18 * var(--u)); height: calc(36 * var(--u)); border-radius: 0; transform: translateX(-100%); opacity: 0; animation: csxRun var(--dur) cubic-bezier(.35, .75, .25, 1) var(--d) both; }
+.csx-beam .cb-h::after { content: ""; position: absolute; top: 0; right: calc(-18 * var(--u)); width: calc(36 * var(--u)); height: 100%; border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 20%, color-mix(in srgb, var(--c1) 70%, #fff) 38%, transparent 70%); }
+@keyframes csxGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes csxFade { to { opacity: 0; } }
+@keyframes csxRun { 0% { transform: translateX(-100%); opacity: 0; } 3% { opacity: 1; } 88% { opacity: 1; } 100% { transform: translateX(0); opacity: 0; } }
+/* the sign it reaches pops, with rings and sparks in its colour */
+/* (until its beam arrives, a square waiting its turn wears a cover in the closed look, which fades as it pops) */
+.csx-sq.pop { animation: csxPop .55s ease-out var(--d) both; }
+@keyframes csxPop { 0% { transform: translate(-50%, -50%) scale(1); } 40% { transform: translate(-50%, -50%) scale(1.22); } 70% { transform: translate(-50%, -50%) scale(.96); } 100% { transform: translate(-50%, -50%) scale(1); } }
+.csx-cover { position: absolute; inset: -2px; border-radius: inherit; border: 2px solid var(--line); background: color-mix(in srgb, var(--panel) 60%, transparent); pointer-events: none;
+  animation: csxFade .16s linear var(--d) forwards; }
+.csx-dot.pop { animation: csxDot .45s ease-out var(--d) both; }
+@keyframes csxDot { 0% { transform: translate(-50%, -50%) scale(.5); opacity: .3; } 45% { transform: translate(-50%, -50%) scale(2); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+.csx-ring { position: absolute; width: 4.6%; min-width: calc(26px * var(--z, 1)); max-width: calc(42px * var(--z, 1)); aspect-ratio: 1; border-radius: 50%; border: 3px solid var(--c, var(--gold));
+  transform: translate(-50%, -50%) scale(.7); opacity: 0; animation: csxRing .8s cubic-bezier(.15, .6, .3, 1) var(--d) both; }
+.csx-ring.r2 { border-width: 2px; border-color: var(--gold); animation-duration: 1s; }
+@keyframes csxRing { 0% { transform: translate(-50%, -50%) scale(.7); opacity: 0; } 8% { opacity: .95; } 100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; } }
+.csx-spk { position: absolute; width: calc(7px * var(--z, 1)); height: calc(7px * var(--z, 1)); border-radius: 50%; background: radial-gradient(circle, #fff 0 30%, var(--c) 62%);
+  opacity: 0; transform: translate(-50%, -50%) rotate(var(--r)); animation: csxSpk .7s cubic-bezier(.2, .7, .3, 1) var(--d) both; }
+@keyframes csxSpk { 0% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--r)) translateX(calc(10px * var(--z, 1))) scale(1); } 12% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--r)) translateX(calc(38px * var(--z, 1))) scale(.3); } }
+.csx-emblem.flash { animation: csxEmb 1s ease-out var(--d) both; }
+@keyframes csxEmb { 0% { opacity: .16; transform: translate(-50%, -50%) scale(1); } 25% { opacity: .55; transform: translate(-50%, -50%) scale(1.07); } 100% { opacity: .16; transform: translate(-50%, -50%) scale(1); } }
+.csx-map.full .csx-emblem.flash { animation-name: csxEmbFull; }
+@keyframes csxEmbFull { 0% { opacity: .16; transform: translate(-50%, -50%) scale(1); } 25% { opacity: .7; transform: translate(-50%, -50%) scale(1.07); } 100% { opacity: .4; transform: translate(-50%, -50%) scale(1); } }
+/* what it adds: what just went up lights up once */
+.csx-fx li { position: relative; }
+.csx-fx li.up::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--gold); opacity: 0; pointer-events: none; animation: csxUp 1.1s ease-out var(--d) both; }
+.csx-fx li.up[data-c="B"]::after { background: var(--buster); }
+.csx-fx li.up[data-c="A"]::after { background: var(--arts); }
+.csx-fx li.up[data-c="Q"]::after { background: var(--quick); }
+.csx-fx li.cs.up::after { background: var(--csx-cs); }
+@keyframes csxUp { 0% { opacity: 0; } 25% { opacity: .3; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .csx-anim, .csx-cover { display: none; } .csx-sq.pop, .csx-dot.pop, .csx-emblem.flash, .csx-fx li.up::after, .csx-tab.grow .csx-bar { animation: none; } }
+
+/* zoom: + and − in the corner; zoomed in, the frame keeps its height and the map scrolls (or drags) inside it */
+.csx-map-box { position: relative; }
+.csx-map-wrap.zoomed { cursor: grab; }
+.csx-map-wrap.drag { cursor: grabbing; user-select: none; }
+.csx-zoom { position: absolute; right: 10px; bottom: 10px; z-index: 2; display: flex; align-items: center; gap: 2px; padding: 3px;
+  border: 1px solid var(--line); border-radius: 11px; background: color-mix(in srgb, var(--panel) 92%, transparent); box-shadow: var(--shadow); }
+.csx-zoom button { all: unset; box-sizing: border-box; cursor: pointer; min-width: 36px; height: 36px; padding: 0 6px; display: grid; place-items: center; border-radius: 8px;
+  font-size: 19px; font-weight: 600; line-height: 1; color: var(--ink); }
+.csx-zoom button.csx-zl { min-width: 52px; font: 600 12px/1 var(--f-data); color: var(--muted); font-variant-numeric: tabular-nums; }
+.csx-zoom button:hover:not(:disabled) { background: var(--sunken); }
+.csx-zoom button:disabled { cursor: default; opacity: .4; }
+.csx-zoom button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+@media (pointer: coarse) { .csx-zoom button { min-width: 42px; height: 42px; } .csx-zoom button.csx-zl { min-width: 54px; } }

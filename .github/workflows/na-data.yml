@@ -80,12 +80,14 @@ jobs:
               exit 0
             fi
           fi
-          # 22 Nov 2026: on another branch, a push that leaves tools/fetch_na.py as it was (one changing only this file) is
-          # a test run: it downloads and rebuilds, and commits nothing. A commit from this job holds that branch's pull
-          # request until someone approves its tests (GitHub, since June 2026), so it commits only when the branch
-          # changed what's downloaded. "Run workflow" on a branch still commits.
-          if [ "$GITHUB_EVENT_NAME" = "push" ] && ! jq -e '[.commits[]? | (.added + .modified)[]] | index("tools/fetch_na.py")' "$GITHUB_EVENT_PATH" >/dev/null; then
-            echo "A test run on $GITHUB_REF_NAME: this push didn't change tools/fetch_na.py, so NA's data was downloaded and built, and nothing is committed." | tee -a "$GITHUB_STEP_SUMMARY"
+          # 22 Nov 2026: on another branch, the job commits only when the branch changed what's downloaded
+          # (tools/fetch_na.py differs from main's); otherwise (a branch changing only this file) it's a test run that
+          # downloads and rebuilds and commits nothing. A commit from this job holds that branch's pull request until
+          # someone approves its tests (GitHub, since June 2026). "Run workflow" on a branch still commits.
+          # (25 Nov: the branch against main, from GitHub's compare. The push's own list of commits was empty for a new
+          # branch, so a new branch's first push never committed, and it lists 20 commits at most.)
+          if [ "$GITHUB_EVENT_NAME" = "push" ] && ! gh api "repos/$GITHUB_REPOSITORY/compare/main...$GITHUB_SHA" --jq '[.files[].filename] | index("tools/fetch_na.py")' | grep -q '^[0-9]'; then
+            echo "A test run on $GITHUB_REF_NAME: the branch doesn't change tools/fetch_na.py, so NA's data was downloaded and built, and nothing is committed." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           { echo "NA data: $(date -u +'%d %b %Y') (tools/fetch_na.py)"; echo; cat na_summary.md; } > /tmp/na_msg.txt

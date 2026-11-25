@@ -584,6 +584,45 @@ for c in CCS:
     if c.get("illustrator"): rec["il"] = c["illustrator"].strip()
     ccs.append(rec)
 ccs.sort(key=lambda r: r["no"])
+# 0.55.0: Class Score, the game's nine class boards (data/atlas/class_boards.json from tools/fetch_na.py). Each square:
+# [id, x, y, kind, ref, icon, cost, start]. kind "p" a sign that raises a passive (ref: its skill) by one level, "c" one
+# that raises a Command Spell's effect (ref: the spell), "l" a lock that opens with Torches, "b" an empty square on the way.
+# Lines join squares; a sign opens once a square next to it is open (the two start signs first), as in the game. The
+# skills' values are per level, in % (the game's are tenths of a percent).
+CB_PATH = os.path.join(ATLAS, "class_boards.json")
+CB_RAW = json.load(_open(CB_PATH)) if os.path.exists(CB_PATH) or os.path.exists(CB_PATH + ".gz") else []
+CB_CARD = {"cardBuster": "B", "cardArts": "A", "cardQuick": "Q", "cardExtra": "E"}
+cb = {"boards": [], "sk": {}, "cs": {}, "items": {}}
+def cb_items(lst):
+    out = []
+    for it in lst or []:
+        i = it["item"]; cb["items"].setdefault(str(i["id"]), [i.get("name") or "", p(i.get("icon") or "")]); out.append([i["id"], it["amount"]])
+    return out
+for x in sorted(CB_RAW, key=lambda r: r["id"]):
+    sq = []
+    for q in x.get("squares") or []:
+        ts, tc = q.get("targetSkill"), q.get("targetCommandSpell")
+        if ts:
+            kind, ref = "p", ts["id"]
+            if str(ref) not in cb["sk"]:
+                f = (ts.get("functions") or [{}])[0]; bf = (f.get("buffs") or [{}])[0]
+                card = next((CB_CARD[t["name"]] for t in bf.get("tvals") or [] if t.get("name") in CB_CARD), "")
+                cb["sk"][str(ref)] = {"n": ts.get("name") or "", "b": bf.get("type") or "", "c": card, "v": [round((v.get("Value") or 0) / 10, 2) for v in f.get("svals") or []]}
+        elif tc:
+            kind, ref = "c", tc["id"]
+            if str(ref) not in cb["cs"]:
+                fs = tc.get("functions") or []
+                vals = lambda t: next(([round((v.get("Value") or 0) / 10, 2) for v in f.get("svals") or []] for f in fs if (f.get("buffs") or [{}])[0].get("type") == t), [])
+                cb["cs"][str(ref)] = {"n": tc.get("name") or "", "d": clean(tc.get("detail") or ""), "atk": vals("upAtk"), "def": vals("upDefence")}
+        elif q.get("lock"): kind, ref = "l", 0
+        else: kind, ref = "b", 0
+        cost = cb_items(q.get("items")) + (cb_items((q.get("lock") or {}).get("items")) if q.get("lock") else [])
+        sq.append([q["id"], q["posX"], q["posY"], kind, ref, p(q.get("icon") or ""), cost, 1 if "start" in (q.get("flags") or []) else 0])
+    cls = []
+    for c in x.get("classes") or []:
+        n = CLS.get(c.get("className"), c.get("className") or "")
+        if n and n not in cls: cls.append(n)
+    cb["boards"].append({"id": x["id"], "n": x.get("name") or "", "cls": cls, "ic": p(x.get("icon") or ""), "sq": sq, "ln": [[l["prevSquareId"], l["nextSquareId"]] for l in x.get("lines") or []]})
 # HP and ATK at any level follow one of a few shared curves: stat = base + floor((max - base) * curve[lv] / 1000)
 CURVES = {}
 for x in S:
@@ -616,6 +655,7 @@ js += "const ATLAS_APPENDS = %s;\n" % json.dumps(APPENDS, ensure_ascii=False, se
 js += "const ATLAS_EXP = %s;\n" % json.dumps(EXPS, separators=(",", ":"))
 js += "const ATLAS_BOND = %s;\n" % json.dumps(BONDS, separators=(",", ":"))
 js += "const ATLAS_CC = %s;\n" % json.dumps(ccs, ensure_ascii=False, separators=(",", ":"))
+js += "const ATLAS_CB = %s;\n" % json.dumps(cb, ensure_ascii=False, separators=(",", ":"))
 # QP per grail by rarity, and how far each grail raises the level cap ([qp, addLvMax] for grail 1, 2, ...), from Atlas
 # Academy's NiceSvtGrailCost (NA, Oct 2026); each grail past Lv 100 also costs 30 of the servant's coins
 GRAIL = {
@@ -632,4 +672,5 @@ js += "const ATLAS_GRAIL = %s;\n" % json.dumps({str(k): [list(t) for t in v] for
 # (tools/build.py refuses to build if either gets through.)
 js = js.replace("</", "<\\/").replace("<!--", "\\u003c!--")
 with open(os.path.join(ROOT, "src", "data", "atlas_data.js"), "w", encoding="utf-8") as f: f.write(js.strip() + "\n")
+print("class boards", len(cb["boards"]))
 print("servants", len(out), "upcoming", len(ups), "ces", len(ces), "command codes", len(ccs), "bond tables", len(BONDS), "icons", len(icons), "bytes", len(js.encode()))

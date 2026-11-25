@@ -1,0 +1,77 @@
+/* ================= 0.55.0-beta: Class Score (68-class-score.js) ================= */
+.csx-lead { margin: 0; max-width: 72ch; color: var(--muted); line-height: 1.5; }
+.csx-on { display: inline-flex; gap: 8px; align-items: center; margin: 10px 0 0; font-size: 13px; }
+
+/* the nine boards */
+.csx-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; margin: 14px 0 0; }
+.csx-tab { all: unset; box-sizing: border-box; cursor: pointer; position: relative; display: grid; justify-items: center; align-content: start; gap: 3px;
+  padding: 8px 4px 10px; border: 1px solid var(--line); border-radius: 11px; background: var(--panel); overflow: hidden; text-align: center; }
+.csx-tab img { width: 28px; height: 28px; object-fit: contain; }
+.csx-tn { font-size: 12.5px; font-weight: 600; line-height: 1.2; }
+.csx-tc { font: 600 12px/1 var(--f-data); color: var(--muted); font-variant-numeric: tabular-nums; }
+.csx-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--gold); transform-origin: left; transform: scaleX(var(--p, 0)); }
+.csx-tab.on { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+.csx-tab.full .csx-tc { color: var(--gold); }
+.csx-tab:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* a board */
+.csx-board { margin-top: 18px; }
+.csx-bh { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+.csx-bh h3 { margin: 0; font-size: 18px; }
+.csx-bh h3 small { font-size: 13px; font-weight: 500; color: var(--muted); }
+.csx-count { margin: 0; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.csx-count b { color: var(--ink); font-family: var(--f-data); }
+.csx-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 330px); gap: 16px; margin-top: 10px; align-items: start; }
+@media (max-width: 980px) { .csx-body { grid-template-columns: minmax(0, 1fr); } }
+
+/* the star map: the game's own layout. Squares sit on their coordinates; nothing on it moves. */
+.csx-map-wrap { overflow-x: auto; overscroll-behavior-x: contain; border: 1px solid var(--line); border-radius: 14px;
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--gold) 9%, var(--sunken)) 0%, var(--sunken) 62%); }
+.csx-map { position: relative; min-width: 640px; }
+.csx-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
+.csx-lines line { stroke: var(--line); stroke-width: 5; stroke-linecap: round; }
+.csx-lines line.on { stroke: var(--gold); stroke-width: 7; }
+.csx-emblem { position: absolute; left: 50%; top: 50%; width: 15%; aspect-ratio: 1; object-fit: contain; transform: translate(-50%, -50%); opacity: .16; pointer-events: none; }
+.csx-dot { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: var(--line); transform: translate(-50%, -50%); }
+.csx-dot.on { background: var(--gold); }
+.csx-sq { all: unset; box-sizing: border-box; cursor: pointer; position: absolute; width: 4.6%; min-width: 26px; max-width: 42px; aspect-ratio: 1; transform: translate(-50%, -50%);
+  display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--line); background: var(--panel); color: var(--muted); }
+.csx-sq img { width: 82%; height: 82%; object-fit: contain; border-radius: 50%; opacity: .45; }
+.csx-sq.k-c { border-radius: 9px; }
+.csx-sq.k-c img { border-radius: 6px; }
+.csx-sq.k-l svg { width: 56%; height: 56%; }
+.csx-sq.can { border-style: dashed; border-color: var(--gold); }
+.csx-sq.can img { opacity: .7; }
+.csx-sq.on { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 16%, var(--panel)); color: var(--gold); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 22%, transparent); }
+.csx-sq.on img { opacity: 1; }
+.csx-sq.on[data-c="B"] { border-color: var(--buster); }
+.csx-sq.on[data-c="A"] { border-color: var(--arts); }
+.csx-sq.on[data-c="Q"] { border-color: var(--quick); }
+.csx-sq.sel { outline: 3px solid var(--focus); outline-offset: 2px; z-index: 1; }
+.csx-sq:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; z-index: 1; }
+@media (pointer: coarse) { .csx-sq { min-width: 30px; } }
+
+/* beside it: the picked sign, the totals, the materials */
+.csx-side { display: grid; gap: 12px; }
+.csx-sel { min-height: 4.5em; }
+.csx-hint, .csx-none { margin: 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+.csx-picked { display: grid; gap: 6px; padding: 12px 14px; border: 1px solid var(--gold); border-radius: 12px; background: var(--panel); }
+.csx-st { margin: 0; font-size: 12px; font-weight: 650; color: var(--gold); }
+.csx-what { margin: 0; font-size: 13.5px; line-height: 1.45; }
+.csx-k { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+.csx-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.csx-sum h4, .csx-costs h4 { margin: 0 0 6px; font-size: 13px; }
+.csx-fx { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.csx-fx li { display: flex; justify-content: space-between; gap: 10px; padding: 4px 8px; border-left: 3px solid var(--gold); border-radius: 3px 8px 8px 3px; background: var(--sunken); font-size: 13px; }
+.csx-fx li[data-c="B"] { border-left-color: var(--buster); }
+.csx-fx li[data-c="A"] { border-left-color: var(--arts); }
+.csx-fx li[data-c="Q"] { border-left-color: var(--quick); }
+.csx-fx small { font: 600 11.5px/1.6 var(--f-data); color: var(--muted); font-variant-numeric: tabular-nums; }
+.csx-costs { border-top: 1px solid var(--line); padding-top: 10px; }
+.csx-costs > summary { cursor: pointer; font-size: 13px; font-weight: 600; }
+.csx-costs[open] > summary { margin-bottom: 10px; }
+.csx-costs h4 { margin-top: 10px; }
+.csx-cost { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.csx-cost li { display: grid; grid-template-columns: 24px 1fr auto; align-items: center; gap: 8px; font-size: 13px; }
+.csx-cost img { width: 24px; height: 24px; object-fit: contain; }
+.csx-cost b { font: 600 12.5px/1 var(--f-data); font-variant-numeric: tabular-nums; }

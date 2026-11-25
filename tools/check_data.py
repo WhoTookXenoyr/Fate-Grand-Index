@@ -32,9 +32,10 @@ for k, one, many in (("ATLAS_S", "servant", "servants"), ("ATLAS_C", "Craft Esse
     if gone:
         problems.append("%d %s gone: %s" % (len(gone), one + " is" if len(gone) == 1 else many + " are", ", ".join("%s (No. %d)" % (x.get("n"), x["no"]) for x in gone[:20])))
 # 0.54.0's data is there: the bond calculator and the Command Codes page are empty without it (22 Nov 2026)
-for k, what in (("ATLAS_BOND", "bond tables"), ("ATLAS_CC", "Command Codes")):
+# (0.55.0: and the Class Score boards)
+for k, what in (("ATLAS_BOND", "bond tables"), ("ATLAS_CC", "Command Codes"), ("ATLAS_CB", "Class Score boards")):
     m = re.search(r"^const %s = (.*?);?$" % k, text, re.M)
-    if not m or not json.loads(m.group(1).rstrip(";")):
+    if not m or not (json.loads(m.group(1).rstrip(";")) if k != "ATLAS_CB" else json.loads(m.group(1).rstrip(";")).get("boards")):
         problems.append("no %s (%s is %s)" % (what, k, "missing" if not m else "empty"))
 if problems:
     raise SystemExit("The new data lost things NA still has, so nothing is committed. Is Atlas Academy's export partial? "

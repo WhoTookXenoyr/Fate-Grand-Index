@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until 0.50.0, beta from there until the full website and app: 1.0.0
-const APP_VER = "0.54.1-beta";
+const APP_VER = "0.55.0-beta";
 const APP_STAGE = /-beta\b/.test(APP_VER) ? "beta" : "alpha", APP_NUM = APP_VER.replace(/-.*$/, "");
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
@@ -164,6 +164,13 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.55.0-beta", d: "25 Nov 2026", t: "Class Score", i: [
+    "<b>Class Score</b>, a new page: the game's nine class boards (Saber to Berserker, Extra I and Extra II), drawn the way the game lays them out. The first step on the way to 1.0.",
+    "Open the signs you've opened in the game. A sign opens once a square next to it is open, starting from the two start signs, as in the game; locks open with Torches. Pick a sign further on and <b>Open the way here</b> opens every square on the way. Closing a sign closes what was only reached through it, and Undo puts it back.",
+    "Each board says what it adds (card strength, NP strength, critical damage, the Extra attack, star drops and Command Spell Excitation), what you've spent on it, and what the rest still costs: QP, Sand of Starlight, Torches and each class's materials.",
+    "<b>It counts</b> for every servant of the board's classes: card strength and NP strength in the NP calculator, and those plus critical damage, the Extra attack and star drops in the Battle simulator. <b>Count Class Score</b> on the page turns that off.",
+    "It's kept apart from your roster and syncs with your account. NA's data now brings the boards along; Van Gogh's third skill is NA's new one too."
+  ]},
   {v: "0.54.1-beta", d: "25 Nov 2026", t: "Security fixes: Coming to NA, sync and friend requests", i: [
     "<b>Coming to NA is only the owner's now, for real.</b> Until now the JP servants' skills, Noble Phantasm and numbers were inside the page for every visitor, only hidden, so anyone could read them in the page's source. The page has just their cards now (name, class, stars, picture, when), and the server sends the rest to the site's owner alone. For everyone else a servant opens once NA's own data has them (it's updated every three days).",
     "<b>The site's owner is set by friend code</b> (or account id). An email in OWNER no longer counts: the site never checks that an email belongs to whoever types it.",

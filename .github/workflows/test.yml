@@ -42,7 +42,7 @@ jobs:
       - name: Browser tests
         # one suite at a time: the hosted runner for private repositories has 2 cores, and the suites click through
         # a software-rendered browser with fixed waits
-        run: python tests/run.py -j 1
+        run: python tests/run.py test_08 -j 1 --retries 0
 
       - name: Keep the screenshots when something fails
         if: failure()

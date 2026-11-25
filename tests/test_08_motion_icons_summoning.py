@@ -171,6 +171,7 @@ with sync_playwright() as p:
         pg.click('[data-action="sm-roll"][data-n="11"]'); pg.wait_for_timeout(3600)
         pg.locator("#sm-results").scroll_into_view_if_needed(); pg.screenshot(path=f"{sp}/v11-phone{wdt}-summon.png")
         sw.append(pg.evaluate("document.documentElement.scrollWidth"))
+        check("DIAG %d %s" % (wdt, pg.evaluate("""() => [...document.querySelectorAll('body *')].filter((e) => { const r = e.getBoundingClientRect(); return r.width && r.right > innerWidth + 0.5; }).slice(0, 25).map((e) => e.tagName + '.' + String(e.className).slice(0, 40) + ' r=' + Math.round(e.getBoundingClientRect().right) + ' w=' + Math.round(e.getBoundingClientRect().width) + ' ' + JSON.stringify((e.textContent || '').trim().slice(0, 70)))""")), False)
         go_tab(pg, "home"); pg.wait_for_timeout(1000); sw.append(pg.evaluate("document.documentElement.scrollWidth"))
         pg.locator(".hm-b-vs").scroll_into_view_if_needed(); pg.screenshot(path=f"{sp}/v11-phone{wdt}-home.png")
         go_tab(pg, "servants"); pg.wait_for_timeout(700); pg.click('#list .row[data-id="oberon"]'); pg.wait_for_timeout(900)

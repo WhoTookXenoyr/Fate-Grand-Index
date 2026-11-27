@@ -15461,7 +15461,7 @@ bump = function (f, d) {
   const s = S.servants.find((x) => x.id === shownId()); if (!s || S.readOnly) return;
   const lv = apLevels(s), i = Number(m[1]);
   lv[i] = clamp(lv[i] + d, 0, 10); s.appends = lv;
-  renderDossier(); saveNow("servants", s);
+  renderDossier(); scheduleWrite("servants", s);
   const b = document.querySelector(`#dossier [data-action="bump"][data-f="${f}"][data-d="${d}"]`); if (b && !b.disabled) b.focus({preventScroll: true});
 };
 
@@ -15472,12 +15472,14 @@ document.addEventListener("change", (e) => {
   const before = s.appendPick, v = sel.value;
   if ((before || "") === v) return;
   if (v) s.appendPick = v; else delete s.appendPick;
-  saveNow("servants", s); plRedraw("select[data-ap-pick]");
+  plRedraw("select[data-ap-pick]");
   toastAction(v ? "Append skill 3 is " + v + "." : "Append skill 3 cleared.", "Undo", () => {
     const x = S.servants.find((y) => y.id === s.id); if (!x) return;
     if (before === undefined) delete x.appendPick; else x.appendPick = before;
-    saveNow("servants", x); plRedraw("select[data-ap-pick]");
+    plRedraw("select[data-ap-pick]"); saveNow("servants", x);
   });
+  // (saved after the toast, so if saving fails, its "Not saved" is the toast left showing)
+  saveNow("servants", s);
 });
 
 /* ---------- Servant Coins follow the + and − (0.24.0 fixes) ----------
@@ -15509,14 +15511,14 @@ bump = function (f, d) {
   else if (cost && dc > 0) next = cur + (log.length ? log.pop() : before === undefined ? 0 : dc);
   if (next === cur) return;
   if (next) s.coins = next; else delete s.coins;
-  saveNow("servants", s);
+  scheduleWrite("servants", s);
   const ci = document.querySelector("#dossier input[data-coins]"); if (ci && ci !== document.activeElement) ci.value = next || "";
   plPatch();
   const msg = (next > cur ? "+" + fmt(next - cur) : "−" + fmt(cur - next)) + " Servant Coins for " + why + (cur + dc < 0 ? " (you had " + fmt(cur) + ")" : "") + ": " + fmt(next) + " now.";
   toastAction(msg, "Undo", () => {
     const x = S.servants.find((y) => y.id === s.id); if (!x) return;
     if (before === undefined) delete x.coins; else x.coins = before;
-    saveNow("servants", x); renderDossier(true);
+    scheduleWrite("servants", x); renderDossier(true);
   });
 };
 
@@ -15559,7 +15561,7 @@ document.addEventListener("click", (e) => {
     });
     plRedraw(`[data-action="pl-pre"][data-k="${k}"]`); return;
   }
-  if (a === "pl-clear") { delete s.plan; PL_OPEN[s.id] = true; saveNow("servants", s); plRedraw("details.pl > summary"); toast("Plan cleared for " + s.name + "."); return; }
+  if (a === "pl-clear") { delete s.plan; PL_OPEN[s.id] = true; plRedraw("details.pl > summary"); toast("Plan cleared for " + s.name + "."); saveNow("servants", s); return; }
   if (a === "pl-done") { planDone(s); return; }
 });
 document.addEventListener("toggle", (e) => {
@@ -15614,14 +15616,15 @@ function planDone(s) {
   delete s.plan; delete s.ascAt;
   if (typeof syncStats === "function") syncStats(s);
   evPrefSave();
-  renderSummary(); renderList(); renderDossier(true); renderRanking(); saveNow("servants", s);
+  renderSummary(); renderList(); renderDossier(true); renderRanking();
   toastAction(s.name + " is at the plan now" + (Object.keys(haveBefore).length ? ", and what it used is out of your materials." : "."), "Undo", () => {
     const cur = S.servants.find((x) => x.id === s.id); if (!cur) return;
     Object.keys(before).forEach((k) => { if (before[k] === undefined) delete cur[k]; else cur[k] = before[k]; });
     Object.keys(haveBefore).forEach((k) => { evPref.have[k] = haveBefore[k]; }); evPrefSave();
-    renderSummary(); renderList(); renderDossier(true); renderRanking(); saveNow("servants", cur);
-    toast("Undone: " + cur.name + " and your materials are back.");
+    renderSummary(); renderList(); renderDossier(true); renderRanking();
+    toast("Undone: " + cur.name + " and your materials are back."); saveNow("servants", cur);
   });
+  saveNow("servants", s);
 }
 /* ================= 0.24.0: NP damage calculator =================
    Under the NP table on the servant page. It uses the NP version on screen (its Damage row, and an Overcharge row of

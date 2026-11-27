@@ -28,7 +28,8 @@ const CF_O = [null, "@@asset:cardframe-o1.webp@@", "@@asset:cardframe-o2.webp@@"
    game's stars on top:
    - n is 0 as summoned, 1 once grailed past its own level cap (the cup), 2 at Lv 100, 3 at Lv 120 (rays); a ★0's rows
      start at 1 (as in the game, and Chaldea's report: e.g. rarity0_1);
-   - 0 is 200 × 60, 1 and 2 are 200 × 52, the Lv 120 row is 350 × 52 (cf-st-a, -b, -c in 29-card-frames.css).
+   - 0 is 200 × 60, 1 and 2 are 200 × 52, the Lv 120 row is 350 × 52 (cf-st-a, -b, -c in 29-card-frames.css); a ★0's
+     crest hangs from the frame's top edge (cf-st0).
    The emblem replaces the gold badge (CLASS_LOGO, recoloured by filters for silver and bronze) where the game has one.
    Both come from static.atlasacademy.io; when one can't be loaded (offline, say), the frame goes back to the one with
    its stars drawn in (CF_F) and the badge, so a card never shows without stars. Past Chaldea's servants get it too
@@ -92,7 +93,7 @@ function cfLayerHTML(fr, cls, atk, hp) {
   // at Lv 120 the class in the diamond turns rainbow too
   return (lv ? `<span class="cf-aura" aria-hidden="true"><i></i><i></i></span>` : "")
     + (st ? `<img class="cf-img" src="${fr.bare}" data-fb="${fr.src}" alt="" aria-hidden="true" draggable="false">`
-      + `<img class="cf-st cf-st-${st.w}" src="${CF_AA}rarity${st.k}_${st.n}.png" alt="" aria-hidden="true" draggable="false">`
+      + `<img class="cf-st cf-st-${st.w}${st.k === 0 ? " cf-st0" : ""}" src="${CF_AA}rarity${st.k}_${st.n}.png" alt="" aria-hidden="true" draggable="false">`
       : `<img class="cf-img" src="${fr.src}" alt="" aria-hidden="true" draggable="false">`)
     + (lv ? `<span class="cf-rb" aria-hidden="true"><i></i></span><span class="cf-rs" aria-hidden="true"><i></i></span>` : "")
     + (logo ? `<span class="cf-cls${id ? " aa" : ""}" aria-hidden="true"><img src="${emb}"${id ? ` data-fb="${logo}"` : ""} alt="" draggable="false">${lv >= 120 ? `<span class="cf-cls-rb" style="--cf-m: url('${emb}')"><i></i></span>` : ""}</span>` : "")

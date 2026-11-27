@@ -4306,6 +4306,8 @@ input.gr-auto { background: var(--sunken) !important; color: var(--muted); }
 .cf > .cf-st-a { left: 30.078%; width: 39.063%; top: -1.6%; }
 .cf > .cf-st-b { left: 30.078%; width: 39.063%; top: -1.029%; }
 .cf > .cf-st-c { left: 15.43%; width: 68.359%; top: -1.029%; }
+/* a ★0 has a crest instead of stars, flat along its top: it hangs from the frame's top edge, cup and all */
+.cf > .cf-st.cf-st0 { top: 0; }
 .cf > .cf-cls.aa { width: 21%; }
 /* ATK and HP: white with a dark edge, like the game's numbers */
 .cf > .cf-n { position: absolute; z-index: 4; bottom: 7.7%; font-family: var(--f-display); font-variation-settings: "wdth" 85; font-weight: 800; font-size: 4.2cqw; line-height: 1; letter-spacing: .02em;
@@ -20373,7 +20375,8 @@ const CF_O = [null, "data:image/webp;base64,UklGRsSdAABXRUJQVlA4WAoAAAAQAAAA/wEA
    game's stars on top:
    - n is 0 as summoned, 1 once grailed past its own level cap (the cup), 2 at Lv 100, 3 at Lv 120 (rays); a ★0's rows
      start at 1 (as in the game, and Chaldea's report: e.g. rarity0_1);
-   - 0 is 200 × 60, 1 and 2 are 200 × 52, the Lv 120 row is 350 × 52 (cf-st-a, -b, -c in 29-card-frames.css).
+   - 0 is 200 × 60, 1 and 2 are 200 × 52, the Lv 120 row is 350 × 52 (cf-st-a, -b, -c in 29-card-frames.css); a ★0's
+     crest hangs from the frame's top edge (cf-st0).
    The emblem replaces the gold badge (CLASS_LOGO, recoloured by filters for silver and bronze) where the game has one.
    Both come from static.atlasacademy.io; when one can't be loaded (offline, say), the frame goes back to the one with
    its stars drawn in (CF_F) and the badge, so a card never shows without stars. Past Chaldea's servants get it too
@@ -20437,7 +20440,7 @@ function cfLayerHTML(fr, cls, atk, hp) {
   // at Lv 120 the class in the diamond turns rainbow too
   return (lv ? `<span class="cf-aura" aria-hidden="true"><i></i><i></i></span>` : "")
     + (st ? `<img class="cf-img" src="${fr.bare}" data-fb="${fr.src}" alt="" aria-hidden="true" draggable="false">`
-      + `<img class="cf-st cf-st-${st.w}" src="${CF_AA}rarity${st.k}_${st.n}.png" alt="" aria-hidden="true" draggable="false">`
+      + `<img class="cf-st cf-st-${st.w}${st.k === 0 ? " cf-st0" : ""}" src="${CF_AA}rarity${st.k}_${st.n}.png" alt="" aria-hidden="true" draggable="false">`
       : `<img class="cf-img" src="${fr.src}" alt="" aria-hidden="true" draggable="false">`)
     + (lv ? `<span class="cf-rb" aria-hidden="true"><i></i></span><span class="cf-rs" aria-hidden="true"><i></i></span>` : "")
     + (logo ? `<span class="cf-cls${id ? " aa" : ""}" aria-hidden="true"><img src="${emb}"${id ? ` data-fb="${logo}"` : ""} alt="" draggable="false">${lv >= 120 ? `<span class="cf-cls-rb" style="--cf-m: url('${emb}')"><i></i></span>` : ""}</span>` : "")

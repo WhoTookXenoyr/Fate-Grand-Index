@@ -70,6 +70,7 @@ with sync_playwright() as p:
               c["st"] == f"{AA}{want}.png" and c["w"] == [f"cf-st-{w}"] and f"cf-{metal}" in c["cls"] and c["emb"] == f"{AA}class{m}_{cid}.png")
     c = card(pg)
     check(f"at Lv 120 the emblem's rainbow is cut to the game's emblem ({c['mask']})", c["mask"] == f"url('{AA}class1_{cid}.png')")
+    check(f"a ★0's crest hangs from the frame's top edge ({c['top']} px)", c["top"] == 0 and pg.locator("#dossier .art-frame > .cf-st.cf-st0").count() == 1)
     for k, n in (("Shielder", 8), ("Moon Cancer", 23), ("Beast", 33)):
         set_sv(pg, sid, 4, 80, k)
         c = card(pg)

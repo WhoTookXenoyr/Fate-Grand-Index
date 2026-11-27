@@ -142,3 +142,12 @@
 .csx-zoom button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 @media (pointer: coarse) { .csx-zoom button { min-width: 42px; height: 42px; } .csx-zoom button.csx-zl { min-width: 54px; } }
 .csx-map img { -webkit-user-drag: none; user-select: none; }
+
+/* ================= 0.57.0: what you have, from the Materials page ================= */
+.csx-cost.hv li { grid-template-columns: 24px 1fr auto minmax(9ch, auto); }
+.csx-cost li > i { width: 24px; height: 24px; }
+.csx-cost small { font: 500 11.5px/1 var(--f-data); color: var(--quick); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.csx-cost li.short small { color: var(--buster); font-weight: 650; }
+.csx-mt { margin: 10px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--muted); }
+.csx-mt .linkish { font-size: inherit; }
+.csx-spend { display: flex; gap: 8px; align-items: center; font-size: 13px; }

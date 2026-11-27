@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until 0.50.0, beta from there until the full website and app: 1.0.0
-const APP_VER = "0.56.1-beta";
+const APP_VER = "0.57.0-beta";
 const APP_STAGE = /-beta\b/.test(APP_VER) ? "beta" : "alpha", APP_NUM = APP_VER.replace(/-.*$/, "");
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
@@ -164,6 +164,13 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.57.0-beta", d: "27 Nov 2026", t: "Materials", i: [
+    "<b>Materials</b>, a new page: how many of each material you have. Every ascension, skill and append material NA's servants use, QP, Holy Grails, Crystallized Lore, and Class Score's Sand of Starlight and Torches, sorted as the game does: Gems, Magic Gems and Secret Gems a class to a column, Pieces and Monuments, then bronze, silver and gold. A servant's own ascension items (Santa's, an event servant's) show once one of your servants needs them.",
+    "Beside each, what's needed and how much you're short. Count it for <b>your plans</b> (the Planner on servant pages, append skills and Grails included), or for <b>every servant</b> ascended with skills to 10 (or 9), and tick <b>the rest of Class Score</b> to add every board's unopened squares. <b>Short</b> shows only what you're short of, and Find looks a material up by name.",
+    "<b>It's the same list</b> the Planner and the Event page's shop calculator use, so anything you'd filled in there is already here, and the Planner's <b>Done</b> still takes what it used out of it. It syncs with your account and goes into backups.",
+    "<b>Class Score</b> shows what you have beside what a sign costs, in red when you're short. Tick <b>Take what I open out of my materials</b> and opening squares takes their cost out of your numbers (Undo puts it back).",
+    "A change made on another device while this page is open shows at once, and typing here afterwards no longer writes the older copy over it."
+  ]},
   {v: "0.56.1-beta", d: "27 Nov 2026", t: "The server keeps room for everyone", i: [
     "<b>A ceiling for the whole site.</b> Every account shares one database, and each already had its own share of it. A few new accounts filling theirs at once could still have filled the database, and then nobody could sync, sign in or add friends. Now, once the database is 80% full, new accounts, new pictures and rosters that grow wait, and say so. Signing in, deleting and anything that makes a roster smaller always work, and once space is freed things carry on.",
     "<b>Pictures kept in the database</b> (sites without Cloudflare's R2): 25 MB an account, and up to 100 pictures an hour. Past that, the rest stay on your device and go up later.",

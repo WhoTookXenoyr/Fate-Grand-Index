@@ -636,7 +636,7 @@ function evCalcHTML(m) {
         : EV.dropBusy ? "Working out the best quest from the drops…" : "No free quest drops this currency in Atlas Academy's data yet."}</p></div>`};
   });
   return `<div class="ev-cctl"><label>Count <select data-ev-to><option value="10"${evPref.to === 10 ? " selected" : ""}>skills to Lv 10</option><option value="9"${evPref.to === 9 ? " selected" : ""}>skills to Lv 9</option><option value="plan"${evPref.to === "plan" ? " selected" : ""}>your plans</option></select></label>
-      <p class="ev-note">${evPref.to === "plan" ? `Counts what the plans on your servant pages need (${plural(S.servants.filter((x) => x.plan).length, "plan")}), append skills included.` : `Counts your ${plural(own, "servant")} (not Guests): ascensions still to do by level, and skills up to Lv ${evPref.to}. Append skills aren't counted; pick "your plans" to count them.`} Fill in what you already have and the numbers follow.</p></div>`
+      <p class="ev-note">${evPref.to === "plan" ? `Counts what the plans on your servant pages need (${plural(S.servants.filter((x) => x.plan).length, "plan")}), append skills included.` : `Counts your ${plural(own, "servant")} (not Guests): ascensions still to do by level, and skills up to Lv ${evPref.to}. Append skills aren't counted; pick "your plans" to count them.`} Fill in what you already have and the numbers follow (it's the same list as the <button type="button" class="linkish" data-action="tab" data-tab="materials">Materials</button> page).</p></div>`
     + evSub("calc", parts);
 }
 const evMiRow = (x) => `<li class="ev-mi"><span class="ev-no">${x.no || ""}</span><span class="ev-mt">${esc(x.n)}</span><span class="ev-gs">${x.g.map((g) => evIt(g, false, true)).join("")}</span></li>`;

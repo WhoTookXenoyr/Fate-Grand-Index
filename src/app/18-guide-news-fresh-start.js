@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until 0.50.0, beta from there until the full website and app: 1.0.0
-const APP_VER = "0.58.0-beta";
+const APP_VER = "0.59.0-beta";
 const APP_STAGE = /-beta\b/.test(APP_VER) ? "beta" : "alpha", APP_NUM = APP_VER.replace(/-.*$/, "");
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
@@ -164,6 +164,14 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.59.0-beta", d: "27 Nov 2026", t: "Two rankings: Raised and Power", i: [
+    "The Ranking has two scores now, with a switch at the top. <b>Raised</b> is how far you've raised each servant, measured against that servant's own ceiling, so rarity and class don't count: a fully raised Arash scores 100, the same as a fully raised Altria. <b>Power</b> is how strong they are.",
+    "<b>Raised</b> counts skills (33), level and grails (20), NP level (15), Fou (12), append skills (10) and Bond (10). Reaching a servant's own max level is worth the same whatever their rarity.",
+    "<b>Power</b> counts ATK and HP with Fou (45), skills (25), the NP's strength at its level (20) and append skills (10). Stats are measured against the best of the same class, so Casters and Assassins aren't pushed down by the class ATK bonus, and maxed ★5s no longer all tie at 100.",
+    "Before, rarity still counted through raw stats (about 14 points between a ★1 and a ★5 raised the same way), and the note above the ranking still listed it.",
+    "NP level now follows the game's damage steps, where NP2 is the big one. <b>Append skills</b> count in both, and the next-upgrade hints can suggest one.",
+    "Each ranking has its own tier cut-offs and its own arrows. The home page's hand and the Story page's picks use Power; Versus shows both."
+  ]},
   {v: "0.58.0-beta", d: "27 Nov 2026", t: "The game's stars and class emblems on card frames", i: [
     "<b>Card frames</b> on servant pages and in Past Chaldea now wear the game's own star row and class emblem, taken from the game's files through Atlas Academy. Your frames stay as they are; the stars and the emblem sit on top.",
     "The star row changes the way it does in the game: a <b>Holy Grail</b> under the stars once a servant is grailed past their cap, a brighter row at <b>Lv 100</b>, and the wide one with rays at <b>Lv 120</b>. ★0 servants get their dark crest instead of stars.",
@@ -498,7 +506,7 @@ function tourHTML() {
 /* ---------- start fresh ---------- */
 // Only this browser's copy is emptied: other browsers and computers each keep their own list.
 const PREF_KEYS = ["spirit-origin-list:v1:theme", "spirit-origin-list:v1:fonts", "spirit-origin-list:v1:fps", "spirit-origin-list:v1:affinity", "spirit-origin-list:v1:icauto",
-  "spirit-origin-list:v1:past", "spirit-origin-list:v1:rankBase", "spirit-origin-list:v1:rankView", "spirit-origin-list:v1:rankCustom", NEWS_KEY];
+  "spirit-origin-list:v1:past", "spirit-origin-list:v1:rankBase", "spirit-origin-list:v1:rankView", "spirit-origin-list:v1:rankMode", "spirit-origin-list:v1:rankCustom", NEWS_KEY];
 const SF_WORD = "START FRESH";
 function freshHTML() {
   const own = S.servants.filter((s) => !s.wish).length, gu = S.servants.filter((s) => s.wish).length, pa = (S.parties || []).length;

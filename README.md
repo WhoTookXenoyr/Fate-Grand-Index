@@ -260,6 +260,16 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
   - **Fresh copies**: `syncApply` and `evPrefSave` are wrapped. A pull that brings `extras/event` reloads `evPref` (`evPrefFresh`, compared against the last raw string written or read), and the page reloads it before drawing or saving, so an old in-memory copy is never saved over a newer synced one.
 - **Class Score**: `csCostHTML(list, have)` adds "have N" (red when short) once anything's filled in; the side panel links to the page; `spend` in its state ("Take what I open out of my materials") makes `csChange` take the new squares' cost out of the things you've filled in (never below 0), with Undo.
 - The Planner's foot and the Event calculator's note link to the page. `window.__fgiMaterials` for the tests; `tests/test_57_v057.py`. The tab counts in four older suites include Materials.
+## 0.58.0-beta: the game's stars and class emblems on card frames
+- Noyr (27 Nov 2026), after asking for the Grand Servant card's pieces in Atlas Academy's JP assets: "if you find everything from rarities and things, why not just add them to existing stuff in fgi".
+- The pieces are Atlas Academy's JP `CharaGraphOption` sprites, loaded at runtime from `https://static.atlasacademy.io/JP/CharaGraphOption/<name>.png` (CORS is open, the CSP's `img-src https:` allows them, the service worker doesn't keep them):
+  - star rows `rarity{★}_{n}`: `n` is 0 as summoned, 1 once grailed (past the rarity's own cap by NA's grail table, `cfGrails`), 2 at Lv 100, 3 at Lv 120; a ★0 counts from 1 (its crest; there's no `rarity0_0`), as the game and Chaldea do. `_0` is 200 × 60, `_1` and `_2` are 200 × 52, the Lv 120 row (★0: `_4`) is 350 × 52.
+  - emblems `class{1 bronze, 2 silver, 3 gold}_{class id}` (106 × 106), by the game's class ids in `CF_CLS_ID` (Beast is 33; 40 is the same picture).
+- `cfFrame` adds `bare`, the frame without stars (`cardframe-f0` for bronze; the new `cardframe-s0` and `cardframe-g0` are f3 and f5 with f0's starless top recoloured to their metal), and `stars` (`cfStarsOf(★, grails, level)`). `cfLayerHTML` draws `.cf-img` from `bare` with the baked frame in `data-fb`, the row as `img.cf-st.cf-st-{a,b,c}` and the emblem as `.cf-cls.aa`.
+  - Placement (`29-card-frames.css`), measured against the baked frames' stars and checked on a Pages preview with the real sprites: a 200-wide row starts at x 154 of the frame's 512 (39.063% wide), 14 px above the top for `_0` and 9 px for the 52-tall rows (their stars sit 5 px higher in the sprite); the 350-wide row starts at x 79. The emblem's box is 21% wide (the sprite has room around it). The silver and bronze filters only touch the old badge (`.cf-cls:not(.aa)`), and at Lv 120 the emblem's rainbow is masked by the emblem itself.
+  - Fallback: a capture-phase `error` listener on `document`. A row that fails is taken off and `.cf-img` gets the baked frame back; an emblem that fails gets `CLASS_LOGO` back (filters and mask included). The Card frame switch's thumbnail stays the baked frame.
+- Craft Essence frames are unchanged. The Grand frame and the gold Grand emblems (`class3_10001`…) wait for the Grand Graph update.
+- `tests/test_58_v058.py` (sprite names for each rarity, grail, Lv 100/120 and ★0 state, the emblem's metal and class id, Past Chaldea, and the offline fallback).
 
 ## Your data
 

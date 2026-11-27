@@ -4304,8 +4304,8 @@ input.gr-auto { background: var(--sunken) !important; color: var(--muted); }
    around the same middle; the game's emblem has room around it in its 106 × 106 sprite, so its box is bigger */
 .cf > .cf-st { position: absolute; z-index: 4; height: auto; pointer-events: none; user-select: none; }
 .cf > .cf-st-a { left: 30.078%; width: 39.063%; top: -1.6%; }
-.cf > .cf-st-b { left: 30.078%; width: 39.063%; top: -1.143%; }
-.cf > .cf-st-c { left: 15.43%; width: 68.359%; top: -1.143%; }
+.cf > .cf-st-b { left: 30.078%; width: 39.063%; top: -1.029%; }
+.cf > .cf-st-c { left: 15.43%; width: 68.359%; top: -1.029%; }
 .cf > .cf-cls.aa { width: 21%; }
 /* ATK and HP: white with a dark edge, like the game's numbers */
 .cf > .cf-n { position: absolute; z-index: 4; bottom: 7.7%; font-family: var(--f-display); font-variation-settings: "wdth" 85; font-weight: 800; font-size: 4.2cqw; line-height: 1; letter-spacing: .02em;
@@ -12215,7 +12215,7 @@ renderAll = function () { renderAll13(); renderFillNote(); };
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until 0.50.0, beta from there until the full website and app: 1.0.0
-const APP_VER = "0.57.0-beta";
+const APP_VER = "0.58.0-beta";
 const APP_STAGE = /-beta\b/.test(APP_VER) ? "beta" : "alpha", APP_NUM = APP_VER.replace(/-.*$/, "");
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
@@ -12378,6 +12378,12 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.58.0-beta", d: "27 Nov 2026", t: "The game's stars and class emblems on card frames", i: [
+    "<b>Card frames</b> on servant pages and in Past Chaldea now wear the game's own star row and class emblem, taken from the game's files through Atlas Academy. Your frames stay as they are; the stars and the emblem sit on top.",
+    "The star row changes the way it does in the game: a <b>Holy Grail</b> under the stars once a servant is grailed past their cap, a brighter row at <b>Lv 100</b>, and the wide one with rays at <b>Lv 120</b>. ★0 servants get their dark crest instead of stars.",
+    "The <b>class emblem</b> comes in the frame's metal, bronze, silver or gold, and moves up with grails the way the frame does.",
+    "Offline, or while Atlas Academy can't be reached, a card goes back to the frame with its stars drawn in and the old badge, so it never shows up without stars."
+  ]},
   {v: "0.57.0-beta", d: "27 Nov 2026", t: "Materials", i: [
     "<b>Materials</b>, a new page: how many of each material you have. Every ascension, skill and append material NA's servants use, QP, Holy Grails, Crystallized Lore, and Class Score's Sand of Starlight and Torches, sorted as the game does: Gems, Magic Gems and Secret Gems a class to a column, Pieces and Monuments, then bronze, silver and gold. A servant's own ascension items (Santa's, an event servant's) show once one of your servants needs them.",
     "Beside each, what's needed and how much you're short. Count it for <b>your plans</b> (the Planner on servant pages, append skills and Grails included), or for <b>every servant</b> ascended with skills to 10 (or 9), and tick <b>the rest of Class Score</b> to add every board's unopened squares. <b>Short</b> shows only what you're short of, and Find looks a material up by name.",

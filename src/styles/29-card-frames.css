@@ -17,8 +17,8 @@
    around the same middle; the game's emblem has room around it in its 106 × 106 sprite, so its box is bigger */
 .cf > .cf-st { position: absolute; z-index: 4; height: auto; pointer-events: none; user-select: none; }
 .cf > .cf-st-a { left: 30.078%; width: 39.063%; top: -1.6%; }
-.cf > .cf-st-b { left: 30.078%; width: 39.063%; top: -1.143%; }
-.cf > .cf-st-c { left: 15.43%; width: 68.359%; top: -1.143%; }
+.cf > .cf-st-b { left: 30.078%; width: 39.063%; top: -1.029%; }
+.cf > .cf-st-c { left: 15.43%; width: 68.359%; top: -1.029%; }
 .cf > .cf-cls.aa { width: 21%; }
 /* ATK and HP: white with a dark edge, like the game's numbers */
 .cf > .cf-n { position: absolute; z-index: 4; bottom: 7.7%; font-family: var(--f-display); font-variation-settings: "wdth" 85; font-weight: 800; font-size: 4.2cqw; line-height: 1; letter-spacing: .02em;

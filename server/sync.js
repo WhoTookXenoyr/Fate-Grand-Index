@@ -8,6 +8,7 @@
    D1-only setup, so up to 1.9 MB a picture). */
 import {fail, json, now, body, clean} from "./util.js";
 import {needUser, throttle} from "./auth.js";
+import {room, noteSize} from "./space.js";
 
 export const COLS = new Set(["servants", "parties", "guests", "extras"]);
 const MAX_DOC = 300000, MAX_PUSH = 1200000, PAGE_BYTES = 1500000;
@@ -72,6 +73,8 @@ export async function push(ctx) {
   if (grow > 0 && (u.docs_bytes || 0) + grow > docQuota(env)) {
     fail(507, "roster_full", "Your roster has used its space on the server (" + Math.round(docQuota(env) / 1048576) + " MB), so these changes stay on this device. Shorter notes, or removing entries you don't need, make room.");
   }
+  // 0.56.1: and the whole site's database has room for it (space.js)
+  await room(env, grow, "The server's storage is nearly full, so these changes stay on this device for now. Nothing is lost; they'll sync once there's room again.");
   const top = await env.DB.prepare("UPDATE users SET rev = rev + ? WHERE id = ? RETURNING rev").bind(rows.length, u.id).first();
   const base = top.rev - rows.length, t = now();
   const stmts = rows.map((r, i) => env.DB.prepare("INSERT INTO docs (user_id, col, id, rev, data) VALUES (?, ?, ?, ?, ?) ON CONFLICT (user_id, col, id) DO UPDATE SET rev = excluded.rev, data = excluded.data")
@@ -80,7 +83,7 @@ export async function push(ctx) {
   acts.slice(0, 20).forEach((a) => stmts.push(env.DB.prepare("INSERT INTO activity (user_id, at, kind, data) VALUES (?, ?, ?, ?)").bind(u.id, t, a.kind, JSON.stringify(a.data))));
   if (acts.length) stmts.push(env.DB.prepare("DELETE FROM activity WHERE user_id = ? AND at < ?").bind(u.id, t - 45 * 86400000));
   if (grow) stmts.push(env.DB.prepare("UPDATE users SET docs_bytes = MAX(0, docs_bytes + ?) WHERE id = ?").bind(grow, u.id));
-  await env.DB.batch(stmts);
+  noteSize(await env.DB.batch(stmts));
   return json({rev: top.rev, revs: rows.map((r, i) => base + i + 1)});
 }
 
@@ -107,9 +110,13 @@ function activityOf(rows, old) {
   return out;
 }
 
-/* ---------- pictures ---------- */
+/* ---------- pictures ----------
+   0.56.1 (the daily security check, 26 Nov): without R2, pictures are kept in the database itself, which every account
+   shares, so each account's picture space there is 25 MB (it was 120; PIC_QUOTA_MB still changes it), and an account
+   can send PIC_PER_HOUR pictures an hour. The whole site's ceiling is space.js. */
 const okPic = (id) => typeof id === "string" && /^img_[a-z0-9]{4,40}$/.test(id);
-const quota = (env) => (Number(env.PIC_QUOTA_MB) || (env.PICS ? 300 : 120)) * 1048576;
+const quota = (env) => (Number(env.PIC_QUOTA_MB) || (env.PICS ? 300 : 25)) * 1048576;
+export const PIC_PER_HOUR = 100;
 export async function putPic(ctx, id) {
   const env = ctx.env, u = await needUser(ctx);
   if (!okPic(id)) fail(400, "bad_id", "That picture id isn't valid.");
@@ -121,9 +128,13 @@ export async function putPic(ctx, id) {
   const had = await env.DB.prepare("SELECT size FROM pics WHERE user_id = ? AND id = ?").bind(u.id, id).first();
   if (had) return json({ok: true, size: had.size});
   if ((u.bytes || 0) + size > quota(env)) fail(507, "full", "Your picture space on the server is full. Remove some uploaded pictures, or keep using them on this device only.");
+  await throttle(env, "pic:" + u.id, PIC_PER_HOUR, 3600000, 1,
+    (m) => "That's a lot of pictures for one hour. The rest go up in " + m + " minutes; until then they're on this device.");
+  // (with R2 the picture goes there, and the database only keeps a row about it)
+  await room(env, env.PICS ? 200 : size + 200, "The server's storage is nearly full, so this picture stays on this device for now.");
   if (env.PICS) await env.PICS.put("u/" + u.id + "/" + id, buf, {httpMetadata: {contentType: type}});
-  await env.DB.batch([env.DB.prepare("INSERT INTO pics (user_id, id, type, size, created, data) VALUES (?, ?, ?, ?, ?, ?)").bind(u.id, id, type, size, now(), env.PICS ? null : buf),
-    env.DB.prepare("UPDATE users SET bytes = bytes + ? WHERE id = ?").bind(size, u.id)]);
+  noteSize(await env.DB.batch([env.DB.prepare("INSERT INTO pics (user_id, id, type, size, created, data) VALUES (?, ?, ?, ?, ?, ?)").bind(u.id, id, type, size, now(), env.PICS ? null : buf),
+    env.DB.prepare("UPDATE users SET bytes = bytes + ? WHERE id = ?").bind(size, u.id)]));
   return json({ok: true, size});
 }
 export async function delPic(ctx, id) {

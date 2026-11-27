@@ -133,3 +133,7 @@ i.fr-face.none { display: grid; place-items: center; font-style: normal; font-we
 .fv-guest { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; margin: 0 0 12px; padding: 10px 14px; border-radius: 14px; border: 1px dashed color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 7%, var(--panel)); }
 .fv-guest p { margin: 0; font-size: 14px; }
 .fr-gbtn { margin-left: 8px; font-size: 12.5px; }
+/* 0.56.1: the owner's view of how full the site's database is */
+.acct-server { margin-top: 10px; }
+.acct-server.near b { color: var(--gold); }
+.acct-server.full b { color: var(--buster); }

@@ -10,8 +10,16 @@
 .cf > .cf-cls { position: absolute; z-index: 4; left: 50%; width: 15.6%; aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none; }
 .cf-f > .cf-cls { top: 92.8%; }
 .cf > .cf-cls img { position: static; display: block; width: 100%; height: 100%; object-fit: contain; cursor: default; }
-.cf-silver > .cf-cls img { filter: grayscale(1) brightness(1.18) contrast(1.05); }
-.cf-bronze > .cf-cls img { filter: sepia(.4) saturate(.72) hue-rotate(-12deg) brightness(.78); }
+.cf-silver > .cf-cls:not(.aa) img { filter: grayscale(1) brightness(1.18) contrast(1.05); }
+.cf-bronze > .cf-cls:not(.aa) img { filter: sepia(.4) saturate(.72) hue-rotate(-12deg) brightness(.78); }
+/* 0.58.0: the game's star row (Atlas's CharaGraphOption sprites) over a frame without stars, placed in the frame's
+   512 × 875: a 200-wide row starts at x 154 (its stars sit where the drawn-in ones were), the Lv 120 row is 350 wide
+   around the same middle; the game's emblem has room around it in its 106 × 106 sprite, so its box is bigger */
+.cf > .cf-st { position: absolute; z-index: 4; height: auto; pointer-events: none; user-select: none; }
+.cf > .cf-st-a { left: 30.078%; width: 39.063%; top: -1.6%; }
+.cf > .cf-st-b { left: 30.078%; width: 39.063%; top: -1.143%; }
+.cf > .cf-st-c { left: 15.43%; width: 68.359%; top: -1.143%; }
+.cf > .cf-cls.aa { width: 21%; }
 /* ATK and HP: white with a dark edge, like the game's numbers */
 .cf > .cf-n { position: absolute; z-index: 4; bottom: 7.7%; font-family: var(--f-display); font-variation-settings: "wdth" 85; font-weight: 800; font-size: 4.2cqw; line-height: 1; letter-spacing: .02em;
   color: #fff; white-space: nowrap; pointer-events: none; font-variant-numeric: tabular-nums;

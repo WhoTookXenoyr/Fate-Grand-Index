@@ -250,6 +250,7 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
 - Pictures without R2: `PIC_QUOTA_MB` defaults to 25 (was 120). `putPic` has a pace of 100 an hour per account (429); the page waits for a later sync on 429 as it does on 507. OAuth sign-up while full goes back to the page with `?account=server_full`.
 - `/api/me` gives the owner `server: {used, limit, stopsAt, full}`; the account window shows it under Sync. `docs/hosting.md` has the real limits (500 MB per database on Free, 5 GB per account) and `DB_MAX_MB`.
 - `tests/api/test_hosted_space.py` (in CI's hosted job): DB_MAX_MB=2 with pictures in D1; fills to the ceiling, then checks the refusals, signing in, a shrinking push, the owner's view, room again after deleting, and the picture pace.
+- Also: the Planner's presses (a preset, a target, Done, Clear, Undo, append levels, coins, the ascended tick) are saved at once (`saveNow`), as the rest of the page's presses are, instead of half a second later; closing the page right after one no longer loses it. Typing the coins you have still waits for you to stop. (Found when `test_25` read the plan before it was saved on CI.)
 
 ## Your data
 

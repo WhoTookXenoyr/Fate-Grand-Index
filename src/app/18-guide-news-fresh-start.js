@@ -167,7 +167,8 @@ const CHANGES = [
   {v: "0.56.1-beta", d: "27 Nov 2026", t: "The server keeps room for everyone", i: [
     "<b>A ceiling for the whole site.</b> Every account shares one database, and each already had its own share of it. A few new accounts filling theirs at once could still have filled the database, and then nobody could sync, sign in or add friends. Now, once the database is 80% full, new accounts, new pictures and rosters that grow wait, and say so. Signing in, deleting and anything that makes a roster smaller always work, and once space is freed things carry on.",
     "<b>Pictures kept in the database</b> (sites without Cloudflare's R2): 25 MB an account, and up to 100 pictures an hour. Past that, the rest stay on your device and go up later.",
-    "The site's owner sees how full the database is in the account window."
+    "The site's owner sees how full the database is in the account window.",
+    "The Planner saves a press (a preset, a target, Done, Clear) at once, so closing the page straight after one keeps it."
   ]},
   {v: "0.56.0-beta", d: "25 Nov 2026", t: "Class Score lights up, and zooms", i: [
     "<b>Opening a sign lights the way to it.</b> A beam runs along each new line from what was open to the sign you opened, turning from the colour it starts at to the sign's own (Buster red, Arts blue, Quick green, Command Spells purple, the rest gold), with a spark at its head. The sign pops when it arrives, with rings and sparks in its colour.",

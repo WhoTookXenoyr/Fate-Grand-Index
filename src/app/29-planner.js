@@ -250,7 +250,7 @@ bump = function (f, d) {
   const s = S.servants.find((x) => x.id === shownId()); if (!s || S.readOnly) return;
   const lv = apLevels(s), i = Number(m[1]);
   lv[i] = clamp(lv[i] + d, 0, 10); s.appends = lv;
-  renderDossier(); scheduleWrite("servants", s);
+  renderDossier(); saveNow("servants", s);
   const b = document.querySelector(`#dossier [data-action="bump"][data-f="${f}"][data-d="${d}"]`); if (b && !b.disabled) b.focus({preventScroll: true});
 };
 
@@ -261,11 +261,11 @@ document.addEventListener("change", (e) => {
   const before = s.appendPick, v = sel.value;
   if ((before || "") === v) return;
   if (v) s.appendPick = v; else delete s.appendPick;
-  scheduleWrite("servants", s); plRedraw("select[data-ap-pick]");
+  saveNow("servants", s); plRedraw("select[data-ap-pick]");
   toastAction(v ? "Append skill 3 is " + v + "." : "Append skill 3 cleared.", "Undo", () => {
     const x = S.servants.find((y) => y.id === s.id); if (!x) return;
     if (before === undefined) delete x.appendPick; else x.appendPick = before;
-    scheduleWrite("servants", x); plRedraw("select[data-ap-pick]");
+    saveNow("servants", x); plRedraw("select[data-ap-pick]");
   });
 });
 
@@ -298,14 +298,14 @@ bump = function (f, d) {
   else if (cost && dc > 0) next = cur + (log.length ? log.pop() : before === undefined ? 0 : dc);
   if (next === cur) return;
   if (next) s.coins = next; else delete s.coins;
-  scheduleWrite("servants", s);
+  saveNow("servants", s);
   const ci = document.querySelector("#dossier input[data-coins]"); if (ci && ci !== document.activeElement) ci.value = next || "";
   plPatch();
   const msg = (next > cur ? "+" + fmt(next - cur) : "−" + fmt(cur - next)) + " Servant Coins for " + why + (cur + dc < 0 ? " (you had " + fmt(cur) + ")" : "") + ": " + fmt(next) + " now.";
   toastAction(msg, "Undo", () => {
     const x = S.servants.find((y) => y.id === s.id); if (!x) return;
     if (before === undefined) delete x.coins; else x.coins = before;
-    scheduleWrite("servants", x); renderDossier(true);
+    saveNow("servants", x); renderDossier(true);
   });
 };
 
@@ -315,7 +315,7 @@ function setPlan(s, fn) {
   const p = planOf(s, a), next = {lv: p.lv, sk: p.sk.slice(), ap: p.ap.slice()};
   fn(next, a);
   s.plan = next; PL_OPEN[s.id] = true;
-  scheduleWrite("servants", s);
+  saveNow("servants", s);
 }
 document.addEventListener("change", (e) => {
   const t = e.target; if (!t || !t.closest || !t.closest("#dossier")) return;
@@ -327,7 +327,7 @@ document.addEventListener("change", (e) => {
   }
   if (t.matches("input[data-pl-asc]")) {
     if (t.checked) s.ascAt = num(s.level); else delete s.ascAt;
-    scheduleWrite("servants", s); plRedraw("input[data-pl-asc]"); return;
+    saveNow("servants", s); plRedraw("input[data-pl-asc]"); return;
   }
   // coins and counts aren't redrawn when you leave the box: the redraw would swallow the click that moved you away
 });
@@ -348,7 +348,7 @@ document.addEventListener("click", (e) => {
     });
     plRedraw(`[data-action="pl-pre"][data-k="${k}"]`); return;
   }
-  if (a === "pl-clear") { delete s.plan; PL_OPEN[s.id] = true; scheduleWrite("servants", s); plRedraw("details.pl > summary"); toast("Plan cleared for " + s.name + "."); return; }
+  if (a === "pl-clear") { delete s.plan; PL_OPEN[s.id] = true; saveNow("servants", s); plRedraw("details.pl > summary"); toast("Plan cleared for " + s.name + "."); return; }
   if (a === "pl-done") { planDone(s); return; }
 });
 document.addEventListener("toggle", (e) => {
@@ -403,12 +403,12 @@ function planDone(s) {
   delete s.plan; delete s.ascAt;
   if (typeof syncStats === "function") syncStats(s);
   evPrefSave();
-  renderSummary(); renderList(); renderDossier(true); renderRanking(); scheduleWrite("servants", s);
+  renderSummary(); renderList(); renderDossier(true); renderRanking(); saveNow("servants", s);
   toastAction(s.name + " is at the plan now" + (Object.keys(haveBefore).length ? ", and what it used is out of your materials." : "."), "Undo", () => {
     const cur = S.servants.find((x) => x.id === s.id); if (!cur) return;
     Object.keys(before).forEach((k) => { if (before[k] === undefined) delete cur[k]; else cur[k] = before[k]; });
     Object.keys(haveBefore).forEach((k) => { evPref.have[k] = haveBefore[k]; }); evPrefSave();
-    renderSummary(); renderList(); renderDossier(true); renderRanking(); scheduleWrite("servants", cur);
+    renderSummary(); renderList(); renderDossier(true); renderRanking(); saveNow("servants", cur);
     toast("Undone: " + cur.name + " and your materials are back.");
   });
 }

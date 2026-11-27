@@ -164,7 +164,8 @@ async function syncPics() {
     try { await api("PUT", "pics/" + id, blob); st = syncState(); (st.up || (st.up = {}))[id] = 1; syncSave(st); done++; }
     catch (e) {
       if (e.status === 413 || e.status === 415) { st = syncState(); (st.big || (st.big = {}))[id] = 1; syncSave(st); continue; }
-      if (e.status === 507) { SYNC.pics = e.message; syncPaint(); return; }
+      // (0.56.1: too many pictures in an hour (429) waits for a later sync like a full space does)
+      if (e.status === 507 || e.status === 429) { SYNC.pics = e.message; syncPaint(); return; }
       throw e;
     }
   }

@@ -12,7 +12,10 @@
    Sessions: a random 256-bit token in an HttpOnly, SameSite=Lax cookie; the database keeps its sha-256. Every
    request that changes something must carry the X-FGI header, which a page on another site can't add without asking. */
 import {fail, json, now, randomToken, randomBytes, b64url, unb64url, sha256hex, hmac, sameBytes, sameText, cookies, setCookie,
-  normEmail, okEmail, cleanName, okName, nameKey, clientIp, body, randomId, clean} from "./util.js";
+  normEmail, okEmail, cleanName, okName, nameKey, clientIp, body, randomId, clean, HttpError} from "./util.js";
+import {room, fill, PER_ACCOUNT} from "./space.js";
+// 0.56.1: a new account needs a little room in the database (space.js); while it's nearly full, no new accounts
+const NEW_ACCOUNT = PER_ACCOUNT, NO_ROOM = "The server's storage is nearly full, so new accounts can't be made right now. Try again later.";
 
 export const SESSION_DAYS = 90;
 const COOKIE = "fgi_s", OCOOKIE = "fgi_o";
@@ -116,7 +119,9 @@ export async function me(ctx, u) {
   const idents = (await ctx.env.DB.prepare("SELECT provider, label FROM idents WHERE user_id = ?").bind(u.id).all()).results || [];
   let supports = []; try { supports = JSON.parse(u.supports || "[]"); } catch (e) {}
   return {id: u.id, name: u.name, email: u.email || null, code: u.code, vis: u.vis, share: u.vis === "link" ? u.share : null, feed: !!u.feed,
-    supports: supports, idents: idents, hasPassword: !!u.pw, bytes: u.bytes || 0, docBytes: u.docs_bytes || 0, created: u.created, rev: u.rev, owner: isOwner(ctx.env, u)};
+    supports: supports, idents: idents, hasPassword: !!u.pw, bytes: u.bytes || 0, docBytes: u.docs_bytes || 0, created: u.created, rev: u.rev, owner: isOwner(ctx.env, u),
+    // 0.56.1: the owner sees how full the site's database is (space.js)
+    server: isOwner(ctx.env, u) ? await fill(ctx.env) : undefined};
 }
 
 /* ---------- email and password ---------- */
@@ -129,6 +134,7 @@ export async function signup(ctx) {
   await throttle(env, "signup:" + clientIp(ctx.request), 6, 3600000);
   if (await env.DB.prepare("SELECT 1 FROM users WHERE name_key = ?").bind(nameKey(name)).first()) fail(409, "name_taken", "Someone already has that name. Try another.");
   if (await env.DB.prepare("SELECT 1 FROM users WHERE email = ?").bind(email).first()) fail(409, "email_taken", "That email already has an account. Sign in instead.");
+  await room(env, NEW_ACCOUNT, NO_ROOM);
   const id = randomId(), rc = newRecovery(), t = now();
   await env.DB.prepare("INSERT INTO users (id, name, name_key, email, pw, recovery, code, created, seen) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
     .bind(id, name, nameKey(name), email, await pwHash(env, b.key), await rcHash(env, rc), await friendCode(env), t, t).run();
@@ -278,6 +284,7 @@ export async function oauthCallback(ctx, p) {
   // a new account; an email that already has one isn't taken over: sign in there and link this from the account page
   if (who.email && await env.DB.prepare("SELECT 1 FROM users WHERE email = ?").bind(who.email).first()) return done("email_has_account");
   await throttle(env, "signup:" + clientIp(ctx.request), 6, 3600000);
+  try { await room(env, NEW_ACCOUNT, NO_ROOM); } catch (e) { if (e instanceof HttpError && e.status === 507) return done("server_full"); throw e; }
   const id = randomId(), name = await freeName(env, who.name || label || "Master"), t = now();
   await env.DB.batch([
     env.DB.prepare("INSERT INTO users (id, name, name_key, email, code, created, seen) VALUES (?, ?, ?, ?, ?, ?, ?)").bind(id, name, nameKey(name), who.email, await friendCode(env), t, t),

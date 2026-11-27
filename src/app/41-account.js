@@ -15,7 +15,18 @@ const ACCT_MSG = {
   linked_google: "Google is linked to your account now.", cancelled: "Sign-in cancelled.", expired: "That sign-in took too long. Try again.",
   failed: "Couldn't sign in that way. Try again in a moment.", signed_out: "Sign in first, then link it.",
   email_has_account: "That email already has an account here. Sign in with its password, then link this from your account.",
-  linked_elsewhere: "That account is already linked to another Master here."
+  linked_elsewhere: "That account is already linked to another Master here.",
+  server_full: "The server's storage is nearly full, so new accounts can't be made right now. Try again later."
+};
+// 0.56.1: the site's owner sees how full its database is (new things stop at 80% of DB_MAX_MB; server/space.js)
+const MB = (n) => (Math.round(n / 104857.6) / 10).toLocaleString("en-US") + " MB";
+const serverFillHTML = (f) => {
+  if (!f) return "";
+  const past = f.used >= f.stopsAt, cls = f.full ? " full" : past || f.used >= f.stopsAt * 0.85 ? " near" : "";
+  const why = f.full ? "New accounts, pictures and growing rosters are refused until there's room. Raise DB_MAX_MB in Cloudflare if your plan allows more, or delete accounts you don't want."
+    : past ? "It's past " + MB(f.stopsAt) + ", but deleted rows left room inside that's being used again first."
+    : "New accounts, pictures and growing rosters stop at " + MB(f.stopsAt) + ".";
+  return `<p class="acct-note acct-server${cls}">The site's database: <b>${MB(f.used)}</b> of ${MB(f.limit)} (${Math.round(f.used / f.limit * 100)}%). ${why}</p>`;
 };
 async function api(method, path, data) {
   const o = {method: method, credentials: "same-origin", headers: {}};
@@ -187,7 +198,7 @@ function acctHomeHTML(u) {
       ${err}
     </section>
     <section class="acct-sec"><h4>Sync</h4><p class="acct-sync">${esc(syncWords(true))}</p>
-      <div class="acct-acts">${SYNC.state === "wait" ? `<button type="button" class="btn primary sm" data-action="acct-view" data-v="merge">Choose how to sync this browser</button>` : ""}<button type="button" class="btn sm" data-action="sync-now"${SYNC.state === "busy" || API.offline ? " disabled" : ""}>Sync now</button>${SYNC.pics ? `<span class="acct-note">${esc(SYNC.pics)}</span>` : ""}</div></section>
+      <div class="acct-acts">${SYNC.state === "wait" ? `<button type="button" class="btn primary sm" data-action="acct-view" data-v="merge">Choose how to sync this browser</button>` : ""}<button type="button" class="btn sm" data-action="sync-now"${SYNC.state === "busy" || API.offline ? " disabled" : ""}>Sync now</button>${SYNC.pics ? `<span class="acct-note">${esc(SYNC.pics)}</span>` : ""}</div>${u.owner ? serverFillHTML(u.server) : ""}</section>
     <section class="acct-sec"><h4>Who can see your roster</h4>
       <div class="acct-vis" role="radiogroup" aria-label="Who can see your roster">${visOpt("private", "Only me", "Friends still see your supports.")}${visOpt("friends", "My friends", "Friends can open your roster to look (not change).")}${visOpt("link", "Friends, and anyone with my link", "For sharing outside the site, e.g. in a Discord chat.")}</div>
       ${link ? `<div class="acct-link"><input class="field-input" readonly value="${esc(link)}" aria-label="Your roster's link"><button type="button" class="btn sm" data-action="acct-copy" data-copy="${esc(link)}">Copy</button><button type="button" class="linkish" data-action="acct-newlink">New link</button></div><p class="acct-note">A new link turns the old one off.</p>` : ""}

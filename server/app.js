@@ -3,8 +3,10 @@
    Settings in Cloudflare (Pages project → Settings): the D1 database bound as DB (required), an R2 bucket bound as PICS
    (optional; without it pictures are kept in D1), and the secrets PEPPER (16+ random characters; needed for email and
    password), DISCORD_CLIENT_ID + DISCORD_CLIENT_SECRET and GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET (each pair optional).
-   PIC_QUOTA_MB changes the picture space per account (default 300 with R2, 120 without), DOC_QUOTA_MB the roster's (default
-   20; 0.54.1), and OWNER names the site's owner by friend code or account id. docs/hosting.md has the steps. */
+   PIC_QUOTA_MB changes the picture space per account (default 300 with R2, 25 without; 0.56.1), DOC_QUOTA_MB the roster's
+   (default 20; 0.54.1), DB_MAX_MB the database's size limit on your Cloudflare plan (default 500, Workers Free; 10000 on
+   Workers Paid; new things stop at 80% of it, 0.56.1), and OWNER names the site's owner by friend code or account id.
+   docs/hosting.md has the steps. */
 import {HttpError, json, fail} from "./util.js";
 import {ensureSchema} from "./schema.js";
 import * as auth from "./auth.js";

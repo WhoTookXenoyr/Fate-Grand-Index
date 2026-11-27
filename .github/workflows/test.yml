@@ -15,7 +15,9 @@ jobs:
   test:
     # pinned: ubuntu-latest moves to Ubuntu 26 from 19 Oct 2026, before Playwright's browser setup is known to support it
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    # 27 Nov 2026: the browser tests had grown to 43-44 minutes, and 0.59.0's run was stopped at 45 just before its last
+    # suites. 75 leaves room to grow
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
 

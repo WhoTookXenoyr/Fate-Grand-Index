@@ -23,6 +23,7 @@ def best(cls):
     xs = [x for x in ATL if x.get("gc") and x.get("atk") and x.get("hp") and x["c"] == cls]
     return max(stat_at(x, 120, "atk") for x in xs) + 2000, max(stat_at(x, 120, "hp") for x in xs) + 2000
 ARASH = next(x for x in ATL if x["n"] == "Arash"); ALTRIA = next(x for x in ATL if x["n"] == "Altria Pendragon")
+ERESH = next(x for x in ATL if x["n"] == "Space Ereshkigal")
 def sv(id, x, lv, sk, np, fou, bond, ap):
     return {"id": id, "name": x["n"], "cls": x["c"], "rarity": x["r"], "level": lv, "skills": sk, "npLevel": np, "fouAtk": fou, "fouHp": fou,
             "bond": bond, "appends": ap, "atk": stat_at(x, lv, "atk"), "hp": stat_at(x, lv, "hp"), "atlas": x["no"]}
@@ -31,7 +32,9 @@ MAX = dict(sk=[10, 10, 10], np=5, fou=2000, bond=15, ap=[10] * 5)
 ROSTER = [sv("arash", ARASH, ARASH["lv"], **GOOD), sv("altria", ALTRIA, ALTRIA["lv"], **GOOD),
           sv("arash-max", ARASH, 120, **MAX), sv("altria-max", ALTRIA, 120, **MAX),
           sv("altria-mid", ALTRIA, 100, sk=[10, 9, 5], np=2, fou=1500, bond=12, ap=[0, 10, 10, 0, 0]),
-          sv("arash-ap", ARASH, 120, sk=[10, 10, 10], np=5, fou=2000, bond=15, ap=[10, 10, 9, 10, 10])]
+          sv("arash-ap", ARASH, 120, sk=[10, 10, 10], np=5, fou=2000, bond=15, ap=[10, 10, 9, 10, 10]),
+          # 0.59.1: Noyr's NP2 Lv 100 Space Ereshkigal, EX before 0.59.0 and S in it
+          sv("eresh", ERESH, 100, sk=[10, 10, 10], np=2, fou=1000, bond=10, ap=[0, 0, 0, 0, 0])]
 for i, s in enumerate(ROSTER): s["order"] = i
 def rows(pg):
     return {r[0]: (r[1], float(r[2])) for r in pg.evaluate("Array.from(document.querySelectorAll('#ranking .rank-row')).map((r) => [r.querySelector('.rk-name').dataset.id, r.querySelector('.rk-parts').textContent, r.querySelector('.rk-score').textContent])")}
@@ -57,7 +60,7 @@ with sync_playwright() as p:
     check(f"Raised is the default, with its note: six parts adding up to 100 ({w})", pg.get_attribute('[data-action="rank-mode"][data-v="raised"]', "aria-pressed") == "true"
           and w == [33, 20, 15, 12, 10, 10] and "rarity and class don't count" in note and "Rarity" not in note)
     R = rows(pg)
-    check(f"six servants ranked, each in six parts ({R['arash'][0]})", len(R) == 6 and all(set(parts(t)) == {"Skills", "Level", "NP", "Fou", "Appends", "Bond"} for t, _ in R.values()))
+    check(f"seven servants ranked, each in six parts ({R['arash'][0]})", len(R) == 7 and all(set(parts(t)) == {"Skills", "Level", "NP", "Fou", "Appends", "Bond"} for t, _ in R.values()))
     check("each score is its parts added up", all(abs(sum(parts(t).values()) - v) < 0.11 for t, v in R.values()))
     check(f"raised the same way, a ★1 and a ★5 score the same: 33 + 10 + 0 + 6 + 2 + 4.5 = 55.5 ({R['arash'][1]}, {R['altria'][1]})", R["arash"][1] == 55.5 and R["altria"][1] == 55.5)
     check(f"fully raised, both are 100 ({R['arash-max'][1]}, {R['altria-max'][1]})", R["arash-max"][1] == 100.0 and R["altria-max"][1] == 100.0)
@@ -65,7 +68,7 @@ with sync_playwright() as p:
     # Lv 100 from a cap of 90: 10 + 6; skills 10/9/5: (1 + 0.74 + 0.32) / 3 × 33; NP2: 7.5; Fou 1500 of 2000: 9; appends 20 of 50: 4; Bond 12: 6.5
     want = {"Level": 16.0, "Skills": round((1 + 0.74 + 0.32) / 3 * 33, 1), "NP": 7.5, "Fou": 9.0, "Appends": 4.0, "Bond": 6.5}
     check(f"each part works out as the note says ({m} vs {want})", all(abs(m[k] - want[k]) < 0.06 for k in want))
-    check("the old single rank order wasn't read: no arrows from it", pg.locator("#ranking .mv.up, #ranking .mv.down").count() == 0 and pg.locator("#ranking .mv").count() == 6)
+    check("the old single rank order wasn't read: no arrows from it", pg.locator("#ranking .mv.up, #ranking .mv.down").count() == 0 and pg.locator("#ranking .mv").count() == 7)
     base = json.loads(pg.evaluate(f"localStorage.getItem('{KEY}:rankBase')"))
     check(f"the Raised order is kept on its own ({base})", base.get("v") == 2 and base.get("raised", {}).get("arash-max") in (1, 2) and "power" not in base)
     # the next upgrade can be an append now
@@ -77,12 +80,15 @@ with sync_playwright() as p:
     pg.click('[data-action="rank-view"][data-v="tiers"]'); pg.wait_for_timeout(300)
     tn = pg.locator(".tier-note").inner_text()
     tiers = pg.evaluate("Object.fromEntries(Array.from(document.querySelectorAll('.tier-card')).map((c) => [c.dataset.id, c.closest('[data-tier-drop]').dataset.tierDrop]))")
-    check(f"Raised tier cut-offs ({tn[-75:]})", "Raised score ranges: EX 75+, S 60–75, A 45–60, B 30–45, C under 30" in tn and tiers["arash"] == "A" and tiers["arash-max"] == "SS")
+    check(f"Raised tier cut-offs ({tn[-75:]})", "Raised score ranges: EX 65+, S 50–65, A 35–50, B 20–35, C under 20" in tn and tiers["arash"] == "S" and tiers["altria-mid"] == "SS" and tiers["arash-max"] == "SS")
+    check(f"an NP2 Lv 100 ★5 with skills 10/10/10 is EX in Raised ({R['eresh'][1]}, {tiers['eresh']})", R["eresh"][1] == 67.0 and tiers["eresh"] == "SS")
 
     # ---------- Power ----------
     pg.click('[data-action="rank-mode"][data-v="power"]'); pg.wait_for_timeout(300)
     tn = pg.locator(".tier-note").inner_text()
-    check(f"Power tier cut-offs ({tn[-75:]})", "Power score ranges: EX 80+, S 68–80, A 56–68, B 44–56, C under 44" in tn)
+    check(f"Power tier cut-offs ({tn[-75:]})", "Power score ranges: EX 75+, S 63–75, A 52–63, B 40–52, C under 40" in tn)
+    et = pg.evaluate("document.querySelector('.tier-card[data-id=\"eresh\"]').closest('[data-tier-drop]').dataset.tierDrop")
+    check(f"and EX in Power too ({et})", et == "SS")
     pg.click('[data-action="rank-view"][data-v="list"]'); pg.wait_for_timeout(300)
     note = pg.locator("#rank-note").inner_text()
     check(f"Power's note ({note[:80]!r})", pg.get_attribute('[data-action="rank-mode"][data-v="power"]', "aria-pressed") == "true" and "best of the same class" in note and "Rarity counts here" in note)

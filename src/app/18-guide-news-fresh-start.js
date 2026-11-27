@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until 0.50.0, beta from there until the full website and app: 1.0.0
-const APP_VER = "0.59.0-beta";
+const APP_VER = "0.59.1-beta";
 const APP_STAGE = /-beta\b/.test(APP_VER) ? "beta" : "alpha", APP_NUM = APP_VER.replace(/-.*$/, "");
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
@@ -164,6 +164,12 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.59.1-beta", d: "28 Nov 2026", t: "Fairer tiers", i: [
+    "The tier cut-offs from 0.59.0 were too harsh: EX needed about three quarters of a fully maxed servant (Lv 120, NP5, every append, Fou and Bond maxed), so a well-raised servant like an NP2 Lv 100 ★5 dropped to S.",
+    "<b>Raised</b> is now EX from 65, S from 50, A from 35 and B from 20. A servant at their own max level with skills 10/10/10, NP1, Fou 1000 and Bond 10 is S; Lv 100 and NP2 on top makes EX.",
+    "<b>Power</b> is now EX from 75, S from 63, A from 52 and B from 40. An NP2 Lv 100 ★5 with skills 10/10/10 is EX again.",
+    "The scores themselves haven't changed, only where the tiers start. Servants you placed by hand stay where you put them."
+  ]},
   {v: "0.59.0-beta", d: "27 Nov 2026", t: "Two rankings: Raised and Power", i: [
     "The Ranking has two scores now, with a switch at the top. <b>Raised</b> is how far you've raised each servant, measured against that servant's own ceiling, so rarity and class don't count: a fully raised Arash scores 100, the same as a fully raised Altria. <b>Power</b> is how strong they are.",
     "<b>Raised</b> counts skills (33), level and grails (20), NP level (15), Fou (12), append skills (10) and Bond (10). Reaching a servant's own max level is worth the same whatever their rarity.",

@@ -95,7 +95,7 @@ with sync_playwright() as p:
     check(f"new Master records ({len(recs)})", all(n in names for n in ["Bond 10", "Max Bond", "EX Servant", "Five S", "Ten A", "Holy Grail Servant", "Rainbow Fou", "Gold Fou"]))
     check("Bond 10 and Max Bond are earned", all("Earned" in r for r in recs if r.split("\n")[0] in ("Bond 10", "Max Bond")))
     go_tab(pg, "ranking"); pg.wait_for_timeout(400); pg.click('[data-action="rank-view"][data-v="tiers"]'); pg.wait_for_timeout(300)
-    check("the top tier is called EX", pg.locator(".tier-lab b").first.inner_text() == "EX" and "EX 75+" in pg.locator(".tier-note").inner_text())
+    check("the top tier is called EX", pg.locator(".tier-lab b").first.inner_text() == "EX" and "EX 65+" in pg.locator(".tier-note").inner_text())
 
     # ---- the Compact layout
     go_tab(pg, "servants"); pg.wait_for_timeout(300)

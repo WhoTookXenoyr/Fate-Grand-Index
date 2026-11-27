@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until 0.50.0, beta from there until the full website and app: 1.0.0
-const APP_VER = "0.56.0-beta";
+const APP_VER = "0.56.1-beta";
 const APP_STAGE = /-beta\b/.test(APP_VER) ? "beta" : "alpha", APP_NUM = APP_VER.replace(/-.*$/, "");
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
@@ -164,6 +164,12 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.56.1-beta", d: "27 Nov 2026", t: "The server keeps room for everyone", i: [
+    "<b>A ceiling for the whole site.</b> Every account shares one database, and each already had its own share of it. A few new accounts filling theirs at once could still have filled the database, and then nobody could sync, sign in or add friends. Now, once the database is 80% full, new accounts, new pictures and rosters that grow wait, and say so. Signing in, deleting and anything that makes a roster smaller always work, and once space is freed things carry on.",
+    "<b>Pictures kept in the database</b> (sites without Cloudflare's R2): 25 MB an account, and up to 100 pictures an hour. Past that, the rest stay on your device and go up later.",
+    "The site's owner sees how full the database is in the account window.",
+    "The Planner saves a press (a preset, a target, Done, Clear) at once, so closing the page straight after one keeps it."
+  ]},
   {v: "0.56.0-beta", d: "25 Nov 2026", t: "Class Score lights up, and zooms", i: [
     "<b>Opening a sign lights the way to it.</b> A beam runs along each new line from what was open to the sign you opened, turning from the colour it starts at to the sign's own (Buster red, Arts blue, Quick green, Command Spells purple, the rest gold), with a spark at its head. The sign pops when it arrives, with rings and sparks in its colour.",
     "<b>Open the way here</b> lights the squares one after another, and a start sign gets its light from the board's emblem. <b>Open every square</b> runs across the whole board in under three seconds. What a board adds lights up for what just went up, and the board's bar in the list fills along with it. A full board's emblem stays lit.",

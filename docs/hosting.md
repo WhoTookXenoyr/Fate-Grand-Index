@@ -8,7 +8,7 @@ What you end up with:
 - **The app:** on that site, Chrome and Edge show an install button, and on an iPhone it's Share → Add to Home Screen.
 - **Accounts and friends:** they live in a small database on Cloudflare.
 
-It all fits Cloudflare's free plan. That plan allows 100,000 requests to the server a day and 5 GB of database. A friend group uses a tiny part of it.
+It all fits Cloudflare's free plan. That plan allows 100,000 requests to the server a day, and a database of up to 500 MB (5 GB across all your databases). A friend group uses a small part of it.
 
 You need:
 
@@ -54,7 +54,7 @@ You don't type any SQL. The site makes its own tables the first time someone use
 
 Pictures people upload, like the wiki images pasted into a stage, have to be stored somewhere.
 
-- **Without this step**, they go into the database. That's free with no card, and each picture can be up to about 1.9 MB. The site already shrinks pictures to 1100 pixels, so that's plenty.
+- **Without this step**, they go into the database. That's free with no card, and each picture can be up to about 1.9 MB. The site already shrinks pictures to 1100 pixels, so that's plenty. Since the database is shared by everyone, each account gets 25 MB of pictures there (`PIC_QUOTA_MB` changes it).
 - **With R2** (Cloudflare's file storage, free up to 10 GB), there's more room. But Cloudflare asks for a card or PayPal on file before you can turn R2 on, even if you never pay anything. If you'd like that:
   1. Go to **R2 Object Storage** and create a bucket named **`fgi-pics`**.
   2. In the Pages project, go to **Settings → Bindings → Add → R2 bucket**. Set the variable name to **`PICS`** and the bucket to **fgi-pics**.
@@ -133,6 +133,7 @@ Switch before friends start using the site: everything a browser kept on the old
 
 - **Sharing the link:** friends just need the address. Accounts are free, and a friend code works like the game's.
 - **Backups:** your roster is in every browser you've synced, and **Export → Full backup** still works. Cloudflare keeps D1 backups for a while too (D1 → your database → **Time Travel**).
+- **How full the database is:** signed in as the owner (see `OWNER` above), the account window shows it under Sync. When it reaches 80% of 500 MB, new accounts, new pictures and rosters that grow are refused, so the database never fills up and stops everyone from signing in or syncing. Signing in, deleting and anything that makes a roster smaller still work. On Workers Paid a database can hold 10 GB: add the variable **`DB_MAX_MB`** = `10000` (Type: Text).
 - **Deleting accounts:** anyone can delete their own account from the account window, and everything of theirs on the server goes with it. You don't need to do anything for that.
 - **Who can see what:** a roster is visible to friends unless its owner picks "Only me". A shared link only works while its owner has "anyone with my link" on.
 - **If the server is down or you're offline,** the site and app still open, and everything is saved in the browser. It syncs when it's back.

@@ -99,8 +99,8 @@
 
   <section id="view-ranking" class="d-sec" aria-labelledby="tab-ranking" hidden>
     <div class="toolbar">
-      <p class="rank-note grow">Score out of 100: stats with Fou and class ATK bonus (32) + skills (27) + NP level (13) + Bond (10) + level (9) + rarity (9). Skills count like the game: reaching Lv 6 and Lv 10 is worth more because those steps also shorten the cooldown, and Lv 10 gives the full value. Bond counts more the higher it goes: Bond 1–5 add a little each, 6–10 more, 11–14 more again, and 14 → 15 the most. Reaching max level and Lv 100 add a bump. Arrows show moves since you last pressed Mark as seen.</p>
-      <div class="rank-tools"><div class="seg" role="group" aria-label="Ranking view"><button data-action="rank-view" data-v="list" aria-pressed="true">List</button><button data-action="rank-view" data-v="tiers" aria-pressed="false">Tier board</button></div><button class="btn sm" data-action="rank-seen">Mark as seen</button><label class="rank-ck" hidden><input type="checkbox" id="rank-custom" checked> Count custom servants</label></div>
+      <p class="rank-note grow" id="rank-note"></p>
+      <div class="rank-tools"><div class="seg" role="group" aria-label="What the ranking measures"><button data-action="rank-mode" data-v="raised" aria-pressed="true" title="How far each servant is raised, whatever their rarity">Raised</button><button data-action="rank-mode" data-v="power" aria-pressed="false" title="How strong each servant is, compared within their class">Power</button></div><div class="seg" role="group" aria-label="Ranking view"><button data-action="rank-view" data-v="list" aria-pressed="true">List</button><button data-action="rank-view" data-v="tiers" aria-pressed="false">Tier board</button></div><button class="btn sm" data-action="rank-seen">Mark as seen</button><label class="rank-ck" hidden><input type="checkbox" id="rank-custom" checked> Count custom servants</label></div>
     </div>
     <div id="roi-top" class="roi-top" aria-label="Best upgrades right now"></div>
     <ol id="ranking" class="rank-list" aria-label="Servant ranking"></ol>

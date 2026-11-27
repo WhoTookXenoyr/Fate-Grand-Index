@@ -66,7 +66,8 @@ function homeHeroHTML(own, guests) {
   const lv = own.map((s) => num(s.level)).filter((v) => v != null);
   const avg = lv.length ? lv.reduce((a, b) => a + b, 0) / lv.length : 0;
   const grailed = own.filter((s) => { const st = levelStatus(s); return st && st.kind === "grail"; }).length;
-  const top = rankRows().map((r) => r.s);
+  // the strongest by the Power ranking (0.59.0), whichever ranking the Ranking page shows
+  const top = rankRows("power").map((r) => r.s);
   // the hand: your best, with pictures first, the strongest in the middle
   const pick = top.filter((s) => iconSlot(s)).concat(top.filter((s) => !iconSlot(s))).slice(0, isWide() ? 7 : 5);
   const order = [];
@@ -159,7 +160,7 @@ document.addEventListener("click", (e) => {
 
 // "Skill 1: Lv 9 → 10" reads better than "Skill 1 9 → 10"
 roiText = function (r) {
-  const step = r.kind === "skill" ? `Skill ${r.i + 1}: Lv ${r.from} → ${r.to}` : r.kind === "level" ? `Lv ${r.from} → ${r.to}` : `Grail: Lv ${r.from} → ${r.to}`;
+  const step = r.kind === "skill" ? `Skill ${r.i + 1}: Lv ${r.from} → ${r.to}` : r.kind === "append" ? (r.from ? `Append ${r.i + 1}: Lv ${r.from} → ${r.to}` : `Append ${r.i + 1}`) : r.kind === "level" ? `Lv ${r.from} → ${r.to}` : `Grail: Lv ${r.from} → ${r.to}`;
   return step + (r.why ? ", " + r.why : "");
 };
 

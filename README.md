@@ -260,6 +260,38 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
   - **Fresh copies**: `syncApply` and `evPrefSave` are wrapped. A pull that brings `extras/event` reloads `evPref` (`evPrefFresh`, compared against the last raw string written or read), and the page reloads it before drawing or saving, so an old in-memory copy is never saved over a newer synced one.
 - **Class Score**: `csCostHTML(list, have)` adds "have N" (red when short) once anything's filled in; the side panel links to the page; `spend` in its state ("Take what I open out of my materials") makes `csChange` take the new squares' cost out of the things you've filled in (never below 0), with Undo.
 - The Planner's foot and the Event calculator's note link to the page. `window.__fgiMaterials` for the tests; `tests/test_57_v057.py`. The tab counts in four older suites include Materials.
+## 0.59.0-beta: two rankings, Raised and Power
+- Noyr (27 Nov 2026) asked how to make the ranking the most balanced. Running the old score over all 418 NA servants showed:
+  - **Rarity still counted** through raw stats. Raised the same way, a ★1 scored about 59.7 and a ★5 74.1, a gap of 14 points, bigger than the 9 rarity had before 0.54.0.
+  - **Ties at 100:** 135 of 165 ★5s and 65 ★4s hit the stats cap when maxed.
+  - **Class bias:** the class ATK bonus cost Casters and Assassins about 4 points.
+  - **NP level was linear,** with 2.6 points for NP1.
+  - **Level counted twice** (in stats and on its own), against Lv 120 rather than the servant's own cap.
+  - **Appends didn't count.**
+  - **The note was stale:** it still listed rarity (9), skills (27) and level (9).
+- Noyr: "We can make both then". The Ranking has a **Raised | Power** switch (`spirit-origin-list:v1:rankMode`, unset = Raised, cleared by Fresh start). `scoreOf(s, over, mode)` returns `{total, parts, missing, mode}`, and `rankRows(mode)` follows it.
+  - **Raised** measures each servant against their own ceiling, so rarity and class don't count:
+    - skills 33 (`skillPower`, as before);
+    - level and grails 20 (`levelUp`): 10 for reaching the servant's own max level (NA's `lv`, else `CAPS`, ★0 65), 6 more to Lv 100 and 4 to Lv 120;
+    - NP level 15 (`NP_RAISED`: 0, .5, .75, .875, 1, the game's damage steps);
+    - Fou 12 (each of ATK and HP out of `FOU_CAP` 2000);
+    - appends 10 (all five by level);
+    - Bond 10 (`bondPart`, as before).
+  - **Power** is how strong they are:
+    - ATK and HP with Fou 45, as 70/30 against the best of the same class at Lv 120 with full Fou (`classBest`, worked out once from `ATLAS_S`);
+    - skills 25;
+    - the NP's strength 20 (`NP_POW`: .6, .8, .9, .95, 1);
+    - appends 10.
+  - For the next-upgrade hints, `statsAt` moves ATK and HP along the servant's own growth curve.
+- Tier cut-offs per ranking (`TIER_MIN`): Raised EX 75 / S 60 / A 45 / B 30; Power EX 80 / S 68 / A 56 / B 44. The tier note derives its ranges from them. Manual tier placements are shared.
+- Rank arrows per ranking: `rankBase` is `{v: 2, raised: {...}, power: {...}}`. The old single map isn't read, so both start fresh.
+- Upgrade hints (`roiOf`) include append skills ("Append 3: Lv 9 → 10", or "Append 2" to unlock one).
+- Elsewhere:
+  - the servant page's rank chip names the ranking;
+  - Versus shows Raised and Power;
+  - the home page's hand and the Story page's picks use Power.
+- `tests/test_59_v059.py`. `test_53`'s rank checks follow Raised.
+
 ## 0.58.0-beta: the game's stars and class emblems on card frames
 - Noyr (27 Nov 2026), after asking for the Grand Servant card's pieces in Atlas Academy's JP assets: "if you find everything from rarities and things, why not just add them to existing stuff in fgi".
 - The pieces are Atlas Academy's JP `CharaGraphOption` sprites, loaded at runtime from `https://static.atlasacademy.io/JP/CharaGraphOption/<name>.png` (CORS is open, the CSP's `img-src https:` allows them, the service worker doesn't keep them):

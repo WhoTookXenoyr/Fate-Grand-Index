@@ -992,58 +992,128 @@ function fxFrame(F, now) {
 }
 
 /* ---------- ranking ---------- */
-const CLASS_ATK = {Archer: 0.95, Lancer: 1.05, Caster: 0.9, Assassin: 0.9, Berserker: 1.1, Ruler: 1.1, Avenger: 1.1};
+// 0.59.0: two rankings (Noyr, 27 Nov 2026: "We can make both then"). Before, one score mixed how raised a servant is with
+// how strong they are: rarity still counted through raw stats (about 14 points between a ★1 and a ★5 raised the same
+// way, more than the 9 it was worth before 0.54.0), most maxed ★5s tied at 100 on the stats cap, the class ATK bonus
+// cost Casters and Assassins about 4 points, NP level was a straight line, and append skills didn't count.
+// - Raised (the default): how far each servant is raised, against that servant's own ceiling. Rarity and class don't
+//   count, so a fully raised Arash is 100 like a fully raised Altria (Jordan's rule from 0.54.0, carried through).
+// - Power: how strong they are. ATK and HP against the best of their own class at Lv 120 with full Fou (so the class ATK
+//   bonus doesn't push Casters and Assassins down, and only a class's best maxed servant gets near the top), skills, the
+//   NP's strength at its level, and appends. Rarity counts here, through the stats.
+const RM_KEY = "spirit-origin-list:v1:rankMode";
+function rankMode() { try { return localStorage.getItem(RM_KEY) === "power" ? "power" : "raised"; } catch (e) { return "raised"; } }
+function setRankMode(m) { try { if (m === "power") localStorage.setItem(RM_KEY, "power"); else localStorage.removeItem(RM_KEY); } catch (e) {} }
+const RANK_NAME = {raised: "Raised", power: "Power"};
+const FOU_CAP = 2000;  // NA's Fou cap for ATK and for HP (JP's is 3000; it moves with the NA/JP switch)
+// NP level. Raised: the game's damage steps, NP1 0 → NP5 1 (a ★5 single-target NP goes 600/800/900/950/1000%, so NP2 is
+// the big one). Power: the NP's strength against its own NP5.
+const NP_RAISED = [0, 0, 0.5, 0.75, 0.875, 1], NP_POW = [0, 0.6, 0.8, 0.9, 0.95, 1];
 // Skills count like the game: each level moves 10% of the Lv1→Lv10 gap, Lv10 gets the full value, and Lv6 and Lv10 each cut the cooldown by a turn
 function skillPower(v) {
   if (typeof v !== "number") return 0;
   const lv = clamp(v, 1, 10);
   return 0.8 * (lv >= 10 ? 1 : (lv - 1) / 10) + 0.2 * ((lv >= 6 ? 0.5 : 0) + (lv >= 10 ? 0.5 : 0));
 }
-// Level (12 of 100 since 0.54.0, 9 before): steady growth, plus a bump for reaching max level and for Lv 100
-function levelPart(lv, cap) { return (6.5 * lv / 120 + (cap && lv >= cap ? 2 : 0) + (lv >= 100 ? 1.5 : 0)) * 1.2; }
-// Bond (10 of 100, since 0.23.0): each level is worth more than the one before, the way each takes longer to earn.
+// Bond (10 of 100 in Raised, since 0.23.0): each level is worth more than the one before, the way each takes longer to earn.
 // Bond 1-5 add 0.3 each, 6-10 add 0.6 each, 11-14 add 1 each, and 14 -> 15 adds the most, 1.5.
 const BOND_STEP = [0, 0.3, 0.3, 0.3, 0.3, 0.3, 0.6, 0.6, 0.6, 0.6, 0.6, 1, 1, 1, 1, 1.5];
 const bondPart = (b) => BOND_STEP.slice(1, clamp(Math.floor(num(b) || 0), 0, 15) + 1).reduce((a, x) => a + x, 0);
-function scoreOf(s, over) {
-  over = over || {};
-  const atk = total(s, "atk"), hp = total(s, "hp"), mod = CLASS_ATK[s.cls] || 1;
-  const missing = atk == null || hp == null;
-  const sk = over.skills || s.skills || [], lv = clamp(num(over.level != null ? over.level : s.level) || 1, 1, 120);
-  // out of 100: stats 32, skills 33, NP level 13, Bond 10, level 12. Since 0.54.0 rarity counts for nothing (it was 9):
-  // Jordan's call, so a well-raised ★4 isn't ranked under a ★5 for having been pulled; its 9 went to skills (+6) and level (+3)
-  const parts = {
-    stats: missing ? 0 : Math.min(1, (atk * mod / 16000) * 0.7 + (hp / 18000) * 0.3) * 32,
-    skills: [0, 1, 2].reduce((a, i) => a + skillPower(sk[i]), 0) / 3 * 33,
-    np: clamp(num(s.npLevel) || 1, 1, 5) / 5 * 13,
-    bond: bondPart(over.bond != null ? over.bond : s.bond),
-    level: levelPart(lv, CAPS[s.rarity])
-  };
-  return {total: parts.stats + parts.skills + parts.np + parts.bond + parts.level, parts: parts, missing: missing};
+// a servant's own max level: NA's data when they're matched to it, else by rarity (a ★0's is 65)
+function capOf(s) { const a = atlasOf(s), r = num(s.rarity); return (a && num(a.lv)) || CAPS[r] || (r === 0 ? 65 : 90); }
+// Level and grails (20 of 100 in Raised): 10 for reaching the servant's own max level, 6 more on the way to Lv 100 and
+// the last 4 to Lv 120, whatever the rarity (a ★1's road from 60 to 100 is longer, and so is a ★1's grail bill)
+function levelUp(lv, cap) {
+  cap = clamp(cap, 2, 99);
+  if (lv <= cap) return 10 * (lv - 1) / (cap - 1);
+  if (lv <= 100) return 10 + 6 * (lv - cap) / (100 - cap);
+  return 16 + 4 * Math.min(20, lv - 100) / 20;
 }
+const apOf = (s) => [0, 1, 2, 3, 4].map((i) => clamp(Math.round(num((s.appends || [])[i]) || 0), 0, 10));
+const fouOf = (s, k) => clamp(num(s[k === "hp" ? "fouHp" : "fouAtk"]) || 0, 0, FOU_CAP);
+// Power: each class's best ATK and HP at Lv 120 with full Fou, from NA's data (worked out once)
+let clsBest = null;
+function classBest(cls) {
+  if (!clsBest) {
+    clsBest = {};
+    try {
+      ATLAS_S.forEach((x) => {
+        if (!x || !x.gc || !x.atk || !x.hp) return;
+        const a = statAt(x, 120, "atk"), h = statAt(x, 120, "hp"); if (a == null || h == null) return;
+        [x.c, ""].forEach((k) => { const b = clsBest[k] || (clsBest[k] = [0, 0]); b[0] = Math.max(b[0], a + FOU_CAP); b[1] = Math.max(b[1], h + FOU_CAP); });
+      });
+    } catch (e) { /* no NA data: the fallback below */ }
+    if (!clsBest[""]) clsBest[""] = [17000, 21000];
+  }
+  return clsBest[cls] || clsBest[""];
+}
+// ATK and HP with Fou, at another level when asked (moved along the servant's own growth curve, for the next-upgrade hints)
+function statsAt(s, lv) {
+  let atk = total(s, "atk"), hp = total(s, "hp");
+  const cur = num(s.level);
+  if (atk != null && hp != null && lv != null && cur != null && lv !== cur) {
+    const a = atlasOf(s);
+    if (a) { const d = (k) => { const x = statAt(a, lv, k), y = statAt(a, cur, k); return x == null || y == null ? 0 : x - y; }; atk += d("atk"); hp += d("hp"); }
+  }
+  return {atk: atk, hp: hp};
+}
+function scoreOf(s, over, mode) {
+  over = over || {}; mode = mode === "power" || mode === "raised" ? mode : rankMode();
+  const sk = over.skills || s.skills || [], lv = clamp(num(over.level != null ? over.level : s.level) || 1, 1, 120);
+  const ap = over.appends || apOf(s), np = clamp(num(s.npLevel) || 1, 1, 5);
+  const skAvg = [0, 1, 2].reduce((a, i) => a + skillPower(sk[i]), 0) / 3, apAvg = ap.reduce((a, v) => a + v, 0) / 50;
+  let parts, missing = false;
+  if (mode === "power") {
+    const st = statsAt(s, lv), b = classBest(s.cls);
+    missing = st.atk == null || st.hp == null;
+    parts = {stats: missing ? 0 : (Math.min(1, st.atk / b[0]) * 0.7 + Math.min(1, st.hp / b[1]) * 0.3) * 45, skills: skAvg * 25, np: NP_POW[np] * 20, appends: apAvg * 10};
+  } else {
+    parts = {skills: skAvg * 33, level: levelUp(lv, capOf(s)), np: NP_RAISED[np] * 15, fou: (fouOf(s, "atk") + fouOf(s, "hp")) / (2 * FOU_CAP) * 12, appends: apAvg * 10,
+      bond: bondPart(over.bond != null ? over.bond : s.bond)};
+  }
+  return {total: Object.keys(parts).reduce((a, k) => a + parts[k], 0), parts: parts, missing: missing, mode: mode};
+}
+// the parts as the ranking lists them, and the note above it
+const RANK_PARTS = {raised: [["skills", "Skills"], ["level", "Level"], ["np", "NP"], ["fou", "Fou"], ["appends", "Appends"], ["bond", "Bond"]],
+  power: [["stats", "Stats"], ["skills", "Skills"], ["np", "NP"], ["appends", "Appends"]]};
+const partsText = (sc) => RANK_PARTS[sc.mode].map(([k, t]) => t + " " + (sc.parts[k] || 0).toFixed(1)).join(" · ");
+const RANK_NOTE = {
+  raised: "How far each servant is raised, against that servant's own ceiling, so rarity and class don't count. Out of 100: skills (33) + level and grails (20) + NP level (15) + Fou (12) + append skills (10) + Bond (10). Skills count like the game: Lv 6 and Lv 10 are worth more, since they also shorten the cooldown. Reaching the servant's own max level is worth 10 of the 20, Lv 100 another 6 and Lv 120 the last 4. NP level follows the game's damage steps, where NP2 is the big one. Bond counts more the higher it goes. Arrows show moves since you last pressed Mark as seen.",
+  power: "How strong each servant is. Out of 100: ATK and HP with Fou (45), measured against the best of the same class at Lv 120 with full Fou, so the class ATK bonus doesn't push Casters and Assassins down + skills (25) + the NP's strength at its level (20; NP1 is 60% of NP5) + append skills (10). Rarity counts here, through the stats. Arrows show moves since you last pressed Mark as seen."
+};
 // 0.50.0-beta: servants of your own (custom) can be left out of the ranking and the tier board (Ranking: Count custom
 // servants), kept in spirit-origin-list:v1:rankCustom (false = left out); on by default
 const RC_KEY = "spirit-origin-list:v1:rankCustom";
 function rankCustom() { try { return localStorage.getItem(RC_KEY) !== "false"; } catch (e) { return true; } }
 function setRankCustom(on) { try { if (on) localStorage.removeItem(RC_KEY); else localStorage.setItem(RC_KEY, "false"); } catch (e) {} }
-function rankRows() {
+function rankRows(mode) {
   const all = rankCustom();
-  return owned().filter((s) => all || !s.custom).map((s) => ({s: s, sc: scoreOf(s)})).sort((a, b) => b.sc.total - a.sc.total || String(a.s.name).localeCompare(String(b.s.name)));
+  return owned().filter((s) => all || !s.custom).map((s) => ({s: s, sc: scoreOf(s, null, mode)})).sort((a, b) => b.sc.total - a.sc.total || String(a.s.name).localeCompare(String(b.s.name)));
 }
 const RB_KEY = "spirit-origin-list:v1:rankBase";
-function rankBase() { try { return JSON.parse(localStorage.getItem(RB_KEY) || "null"); } catch (e) { return null; } }
-function setRankBase(m) { try { localStorage.setItem(RB_KEY, JSON.stringify(m)); } catch (e) {} }
+// 0.59.0: the order last marked as seen, one for each ranking ({v: 2, raised: {id: rank}, power: {...}}). The single map from
+// before belonged to the old score, so it isn't read: both rankings start fresh, and it's replaced the first time one is saved
+function rankBaseAll() { try { const d = JSON.parse(localStorage.getItem(RB_KEY) || "null"); return d && typeof d === "object" && d.v === 2 ? d : {v: 2}; } catch (e) { return {v: 2}; } }
+function rankBase() { const m = rankBaseAll()[rankMode()]; return m && typeof m === "object" ? m : null; }
+function setRankBase(m) { try { const d = rankBaseAll(); d[rankMode()] = m; localStorage.setItem(RB_KEY, JSON.stringify(d)); } catch (e) {} }
 function rankOf(id) { const rows = rankRows(); const i = rows.findIndex((r) => r.s.id === id); return i < 0 ? null : {rank: i + 1, of: rows.length, sc: rows[i].sc}; }
 /* ---------- upgrade value: the single next step that lifts the score most ---------- */
 const grailNext = (lv) => lv < 90 ? Math.min(90, lv + 5) : Math.min(120, lv + 2);
 function roiOf(s) {
   if (!s || s.wish) return null;
-  const base = scoreOf(s).total, cap = CAPS[s.rarity] || 90, lv = clamp(num(s.level) || 1, 1, 120), sk = [0, 1, 2].map((i) => (s.skills || [])[i]);
+  const base = scoreOf(s).total, cap = capOf(s), lv = clamp(num(s.level) || 1, 1, 120), sk = [0, 1, 2].map((i) => (s.skills || [])[i]);
   const opts = [];
   sk.forEach((v, i) => {
     if (typeof v !== "number" || v >= 10) return;
     const n = sk.slice(); n[i] = v + 1;
     opts.push({kind: "skill", i: i, from: v, to: v + 1, gain: scoreOf(s, {skills: n}).total - base, why: v + 1 === 10 ? "full value and a shorter cooldown" : v + 1 === 6 ? "shorter cooldown" : ""});
+  });
+  // 0.59.0: append skills count in both rankings
+  const ap = apOf(s);
+  ap.forEach((v, i) => {
+    if (v >= 10) return;
+    const n = ap.slice(); n[i] = v + 1;
+    opts.push({kind: "append", i: i, from: v, to: v + 1, gain: scoreOf(s, {appends: n}).total - base, why: v === 0 ? "unlocks it" : ""});
   });
   if (lv < cap) opts.push({kind: "level", from: lv, to: lv + 1, gain: scoreOf(s, {level: lv + 1}).total - base, why: lv + 1 === cap ? "reaches max level" : ""});
   else if (lv < 120) { const to = grailNext(lv); opts.push({kind: "grail", from: lv, to: to, gain: scoreOf(s, {level: to}).total - base, why: lv < 100 && to >= 100 ? "reaches Lv 100" : to >= 120 ? "reaches Lv 120" : ""}); }
@@ -1054,18 +1124,23 @@ function roiOf(s) {
   return best;
 }
 function roiText(r) {
-  const step = r.kind === "skill" ? `Skill ${r.i + 1} ${r.from} → ${r.to}` : r.kind === "level" ? `Lv ${r.from} → ${r.to}` : `Grail: Lv ${r.from} → ${r.to}`;
+  const step = r.kind === "skill" ? `Skill ${r.i + 1} ${r.from} → ${r.to}` : r.kind === "append" ? (r.from ? `Append ${r.i + 1} ${r.from} → ${r.to}` : `Append ${r.i + 1}`) : r.kind === "level" ? `Lv ${r.from} → ${r.to}` : `Grail: Lv ${r.from} → ${r.to}`;
   return step + (r.why ? ", " + r.why : "");
 }
 
 /* ---------- tier board: SS to C by score, with your own placements on top ---------- */
 const TIER_KEY = "spirit-origin-list:v1:tiers", RV_KEY = "spirit-origin-list:v1:rankView";
-const TIERS = [{k: "SS", min: 75}, {k: "S", min: 62}, {k: "A", min: 50}, {k: "B", min: 40}, {k: "C", min: -Infinity}];
+// 0.59.0: each ranking has its own cut-offs (Raised: a servant at its own max level with skills 10/10/10 and NP1 is about
+// 55, A; at Lv 100 with NP2 about 79, EX. Power: the same at Lv 100 is S to EX by rarity, and any servant maxed out is EX)
+const TIER_MIN = {raised: {SS: 75, S: 60, A: 45, B: 30}, power: {SS: 80, S: 68, A: 56, B: 44}};
+const TIERS = ["SS", "S", "A", "B", "C"].map((k) => ({k: k, min: TIER_MIN.raised[k] != null ? TIER_MIN.raised[k] : -Infinity}));
+const tiersNow = () => TIERS.map((t) => ({k: t.k, min: TIER_MIN[rankMode()][t.k] != null ? TIER_MIN[rankMode()][t.k] : -Infinity}));
+const tierRanges = () => tiersNow().map((t, i, T) => tierName(t.k) + " " + (i === 0 ? t.min + "+" : t.min === -Infinity ? "under " + T[i - 1].min : t.min + "–" + T[i - 1].min)).join(", ");
 let tierOv = null, tierJustDragged = false, tierDrag = null;
 function tierClean(d) { const m = {}; if (d && typeof d === "object") Object.keys(d).forEach((id) => { if (TIERS.some((t) => t.k === d[id]) && /^[A-Za-z0-9_\-.~:@+]{1,200}$/.test(id)) m[id] = d[id]; }); return m; }
 function tierOverrides() { if (tierOv) return tierOv; try { tierOv = tierClean(JSON.parse(localStorage.getItem(TIER_KEY) || "null")); } catch (e) { tierOv = {}; } return tierOv; }
 function setTierOverrides(m) { tierOv = tierClean(m); try { if (Object.keys(tierOv).length) localStorage.setItem(TIER_KEY, JSON.stringify(tierOv)); else localStorage.removeItem(TIER_KEY); } catch (e) {} }
-const autoTier = (sc) => TIERS.find((t) => sc >= t.min).k;
+const autoTier = (sc) => tiersNow().find((t) => sc >= t.min).k;
 const tierOf = (id, sc) => tierOverrides()[id] || autoTier(sc);
 function setTier(id, k) {
   const r = rankRows().find((x) => x.s.id === id); if (!r) return;
@@ -1078,9 +1153,10 @@ function setRankView(v) { try { localStorage.setItem(RV_KEY, v); } catch (e) {} 
 const PIN = `<svg class="tc-pin" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 1.5l4 4-2 1-2.5 2.5.5 3-1.5 1.5-3-3-3.5 3.5-.5-.5L5.5 10l-3-3L4 5.5l3 .5L9.5 3.5z" fill="currentColor"/></svg>`;
 function tierBoardHTML(rows) {
   const ov = tierOverrides();
-  return TIERS.map((t, i) => {
+  const T = tiersNow();
+  return T.map((t, i) => {
     const items = rows.filter((r) => tierOf(r.s.id, r.sc.total) === t.k);
-    const range = i === 0 ? t.min + "+" : t.min === -Infinity ? "under " + TIERS[i - 1].min : t.min + "–" + TIERS[i - 1].min;
+    const range = i === 0 ? t.min + "+" : t.min === -Infinity ? "under " + T[i - 1].min : t.min + "–" + T[i - 1].min;
     const cards = items.map((r) => `<button type="button" class="tier-card${ov[r.s.id] ? " pinned" : ""}" data-action="tier-card" data-id="${esc(r.s.id)}" aria-haspopup="menu" aria-label="${esc(r.s.name)}, ${r.sc.total.toFixed(1)}${ov[r.s.id] ? ", placed here by you" : ""}. Press to move">${iconHTML(r.s, "")}<span class="tc-n">${nmHTML(r.s)}</span><span class="tc-s">${r.sc.total.toFixed(1)}${ov[r.s.id] ? PIN : ""}</span></button>`).join("");
     return `<section class="tier-row t-${t.k.toLowerCase()}" data-tier-drop="${t.k}" aria-label="Tier ${tierName(t.k)}, score ${range}"><div class="tier-lab"><b>${tierName(t.k)}</b><small>${range}</small></div><div class="tier-cards">${cards || `<span class="tier-empty">Nobody here yet</span>`}</div></section>`;
   }).join("");
@@ -1096,8 +1172,10 @@ function renderRoiTop(rows) {
 function renderRanking() {
   const el = $("#ranking"), board = $("#tierboard"); if (!el) return;
   if (S.dbState !== "ok" || !S.loaded.servants) { el.innerHTML = ""; if (board) board.innerHTML = ""; return; }
-  const view = rankView();
+  const view = rankView(), mode = rankMode();
   document.querySelectorAll('[data-action="rank-view"]').forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === view)));
+  document.querySelectorAll('[data-action="rank-mode"]').forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === mode)));
+  const note = document.getElementById("rank-note"); if (note) note.textContent = RANK_NOTE[mode];
   // the Count custom servants box: only there when you have some
   const nCus = owned().filter((s) => s.custom).length, ck = document.getElementById("rank-custom");
   if (ck) { ck.checked = rankCustom(); const lb = ck.closest("label"); if (lb) { lb.hidden = !nCus; lb.title = nCus ? (ck.checked ? "Your " + nCus + " custom servant" + (nCus === 1 ? " is" : "s are") + " in the ranking and on the tier board" : "Your custom servants are left out of the ranking and the tier board") : ""; } }
@@ -1106,7 +1184,7 @@ function renderRanking() {
   const seen = document.querySelector('[data-action="rank-seen"]'); if (seen) seen.hidden = view !== "list";
   if (!rows.length) { el.innerHTML = `<li class="list-note"><p>Add servants to see how they rank.</p></li>`; if (board) board.innerHTML = ""; $("#roi-top").innerHTML = ""; return; }
   renderRoiTop(rows);
-  if (board && view === "tiers") board.innerHTML = tierBoardHTML(rows) + `<p class="tier-note">Drag a servant to another tier, or press it to pick one. Servants you placed yourself show a pin; press "Back to automatic" to let the score decide again. Score ranges: EX 75+, S 62–75, A 50–62, B 40–50, C under 40.</p>`;
+  if (board && view === "tiers") board.innerHTML = tierBoardHTML(rows) + `<p class="tier-note">Drag a servant to another tier, or press it to pick one. Servants you placed yourself show a pin; press "Back to automatic" to let the score decide again. ${RANK_NAME[mode]} score ranges: ${tierRanges()}.</p>`;
   if (view !== "list") return;
   const cur = {}; rows.forEach((r, i) => { cur[r.s.id] = i + 1; });
   let base0 = rankBase(); if (!base0) { base0 = cur; setRankBase(cur); }
@@ -1115,9 +1193,9 @@ function renderRanking() {
   const inRows = new Set(rows.map((r) => r.s.id)), base = {};
   Object.keys(base0).filter((id) => inRows.has(id)).sort((x, y) => base0[x] - base0[y]).forEach((id, i) => { base[id] = i + 1; });
   el.innerHTML = rows.map((r, i) => {
-    const rank = i + 1, prev = base[r.s.id], q = r.sc.parts, roi = roiOf(r.s);
+    const rank = i + 1, prev = base[r.s.id], roi = roiOf(r.s);
     const mv = prev == null ? `<span class="mv">new</span>` : prev > rank ? `<span class="mv up" title="Up ${prev - rank}">▲${prev - rank}</span>` : prev < rank ? `<span class="mv down" title="Down ${rank - prev}">▼${rank - prev}</span>` : `<span class="mv" title="No change">–</span>`;
-    const parts = "Stats " + q.stats.toFixed(1) + " · Skills " + q.skills.toFixed(1) + " · NP " + q.np.toFixed(1) + " · Bond " + (q.bond || 0).toFixed(1) + " · Level " + q.level.toFixed(1);
+    const parts = partsText(r.sc);
     const roiLine = roi ? `<span class="rk-roi${roi.flag ? " " + roi.flag : ""}">${roi.flag === "top" ? "<b>Highest ROI</b> · " : roi.flag === "good" ? "<b>Good value</b> · " : "Next: "}${esc(roiText(roi))} (+${roi.gain.toFixed(1)})</span>` : "";
     return `<li class="rank-row${rank <= 3 ? " top" : ""}${roi && roi.flag ? " has-roi-" + roi.flag : ""}"><span class="rk">${rank}</span>${mv}${iconHTML(r.s, "")}<span class="rk-main"><button class="rk-name" data-action="goto" data-id="${esc(r.s.id)}">${nmHTML(r.s)}</button><span class="rk-parts">${r.sc.missing ? "Stats not filled in · " : ""}${parts}</span>${roiLine}</span><span class="rk-bar" title="${esc(r.s.name)}: ${r.sc.total.toFixed(1)} of 100 (${esc(parts)})"><i style="width:${Math.min(100, r.sc.total).toFixed(1)}%"></i></span><b class="rk-score">${r.sc.total.toFixed(1)}</b></li>`;
   }).join("");
@@ -1542,7 +1620,8 @@ const VS_METRICS = [
   {k: "level", t: "Level", sub: "of 120", get: (s) => num(s.level), max: () => 120, f: String},
   {k: "np", t: "NP level", sub: "of 5", get: (s) => num(s.npLevel), max: () => 5, f: (v) => "NP" + v},
   {k: "sk", t: "Skill levels", sub: "of 30", get: (s) => skillTotal(s), max: () => 30, f: String},
-  {k: "score", t: "Rank score", sub: "of 100", get: (s) => s.wish ? null : scoreOf(s).total, max: () => 100, f: (v) => v.toFixed(1)}
+  {k: "score", t: "Raised", sub: "rank score, of 100", get: (s) => s.wish ? null : scoreOf(s, null, "raised").total, max: () => 100, f: (v) => v.toFixed(1)},
+  {k: "power", t: "Power", sub: "rank score, of 100", get: (s) => s.wish ? null : scoreOf(s, null, "power").total, max: () => 100, f: (v) => v.toFixed(1)}
 ];
 
 function vsHeroHTML(s, i, ids) {

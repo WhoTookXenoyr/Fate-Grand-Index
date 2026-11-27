@@ -183,10 +183,11 @@ with sync_playwright() as p:
     pg.evaluate(f"localStorage.setItem('{KEY}:rankView', 'list')")
     pg.goto(SEEDED + "#ranking"); pg.wait_for_timeout(1500)
     rows = pg.evaluate("Array.from(document.querySelectorAll('.rank-row')).map((r) => [r.querySelector('.rk-parts').textContent, r.querySelector('.rk-score').textContent])")
-    def parts(t): return {k: float(v) for k, v in re.findall(r"(Stats|Skills|NP|Bond|Level) ([\d.]+)", t)}
+    # (0.59.0: this is the Raised ranking now, in six parts; tests/test_59_v059.py checks both rankings in full)
+    def parts(t): return {k: float(v) for k, v in re.findall(r"(Stats|Skills|NP|Bond|Level|Fou|Appends) ([\d.]+)", t)}
     P = [parts(r[0]) for r in rows]
-    check(f"the parts no longer include rarity ({rows[0][0][:90]})", rows and all("Rarity" not in r[0] for r in rows) and all(len(x) == 5 for x in P))
-    check("each score is its five parts added up", all(abs(sum(x.values()) - float(r[1])) < 0.11 for x, r in zip(P, rows)))
+    check(f"the parts don't include rarity ({rows[0][0][:90]})", rows and all("Rarity" not in r[0] for r in rows) and all(len(x) == 6 for x in P))
+    check("each score is its parts added up", all(abs(sum(x.values()) - float(r[1])) < 0.11 for x, r in zip(P, rows)))
     ids = pg.evaluate("Array.from(document.querySelectorAll('.rank-row .rk-name')).map((b) => b.dataset.id)")
     sv = {x["id"]: x for x in json.loads(roster(pg))["servants"]}
     def power(v):
@@ -194,11 +195,7 @@ with sync_playwright() as p:
         lv = min(max(v, 1), 10)
         return 0.8 * (1 if lv >= 10 else (lv - 1) / 10) + 0.2 * ((0.5 if lv >= 6 else 0) + (0.5 if lv >= 10 else 0))
     want = [sum(power((sv[i].get("skills") or [])[j] if j < len(sv[i].get("skills") or []) else None) for j in range(3)) / 3 * 33 for i in ids]
-    check(f"skills are out of 33 now ({[round(w, 1) for w in want[:4]]} vs {[x['Skills'] for x in P[:4]]})", all(abs(w - x["Skills"]) < 0.06 for w, x in zip(want, P)))
-    lv = [(min(max(int(sv[i].get("level") or 1), 1), 120)) for i in ids]
-    CAPS = {1: 60, 2: 65, 3: 70, 4: 80, 5: 90}
-    lvw = [(6.5 * l / 120 + (2 if CAPS.get(int(sv[i].get("rarity") or 0)) and l >= CAPS[int(sv[i]["rarity"])] else 0) + (1.5 if l >= 100 else 0)) * 1.2 for i, l in zip(ids, lv)]
-    check(f"and level out of 12 ({lv[:4]} → {[x['Level'] for x in P[:4]]})", all(abs(w - x["Level"]) < 0.06 for w, x in zip(lvw, P)))
+    check(f"skills are out of 33 ({[round(w, 1) for w in want[:4]]} vs {[x['Skills'] for x in P[:4]]})", all(abs(w - x["Skills"]) < 0.06 for w, x in zip(want, P)))
 
     # ================= the Saint Quartz picture =================
     pg.goto(SEEDED + "#summon"); pg.wait_for_timeout(1500)

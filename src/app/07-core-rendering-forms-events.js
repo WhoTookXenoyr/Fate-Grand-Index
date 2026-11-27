@@ -387,7 +387,7 @@ function renderDossier(force) {
     <header class="d-head">
       ${iconHTML(s, "lg")}
       <div><h2>${esc(s.name)}</h2>
-        <p class="d-meta"><span>${esc(s.cls || "No class")}</span><span class="stars">${"★".repeat(clamp(num(s.rarity) || 0, 0, 5))}</span>${s.role ? `<span class="tag">${esc(s.role)}</span>` : ""}${rk ? `<button class="tag rank-chip" data-action="tab" data-tab="ranking" title="Open the ranking">Rank #${rk.rank} of ${rk.of} · ${rk.sc.total.toFixed(1)}</button>` : s.custom && !s.wish && !rankCustom() ? `<button class="tag rank-chip off" data-action="tab" data-tab="ranking" title="Custom servants are left out of the ranking. Count them again on the Ranking page">Not ranked</button>` : ""}</p></div>
+        <p class="d-meta"><span>${esc(s.cls || "No class")}</span><span class="stars">${"★".repeat(clamp(num(s.rarity) || 0, 0, 5))}</span>${s.role ? `<span class="tag">${esc(s.role)}</span>` : ""}${rk ? `<button class="tag rank-chip" data-action="tab" data-tab="ranking" title="Open the ranking (${rk.sc.mode === "power" ? "Power: how strong they are" : "Raised: how far they are raised"})">Rank #${rk.rank} of ${rk.of} · ${RANK_NAME[rk.sc.mode]} ${rk.sc.total.toFixed(1)}</button>` : s.custom && !s.wish && !rankCustom() ? `<button class="tag rank-chip off" data-action="tab" data-tab="ranking" title="Custom servants are left out of the ranking. Count them again on the Ranking page">Not ranked</button>` : ""}</p></div>
       <div class="d-head-actions"><button class="btn sm" data-action="vs-add" data-id="${esc(s.id)}" title="Compare in the Versus tab">Compare</button>${S.readOnly ? "" : `<button class="btn sm" data-action="edit">Edit details</button>`}</div>
     </header>
     ${s.wish ? `<div class="wish-banner"><p><b>Guest.</b> Not summoned yet. Add their stage pictures under Ascension art, and summon them on the Summoning page when they join you.</p>${S.readOnly ? "" : `<span class="wish-acts"><button class="btn sm summon-btn" data-action="to-summon" data-id="${esc(s.id)}">Go to Summoning</button><button class="btn ghost sm" data-action="wish-remove" data-id="${esc(s.id)}">Remove from Guests</button></span><div id="wish-confirm" class="wish-confirm"></div>`}</div>` : ""}
@@ -1311,6 +1311,7 @@ document.addEventListener("click", async (e) => {
   if (a === "tr-buff-add") { const box = document.getElementById("tr-buffs"); if (!box) return; box.insertAdjacentHTML("beforeend", buffRowHTML({tag: "", what: ""}, readTraitsForm())); const f = box.lastElementChild.querySelector("select"); if (f) f.focus(); return; }
   if (a === "tr-buff-del") { const r = b.closest(".tr-buff"); if (r) r.remove(); refreshTraitLive(); return; }
   if (a === "rank-view") { setRankView(b.dataset.v === "tiers" ? "tiers" : "list"); closeTierMenu(); renderRanking(); return; }
+  if (a === "rank-mode") { setRankMode(b.dataset.v === "power" ? "power" : "raised"); closeTierMenu(); renderRanking(); return; }
   if (a === "tier-card") { if (tierJustDragged) return; const m = document.getElementById("tier-menu"); if (m && !m.hidden && m.dataset.for === b.dataset.id) { closeTierMenu(); return; } openTierMenu(b); return; }
   if (a === "tier-set") {
     const id = b.dataset.id, k = b.dataset.k || "", s = S.servants.find((x) => x.id === id), r = rankRows().find((x) => x.s.id === id); if (!s || !r) return;

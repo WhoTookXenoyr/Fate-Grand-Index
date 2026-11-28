@@ -4303,13 +4303,13 @@ input.gr-auto { background: var(--sunken) !important; color: var(--muted); }
    512 × 875: a 200-wide row starts at x 154 (its stars sit where the drawn-in ones were), the Lv 120 row is 350 wide
    around the same middle; the game's emblem has room around it in its 106 × 106 sprite, so its box is bigger.
    0.60.1 (Noyr, 28 Nov: "too high ... the topside doesn't clip out of the card"): the rows sat where the drawn-in stars
-   had been, so the tips of the top stars (and the grail's rays) were cut off by the card's top edge. They're 8 px lower
-   now (of the frame's 875): the 200 × 60 row's stars start at its 9th row, so they begin 3 px inside the edge; the
-   52-tall rows (grailed, Lv 100, Lv 120) keep their stars level with it, which leaves their rays 1 px over the edge */
+   had been, so the tips of the top stars (and the grail's rays) were cut off by the card's top edge. They're 10 px lower
+   now (of the frame's 875): the 200 × 60 row's stars start at its 9th row, so they begin 5 px inside the edge; the
+   52-tall rows (grailed, Lv 100, Lv 120) keep their stars level with it, and their rays start 1 px inside */
 .cf > .cf-st { position: absolute; z-index: 4; height: auto; pointer-events: none; user-select: none; }
-.cf > .cf-st-a { left: 30.078%; width: 39.063%; top: -0.686%; }
-.cf > .cf-st-b { left: 30.078%; width: 39.063%; top: -0.114%; }
-.cf > .cf-st-c { left: 15.43%; width: 68.359%; top: -0.114%; }
+.cf > .cf-st-a { left: 30.078%; width: 39.063%; top: -0.457%; }
+.cf > .cf-st-b { left: 30.078%; width: 39.063%; top: 0.114%; }
+.cf > .cf-st-c { left: 15.43%; width: 68.359%; top: 0.114%; }
 /* a ★0 has a crest instead of stars, flat along its top: it hangs from the frame's top edge, cup and all */
 .cf > .cf-st.cf-st0 { top: 0; }
 .cf > .cf-cls.aa { width: 21%; }

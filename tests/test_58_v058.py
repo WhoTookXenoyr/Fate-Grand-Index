@@ -55,7 +55,8 @@ with sync_playwright() as p:
     c = card(pg)
     check(f"a ★5 at its cap: the frame without stars, the frame with them kept to fall back on ({c['cls']})", c["cls"] == ["cf", "cf-f", "cf-gold"] and c["src"] and c["fb"] and c["src"] != c["fb"])
     check(f"the game's star row on top: rarity5_0, placed for a 200 × 60 row ({c['st']}, {c['w']})", c["st"] == AA + "rarity5_0.png" and c["w"] == ["cf-st-a"] and c["loaded"])
-    check(f"the row sits over the frame's top, starting a little above it ({c['top']} px of 512)", c["top"] is not None and -16 <= c["top"] <= -12)
+    # 0.60.1: 6 px above the frame's top, so its stars (from the sprite's 9th row) start just inside the card
+    check(f"the row sits over the frame's top, its stars inside the card ({c['top']} px of 512)", c["top"] is not None and -7 <= c["top"] <= -5)
     check(f"the game's emblem for {cls} in gold, with the badge kept to fall back on ({c['emb']})", c["emb"] == f"{AA}class3_{cid}.png" and c["aa"] and c["embFb"] and c["embFb"].startswith("data:image/"))
     check(f"no recolouring filter on the game's emblem ({c['filter']})", c["filter"] in (None, "none"))
     # n: 0 as summoned, 1 grailed (past the rarity's cap), 2 at Lv 100, 3 at Lv 120; ★0 counts from 1; metal follows grails
@@ -71,6 +72,10 @@ with sync_playwright() as p:
     c = card(pg)
     check(f"at Lv 120 the emblem's rainbow is cut to the game's emblem ({c['mask']})", c["mask"] == f"url('{AA}class1_{cid}.png')")
     check(f"a ★0's crest hangs from the frame's top edge ({c['top']} px)", c["top"] == 0 and pg.locator("#dossier .art-frame > .cf-st.cf-st0").count() == 1)
+    # (0.60.1) the 52-tall rows hang 1 px over the top, with their stars level with the plain row's
+    set_sv(pg, sid, 5, 92)
+    c = card(pg)
+    check(f"a grailed row sits 1 px over the top ({c['top']} px)", c["top"] == -1)
     for k, n in (("Shielder", 8), ("Moon Cancer", 23), ("Beast", 33)):
         set_sv(pg, sid, 4, 80, k)
         c = card(pg)

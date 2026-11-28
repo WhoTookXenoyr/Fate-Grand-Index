@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until 0.50.0, beta from there until the full website and app: 1.0.0
-const APP_VER = "0.60.0-beta";
+const APP_VER = "0.60.1-beta";
 const APP_STAGE = /-beta\b/.test(APP_VER) ? "beta" : "alpha", APP_NUM = APP_VER.replace(/-.*$/, "");
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
@@ -164,6 +164,10 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.60.1-beta", d: "28 Nov 2026", t: "Stars inside the card", i: [
+    "The star row on card frames sat too high, so the tips of the top stars were cut off by the card's top edge. It's a little lower now, with the stars inside the card.",
+    "The grailed, Lv 100 and Lv 120 rows moved down the same amount, so their stars stay level with the plain row and the grail's rays show."
+  ]},
   {v: "0.60.0-beta", d: "28 Nov 2026", t: "Your favourite servant", i: [
     "Press the <b>heart</b> on a servant's page to make them your favourite. One servant at a time; pressing it on someone else moves it, and pressing it again unsets it.",
     "Your favourite's page wears a <b>halo in the colours of their own picture</b>: a ring around the page with a light travelling round it, a slow breathing glow, and motes and sparkles rising along its sides.",

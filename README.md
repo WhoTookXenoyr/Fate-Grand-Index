@@ -260,6 +260,21 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
   - **Fresh copies**: `syncApply` and `evPrefSave` are wrapped. A pull that brings `extras/event` reloads `evPref` (`evPrefFresh`, compared against the last raw string written or read), and the page reloads it before drawing or saving, so an old in-memory copy is never saved over a newer synced one.
 - **Class Score**: `csCostHTML(list, have)` adds "have N" (red when short) once anything's filled in; the side panel links to the page; `spend` in its state ("Take what I open out of my materials") makes `csChange` take the new squares' cost out of the things you've filled in (never below 0), with Undo.
 - The Planner's foot and the Event calculator's note link to the page. `window.__fgiMaterials` for the tests; `tests/test_57_v057.py`. The tab counts in four older suites include Materials.
+## 0.60.0-beta: your favourite servant
+- Noyr (28 Nov 2026): "nice colours and animation around a SERVANTPAGE (during idle and when clicking) on your selected FAVOURITE servant".
+- `src/app/70-favourite.js` and `src/styles/45-favourite.css`.
+  - **Choosing:** a heart button (`data-action="fav-toggle"`) in the servant page's header makes that servant your favourite. Pressing it on another servant moves it, and pressing it again unsets it, with Undo. It isn't offered on Guests or in view-only rosters.
+  - **Storage:** the id is kept in `spirit-origin-list:v1:favourite`, so the roster's servants are untouched. It syncs as an extra (`EXTRA_KEYS.favourite`) and is cleared by Fresh start.
+  - **Roster:** the favourite's row gets a heart (`.fav-mark`, with "your favourite" for screen readers).
+- **The halo** (`.fav-frame`) is a fixed layer laid over the servant page, the way the grail frame is. On the wide layout it sits 7 px outside the page; on a phone's full-screen page it sits 3 px inside, with an inner glow. It uses the colours of the servant's picture (`--p1..--p3` from `applyTheme`):
+  - a two-pixel ring in those colours, with one light travelling round it every 9 s (a conic gradient on an oversized square that only rotates);
+  - a glow that's painted once and breathes by opacity;
+  - 16 motes and four-point sparkles rising along the sides and bottom.
+- **Clicking** anywhere on the favourite's page (`pointerdown`) makes a burst where you clicked, through WAAPI: two rings and ten sparks, and the ring flashes. There are at most four bursts at once, at least 90 ms apart, and each is removed when it ends.
+- **Cost:** only transform and opacity move. The loops are CSS animations, so the frame-rate switch steps them, and they stop when the halo is hidden (another servant, another page, a phone's list). Reduced motion keeps only the still ring and glow.
+- **Header room:** the heart has no word next to it, so the header keeps room for the name. The rank chip's halves are held together with no-break spaces, so it wraps after the dot.
+- `tests/test_60_v060.py`. `test_44` and `test_59` read the chip with its no-break spaces.
+
 ## 0.59.1-beta: fairer tier cut-offs
 - Noyr (28 Nov 2026): an NP2 Lv 100 Space Ereshkigal went from EX to S, "isn't the rating too harsh now".
   - Yes: 0.59.0 put EX at about three quarters of a fully maxed servant.

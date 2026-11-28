@@ -57,7 +57,7 @@ with sync_playwright() as p:
     pg.locator(f'#list [data-id="{cus[0]}"]').evaluate("(e) => e.click()"); pg.wait_for_timeout(700)
     check(f"a custom servant's page says Not ranked ({pg.locator('#dossier .rank-chip').inner_text()!r})", pg.locator("#dossier .rank-chip.off").count() == 1 and "Not ranked" in pg.locator("#dossier .rank-chip").inner_text())
     pg.locator(f'#list [data-id="{r1[0]}"]').evaluate("(e) => e.click()"); pg.wait_for_timeout(700)
-    check(f"another's rank counts only the others ({pg.locator('#dossier .rank-chip').inner_text()!r})", f"Rank #1 of {n_own - 2}" in pg.locator("#dossier .rank-chip").inner_text())
+    check(f"another's rank counts only the others ({pg.locator('#dossier .rank-chip').inner_text()!r})", f"Rank #1 of {n_own - 2}" in pg.locator("#dossier .rank-chip").inner_text().replace("\xa0", " ") and pg.locator("#dossier .rank-chip").inner_text())
     tab(pg, "home")
     hand = pg.evaluate("Array.from(document.querySelectorAll('#home .hm-card')).map((c) => c.dataset.id)")
     check(f"Home's best servants leave them out ({len(hand)})", hand and not any(c in hand for c in cus))

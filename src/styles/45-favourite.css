@@ -1,0 +1,67 @@
+/* 0.60.0: your favourite servant (70-favourite.js). Their page wears a halo in the colours of their own picture: a ring
+   with one light travelling round it, a breathing glow, motes and sparkles rising along its sides, and bursts where you
+   click. Only transform and opacity move. */
+
+/* ---------- the heart ---------- */
+.fv-heart { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+.fav-btn { display: inline-flex; align-items: center; justify-content: center; padding-inline: 9px; }
+.fav-btn .fv-heart { width: 16px; height: 16px; }
+.fav-btn.on { --fv-rose: #d9466e; color: var(--fv-rose); border-color: color-mix(in srgb, var(--fv-rose) 55%, var(--line)); background: color-mix(in srgb, var(--fv-rose) 9%, var(--panel)); }
+.fav-btn.on .fv-heart { fill: currentColor; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .fav-btn.on { --fv-rose: #ff7a9c; } }
+:root[data-theme="dark"] .fav-btn.on { --fv-rose: #ff7a9c; }
+.row > .fav-mark { position: absolute; grid-area: auto; left: 4px; top: 4px; z-index: 3; width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%;
+  background: var(--panel); color: #d9466e; box-shadow: 0 1px 3px rgb(0 0 0 / .25); pointer-events: none; }
+.row > .fav-mark .fv-heart { width: 12px; height: 12px; fill: currentColor; stroke: none; }
+
+/* ---------- the halo ---------- */
+.fav-frame { position: fixed; z-index: 3; pointer-events: none; }
+.fav-frame[hidden] { display: none; }
+.fav-frame > i { position: absolute; inset: 0; display: block; border-radius: inherit; pointer-events: none; }
+/* the glow is painted once; only its opacity breathes */
+.fv-glow { box-shadow: 0 0 18px 2px color-mix(in srgb, var(--p2) 70%, transparent), 0 0 54px 10px color-mix(in srgb, var(--p1) 32%, transparent); opacity: .45; animation: fvBreathe 5.6s ease-in-out infinite; will-change: opacity; }
+.fav-frame.in .fv-glow { box-shadow: inset 0 0 22px 2px color-mix(in srgb, var(--p2) 55%, transparent), inset 0 0 60px 6px color-mix(in srgb, var(--p1) 20%, transparent); }
+@keyframes fvBreathe { 0%, 100% { opacity: .32; } 50% { opacity: .78; } }
+/* the ring: the picture's colours all the way round, and one light travelling round it */
+.fv-ring, .fv-flash { padding: 2px; overflow: hidden; container-type: size;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude; }
+.fv-ring { background: linear-gradient(135deg, var(--p1), var(--p2) 50%, var(--p3)); opacity: .9; }
+.fv-ring > b { position: absolute; left: 50%; top: 50%; width: calc(100cqw + 100cqh); aspect-ratio: 1; transform: translate(-50%, -50%) rotate(0turn);
+  background: conic-gradient(from 0deg, transparent 0 58%, color-mix(in srgb, var(--p3) 55%, transparent) 72%, var(--p2) 84%, #fff 90%, transparent 92% 100%);
+  animation: fvOrbit 9s linear infinite; will-change: transform; }
+@keyframes fvOrbit { to { transform: translate(-50%, -50%) rotate(1turn); } }
+.fv-flash { padding: 3px; background: linear-gradient(135deg, #fff, var(--p2) 45%, #fff 70%, var(--p1)); opacity: 0; will-change: opacity; }
+/* motes and sparkles rising along the sides */
+.fv-motes { overflow: visible; }
+.fv-motes > s { position: absolute; left: var(--x); top: var(--y); width: var(--s); height: var(--s); border-radius: 50%; text-decoration: none;
+  background: radial-gradient(circle, #fff 0 16%, var(--c) 38%, transparent 70%); opacity: 0; animation: fvRise var(--t) linear var(--d) infinite; will-change: transform, opacity; }
+.fv-motes > s.sp { border-radius: 0; background: linear-gradient(160deg, #fff, var(--c) 60%);
+  clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); }
+@keyframes fvRise {
+  0% { transform: translate(0, 0) scale(.5) rotate(0deg); opacity: 0; }
+  14% { opacity: var(--o); }
+  78% { opacity: var(--o); }
+  100% { transform: translate(var(--dx), var(--dy)) scale(1) rotate(90deg); opacity: 0; }
+}
+/* a burst where you click */
+.fv-bursts { overflow: visible; }
+.fv-burst { position: absolute; width: 0; height: 0; }
+.fv-burst > i { position: absolute; left: 0; top: 0; display: block; opacity: 0; will-change: transform, opacity; }
+.fv-burst .ring { width: 130px; height: 130px; margin: -65px 0 0 -65px; border-radius: 50%; border: 2.5px solid var(--p2);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--p2) 65%, transparent), inset 0 0 12px color-mix(in srgb, var(--p1) 45%, transparent); }
+.fv-burst .ring.two { border-color: #fff; border-width: 1.5px; box-shadow: none; }
+.fv-burst .spark { width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: radial-gradient(circle, #fff 0 25%, var(--c) 55%, transparent 75%); }
+.fv-burst .spark.sp { width: 13px; height: 13px; margin: -6.5px 0 0 -6.5px; border-radius: 0; background: linear-gradient(160deg, #fff, var(--c) 65%);
+  clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); }
+/* in light mode the glow is softer */
+:root[data-theme="light"] .fv-glow { animation-name: fvBreatheLight; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .fv-glow { animation-name: fvBreatheLight; } }
+@keyframes fvBreatheLight { 0%, 100% { opacity: .22; } 50% { opacity: .5; } }
+/* reduced motion: the still ring and glow, nothing moving */
+@media (prefers-reduced-motion: reduce) {
+  .fv-glow, .fv-ring > b { animation: none !important; }
+  .fv-glow { opacity: .5; }
+  .fv-ring > b { transform: translate(-50%, -50%) rotate(.6turn); }
+  .fav-frame > .fv-motes, .fav-frame > .fv-bursts { display: none; }
+}

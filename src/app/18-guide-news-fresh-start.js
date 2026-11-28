@@ -1,7 +1,7 @@
 /* ================= v15: fresh start, a short guide, What's new, grails counted, quick set, trait check ================= */
 // Everything here is drawn once and left still: no blur, no looping animation, nothing that repaints on its own.
 // alpha until 0.50.0, beta from there until the full website and app: 1.0.0
-const APP_VER = "0.59.1-beta";
+const APP_VER = "0.60.0-beta";
 const APP_STAGE = /-beta\b/.test(APP_VER) ? "beta" : "alpha", APP_NUM = APP_VER.replace(/-.*$/, "");
 const INTRO_KEY = "spirit-origin-list:v1:intro", NEWS_KEY = "spirit-origin-list:v1:news";
 const TRK_KEY = "spirit-origin-list:v1:traitkeep", TRN_KEY = "spirit-origin-list:v1:traitnote";
@@ -164,6 +164,13 @@ function traitPanelHTML() {
 // MAJOR.MINOR.PATCH: still alpha (0.x) until the full website and app, which will be 1.0.0.
 // A release with new features moves MINOR, a release with only fixes moves PATCH.
 const CHANGES = [
+  {v: "0.60.0-beta", d: "28 Nov 2026", t: "Your favourite servant", i: [
+    "Press the <b>heart</b> on a servant's page to make them your favourite. One servant at a time; pressing it on someone else moves it, and pressing it again unsets it.",
+    "Your favourite's page wears a <b>halo in the colours of their own picture</b>: a ring around the page with a light travelling round it, a slow breathing glow, and motes and sparkles rising along its sides.",
+    "<b>Click anywhere on their page</b> and a burst of light and sparkles comes from where you clicked, while the ring lights up.",
+    "Their row in the roster gets a small heart. Your favourite syncs with your account, and your servants themselves aren't changed.",
+    "It's easy on the graphics card: only light layers move, it follows the frame-rate switch, and it stops whenever their page isn't showing. With reduced motion, the ring and glow stay still."
+  ]},
   {v: "0.59.1-beta", d: "28 Nov 2026", t: "Fairer tiers", i: [
     "The tier cut-offs from 0.59.0 were too harsh: EX needed about three quarters of a fully maxed servant (Lv 120, NP5, every append, Fou and Bond maxed), so a well-raised servant like an NP2 Lv 100 ★5 dropped to S.",
     "<b>Raised</b> is now EX from 65, S from 50, A from 35 and B from 20. A servant at their own max level with skills 10/10/10, NP1, Fou 1000 and Bond 10 is S; Lv 100 and NP2 on top makes EX.",
@@ -512,7 +519,7 @@ function tourHTML() {
 /* ---------- start fresh ---------- */
 // Only this browser's copy is emptied: other browsers and computers each keep their own list.
 const PREF_KEYS = ["spirit-origin-list:v1:theme", "spirit-origin-list:v1:fonts", "spirit-origin-list:v1:fps", "spirit-origin-list:v1:affinity", "spirit-origin-list:v1:icauto",
-  "spirit-origin-list:v1:past", "spirit-origin-list:v1:rankBase", "spirit-origin-list:v1:rankView", "spirit-origin-list:v1:rankMode", "spirit-origin-list:v1:rankCustom", NEWS_KEY];
+  "spirit-origin-list:v1:past", "spirit-origin-list:v1:rankBase", "spirit-origin-list:v1:rankView", "spirit-origin-list:v1:rankMode", "spirit-origin-list:v1:rankCustom", "spirit-origin-list:v1:favourite", NEWS_KEY];
 const SF_WORD = "START FRESH";
 function freshHTML() {
   const own = S.servants.filter((s) => !s.wish).length, gu = S.servants.filter((s) => s.wish).length, pa = (S.parties || []).length;

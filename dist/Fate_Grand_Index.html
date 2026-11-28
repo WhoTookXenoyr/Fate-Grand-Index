@@ -27115,9 +27115,10 @@ function placeFav() {
   if (!on || !r || r.width < 20 || r.height < 20 || getComputedStyle(d).display === "none") { if (!favFrame.hidden) { favFrame.hidden = true; favFrame.querySelector(".fv-bursts").innerHTML = ""; } return; }
   favFrame.hidden = false;
   const z = UI_Z || 1, st = favFrame.style, zi = getComputedStyle(d).zIndex;
-  // a page with room around it (the wide layout) gets the halo just outside its edge, past the grail frame; the phone's
-  // full-screen page gets it just inside
-  const full = r.left <= 1 && r.width >= window.innerWidth - 2, out = full ? -3 : 7;
+  // a page with room around it (the wide layout) gets the halo just outside its edge, past the grail frame; a page that
+  // fills the screen (a phone's, or a narrow window's, where the scroll bar takes a little of the width) gets it just inside
+  // (the wide layout's page always has the roster to its left, so the left edge tells them apart)
+  const full = r.left <= 6, out = full ? -3 : 7;
   favFrame.classList.toggle("in", full);
   st.zIndex = zi === "auto" ? "" : zi;
   st.left = (r.left / z - out) + "px"; st.top = (r.top / z - out) + "px"; st.width = (r.width / z + out * 2) + "px"; st.height = (r.height / z + out * 2) + "px";

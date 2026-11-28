@@ -272,7 +272,9 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
   - 16 motes and four-point sparkles rising along the sides and bottom.
 - **Clicking** anywhere on the favourite's page (`pointerdown`) makes a burst where you clicked, through WAAPI: two rings and ten sparks, and the ring flashes. There are at most four bursts at once, at least 90 ms apart, and each is removed when it ends.
 - **Cost:** only transform and opacity move. The loops are CSS animations, so the frame-rate switch steps them, and they stop when the halo is hidden (another servant, another page, a phone's list). Reduced motion keeps only the still ring and glow.
-- **Header room:** the heart has no word next to it, so the header keeps room for the name. The rank chip's halves are held together with no-break spaces, so it wraps after the dot.
+- **Header room:** the heart has no word next to it, so the header keeps room for the name.
+  - On the wide layout the name keeps at least the width of its longest word (`minmax(min-content, 1fr)`), and the buttons wrap beside it instead of the name running under them.
+  - The rank chip's halves are held together with no-break spaces, so it wraps after the dot.
 - `tests/test_60_v060.py`. `test_44` and `test_59` read the chip with its no-break spaces.
 
 ## 0.59.1-beta: fairer tier cut-offs

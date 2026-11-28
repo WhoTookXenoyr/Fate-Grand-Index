@@ -5732,6 +5732,10 @@ html:not([data-theme="dark"]) .brand-logo, html:not([data-theme="dark"]) .sf-log
   background: var(--panel); color: #d9466e; box-shadow: 0 1px 3px rgb(0 0 0 / .25); pointer-events: none; }
 .row > .fav-mark .fv-heart { width: 12px; height: 12px; fill: currentColor; stroke: none; }
 
+/* the header with the heart in it: a long name (one long word like "Ereshkigal") keeps its width, and the buttons wrap
+   beside it instead of the name running under them (wide layout; at 900px and under the buttons get their own row) */
+@media (min-width: 901px) { .d-head { grid-template-columns: auto minmax(min-content, 1fr) minmax(0, max-content); } }
+
 /* ---------- the halo ---------- */
 .fav-frame { position: fixed; z-index: 3; pointer-events: none; }
 .fav-frame[hidden] { display: none; }

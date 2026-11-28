@@ -260,6 +260,15 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
   - **Fresh copies**: `syncApply` and `evPrefSave` are wrapped. A pull that brings `extras/event` reloads `evPref` (`evPrefFresh`, compared against the last raw string written or read), and the page reloads it before drawing or saving, so an old in-memory copy is never saved over a newer synced one.
 - **Class Score**: `csCostHTML(list, have)` adds "have N" (red when short) once anything's filled in; the side panel links to the page; `spend` in its state ("Take what I open out of my materials") makes `csChange` take the new squares' cost out of the things you've filled in (never below 0), with Undo.
 - The Planner's foot and the Event calculator's note link to the page. `window.__fgiMaterials` for the tests; `tests/test_57_v057.py`. The tab counts in four older suites include Materials.
+## 0.59.1-beta: fairer tier cut-offs
+- Noyr (28 Nov 2026): an NP2 Lv 100 Space Ereshkigal went from EX to S, "isn't the rating too harsh now".
+  - Yes: 0.59.0 put EX at about three quarters of a fully maxed servant.
+  - Her score with skills 10/10/10, Fou 1000 and Bond 10: Raised 67–69, Power 75–77. The old score gave 81.
+- `TIER_MIN` is now set by what players call well raised:
+  - **Raised:** EX 65, S 50, A 35, B 20. A servant at their own max level with 10/10/10, NP1, Fou 1000 and Bond 10 scores 55.5 (S); Lv 100 and NP2 on top scores about 67 (EX).
+  - **Power:** EX 75, S 63, A 52, B 40.
+- The scores themselves are unchanged.
+
 ## 0.59.0-beta: two rankings, Raised and Power
 - Noyr (27 Nov 2026) asked how to make the ranking the most balanced. Running the old score over all 418 NA servants showed:
   - **Rarity still counted** through raw stats. Raised the same way, a ★1 scored about 59.7 and a ★5 74.1, a gap of 14 points, bigger than the 9 rarity had before 0.54.0.

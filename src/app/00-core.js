@@ -1130,9 +1130,12 @@ function roiText(r) {
 
 /* ---------- tier board: SS to C by score, with your own placements on top ---------- */
 const TIER_KEY = "spirit-origin-list:v1:tiers", RV_KEY = "spirit-origin-list:v1:rankView";
-// 0.59.0: each ranking has its own cut-offs (Raised: a servant at its own max level with skills 10/10/10 and NP1 is about
-// 55, A; at Lv 100 with NP2 about 79, EX. Power: the same at Lv 100 is S to EX by rarity, and any servant maxed out is EX)
-const TIER_MIN = {raised: {SS: 75, S: 60, A: 45, B: 30}, power: {SS: 80, S: 68, A: 56, B: 44}};
+// 0.59.0: each ranking has its own cut-offs. 0.59.1 (Noyr: an NP2 Lv 100 Space Ereshkigal went from EX to S, "isn't the
+// rating too harsh now"): 0.59.0 put EX at about three quarters of a fully maxed servant, which hardly anyone reaches, so
+// they're set by what players call well raised now. Raised: at its own max level with skills 10/10/10, NP1, Fou 1000 and
+// Bond 10 a servant is 55.5, S; Lv 100 with NP2 on top is about 67, EX; max level with skills 6/6/6 is about 28, B. Power:
+// that Lv 100 NP2 ★5 is 75-77, EX; at its max level with 10/10/10 and NP1 a ★5 is about 70 and a ★4 about 65, S
+const TIER_MIN = {raised: {SS: 65, S: 50, A: 35, B: 20}, power: {SS: 75, S: 63, A: 52, B: 40}};
 const TIERS = ["SS", "S", "A", "B", "C"].map((k) => ({k: k, min: TIER_MIN.raised[k] != null ? TIER_MIN.raised[k] : -Infinity}));
 const tiersNow = () => TIERS.map((t) => ({k: t.k, min: TIER_MIN[rankMode()][t.k] != null ? TIER_MIN[rankMode()][t.k] : -Infinity}));
 const tierRanges = () => tiersNow().map((t, i, T) => tierName(t.k) + " " + (i === 0 ? t.min + "+" : t.min === -Infinity ? "under " + T[i - 1].min : t.min + "–" + T[i - 1].min)).join(", ");

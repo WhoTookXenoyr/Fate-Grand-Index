@@ -260,6 +260,14 @@ The calculator uses each servant's ascension and skill materials (`ma`/`ms` in `
   - **Fresh copies**: `syncApply` and `evPrefSave` are wrapped. A pull that brings `extras/event` reloads `evPref` (`evPrefFresh`, compared against the last raw string written or read), and the page reloads it before drawing or saving, so an old in-memory copy is never saved over a newer synced one.
 - **Class Score**: `csCostHTML(list, have)` adds "have N" (red when short) once anything's filled in; the side panel links to the page; `spend` in its state ("Take what I open out of my materials") makes `csChange` take the new squares' cost out of the things you've filled in (never below 0), with Undo.
 - The Planner's foot and the Event calculator's note link to the page. `window.__fgiMaterials` for the tests; `tests/test_57_v057.py`. The tab counts in four older suites include Materials.
+## 0.60.1-beta: stars inside the card
+- Noyr (28 Nov 2026, with a screenshot of a ★5 card): the star row was "too high", and its top was clipped by the card; the grail versions too.
+- The rows (`29-card-frames.css`) are 10 px lower, out of the frame's 875 (checked on the PR's preview with the real sprites):
+  - `cf-st-a` (200 × 60, as summoned): top −4 px (−0.457%). The sprite's stars start at its 9th row, so they begin 5 px inside the card.
+  - `cf-st-b` and `cf-st-c` (the 52-tall rows: grailed, Lv 100, Lv 120): top +1 px (0.114%). Their stars stay level with the plain row's, and the grail's rays start inside the card.
+  - ★0's crest stays at 0.
+- `test_58` checks both offsets.
+
 ## 0.60.0-beta: your favourite servant
 - Noyr (28 Nov 2026): "nice colours and animation around a SERVANTPAGE (during idle and when clicking) on your selected FAVOURITE servant".
 - `src/app/70-favourite.js` and `src/styles/45-favourite.css`.

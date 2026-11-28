@@ -106,7 +106,7 @@ with sync_playwright() as p:
     check("Power stays picked after a reload", pg.get_attribute('[data-action="rank-mode"][data-v="power"]', "aria-pressed") == "true" and pg.evaluate(f"localStorage.getItem('{KEY}:rankMode')") == "power")
     # the servant page says which ranking its rank is from
     pg.click('#ranking [data-action="goto"][data-id="altria"]'); pg.wait_for_timeout(600)
-    chip = pg.locator("#dossier .rank-chip").inner_text()
+    chip = pg.locator("#dossier .rank-chip").inner_text().replace("\xa0", " ")  # (0.60.0: the chip's halves are kept together with no-break spaces)
     check(f"the servant page's rank says Power ({chip!r})", chip.startswith("Rank #") and "Power" in chip)
     # Versus shows both
     pg.evaluate("location.hash = '#versus'"); pg.wait_for_timeout(800)
